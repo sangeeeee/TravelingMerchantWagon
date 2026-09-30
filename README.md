@@ -9,6 +9,10 @@ A Minecraft 1.21.1 NeoForge mod in development, focused on adding traveling merc
 
 Development builds resolve GeckoLib automatically through Gradle. Its build version and supported runtime range are configured in `gradle.properties`.
 
+Editable wagon models and previews are in the [open cargo wagon modeling subproject](modeling/open_cargo_wagon/README.md).
+
+The oak assembly frame block model is in the [wagon assembly frame modeling subproject](modeling/wagon_assembly_frame/README.md).
+
 
 Installation information
 =======
