@@ -1,0 +1,20 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "tm_wagon:block/wagon_assembly_frame",
+      "y": 0
+    },
+    "facing=east": {
+      "model": "tm_wagon:block/wagon_assembly_frame",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "tm_wagon:block/wagon_assembly_frame",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "tm_wagon:block/wagon_assembly_frame",
+      "y": 270
+    }
+  }
+}

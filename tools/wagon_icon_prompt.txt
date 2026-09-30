@@ -1,0 +1,6 @@
+Tool: built-in imagegen
+Output: src/main/resources/assets/tm_wagon/textures/item/wagon_icon.png
+Shared logo: src/main/resources/tm_wagon.png
+Final resolution: 64 x 64 RGBA, nearest-neighbor asset normalization.
+
+Use case: logo-brand. Create one Minecraft mod inventory icon: a crisp pixel-art open cargo merchant wagon, oak wooden boxed cargo bed, four polygonal wooden wheels with dark iron rims (two visible on near side, hints of far wheels), olive green wool driver seat at front, two long wooden shafts projecting forward. Three-quarter isometric view from front side, matches a traditional wooden traveling merchant wagon. No horse, canopy, people, text, lettering, border, ground, scene, or shadow outside wagon. Transparent background. This will be used as the mod logo AND creative inventory tab icon. Draw as if on a strict 64 by 64 pixel logical canvas with hard square pixel edges, limited warm oak brown palette, dark metal gray and muted olive wool. Detailed enough to identify wagon at tiny inventory size, clean single-pixel stair steps, no smooth gradients, no antialiasing, no photographic detail. Center complete wagon within 64x64 square, with 3 pixel safe margin, shafts and all wheels fully inside. Return a single square icon on true transparent alpha background.

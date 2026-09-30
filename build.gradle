@@ -27,6 +27,15 @@ sourceSets.main.resources {
     exclude("src/generated/**/.cache") // datagen cache files
 }
 
+// Real-world placement tests are available in development runs, excluded from
+// the distributable mod JAR.
+sourceSets {
+    gameTest {
+        compileClasspath += sourceSets.main.output + sourceSets.main.compileClasspath
+        runtimeClasspath += sourceSets.main.output + sourceSets.main.runtimeClasspath
+    }
+}
+
 repositories {
     maven {
         name = 'GeckoLib'
@@ -63,6 +72,12 @@ neoForge {
             client()
             // Comma-separated list of namespaces to load gametests from. Empty = all namespaces.
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+        }
+
+        clientSmokeTest {
+            client()
+            systemProperty 'tm_wagon.clientSmokeTest', 'true'
+            programArguments.addAll '--width', '1200', '--height', '800'
         }
 
         server {
@@ -109,6 +124,7 @@ neoForge {
         // multi mod projects should define one per mod
         "${mod_id}" {
             sourceSet(sourceSets.main)
+            sourceSet(sourceSets.gameTest)
         }
     }
 }

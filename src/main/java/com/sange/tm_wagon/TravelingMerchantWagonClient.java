@@ -1,31 +1,28 @@
 package com.sange.tm_wagon;
 
-import net.minecraft.client.Minecraft;
+import com.sange.tm_wagon.assembly.WagonContent;
+import com.sange.tm_wagon.client.AssemblyRenderer;
+import com.sange.tm_wagon.client.PartItemRenderer;
+import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.fml.common.Mod;
-import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
-import net.neoforged.neoforge.client.gui.ConfigurationScreen;
-import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
+import net.neoforged.neoforge.client.event.EntityRenderersEvent;
+import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
+import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
 
-// This class will not load on dedicated servers. Accessing client side code from here is safe.
-@Mod(value = TravelingMerchantWagon.MODID, dist = Dist.CLIENT)
-// You can use EventBusSubscriber to automatically register all static methods in the class annotated with @SubscribeEvent
 @EventBusSubscriber(modid = TravelingMerchantWagon.MODID, value = Dist.CLIENT)
-public class TravelingMerchantWagonClient {
-    public TravelingMerchantWagonClient(ModContainer container) {
-        // Allows NeoForge to create a config screen for this mod's configs.
-        // The config screen is accessed by going to the Mods screen > clicking on your mod > clicking on config.
-        // Do not forget to add translations for your config options to the en_us.json file.
-        container.registerExtensionPoint(IConfigScreenFactory.class, ConfigurationScreen::new);
-    }
-
+public final class TravelingMerchantWagonClient {
     @SubscribeEvent
-    static void onClientSetup(FMLClientSetupEvent event) {
-        // Some client setup code
-        TravelingMerchantWagon.LOGGER.info("HELLO FROM CLIENT SETUP");
-        TravelingMerchantWagon.LOGGER.info("MINECRAFT NAME >> {}", Minecraft.getInstance().getUser().getName());
+    public static void renderers(EntityRenderersEvent.RegisterRenderers event) {
+        event.registerBlockEntityRenderer(WagonContent.FRAME_ENTITY.get(), context -> new AssemblyRenderer());
     }
+    @SubscribeEvent
+    public static void items(RegisterClientExtensionsEvent event) {
+        WagonContent.PART_ITEMS.forEach((part, item) -> event.registerItem(new IClientItemExtensions() {
+            private final PartItemRenderer renderer = new PartItemRenderer(part);
+            @Override public BlockEntityWithoutLevelRenderer getCustomRenderer() { return renderer; }
+        }, item.get()));
+    }
+    private TravelingMerchantWagonClient() {}
 }
