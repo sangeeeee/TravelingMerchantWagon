@@ -1,0 +1,13 @@
+{
+  "itemGroup.tm_wagon": "TravelingMerchantWagon Tab",
+  "block.tm_wagon.example_block": "Example Block",
+  "item.tm_wagon.example_item": "Example Item",
+
+  "tm_wagon.configuration.title": "TravelingMerchantWagon Configs",
+  "tm_wagon.configuration.section.tm_wagon.common.toml": "TravelingMerchantWagon Configs",
+  "tm_wagon.configuration.section.tm_wagon.common.toml.title": "TravelingMerchantWagon Configs",
+  "tm_wagon.configuration.items": "Item List",
+  "tm_wagon.configuration.logDirtBlock": "Log Dirt Block",
+  "tm_wagon.configuration.magicNumberIntroduction": "Magic Number Text",
+  "tm_wagon.configuration.magicNumber": "Magic Number"
+}
