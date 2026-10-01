@@ -115,6 +115,7 @@ public class StageOneClientSmoke {
             if(frames==90)verifyEntityAndFrameVisibility(graphics);
             if(frames==93)verifyDrivingBones(graphics);
             if(frames==94)verifyHarnessRopeModel();
+            if(frames==95)verifyStandingPlayerMixin();
             graphics.flush();frames++;
             if(frames==15)save("stage-one-items.png");
             if(frames==40)save("stage-one-assemblies.png");
@@ -127,6 +128,13 @@ public class StageOneClientSmoke {
                 if(stream.getFormat().getChannels()!=1 || stream.read(8192).remaining()==0)throw new IllegalStateException("Invalid wagon OGG");
                 LogUtils.getLogger().info("TM_WAGON_AUDIO_PASS: mono OGG decoded, {} Hz",stream.getFormat().getSampleRate());
             } catch(java.io.IOException error) { throw new IllegalStateException(error); }
+        }
+        private void verifyStandingPlayerMixin() {
+            // Loading LocalPlayer validates the client-only redirect even without opening a world.
+            boolean applied=java.util.Arrays.stream(net.minecraft.client.player.LocalPlayer.class.getDeclaredMethods())
+                .anyMatch(method->method.getName().contains("relativePosition"));
+            if(!applied)throw new IllegalStateException("Standing-player movement redirect was not applied");
+            LogUtils.getLogger().info("TM_WAGON_PLATFORM_CLIENT_PASS: local player movement redirect applied");
         }
         private void drawAssembly(GuiGraphics graphics,AssemblyFrameBlockEntity frame,int x,int y,float scale) {
             graphics.pose().pushPose();graphics.pose().translate(x,y,500);

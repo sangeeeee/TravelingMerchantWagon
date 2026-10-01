@@ -6,9 +6,13 @@
     "WagonCollisionMixin",
     "WagonPickingMixin",
     "WagonQueryMixin",
+    "WagonStandingPlayerMixin",
     "HorseTravelMixin",
     "HorseAnimationMixin",
     "HorseLeashMixin"
+  ],
+  "client": [
+    "WagonStandingLocalPlayerMixin"
   ],
   "injectors": {
     "defaultRequire": 1
