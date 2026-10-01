@@ -306,4 +306,22 @@ public class CargoGameTests {
         CargoMenus.open(f.cargo(),entry,p);p.containerMenu.setCarried(new ItemStack(Items.EMERALD,3));f.onChunkUnloaded();
         h.assertTrue(p.containerMenu==p.inventoryMenu&&!entry.opened&&entry.inventory.getItem(0).getCount()==15&&carried(p,Items.EMERALD)==3&&drops(h,f.cargo()).isEmpty(),"Chunk unload lost cargo/cursor or retained menu");h.succeed();
     }
+    @GameTest(template="assembly_test",timeoutTicks=90)
+    public static void new_work_block_contents_and_brewing_progress_survive_both_form_conversions(GameTestHelper h) {
+        var f=frame(h);var p=player(h,f.cargo());var brew=put(h,f.cargo(),6,Items.BREWING_STAND,p);
+        brew.inventory.setItem(0,net.minecraft.world.item.alchemy.PotionContents.createItemStack(Items.POTION,net.minecraft.world.item.alchemy.Potions.WATER));
+        brew.inventory.setItem(3,new ItemStack(Items.NETHER_WART));brew.inventory.setItem(4,new ItemStack(Items.BLAZE_POWDER));
+        f.cargo().tick();int fuel=brew.brewFuel;int time=brew.brewTime;var state=brew.state;
+        var shelf=put(h,f.cargo(),7,Items.CHISELED_BOOKSHELF,p);shelf.inventory.setItem(2,new ItemStack(Items.BOOK));
+        var pot=put(h,f.cargo(),8,Items.DECORATED_POT,p);pot.inventory.setItem(0,new ItemStack(Items.DIAMOND,13));
+        h.assertTrue(f.toggleFrame(null)==null,"Workstation assembly failed");
+        var w=h.getLevel().getEntitiesOfClass(WagonEntity.class,new AABB(f.getBlockPos()).inflate(6)).getFirst();
+        h.assertTrue(f.cargo().empty()&&w.cargo().entry(6)==brew&&brew.brewFuel==fuel&&brew.brewTime==time&&brew.state==state,"Entity conversion changed workstation ownership/state");
+        h.runAtTickTime(24,()->h.assertTrue(f.toggleFrame(null)==null,"Workstation restore failed to start"));
+        h.runAtTickTime(49,()->{
+            h.assertTrue(w.isRemoved()&&w.cargo().empty()&&f.cargo().entry(6)==brew&&f.cargo().entry(7)==shelf&&f.cargo().entry(8)==pot,"Block restoration copied/lost workstations");
+            h.assertTrue(brew.brewFuel==fuel&&brew.brewTime>0&&brew.brewTime<=time&&shelf.inventory.getItem(2).is(Items.BOOK)&&pot.inventory.getItem(0).getCount()==13&&drops(h,f.cargo()).isEmpty(),"Restoration lost/duplicated contents or brewing progress");h.succeed();
+        });
+    }
+
 }

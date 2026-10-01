@@ -106,7 +106,7 @@ public final class CargoHold {
             return InteractionResult.CONSUME;
         }
         if(entries[slot]!=null) {
-            if(entries[slot].kind!=CargoEntry.Kind.ORDINARY)CargoMenus.open(this,entries[slot],player);
+            if(entries[slot].kind!=CargoEntry.Kind.ORDINARY)CargoWorkBlocks.interact(this,entries[slot],player,hand,local);
             else if(stack.getItem() instanceof BlockItem)message(player,"message.tm_wagon.cargo_occupied");
             return InteractionResult.CONSUME;
         }
@@ -125,7 +125,7 @@ public final class CargoHold {
         Vec3 point=owner.cargoPose().point(centre(slot));
         if(player==null||player.level()!=owner.cargoLevel()||player.distanceToSqr(point)>64
             ||!owner.cargoLevel().mayInteract(player,BlockPos.containing(point)))return "message.tm_wagon.protected";
-        var state=((BlockItem)stack.getItem()).getBlock().defaultBlockState();
+        var state=CargoPlacement.state(this,slot,stack,player);
         var properties=stack.get(DataComponents.BLOCK_STATE);if(properties!=null)state=properties.apply(state);
         if(state.hasProperty(ChestBlock.TYPE))state=state.setValue(ChestBlock.TYPE,net.minecraft.world.level.block.state.properties.ChestType.SINGLE);
         if(state.getBlock() instanceof ShulkerBoxBlock)state=state.setValue(ShulkerBoxBlock.FACING,net.minecraft.core.Direction.UP);
@@ -135,6 +135,10 @@ public final class CargoHold {
         String error=owner.cargoGeometryChanged();
         if(error!=null) { entries[slot]=null;return error; }
         if(!player.getAbilities().instabuild)stack.shrink(1);changed(true);return null;
+    }
+    /** Vanilla anvil wear consumes the workstation, not a block at its current world position. */
+    void consume(CargoEntry entry) {
+        int slot=slot(entry);if(slot<0)return;entries[slot]=null;owner.cargoGeometryChanged();changed(true);
     }
     /** Bounded to one cargo/gate volume; skip this host's proxy blocks and use actual cart geometry. */
     private boolean freeVolume(AABB volume) {

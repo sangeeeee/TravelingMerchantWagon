@@ -115,7 +115,7 @@ public class StageOneClientSmoke {
                     else drawWagon(graphics,wagons.getFirst(),width*3/4,190,42,1);
                     graphics.drawCenteredString(font,i==0?"Block cargo":"Entity cargo",width/4+i*width/2,290,0xff463729);
                 }
-                graphics.drawCenteredString(font,frames<125?"10 scaled cargo slots / closed containers":"Open chest + shulker / lowered tailgate",width/2,height-40,0xff463729);
+                graphics.drawCenteredString(font,frames>=150?"Cargo workstations / book and decorated pot renderers":frames<125?"10 scaled cargo slots / closed containers":"Open chest + shulker / lowered tailgate",width/2,height-40,0xff463729);
             }
             if(frames==64)verifyCachedFramePose(graphics);
             if(frames==80)verifyAudio();
@@ -133,7 +133,9 @@ public class StageOneClientSmoke {
             if(frames==90)save("wagon-entity-variants.png");
             if(frames==120)save("wagon-cargo-closed.png");
             if(frames==145)save("wagon-cargo-open.png");
-            if(frames==150) {LogUtils.getLogger().info("TM_WAGON_CLIENT_SMOKE_PASS: previous render checks plus block/entity cargo, chest/shulker lids and tailgate cache isolation");Minecraft.getInstance().stop();}
+            if(frames==150)loadWorkBlockPreview();
+            if(frames==175)save("wagon-work-blocks.png");
+            if(frames==180) {LogUtils.getLogger().info("TM_WAGON_CLIENT_SMOKE_PASS: previous render checks plus work block books, ender chest, pot, brewing and occupied shelf in both forms");Minecraft.getInstance().stop();}
         }
         private void loadCargoPreview(boolean open) {
             var registry=net.minecraft.core.RegistryAccess.fromRegistryOfRegistries(net.minecraft.core.registries.BuiltInRegistries.REGISTRY);
@@ -148,6 +150,26 @@ public class StageOneClientSmoke {
                 value.putBoolean("Visual",true);value.putBoolean("Opened",open&&i<3);value.putLong("LidStart",Long.MIN_VALUE);entries.add(value);
             }
             tag.put("Entries",entries);tag.putBoolean("GateTarget",open);tag.putBoolean("GateCollision",open);tag.putLong("GateStart",Long.MIN_VALUE);
+            assemblies.getFirst().cargo().load(tag,registry);wagons.getFirst().cargo().load(tag,registry);wagons.getFirst().cargoGeometryChanged();
+        }
+        private void loadWorkBlockPreview() {
+            var registry=net.minecraft.core.RegistryAccess.fromRegistryOfRegistries(net.minecraft.core.registries.BuiltInRegistries.REGISTRY);
+            var tag=new CompoundTag();var entries=new net.minecraft.nbt.ListTag();
+            var blocks=new net.minecraft.world.level.block.Block[]{net.minecraft.world.level.block.Blocks.ENDER_CHEST,net.minecraft.world.level.block.Blocks.ENCHANTING_TABLE,
+                net.minecraft.world.level.block.Blocks.LECTERN,net.minecraft.world.level.block.Blocks.DECORATED_POT,net.minecraft.world.level.block.Blocks.WATER_CAULDRON,
+                net.minecraft.world.level.block.Blocks.COMPOSTER,net.minecraft.world.level.block.Blocks.CHISELED_BOOKSHELF,net.minecraft.world.level.block.Blocks.BREWING_STAND,
+                net.minecraft.world.level.block.Blocks.ANVIL,net.minecraft.world.level.block.Blocks.BLAST_FURNACE};
+            for(int i=0;i<blocks.length;i++) {
+                var value=new CompoundTag();value.putInt("Slot",i);value.putUUID("Id",java.util.UUID.randomUUID());var state=blocks[i].defaultBlockState();
+                if(i==2)state=state.setValue(net.minecraft.world.level.block.LecternBlock.HAS_BOOK,true);
+                if(i==4)state=state.setValue(net.minecraft.world.level.block.LayeredCauldronBlock.LEVEL,3);
+                if(i==5)state=state.setValue(net.minecraft.world.level.block.ComposterBlock.LEVEL,8);
+                if(i==6)state=state.setValue(net.minecraft.world.level.block.ChiseledBookShelfBlock.SLOT_OCCUPIED_PROPERTIES.get(1),true);
+                if(i==7)state=state.setValue(net.minecraft.world.level.block.BrewingStandBlock.HAS_BOTTLE[0],true);
+                value.put("Item",new ItemStack(blocks[i]).save(registry));value.put("State",net.minecraft.nbt.NbtUtils.writeBlockState(state));
+                value.putBoolean("Visual",true);value.putBoolean("Opened",true);value.putLong("LidStart",Long.MIN_VALUE);entries.add(value);
+            }
+            tag.put("Entries",entries);tag.putLong("GateStart",Long.MIN_VALUE);
             assemblies.getFirst().cargo().load(tag,registry);wagons.getFirst().cargo().load(tag,registry);wagons.getFirst().cargoGeometryChanged();
         }
         private void verifyCargoBones(GuiGraphics graphics) {

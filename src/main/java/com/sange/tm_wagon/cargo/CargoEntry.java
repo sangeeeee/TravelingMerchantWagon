@@ -30,7 +30,7 @@ import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.state.BlockState;
 
 public final class CargoEntry {
-    public enum Kind { ORDINARY, CHEST, BARREL, SHULKER, FURNACE, SMOKER, CRAFTING }
+    public enum Kind { ORDINARY, CHEST, BARREL, SHULKER, FURNACE, SMOKER, BLAST_FURNACE, CRAFTING, CARTOGRAPHY, STONECUTTER, ANVIL, SMITHING, LOOM, GRINDSTONE, ENCHANTING, BREWING, CAULDRON, COMPOSTER, ENDER_CHEST, LECTERN, BOOKSHELF, POT }
     public final UUID id;
     public final ItemStack item;
     public BlockState state;
@@ -38,6 +38,10 @@ public final class CargoEntry {
     public final Inventory inventory;
     CargoHold hold;
     public int burn,fuelDuration,cook,totalCook=200;
+    public int brewTime,brewFuel,page;
+    public long compostReady=Long.MIN_VALUE;
+    public net.minecraft.world.item.Item brewingIngredient=Items.AIR;
+    private CargoLevel interactionLevel;
     public boolean opened;
     public long lidStart=Long.MIN_VALUE;
     public float lidFrom;
@@ -52,13 +56,31 @@ public final class CargoEntry {
         if(block instanceof ShulkerBoxBlock)return Kind.SHULKER;
         if(block==Blocks.FURNACE)return Kind.FURNACE;
         if(block==Blocks.SMOKER)return Kind.SMOKER;
+        if(block==Blocks.BLAST_FURNACE)return Kind.BLAST_FURNACE;
         if(block==Blocks.CRAFTING_TABLE)return Kind.CRAFTING;
+        if(block==Blocks.CARTOGRAPHY_TABLE)return Kind.CARTOGRAPHY;
+        if(block==Blocks.STONECUTTER)return Kind.STONECUTTER;
+        if(block instanceof AnvilBlock)return Kind.ANVIL;
+        if(block==Blocks.SMITHING_TABLE)return Kind.SMITHING;
+        if(block==Blocks.LOOM)return Kind.LOOM;
+        if(block==Blocks.GRINDSTONE)return Kind.GRINDSTONE;
+        if(block==Blocks.ENCHANTING_TABLE)return Kind.ENCHANTING;
+        if(block==Blocks.BREWING_STAND)return Kind.BREWING;
+        if(block instanceof AbstractCauldronBlock)return Kind.CAULDRON;
+        if(block==Blocks.COMPOSTER)return Kind.COMPOSTER;
+        if(block==Blocks.ENDER_CHEST)return Kind.ENDER_CHEST;
+        if(block==Blocks.LECTERN)return Kind.LECTERN;
+        if(block==Blocks.CHISELED_BOOKSHELF)return Kind.BOOKSHELF;
+        if(block==Blocks.DECORATED_POT)return Kind.POT;
         return Kind.ORDINARY;
     }
     public CargoEntry(CargoHold hold,UUID id,ItemStack stack,BlockState state) {
         this.hold=hold;this.id=id;item=stack.copyWithCount(1);this.state=state;kind=kind(state);
-        recipeCheck=kind==Kind.SMOKER?RecipeManager.createCheck(RecipeType.SMOKING):RecipeManager.createCheck(RecipeType.SMELTING);
-        inventory=new Inventory(cooking()?3:kind==Kind.CHEST||kind==Kind.BARREL||kind==Kind.SHULKER?27:0);
+        recipeCheck=RecipeManager.createCheck(recipeType());
+        inventory=new Inventory(switch(kind) {
+            case FURNACE,SMOKER,BLAST_FURNACE->3;case CHEST,BARREL,SHULKER->27;
+            case BREWING->5;case LECTERN,POT->1;case BOOKSHELF->6;default->0;
+        });
     }
     public static CargoEntry fromItem(CargoHold hold,ItemStack stack,BlockState state) {
         var entry=new CargoEntry(hold,UUID.randomUUID(),stack,state);entry.loading=true;
@@ -73,19 +95,26 @@ public final class CargoEntry {
             for(int i=0;i<contents.size();i++)entry.inventory.setItem(i,contents.get(i));
             entry.burn=Math.max(0,tag.getInt("BurnTime"));entry.cook=Math.max(0,tag.getInt("CookTime"));
             entry.totalCook=Math.max(1,tag.contains("CookTimeTotal")?tag.getInt("CookTimeTotal"):200);
-            entry.fuelDuration=Math.max(entry.burn,entry.fuelTime(contents.get(1)));
+            entry.fuelDuration=entry.cooking()?Math.max(entry.burn,entry.fuelTime(contents.get(1))):0;
             var recipes=tag.getCompound("RecipesUsed");
             for(String key:recipes.getAllKeys()) { var name=ResourceLocation.tryParse(key);if(name!=null)entry.recipesUsed.put(name,Math.max(0,recipes.getInt(key))); }
+            if(entry.kind==Kind.BREWING) {
+                entry.brewTime=Math.max(0,tag.getInt("BrewTime"));entry.brewFuel=Math.max(0,tag.getInt("Fuel"));entry.brewingIngredient=entry.inventory.getItem(3).getItem();
+            }
+            if(entry.kind==Kind.LECTERN&&tag.contains("Book"))entry.inventory.setItem(0,ItemStack.parseOptional(hold.owner().cargoLevel().registryAccess(),tag.getCompound("Book")));
+            if(entry.kind==Kind.POT&&tag.contains("item"))entry.inventory.setItem(0,ItemStack.parseOptional(hold.owner().cargoLevel().registryAccess(),tag.getCompound("item")));
             entry.item.remove(DataComponents.CONTAINER);
-            for(String key:new String[]{"Items","BurnTime","CookTime","CookTimeTotal","RecipesUsed"})tag.remove(key);
+            for(String key:new String[]{"Items","BurnTime","CookTime","CookTimeTotal","RecipesUsed","BrewTime","Fuel","Book","Page","item"})tag.remove(key);
             if(tag.isEmpty())entry.item.remove(DataComponents.BLOCK_ENTITY_DATA);else entry.item.set(DataComponents.BLOCK_ENTITY_DATA,CustomData.of(tag));
         }
         if(entry.cooking())entry.state=entry.state.setValue(AbstractFurnaceBlock.LIT,entry.burn>0);
-        entry.loading=false;return entry;
+        entry.loading=false;CargoWorkBlocks.updateVisualState(entry);return entry;
     }
-    private RecipeType<? extends AbstractCookingRecipe> recipeType() { return kind==Kind.SMOKER?RecipeType.SMOKING:RecipeType.SMELTING; }
-    private int fuelTime(ItemStack fuel) { int duration=fuel.getBurnTime(recipeType());return kind==Kind.SMOKER?duration/2:duration; }
-    public boolean cooking() { return kind==Kind.FURNACE||kind==Kind.SMOKER; }
+    private RecipeType<? extends AbstractCookingRecipe> recipeType() { return switch(kind) {
+        case SMOKER->RecipeType.SMOKING;case BLAST_FURNACE->RecipeType.BLASTING;default->RecipeType.SMELTING;
+    }; }
+    private int fuelTime(ItemStack fuel) { int duration=fuel.getBurnTime(recipeType());return kind==Kind.SMOKER||kind==Kind.BLAST_FURNACE?duration/2:duration; }
+    public boolean cooking() { return kind==Kind.FURNACE||kind==Kind.SMOKER||kind==Kind.BLAST_FURNACE; }
     public net.minecraft.world.level.Level holdOwnerLevel() { return hold.owner().cargoLevel(); }
     public float lid(float tick) {
         if(lidStart==Long.MIN_VALUE||hold.owner().cargoLevel()==null)return opened?1:0;
@@ -98,8 +127,12 @@ public final class CargoEntry {
         if(state.hasProperty(BarrelBlock.OPEN))state=state.setValue(BarrelBlock.OPEN,open);
         hold.changed(true);
     }
+    CargoLevel interactionLevel() {
+        if(interactionLevel==null)interactionLevel=new CargoLevel(hold,this);return interactionLevel;
+    }
     public ItemStack returnedItem() {
-        var returned=item.copy();
+        // Anvil wear changes the returned block; cauldrons always return the empty vessel.
+        var returned=kind==Kind.ANVIL?item.transmuteCopy(state.getBlock().asItem(),1):item.copy();
         if(kind==Kind.SHULKER) {
             var contents=new java.util.ArrayList<ItemStack>();for(int i=0;i<inventory.getContainerSize();i++)contents.add(inventory.getItem(i));
             returned.set(DataComponents.CONTAINER,ItemContainerContents.fromItems(contents));
@@ -119,6 +152,8 @@ public final class CargoEntry {
         recipesUsed.clear();if(player instanceof ServerPlayer p)p.awardRecipes(recipes);hold.changed(false);
     }
     public void tick() {
+        if(hold.owner().cargoBusy())return;
+        CargoWorkBlocks.tick(this);
         if(!cooking()||hold.owner().cargoBusy())return;
         if(burn==0&&(inventory.getItem(0).isEmpty()||inventory.getItem(1).isEmpty())) {
             if(cook>0) { cook=Math.max(0,cook-2);hold.changed(false); }return;
@@ -153,6 +188,8 @@ public final class CargoEntry {
         if(!visual) {
             var contents=NonNullList.withSize(inventory.getContainerSize(),ItemStack.EMPTY);
             for(int i=0;i<contents.size();i++)contents.set(i,inventory.getItem(i));ContainerHelper.saveAllItems(tag,contents,lookup);
+            tag.putInt("BrewTime",brewTime);tag.putInt("BrewFuel",brewFuel);tag.putInt("Page",page);tag.putLong("CompostReady",compostReady);
+            tag.putString("BrewingIngredient",net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(brewingIngredient).toString());
             tag.putInt("Burn",burn);tag.putInt("FuelDuration",fuelDuration);tag.putInt("Cook",cook);tag.putInt("TotalCook",totalCook);
             var used=new CompoundTag();recipesUsed.forEach((key,count)->used.putInt(key.toString(),count));tag.put("Recipes",used);
         }return tag;
@@ -164,6 +201,9 @@ public final class CargoEntry {
         var entry=new CargoEntry(hold,tag.hasUUID("Id")?tag.getUUID("Id"):UUID.randomUUID(),item,state);entry.loading=true;
         var contents=NonNullList.withSize(entry.inventory.getContainerSize(),ItemStack.EMPTY);ContainerHelper.loadAllItems(tag,contents,lookup);
         for(int i=0;i<contents.size();i++)entry.inventory.setItem(i,contents.get(i));
+        entry.brewTime=Math.max(0,tag.getInt("BrewTime"));entry.brewFuel=Math.max(0,tag.getInt("BrewFuel"));entry.page=Math.max(0,tag.getInt("Page"));
+        entry.compostReady=tag.contains("CompostReady")?tag.getLong("CompostReady"):Long.MIN_VALUE;
+        var ingredient=ResourceLocation.tryParse(tag.getString("BrewingIngredient"));entry.brewingIngredient=ingredient==null?Items.AIR:net.minecraft.core.registries.BuiltInRegistries.ITEM.get(ingredient);
         entry.burn=Math.max(0,tag.getInt("Burn"));entry.fuelDuration=Math.max(0,tag.getInt("FuelDuration"));entry.cook=Math.max(0,tag.getInt("Cook"));entry.totalCook=Math.max(1,tag.getInt("TotalCook"));
         entry.opened=tag.getBoolean("Opened");entry.lidStart=tag.contains("LidStart")?tag.getLong("LidStart"):Long.MIN_VALUE;entry.lidFrom=tag.getFloat("LidFrom");
         if(!tag.getBoolean("Visual")) {
@@ -175,12 +215,15 @@ public final class CargoEntry {
     }
     public final class Inventory extends SimpleContainer implements StackedContentsCompatible {
         Inventory(int size) { super(size); }
-        @Override public boolean stillValid(Player player) { return hold.valid(CargoEntry.this,player); }
+        @Override public boolean canPlaceItem(int slot,ItemStack stack) { return kind!=Kind.LECTERN; }
+        @Override public boolean stillValid(Player player) { return hold.valid(CargoEntry.this,player)&&(kind!=Kind.LECTERN||!getItem(0).isEmpty()); }
         @Override public void setItem(int slot,ItemStack stack) {
             if(!loading&&slot==0&&cooking()&&!ItemStack.isSameItemSameComponents(getItem(slot),stack))cook=0;
             super.setItem(slot,stack);
         }
-        @Override public void setChanged() { super.setChanged();if(!loading)hold.changed(false); }
+        @Override public void setChanged() {
+            super.setChanged();if(!loading) { CargoWorkBlocks.updateVisualState(CargoEntry.this);hold.changed(false); }
+        }
         @Override public void fillStackedContents(StackedContents contents) { for(int i=0;i<getContainerSize();i++)contents.accountStack(getItem(i)); }
     }
     public ContainerData data() {

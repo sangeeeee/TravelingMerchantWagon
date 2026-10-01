@@ -12,7 +12,7 @@ import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.ChestBlockEntity;
-import net.minecraft.world.level.block.entity.ShulkerBoxBlockEntity;
+import net.minecraft.world.level.block.entity.*;
 
 /** Drawn in cart-local coordinates by both host renderers; no cargo entities or world blocks. */
 public final class CargoRenderer {
@@ -25,14 +25,27 @@ public final class CargoRenderer {
             poses.pushPose();poses.translate(p.x-CargoHold.SCALE/2,p.y,p.z-CargoHold.SCALE/2);
             poses.scale((float)CargoHold.SCALE,(float)CargoHold.SCALE,(float)CargoHold.SCALE);
             try {
-                if(entry.kind==CargoEntry.Kind.CHEST||entry.kind==CargoEntry.Kind.SHULKER) {
+                if(entry.kind==CargoEntry.Kind.CHEST||entry.kind==CargoEntry.Kind.SHULKER||entry.kind==CargoEntry.Kind.ENDER_CHEST
+                    ||entry.kind==CargoEntry.Kind.ENCHANTING||entry.kind==CargoEntry.Kind.LECTERN||entry.kind==CargoEntry.Kind.POT) {
+                    if(entry.kind==CargoEntry.Kind.ENCHANTING||entry.kind==CargoEntry.Kind.LECTERN)
+                        mc.getBlockRenderer().renderSingleBlock(entry.state,poses,buffers,light,overlay);
                     BlockEntity be=CACHE.computeIfAbsent(entry,e->{
                         var reference=new java.lang.ref.WeakReference<>(e);
-                        return e.kind==CargoEntry.Kind.CHEST
-                            ?new ChestBlockEntity(BlockPos.ZERO,e.state) { @Override public float getOpenNess(float partial) { var cargo=reference.get();return cargo==null?0:cargo.lid(partial); } }
-                            :new ShulkerBoxBlockEntity(BlockPos.ZERO,e.state) { @Override public float getProgress(float partial) { var cargo=reference.get();return cargo==null?0:cargo.lid(partial); } };
+                        return switch(e.kind) {
+                            case CHEST->new ChestBlockEntity(BlockPos.ZERO,e.state) { @Override public float getOpenNess(float partial) { var cargo=reference.get();return cargo==null?0:cargo.lid(partial); } };
+                            case ENDER_CHEST->new EnderChestBlockEntity(BlockPos.ZERO,e.state) { @Override public float getOpenNess(float partial) { var cargo=reference.get();return cargo==null?0:cargo.lid(partial); } };
+                            case SHULKER->new ShulkerBoxBlockEntity(BlockPos.ZERO,e.state) { @Override public float getProgress(float partial) { var cargo=reference.get();return cargo==null?0:cargo.lid(partial); } };
+                            case ENCHANTING->new EnchantingTableBlockEntity(BlockPos.ZERO,e.state);
+                            case LECTERN->new LecternBlockEntity(BlockPos.ZERO,e.state);
+                            case POT->new DecoratedPotBlockEntity(BlockPos.ZERO,e.state);
+                            default->throw new IllegalStateException("Not a cargo block renderer");
+                        };
                     });
                     be.setBlockState(entry.state);be.setLevel(hold.owner().cargoLevel());
+                    if(be instanceof DecoratedPotBlockEntity)be.applyComponentsFromItemStack(entry.item);
+                    if(be instanceof EnchantingTableBlockEntity table) {
+                        table.time=hold.owner().cargoLevel()==null?0:(int)hold.owner().cargoLevel().getGameTime();table.open=table.oOpen=entry.opened?1:.2F;
+                    }
                     @SuppressWarnings("unchecked") var renderer=(BlockEntityRenderer<BlockEntity>)mc.getBlockEntityRenderDispatcher().getRenderer(be);
                     if(renderer!=null)renderer.render(be,tick,poses,buffers,light,overlay);
                     else item(mc,entry,poses,buffers,light,overlay);
