@@ -19,10 +19,21 @@ public final class WagonNetwork {
             buf->new Input(buf.readVarInt(),buf.readByte(),buf.readByte()));
         @Override public Type<? extends CustomPacketPayload> type() { return TYPE; }
     }
+    public record Push(int wagonId,byte forward,byte sideways) implements CustomPacketPayload {
+        public static final Type<Push> TYPE=new Type<>(ResourceLocation.fromNamespaceAndPath(TravelingMerchantWagon.MODID,"push"));
+        public static final StreamCodec<RegistryFriendlyByteBuf,Push> CODEC=StreamCodec.of(
+            (buf,p)->{buf.writeVarInt(p.wagonId);buf.writeByte(p.forward);buf.writeByte(p.sideways);},
+            buf->new Push(buf.readVarInt(),buf.readByte(),buf.readByte()));
+        @Override public Type<? extends CustomPacketPayload> type() { return TYPE; }
+    }
     @SubscribeEvent public static void register(RegisterPayloadHandlersEvent event) {
         event.registrar("1").playToServer(Input.TYPE,Input.CODEC,(input,context)->context.enqueueWork(()->{
             if (context.player().getVehicle() instanceof WagonEntity wagon && wagon.getId()==input.wagonId)
                 wagon.acceptInput(context.player(),input.forward,input.steering);
+        }));
+        event.registrar("1").playToServer(Push.TYPE,Push.CODEC,(input,context)->context.enqueueWork(()->{
+            if(context.player().level().getEntity(input.wagonId) instanceof WagonEntity wagon)
+                wagon.acceptPush(context.player(),input.forward,input.sideways);
         }));
     }
     private WagonNetwork() {}

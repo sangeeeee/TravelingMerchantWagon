@@ -16,6 +16,7 @@ import java.util.List;
 /** Vehicle-only support solver. Fixed mass, no cargo weights, joints or friction simulation. */
 public final class WagonPhysics {
     public static final double FORWARD_SPEED=.18*1.3, REVERSE_SPEED=.045*1.3;
+    public static final double PUSH_SPEED=.025;
     public static final double TRACK=42.0/16, WHEELBASE=40.0/16;
     public static final float NORMAL_PITCH=(float)Math.toRadians(25), NORMAL_ROLL=(float)Math.toRadians(22);
     public static final Vec3[] WHEELS={new Vec3(-21.0/16,0,-20.0/16),new Vec3(21.0/16,0,-20.0/16),
@@ -97,7 +98,7 @@ public final class WagonPhysics {
     private static double average(Support s,int a,int b,double fallback) {
         return s.has(a)&&s.has(b)?(s.heights[a]+s.heights[b])/2:s.has(a)?s.heights[a]:s.has(b)?s.heights[b]:fallback;
     }
-    public void tick(WagonEntity wagon,int input,int steering,boolean powered) {
+    public void tick(WagonEntity wagon,int input,int steering,boolean powered,int pushing) {
         WagonPose old=wagon.pose();Vec3[] oldCentres=new Vec3[4];
         for(int i=0;i<4;i++)oldCentres[i]=wagon.wheelCentre(i,old);
         boolean unstable=falling||Math.abs(old.pitch())>NORMAL_PITCH+.1||Math.abs(old.roll())>NORMAL_ROLL+.1;
@@ -107,6 +108,7 @@ public final class WagonPhysics {
         double speed=powered||driverRecovery?(input>0?FORWARD_SPEED:input<0?-REVERSE_SPEED:0):0;
         // A stranded driver can rock a tipped wagon even after its horses have detached.
         if(driverRecovery&&!powered)speed*=.35;
+        if(!powered&&!driverRecovery&&!falling&&pushing!=0)speed=PUSH_SPEED*pushing;
         float yaw=old.yaw()+(float)Math.toDegrees(speed*Math.tan(steer)/WHEELBASE);
         Vec3 direction=new WagonPose(old.position(),yaw,0,0).forward();
         Vec3 horizontal=direction.scale(speed);

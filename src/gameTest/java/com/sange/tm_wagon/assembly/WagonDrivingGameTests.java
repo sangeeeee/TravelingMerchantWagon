@@ -110,9 +110,11 @@ public class WagonDrivingGameTests {
     @GameTest(template="assembly_test",timeoutTicks=40)
     public static void unsupported_horse_times_out_without_suspending_wagon(GameTestHelper h) {
         var w=wagon(h,false,false);var p=driver(h,w);var horse=attach(h,w,p,0);Vec3 initial=w.position();
-        cliff(h,13);for(int i=0;i<20;i++)w.tick();
+        // Leave the whole horse footprint unsupported, including its rear edge after shaft lowering.
+        cliff(h,14);for(int i=0;i<20;i++)w.tick();
         h.assertTrue(w.hasHorse(horse.getUUID())&&w.shaftPitch()<-.1&&Math.abs(w.getY()-initial.y)<.05,"Horse did not hang on lowered shafts");
-        for(int i=0;i<25;i++)w.tick();
+        for(int i=0;i<39;i++)w.tick();
+        h.assertTrue(w.hasHorse(horse.getUUID())&&leads(h,w)==0,"Horse detached before three seconds");w.tick();
         h.assertTrue(!HorseHarness.attached(horse)&&!w.hasHorse(horse.getUUID())&&leads(h,w)==1,"Hanging horse did not detach once");
         double y=horse.getY();horse.setNoAi(false);for(int i=0;i<3;i++)horse.travel(Vec3.ZERO);h.assertTrue(horse.getY()<y,"Detached horse did not fall");h.succeed();
     }
@@ -179,9 +181,9 @@ public class WagonDrivingGameTests {
 
     @GameTest(template="assembly_test",timeoutTicks=40)
     public static void one_front_wheel_missing_keeps_support_and_releases_hanging_horse(GameTestHelper h) {
-        var w=wagon(h,false,false);var p=driver(h,w);var horse=attach(h,w,p,0);cliff(h,13);
+        var w=wagon(h,false,false);var p=driver(h,w);var horse=attach(h,w,p,0);cliff(h,14);
         for(int x=9;x<=10;x++)for(int z=15;z<=16;z++)for(int y=-4;y<=1;y++)h.setBlock(new BlockPos(x,y,z),Blocks.AIR);
-        for(int i=0;i<45;i++)w.tick();
+        for(int i=0;i<65;i++)w.tick();
         h.assertTrue(!w.falling()&&w.supportMask()==14,"One missing front wheel caused forward collapse");
         h.assertTrue(!HorseHarness.attached(horse)&&leads(h,w)==1,"One-wheel support changed hanging timeout/refund");h.succeed();
     }
@@ -250,9 +252,9 @@ public class WagonDrivingGameTests {
     }
     @GameTest(template="assembly_test",timeoutTicks=40)
     public static void lowering_shafts_does_not_turn_two_block_cliff_into_steps(GameTestHelper h) {
-        var w=wagon(h,false,false);var p=driver(h,w);var horse=attach(h,w,p,0);cliff(h,13);
-        for(int x=1;x<24;x++)for(int z=1;z<=13;z++)h.setBlock(new BlockPos(x,-1,z),Blocks.STONE);
-        for(int i=0;i<45;i++)w.tick();
+        var w=wagon(h,false,false);var p=driver(h,w);var horse=attach(h,w,p,0);cliff(h,14);
+        for(int x=1;x<24;x++)for(int z=1;z<=14;z++)h.setBlock(new BlockPos(x,-1,z),Blocks.STONE);
+        for(int i=0;i<65;i++)w.tick();
         h.assertTrue(!w.hasHorse(horse.getUUID())&&leads(h,w)==1&&!w.falling(),"Shaft motion gave hanging horse fictitious intermediate steps");h.succeed();
     }
     @GameTest(template="assembly_test",timeoutTicks=40)
@@ -295,6 +297,79 @@ public class WagonDrivingGameTests {
         h.assertTrue(horse.isEating()&&horse.getEatAnim(1)>0,"Stopping did not restore idle animations");
         w.detachAllHorses();horse.setEating(true);horse.setStanding(true);
         h.assertTrue(horse.isStanding(),"Detached horse retained animation restrictions");h.succeed();
+    }
+    @GameTest(template="assembly_test",timeoutTicks=40)
+    public static void horse_landing_before_three_seconds_resets_suspension_timer(GameTestHelper h) {
+        var w=wagon(h,false,false);var p=driver(h,w);var horse=attach(h,w,p,0);cliff(h,14);
+        for(int i=0;i<50;i++)w.tick();h.assertTrue(w.hasHorse(horse.getUUID()),"Horse detached before three seconds");
+        for(int x=1;x<24;x++)for(int z=1;z<=14;z++)h.setBlock(new BlockPos(x,1,z),Blocks.STONE);
+        for(int i=0;i<15;i++)w.tick();
+        h.assertTrue(w.hasHorse(horse.getUUID())&&horse.onGround()&&leads(h,w)==0,"Grounding did not cancel detachment");
+        cliff(h,14);for(int i=0;i<59;i++)w.tick();
+        h.assertTrue(w.hasHorse(horse.getUUID()),"Suspension timer accumulated across separate gaps");
+        w.tick();h.assertTrue(!w.hasHorse(horse.getUUID())&&leads(h,w)==1,"New continuous suspension did not time out exactly once");h.succeed();
+    }
+    private static void placePusher(Player player,WagonEntity wagon,int direction) {
+        player.setPos(wagon.pose().point(new Vec3(0,0,direction>0?2.55:-2.9)));
+        player.setYRot(wagon.getYRot()+(direction>0?0:180));player.setOnGround(true);
+    }
+    private static Player pusher(GameTestHelper h,WagonEntity wagon,int direction) {
+        var player=h.makeMockPlayer(GameType.SURVIVAL);placePusher(player,wagon,direction);return player;
+    }
+    private static void push(WagonEntity wagon,Player player,int direction,int ticks) {
+        for(int i=0;i<ticks;i++) { placePusher(player,wagon,direction);wagon.acceptPush(player,1,0);wagon.tick(); }
+    }
+    @GameTest(template="assembly_test",timeoutTicks=40)
+    public static void unhitched_wagon_can_be_pushed_forward_and_back_in_all_directions(GameTestHelper h) {
+        var w=wagon(h,false,false);var player=pusher(h,w,1);
+        for(Direction direction:new Direction[]{Direction.NORTH,Direction.EAST,Direction.SOUTH,Direction.WEST}) {
+            w.configure(WagonEntity.defaultParts(),direction);Vec3 start=w.position();
+            placePusher(player,w,1);h.assertTrue(w.pushDirection(player,1,0)==1,"Rear contact did not enable pushing");
+            push(w,player,1,20);Vec3 forward=w.position().subtract(start);Vec3 heading=new WagonPose(start,direction.toYRot(),0,0).forward();
+            h.assertTrue(Math.abs(forward.dot(heading)-20*WagonPhysics.PUSH_SPEED)<.01&&Math.abs(forward.y)<.01,"Push speed or heading incorrect: "+direction+" "+forward);
+            h.assertTrue(forward.subtract(heading.scale(forward.dot(heading))).length()<.01,"Manual pushing strafed");
+            push(w,player,-1,20);h.assertTrue(w.position().distanceToSqr(start)<.0001,"Front pushing did not reverse at the same slow speed");
+            w.acceptPush(player,0,0);w.tick();h.assertTrue(!w.isMoving(),"Released push kept moving");
+        }h.succeed();
+    }
+    @GameTest(template="assembly_test",timeoutTicks=40)
+    public static void only_driver_can_steer_a_manually_pushed_wagon(GameTestHelper h) {
+        var w=wagon(h,true,false);var right=h.makeMockPlayer(GameType.SURVIVAL);var left=h.makeMockPlayer(GameType.SURVIVAL);var pushing=pusher(h,w,1);
+        w.interactAt(right,new Vec3(.45,2.2,-1.875),InteractionHand.MAIN_HAND);
+        for(int i=0;i<20;i++) { w.acceptInput(right,1,1);push(w,pushing,1,1); }
+        h.assertTrue(Math.abs(w.getYRot()-180)<.01,"Right passenger steered pushed wagon");
+        w.interactAt(left,new Vec3(-.45,2.2,-1.875),InteractionHand.MAIN_HAND);float yaw=w.getYRot();
+        for(int i=0;i<25;i++) { w.acceptInput(left,0,1);push(w,pushing,1,1); }
+        h.assertTrue(w.getYRot()>yaw+1,"Driver could not steer externally pushed wagon");
+        yaw=w.getYRot();for(int i=0;i<25;i++) { w.acceptInput(left,0,1);push(w,pushing,-1,1); }
+        h.assertTrue(w.getYRot()<yaw-1,"Backward pushing did not reverse steering");
+        w.acceptPush(pushing,0,0);Vec3 stopped=w.position();drive(w,left,1,1,10);
+        h.assertTrue(w.position().distanceToSqr(stopped)<.001,"Driver propelled upright wagon without horse or external push");h.succeed();
+    }
+    @GameTest(template="assembly_test",timeoutTicks=40)
+    public static void manual_push_requires_valid_contact_empty_harness_and_safe_pose(GameTestHelper h) {
+        var w=wagon(h,false,false);var p=pusher(h,w,1);
+        h.assertTrue(w.pushDirection(p,0,0)==0&&w.pushDirection(p,-1,0)==0&&w.pushDirection(p,127,0)==0,"Standing, walking away or invalid keys enabled push");
+        p.setPos(w.position().add(1.4,0,0));p.setYRot(90);h.assertTrue(w.pushDirection(p,1,0)==0,"Side contact enabled pushing");
+        p.setPos(w.position().add(0,0,6));p.setYRot(180);h.assertTrue(w.pushDirection(p,1,0)==0,"Remote input enabled pushing");
+        placePusher(p,w,1);p.setOnGround(false);h.assertTrue(w.pushDirection(p,1,0)==0,"Airborne player pushed wagon");
+        p.setOnGround(true);p.getAbilities().flying=true;h.assertTrue(w.pushDirection(p,1,0)==0,"Flying player pushed wagon");p.getAbilities().flying=false;
+        var parts=new EnumMap<WagonSlot,WagonPart>(WagonSlot.class);parts.putAll(WagonEntity.defaultParts());parts.put(WagonSlot.SHAFTS,WagonPart.DOUBLE_HORSE_SHAFTS);w.configure(parts,Direction.NORTH);
+        var horse=attach(h,w,p,0);h.assertTrue(!w.readyToPull()&&w.pushDirection(p,1,0)==0,"Partially filled double harness allowed pushing");
+        w.detachAllHorses();h.assertTrue(w.pushDirection(p,1,0)==1,"Detached wagon remained unpushable");
+        w.lock(w.blockPosition());h.assertTrue(w.pushDirection(p,1,0)==0,"Assembly lock allowed push");w.unlock();
+        for(float roll:new float[]{.8F,(float)Math.PI}) { w.applyPose(new WagonPose(w.position(),180,0,roll));h.assertTrue(!w.canBeManuallyPushed(),"Tipped or inverted wagon accepted pushing"); }
+        w.applyPose(new WagonPose(w.position(),180,-1.2F,0));h.assertTrue(!w.canBeManuallyPushed(),"Severe front tilt accepted pushing");h.succeed();
+    }
+    @GameTest(template="assembly_test",timeoutTicks=40)
+    public static void manual_push_expires_rechecks_contact_and_cancels_opposed_forces(GameTestHelper h) {
+        var w=wagon(h,false,false);var rear=pusher(h,w,1);var front=pusher(h,w,-1);Vec3 start=w.position();
+        w.acceptPush(rear,1,0);w.acceptPush(front,1,0);w.tick();h.assertTrue(w.position().distanceToSqr(start)<.001,"Opposed pushes did not cancel");
+        w.acceptPush(front,0,0);w.acceptPush(rear,1,0);
+        for(int i=0;i<12;i++) { placePusher(rear,w,1);w.tick(); }
+        h.assertTrue(Math.abs(start.z-w.getZ()-6*WagonPhysics.PUSH_SPEED)<.01&&!w.isMoving(),"Missing heartbeats did not stop pushing");
+        placePusher(rear,w,1);w.acceptPush(rear,1,0);rear.setPos(rear.position().add(0,0,5));start=w.position();w.tick();
+        h.assertTrue(w.position().distanceToSqr(start)<.001,"Leaving contact retained push force");h.succeed();
     }
 
 }
