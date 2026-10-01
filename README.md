@@ -100,6 +100,7 @@ The oak assembly frame block model is in the [wagon assembly frame modeling subp
 - `gradlew runGameTestServer`：验证旋转、安装、失败不扣物品、共享格拆除、存档、实体阻挡、驾驶权限、车速与轮速、台阶、侧倾、悬崖、三秒悬空与重新着地、无马推动及转向、牵引卸载、方块化及损毁掉落；另验证货物装卸、数量守恒、多人菜单、工作台、熔炼进度/经验、带货转换成功与失败回退、存档和后门碰撞。
 - `gradlew runClientSmokeTest`：自动打开开发客户端，渲染八种方块物品、图标、马车组合和装配架两种状态，检查运动骨骼的缓存隔离及单声道 OGG 解码，并渲染两种形态的货物、箱盖、潜影盒和后门，截图后自动退出。截图位于 `run/screenshots/`，其中 `wagon-entity-variants.png` 显示四种实体车型与四个方向，`wagon-cargo-closed.png` 与 `wagon-cargo-open.png` 显示货物及开合状态。
 - `python tools/verify_item_screenshot.py`：检查客户端截图中标准 16 × 16 格与放大格的物品边界和居中情况。
+- `gradlew runDismountSmokeTest`：在独立的 `build/dismount-client/` 目录测试 Shift 下车、视角、行走、跳跃及两端同步。运行前将用于复现的世界**副本**放入该目录的 `saves/repro/`，并复制一份 `options.txt` 到该目录以跳过首次启动引导；副本中玩家附近 12 格内需要有可乘坐的马车，前方需要有行走及落脚空间。测试会修改副本，不会打开 `run/saves/` 中的原存档。
 - `gradlew build`：生成 `build/libs/tm_wagon-1.0.0.jar`；测试类与测试结构不打包进发布 JAR。
 - `tools/export_wagon_parts.py`：从工作区 Blockbench 模型导出部件几何、贴图和物品显示资源，简化碰撞形状由 `tools/simplified_collision.py` 定义。生成结果已放入 `src/main/resources/`，正常构建不依赖建模子项目。
 

@@ -253,12 +253,18 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
             WagonPose previous=pose();
             // Only the local player is transported on the client. Other entities already
             // receive their transported positions from the server's normal entity tracking.
+            var motion=entityData.get(MOTION);
+            // Vanilla tracking quantizes yaw to 1/256 of a turn. At tilted walls that
+            // changes the stepped collision faces enough to disagree with the server.
+            float targetYaw=motion.contains("Yaw")?motion.getFloat("Yaw"):lerpYaw;
             Vec3 nextPosition=position();float nextYaw=getYRot();
             if(lerpSteps>0) {
                 nextPosition=position().add(lerpPosition.subtract(position()).scale(1.0/lerpSteps));
-                nextYaw=getYRot()+Mth.wrapDegrees(lerpYaw-getYRot())/lerpSteps;lerpSteps--;
+                nextYaw=getYRot()+Mth.wrapDegrees(targetYaw-getYRot())/lerpSteps;lerpSteps--;
+            } else if(motion.contains("Yaw")) {
+                // Settle even when vanilla emits no new position/rotation packet.
+                nextYaw=getYRot()+Mth.wrapDegrees(targetYaw-getYRot())*.5F;
             }
-            var motion=entityData.get(MOTION);
             float nextPitch=Mth.lerp(.5F,pitch,motion.getFloat("Pitch")),nextRoll=Mth.lerp(.5F,roll,motion.getFloat("Roll"));
             steering=Mth.lerp(.5F,steering,motion.getFloat("Steering"));shaftPitch=Mth.lerp(.5F,shaftPitch,motion.getFloat("ShaftPitch"));
             for(int i=0;i<4;i++)wheels[i]=Mth.lerp(.5F,wheels[i],motion.getFloat("Wheel"+i));
@@ -354,7 +360,7 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
     }
     public boolean falling() { return level()!=null&&level().isClientSide?entityData.get(MOTION).getBoolean("Falling"):physics.falling(); }
     public void syncMotion() {
-        CompoundTag tag=new CompoundTag();tag.putFloat("Pitch",pitch);tag.putFloat("Roll",roll);tag.putFloat("Steering",steering);tag.putFloat("ShaftPitch",shaftPitch);
+        CompoundTag tag=new CompoundTag();tag.putFloat("Yaw",getYRot());tag.putFloat("Pitch",pitch);tag.putFloat("Roll",roll);tag.putFloat("Steering",steering);tag.putFloat("ShaftPitch",shaftPitch);
         tag.putInt("Support",supportMask);
         tag.putBoolean("Falling",physics.falling());
         for(int i=0;i<4;i++)tag.putFloat("Wheel"+i,wheels[i]);

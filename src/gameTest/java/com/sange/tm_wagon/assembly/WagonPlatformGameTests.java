@@ -231,4 +231,96 @@ public class WagonPlatformGameTests {
         finally { w.platform().end(); }
         h.assertTrue(e.position().equals(start)&&!w.platform().supports(e),"Tipped vehicle glued entity to its floor");h.succeed();
     }
+    @GameTest(template="assembly_test",timeoutTicks=40)
+    public static void saved_sloped_seat_dismount_settles_and_preserves_camera(GameTestHelper h) {
+        var w=wagon(h);var parts=new java.util.EnumMap<WagonSlot,WagonPart>(WagonSlot.class);parts.putAll(w.parts());parts.put(WagonSlot.SEAT,WagonPart.DOUBLE_SEAT);w.configure(parts,Direction.NORTH);
+        w.applyPose(new WagonPose(w.position(),129.74466F,.20932731F,-.19161685F));
+        var player=h.makeMockServerPlayerInLevel();var client=h.makeMockPlayer(GameType.SURVIVAL);
+        try {
+            var id=net.minecraft.server.network.ServerGamePacketListenerImpl.class.getDeclaredField("awaitingTeleport");id.setAccessible(true);
+            var pending=net.minecraft.server.network.ServerGamePacketListenerImpl.class.getDeclaredField("awaitingPositionFromClient");pending.setAccessible(true);
+            player.connection.handleAcceptTeleportPacket(new net.minecraft.network.protocol.game.ServerboundAcceptTeleportationPacket(id.getInt(player.connection)));
+            h.assertTrue(player.startRiding(w),"Failed to mount sloped seat");w.positionRider(player);
+            player.connection.handleAcceptTeleportPacket(new net.minecraft.network.protocol.game.ServerboundAcceptTeleportationPacket(id.getInt(player.connection)));
+            player.stopRiding();
+            player.connection.resetPosition();client.setPos(player.position());client.setDeltaMovement(Vec3.ZERO);
+            for(int i=0;i<25;i++) {
+                player.connection.tick();
+                var serverPose=w.pose();
+                // Vanilla entity tracking stores yaw in 1/256-turn increments.
+                float clientYaw=(float)(Math.floor(serverPose.yaw()*256/360)*360/256);
+                w.applyPose(new WagonPose(serverPose.position(),clientYaw,serverPose.pitch(),serverPose.roll()));
+                client.move(MoverType.SELF,new Vec3(0,-.08,0));client.setDeltaMovement(Vec3.ZERO);
+                Vec3 local=w.pose().local(client.position());
+                boolean standing=WagonPlatform.standingWagon(client)==w;
+                w.applyPose(serverPose);
+                if(standing)w.platform().acceptStandingMovement(player,new Vec3((float)local.x,(float)local.y,(float)local.z),i*3,10,true);
+                else player.connection.handleMovePlayer(new net.minecraft.network.protocol.game.ServerboundMovePlayerPacket.PosRot(client.getX(),client.getY(),client.getZ(),i*3,10,client.onGround()));
+                h.assertTrue(pending.get(player.connection)==null,"Sloped dismount enters teleport correction loop at tick "+i+" local="+local+" server="+player.position()+" client="+client.position());
+                h.assertTrue(Math.abs(player.getYRot()-i*3)<.01,"Sloped dismount discarded camera rotation at tick "+i+" local="+local);
+                h.assertTrue(player.position().distanceTo(w.pose().point(local))<.05,"Sloped dismount lost movement at tick "+i+" local="+local+" server="+player.position()+" client="+client.position());
+            }
+        } catch(ReflectiveOperationException error) { throw new IllegalStateException(error); }
+        h.succeed();
+    }
+    @GameTest(template="assembly_test",timeoutTicks=40)
+    public static void stale_standing_contact_falls_back_to_vanilla_movement(GameTestHelper h) {
+        var w=wagon(h);var player=h.makeMockServerPlayerInLevel();
+        try {
+            var id=net.minecraft.server.network.ServerGamePacketListenerImpl.class.getDeclaredField("awaitingTeleport");id.setAccessible(true);
+            var pending=net.minecraft.server.network.ServerGamePacketListenerImpl.class.getDeclaredField("awaitingPositionFromClient");pending.setAccessible(true);
+            player.connection.handleAcceptTeleportPacket(new net.minecraft.network.protocol.game.ServerboundAcceptTeleportationPacket(id.getInt(player.connection)));
+            player.setPos(w.position().add(4,0,0));player.setDeltaMovement(Vec3.ZERO);player.setOnGround(true);
+            player.connection.resetPosition();
+            // Contact can disappear after dismounting, jumping, or removal of the wagon.
+            for(int step=0;step<3;step++) {
+                player.connection.tick();
+                Vec3 target=player.position().add(.1,step==2?.42:0,0);
+                if(step==2)player.setDeltaMovement(0,.42,0);
+                var packet=new com.sange.tm_wagon.network.WagonNetwork.Standing(step==1?-1:w.getId(),0,100,0,
+                    35+step*25,12,step!=2,target.x,target.y,target.z);
+                com.sange.tm_wagon.network.WagonNetwork.handleStanding(player,packet);
+                h.assertTrue(pending.get(player.connection)==null,"Stale contact caused a teleport correction");
+                h.assertTrue(player.position().distanceTo(target)<1e-5,"Stale contact swallowed walking/jumping");
+                h.assertTrue(Math.abs(player.getYRot()-packet.yaw())<.001&&Math.abs(player.getXRot()-12)<.001,"Stale contact swallowed camera rotation");
+            }
+            // The fallback must not bypass the ordinary pending-teleport handshake.
+            Vec3 authoritative=player.position();player.connection.teleport(authoritative.x,authoritative.y,authoritative.z,90,0);
+            com.sange.tm_wagon.network.WagonNetwork.handleStanding(player,new com.sange.tm_wagon.network.WagonNetwork.Standing(
+                -1,0,0,0,45,10,false,authoritative.x+5,authoritative.y,authoritative.z));
+            h.assertTrue(player.position().equals(authoritative)&&pending.get(player.connection)!=null,"Fallback bypassed pending teleport validation");
+        } catch(ReflectiveOperationException error) { throw new IllegalStateException(error); }
+        h.succeed();
+    }
+
+    @GameTest(template="assembly_test",timeoutTicks=40)
+    public static void sloped_wall_contact_with_synchronized_yaw_does_not_correct_or_lock(GameTestHelper h) {
+        var w=wagon(h);var player=h.makeMockServerPlayerInLevel();var client=h.makeMockPlayer(GameType.SURVIVAL);
+        try {
+            var id=net.minecraft.server.network.ServerGamePacketListenerImpl.class.getDeclaredField("awaitingTeleport");id.setAccessible(true);
+            var pending=net.minecraft.server.network.ServerGamePacketListenerImpl.class.getDeclaredField("awaitingPositionFromClient");pending.setAccessible(true);
+            player.connection.handleAcceptTeleportPacket(new net.minecraft.network.protocol.game.ServerboundAcceptTeleportationPacket(id.getInt(player.connection)));
+            for(Vec3 direction:new Vec3[]{new Vec3(1,0,0),new Vec3(-1,0,0),new Vec3(0,0,-1),new Vec3(0,0,1)}) {
+                var serverPose=new WagonPose(w.position(),129.74466F,.20932731F,-.19161685F);
+                // Full yaw is now synchronized with pitch/roll. The old 129.375-degree
+                // quantized client pose diverged at the side wall after six walking ticks.
+                var clientPose=new WagonPose(w.position(),serverPose.yaw(),serverPose.pitch(),serverPose.roll());
+                w.applyPose(serverPose);
+                player.setPos(serverPose.point(new Vec3(0,1.5,.4)).add(0,.4,0));
+                player.move(MoverType.SELF,new Vec3(0,-.8,0));player.setDeltaMovement(Vec3.ZERO);player.connection.resetPosition();
+                client.setPos(player.position());client.setDeltaMovement(Vec3.ZERO);client.setOnGround(true);
+                for(int step=0;step<40;step++) {
+                    player.connection.tick();w.applyPose(clientPose);
+                    client.move(MoverType.SELF,clientPose.vector(direction.scale(step<25?.12:-.12)).add(0,-.08,0));client.setDeltaMovement(Vec3.ZERO);
+                    Vec3 local=clientPose.local(client.position());w.applyPose(serverPose);
+                    com.sange.tm_wagon.network.WagonNetwork.handleStanding(player,new com.sange.tm_wagon.network.WagonNetwork.Standing(
+                        w.getId(),(float)local.x,(float)local.y,(float)local.z,step*2,10,client.onGround(),client.getX(),client.getY(),client.getZ()));
+                    h.assertTrue(pending.get(player.connection)==null,"Sloped wall causes correction: direction="+direction+" tick="+step+" local="+local+" player="+serverPose.local(player.position()));
+                    h.assertTrue(player.position().distanceTo(client.position())<.08,"Sloped wall diverges: direction="+direction+" tick="+step+" client="+serverPose.local(client.position())+" server="+serverPose.local(player.position())+" local="+local);
+                }
+            }
+        } catch(ReflectiveOperationException error) { throw new IllegalStateException(error); }
+        h.succeed();
+    }
+
 }

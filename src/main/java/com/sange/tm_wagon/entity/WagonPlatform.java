@@ -78,26 +78,27 @@ public final class WagonPlatform {
         return null;
     }
     /** Reproject client-local feet onto the current authoritative platform. Keep vanilla movement validation. */
-    public void acceptStandingMovement(ServerPlayer player,Vec3 local,float yaw,float pitch,boolean onGround) {
+    public boolean acceptStandingMovement(ServerPlayer player,Vec3 local,float yaw,float pitch,boolean onGround) {
         if(!onGround||player.level()!=wagon.level()||!eligibleWithoutGroundFlag(player)||wagon.falling()||!upright(wagon.pose())
             ||!Double.isFinite(local.x)||!Double.isFinite(local.y)||!Double.isFinite(local.z)
-            ||!Float.isFinite(yaw)||!Float.isFinite(pitch))return;
+            ||!Float.isFinite(yaw)||!Float.isFinite(pitch))return false;
         Vec3 target=wagon.pose().point(local);
         // A platform packet cannot be used to approach a distant vehicle or bypass normal walking.
-        if(target.distanceToSqr(player.position())>1.5*1.5||Math.abs(target.y-player.getY())>.6)return;
+        if(target.distanceToSqr(player.position())>1.5*1.5||Math.abs(target.y-player.getY())>.6)return false;
         AABB feet=player.getBoundingBox().move(target.subtract(player.position()));
         List<AABB> boxes=wagon.collisionBoxes();
         double top=surface(feet,boxes,.18);
-        if(!Double.isFinite(top))return;
+        if(!Double.isFinite(top))return false;
         // The client's interpolated pose may leave its wall-contact position slightly inside
         // the authoritative wall. Do not feed that penetration into vanilla's teleport check.
         target=clearCartContact(player,new Vec3(target.x,top,target.z),boxes);
-        if(target==null)return;
+        if(target==null)return false;
         Vec3 delta=target.subtract(player.position());
         target=player.position().add(Entity.collideBoundingBox(player,delta,player.getBoundingBox(),wagon.level(),
             wagon.level().getEntityCollisions(player,player.getBoundingBox().expandTowards(delta))));
-        if(!Double.isFinite(surface(player.getBoundingBox().move(target.subtract(player.position())),boxes,CONTACT_EPSILON)))return;
+        if(!Double.isFinite(surface(player.getBoundingBox().move(target.subtract(player.position())),boxes,CONTACT_EPSILON)))return false;
         player.connection.handleMovePlayer(new ServerboundMovePlayerPacket.PosRot(target.x,target.y,target.z,yaw,pitch,true));
+        return true;
     }
     public void begin() {
         standing.clear();

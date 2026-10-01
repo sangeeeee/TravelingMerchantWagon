@@ -16,12 +16,14 @@ public abstract class WagonStandingLocalPlayerMixin {
     @Redirect(method="sendPosition",at=@At(value="INVOKE",target="Lnet/minecraft/client/multiplayer/ClientPacketListener;send(Lnet/minecraft/network/protocol/Packet;)V"))
     private void tm_wagon$relativePosition(ClientPacketListener connection,Packet<?> packet) {
         LocalPlayer player=(LocalPlayer)(Object)this;
-        if(packet instanceof ServerboundMovePlayerPacket move&&(move.isOnGround()||player.getDeltaMovement().y<=.1)) {
+        // Rotation-only and ground-only updates must not depend on platform contact validation.
+        if(packet instanceof ServerboundMovePlayerPacket move&&move.hasPosition()&&(move.isOnGround()||player.getDeltaMovement().y<=.1)) {
             var wagon=WagonPlatform.standingWagon(player);
             if(wagon!=null) {
                 var local=wagon.pose().local(player.position());
                 PacketDistributor.sendToServer(new WagonNetwork.Standing(wagon.getId(),(float)local.x,(float)local.y,(float)local.z,
-                    player.getYRot(),player.getXRot(),true));
+                    player.getYRot(),player.getXRot(),move.isOnGround(),
+                    move.getX(player.getX()),move.getY(player.getY()),move.getZ(player.getZ())));
                 return;
             }
         }
