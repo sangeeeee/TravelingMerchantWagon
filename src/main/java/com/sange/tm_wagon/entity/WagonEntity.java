@@ -275,13 +275,21 @@ public class WagonEntity extends Entity implements GeoEntity {
             ||player.isPassenger()||!player.onGround()||player.getAbilities().flying||Math.abs(forward)>1||Math.abs(sideways)>1
             ||(forward==0&&sideways==0))return 0;
         Vec3 local=pose().local(player.position());
-        if(local.y>.9||local.y<-.9||Math.abs(local.x)>1.8)return 0;
-        int direction=local.z>=2.25?1:local.z<=-2.25?-1:0;
-        if(direction==0)return 0;
+        if(local.y>.9||local.y<-.9)return 0;
         Vec3 intent=new Vec3(sideways,0,forward).normalize().yRot(-(float)Math.toRadians(player.getYRot()));
         Vec3 heading=new WagonPose(position(),getYRot(),0,0).forward();
-        if(intent.dot(heading)*direction<.25)return 0;
-        return intersects(player.getBoundingBox().inflate(PUSH_CONTACT_MARGIN,.05,PUSH_CONTACT_MARGIN))?direction:0;
+        double along=intent.dot(heading);
+        if(Math.abs(along)<.25)return 0;
+        AABB contact=player.getBoundingBox().inflate(PUSH_CONTACT_MARGIN,.05,PUSH_CONTACT_MARGIN);
+        // Use the surface touched, rather than fixed car-front/car-rear zones. Walking
+        // alongside a contacted wheel or axle is also a useful longitudinal push.
+        for(AABB box:collisionBoxes())if(box.intersects(contact)) {
+            double dx=Mth.clamp(player.getX(),box.minX,box.maxX)-player.getX();
+            double dz=Mth.clamp(player.getZ(),box.minZ,box.maxZ)-player.getZ();
+            // Moving away from the contact is not pulling the cart along behind the player.
+            if(intent.x*dx+intent.z*dz>=-1e-5)return along>0?1:-1;
+        }
+        return 0;
     }
     public void acceptPush(Player player,int forward,int sideways) {
         if(level().isClientSide)return;

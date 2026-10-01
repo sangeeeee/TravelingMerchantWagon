@@ -333,6 +333,44 @@ public class WagonDrivingGameTests {
         }h.succeed();
     }
     @GameTest(template="assembly_test",timeoutTicks=40)
+    public static void every_wheel_side_accepts_longitudinal_push_in_all_directions(GameTestHelper h) {
+        var w=wagon(h,false,false);var player=pusher(h,w,1);
+        for(Direction facing:new Direction[]{Direction.NORTH,Direction.EAST,Direction.SOUTH,Direction.WEST}) {
+            w.configure(WagonEntity.defaultParts(),facing);
+            for(double x:new double[]{-1.71625,1.71625})for(double z:new double[]{-1.25,1.25})for(int direction:new int[]{1,-1}) {
+                Vec3 contact=new Vec3(x,0,z);Vec3 start=w.position();Vec3 heading=w.pose().forward();
+                for(int i=0;i<4;i++) {
+                    player.setPos(w.pose().point(contact));player.setOnGround(true);
+                    player.setYRot(w.getYRot()+(direction>0?0:180));
+                    h.assertTrue(w.pushDirection(player,1,0)==direction,"Wheel/axle contact rejected: "+facing+" "+contact+" "+direction);
+                    h.assertTrue(w.collisionBoxes().stream().noneMatch(box->box.intersects(player.getBoundingBox())),"Fixture placed player inside a solid part");
+                    w.acceptPush(player,1,0);w.tick();
+                }
+                Vec3 moved=w.position().subtract(start);
+                h.assertTrue(moved.distanceTo(heading.scale(direction*4*WagonPhysics.PUSH_SPEED))<.01,"Wheel-side push strafed or had wrong speed: "+moved);
+            }
+        }h.succeed();
+    }
+    @GameTest(template="assembly_test",timeoutTicks=40)
+    public static void rear_corners_push_but_empty_space_and_moving_away_do_not(GameTestHelper h) {
+        var w=wagon(h,false,false);var player=pusher(h,w,1);
+        for(double x:new double[]{-.9,0,.9}) {
+            Vec3 start=w.position();
+            for(int i=0;i<4;i++) {
+                player.setPos(w.pose().point(new Vec3(x,0,2.62)));player.setOnGround(true);player.setYRot(w.getYRot());
+                h.assertTrue(w.pushDirection(player,1,0)==1,"Cargo rear contact rejected at "+x);
+                h.assertTrue(w.pushDirection(player,-1,0)==0,"Walking away pulled cargo rear at "+x);
+                w.acceptPush(player,1,0);w.tick();
+            }
+            h.assertTrue(Math.abs(start.z-w.getZ()-4*WagonPhysics.PUSH_SPEED)<.01,"Cargo rear push did not move vehicle");
+        }
+        player.setPos(w.pose().point(new Vec3(0,0,-4.5)));
+        h.assertTrue(w.getBoundingBox().intersects(player.getBoundingBox()),"Empty-space fixture is outside overall vehicle bounds");
+        h.assertTrue(w.pushDirection(player,1,0)==0&&w.pushDirection(player,-1,0)==0,"Gap between shafts enabled remote pushing");
+        player.setPos(w.pose().point(new Vec3(1.71625,0,1.25)));player.setYRot(w.getYRot()+90);
+        h.assertTrue(w.pushDirection(player,1,0)==0,"Pure transverse wheel contact pushed vehicle");h.succeed();
+    }
+    @GameTest(template="assembly_test",timeoutTicks=40)
     public static void only_driver_can_steer_a_manually_pushed_wagon(GameTestHelper h) {
         var w=wagon(h,true,false);var right=h.makeMockPlayer(GameType.SURVIVAL);var left=h.makeMockPlayer(GameType.SURVIVAL);var pushing=pusher(h,w,1);
         w.interactAt(right,new Vec3(.45,2.2,-1.875),InteractionHand.MAIN_HAND);
@@ -350,7 +388,7 @@ public class WagonDrivingGameTests {
     public static void manual_push_requires_valid_contact_empty_harness_and_safe_pose(GameTestHelper h) {
         var w=wagon(h,false,false);var p=pusher(h,w,1);
         h.assertTrue(w.pushDirection(p,0,0)==0&&w.pushDirection(p,-1,0)==0&&w.pushDirection(p,127,0)==0,"Standing, walking away or invalid keys enabled push");
-        p.setPos(w.position().add(1.4,0,0));p.setYRot(90);h.assertTrue(w.pushDirection(p,1,0)==0,"Side contact enabled pushing");
+        p.setPos(w.position().add(1.4,0,0));p.setYRot(90);h.assertTrue(w.pushDirection(p,1,0)==0,"Pure transverse contact enabled pushing");
         p.setPos(w.position().add(0,0,6));p.setYRot(180);h.assertTrue(w.pushDirection(p,1,0)==0,"Remote input enabled pushing");
         placePusher(p,w,1);p.setOnGround(false);h.assertTrue(w.pushDirection(p,1,0)==0,"Airborne player pushed wagon");
         p.setOnGround(true);p.getAbilities().flying=true;h.assertTrue(w.pushDirection(p,1,0)==0,"Flying player pushed wagon");p.getAbilities().flying=false;
