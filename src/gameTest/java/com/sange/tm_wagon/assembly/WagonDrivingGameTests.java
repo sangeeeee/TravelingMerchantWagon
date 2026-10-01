@@ -61,6 +61,7 @@ public class WagonDrivingGameTests {
     }
     @GameTest(template="assembly_test",timeoutTicks=40)
     public static void forward_reverse_turn_and_distance_matched_wheels(GameTestHelper h) {
+        h.assertTrue(Math.abs(WagonPhysics.FORWARD_SPEED-.234)<1e-9&&Math.abs(WagonPhysics.REVERSE_SPEED-.0585)<1e-9,"Speeds were not increased by 1.3");
         var w=wagon(h,false,false);var p=driver(h,w);attach(h,w,p,0);Vec3 start=w.position();
         drive(w,p,1,0,12);double forward=start.z-w.getZ();
         h.assertTrue(Math.abs(forward-12*WagonPhysics.FORWARD_SPEED)<.025,"Wrong forward speed: "+forward);
@@ -191,6 +192,68 @@ public class WagonDrivingGameTests {
         var parked=WagonContent.WAGON.get().create(h.getLevel());parked.configure(WagonEntity.defaultParts(),Direction.NORTH);
         parked.setPos(moving.position().add(0,0,-12));h.getLevel().addFreshEntity(parked);
         drive(moving,p,1,0,80);h.assertTrue(moving.getZ()>parked.getZ()+3.5,"Moving wagon passed through parked vehicle");h.succeed();
+    }
+
+    @GameTest(template="assembly_test",timeoutTicks=40)
+    public static void continuous_one_block_stairs(GameTestHelper h) { continuousStairs(h,1); }
+    @GameTest(template="assembly_test",timeoutTicks=40)
+    public static void continuous_spaced_one_block_stairs(GameTestHelper h) { continuousStairs(h,2); }
+    private static void continuousStairs(GameTestHelper h,int spacing) {
+        var w=wagon(h,false,false);var p=driver(h,w);var horse=attach(h,w,p,0);
+        for(int x=1;x<24;x++)for(int z=1;z<=11;z++) {
+            int height=Math.min(3,1+(11-z)/spacing);
+            for(int y=2;y<2+height;y++)h.setBlock(new BlockPos(x,y,z),Blocks.STONE);
+        }
+        drive(w,p,1,0,45);
+        h.assertTrue(w.getZ()<h.absolutePos(new BlockPos(0,0,8)).getZ(),"Continuous stairs stalled: "+w.position()+" pitch "+w.pitch()+" mask "+w.supportMask()+" horse "+horse.position());
+        h.assertTrue(w.hasHorse(horse.getUUID())&&!w.falling(),"Continuous one-block steps lost traction or became a cliff");
+        h.assertTrue(Math.abs(horse.getY()-h.absolutePos(new BlockPos(0,5,0)).getY())<.01,"Horse did not climb successive steps");
+        h.assertTrue(w.getY()>h.absolutePos(new BlockPos(0,4,0)).getY(),"Wagon body did not follow the ascending horses");
+        // Terrain contacts must survive saving while the rear wheels hang above earlier stairs.
+        var saved=new net.minecraft.nbt.CompoundTag();w.saveWithoutId(saved);w.load(saved);drive(w,p,0,0,1);
+        h.assertTrue(!w.falling(),"Reload forgot the independently tracked axle contacts");
+        drive(w,p,-1,0,210);
+        h.assertTrue(!w.falling()&&Math.abs(w.getY()-h.absolutePos(new BlockPos(0,2,0)).getY())<.2,"Continuous descent failed: "+w.position());h.succeed();
+    }
+    @GameTest(template="assembly_test",timeoutTicks=40)
+    public static void driver_recovers_sideways_without_horses(GameTestHelper h) { recover(h,0,(float)Math.PI/2); }
+    @GameTest(template="assembly_test",timeoutTicks=40)
+    public static void driver_recovers_inverted_without_horses(GameTestHelper h) { recover(h,0,(float)Math.PI); }
+    @GameTest(template="assembly_test",timeoutTicks=40)
+    public static void driver_recovers_front_tip_without_horses(GameTestHelper h) { recover(h,-1.2F,0); }
+    private static void recover(GameTestHelper h,float pitch,float roll) {
+        var w=wagon(h,false,false);var p=driver(h,w);Vec3 start=w.position();
+        WagonPose tilted=new WagonPose(start,180,pitch,roll);
+        double min=w.boxesAt(tilted).stream().mapToDouble(b->b.minY).min().orElseThrow();
+        w.applyPose(new WagonPose(start.add(0,start.y-min+.001,0),180,pitch,roll));
+        float yaw=w.getYRot();
+        for(int i=0;i<180;i++) {
+            drive(w,p,i%100<20?1:-1,1,1);
+            for(var box:w.motionBoxesAt(w.pose()))h.assertTrue(box.minY>=start.y-.03,"Recovery penetrated floor: "+w.position()+" min "+box.minY+" tick "+i+" roll "+w.roll()+" pitch "+w.pitch());
+        }
+        h.assertTrue(Math.abs(w.pitch())<.15&&Math.abs(w.roll())<.15&&!w.falling(),"Driver could not recover tipped wagon: "+w.position()+" pitch "+w.pitch()+" roll "+w.roll());
+        h.assertTrue(Math.abs(w.getYRot()-yaw)>.5,"Tipped wagon ignored steering");h.succeed();
+    }
+    @GameTest(template="assembly_test",timeoutTicks=40)
+    public static void falling_wagon_still_accepts_driver_input(GameTestHelper h) {
+        var w=wagon(h,false,false);var p=driver(h,w);attach(h,w,p,0);cliff(h,13);
+        w.setPos(w.position().add(0,0,-3));w.tick();h.assertTrue(w.falling(),"Fixture did not start falling");
+        float yaw=w.getYRot();double z=w.getZ();drive(w,p,-1,1,12);
+        h.assertTrue(w.getYRot()<yaw-.5&&w.getZ()>z,"Falling wagon ignored reverse or steering input");h.succeed();
+    }
+    @GameTest(template="assembly_test",timeoutTicks=40)
+    public static void airborne_unpowered_wagon_cannot_right_itself(GameTestHelper h) {
+        var w=wagon(h,false,false);var p=driver(h,w);
+        w.applyPose(new WagonPose(w.position().add(0,8,0),180,0,(float)Math.PI));
+        double y=w.getY();drive(w,p,1,1,5);
+        h.assertTrue(w.getY()<y&&Math.abs(w.roll()-(float)Math.PI)<.01&&Math.abs(w.getYRot()-180)<.01,"Recovery ignored gravity or allowed unpowered flight");h.succeed();
+    }
+    @GameTest(template="assembly_test",timeoutTicks=40)
+    public static void lowering_shafts_does_not_turn_two_block_cliff_into_steps(GameTestHelper h) {
+        var w=wagon(h,false,false);var p=driver(h,w);var horse=attach(h,w,p,0);cliff(h,13);
+        for(int x=1;x<24;x++)for(int z=1;z<=13;z++)h.setBlock(new BlockPos(x,-1,z),Blocks.STONE);
+        for(int i=0;i<45;i++)w.tick();
+        h.assertTrue(!w.hasHorse(horse.getUUID())&&leads(h,w)==1&&!w.falling(),"Shaft motion gave hanging horse fictitious intermediate steps");h.succeed();
     }
 
 }

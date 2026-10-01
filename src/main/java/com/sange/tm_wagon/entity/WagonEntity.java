@@ -41,6 +41,7 @@ public class WagonEntity extends Entity implements GeoEntity {
     private final float[] wheels=new float[4],oldWheels=new float[4];
     private final UUID[] horses=new UUID[2];
     private final int[] hangingTicks=new int[2];
+    private final double[] horseContactHeights={Double.NaN,Double.NaN};
     private int supportMask=15,forwardInput,steeringInput;
     private long lastInput=Long.MIN_VALUE;
     private UUID inputDriver;
@@ -374,11 +375,18 @@ public class WagonEntity extends Entity implements GeoEntity {
     public boolean horsesCanAdvance(Vec3 delta) {
         for(int i=0;i<horseCapacity();i++) {
             AbstractHorse h=horse(i);if(h==null)continue;
-            Vec3 base=horseBasePosition(i).add(delta);var g=WagonPhysics.ground(level(),new Vec3(base.x,getY(),base.z),1.001,1.05,h.getBbWidth()/2);
+            Vec3 base=horseBasePosition(i).add(delta);var g=horseGround(h,base);
             if(g.forbidden())return false;
             Vec3 target=g.present()?new Vec3(base.x,g.height(),base.z):horsePosition(i).add(delta);
             if(!level().noBlockCollision(h,h.getDimensions(Pose.STANDING).makeBoundingBox(target).deflate(.002)))return false;
         }return true;
+    }
+    /** Each horse steps from its own last foot height, even while the rear axle is on an earlier stair. */
+    private WagonPhysics.Ground horseGround(AbstractHorse horse,Vec3 next) {
+        int slot=horse.getUUID().equals(horses[0])?0:1;
+        // Lowering the shaft over a cliff must not create another "step" from thin air.
+        double reference=hangingTicks[slot]>0&&!falling()&&Double.isFinite(horseContactHeights[slot])?horseContactHeights[slot]:horse.getY();
+        return WagonPhysics.ground(level(),new Vec3(next.x,reference,next.z),1.001,1.001,horse.getBbWidth()/2);
     }
     private int hitchSlot(Vec3 local) {
         // Undo front axle steering and shaft pitch before checking model-space mounting zones.
@@ -410,11 +418,11 @@ public class WagonEntity extends Entity implements GeoEntity {
         AABB space=horse.getDimensions(Pose.STANDING).makeBoundingBox(target);
         if(!level().getWorldBorder().isWithinBounds(space)||!level().noBlockCollision(horse,space.deflate(.001)))return "message.tm_wagon.hitch_blocked";
         for(Entity e:level().getEntities(horse,space))if(e!=this&&e!=player&&!e.isPassengerOfSameVehicle(this)&&e.isAlive())return "message.tm_wagon.hitch_blocked";
-        horses[slot]=horse.getUUID();hangingTicks[slot]=0;HorseHarness.mark(horse,this);horse.setPos(target);horse.setYRot(getYRot());horse.setYBodyRot(getYRot());syncMotion();return null;
+        horses[slot]=horse.getUUID();hangingTicks[slot]=0;horseContactHeights[slot]=target.y;HorseHarness.mark(horse,this);horse.setPos(target);horse.setYRot(getYRot());horse.setYBodyRot(getYRot());syncMotion();return null;
     }
     public void detachHorse(UUID id,boolean refund) {
         for(int i=0;i<2;i++)if(id.equals(horses[i])) {
-            AbstractHorse h=horse(i);horses[i]=null;hangingTicks[i]=0;
+            AbstractHorse h=horse(i);horses[i]=null;hangingTicks[i]=0;horseContactHeights[i]=Double.NaN;
             if(h!=null) { HorseHarness.clear(h);h.setDeltaMovement(getDeltaMovement().add(0,-.08,0)); }
             else if(level() instanceof ServerLevel server)HarnessSavedData.get(server).release(id);
             if(refund&&!level().isClientSide) {
@@ -433,21 +441,24 @@ public class WagonEntity extends Entity implements GeoEntity {
             h.getNavigation().stop();h.setNoGravity(true);h.setDeltaMovement(Vec3.ZERO);h.fallDistance=0;
             h.getPersistentData().putLong(HorseHarness.OWNER_POS,blockPosition().asLong());
             if(h.getLeashHolder()!=this)h.setLeashedTo(this,true);
-            Vec3 base=horseBasePosition(i);var ground=WagonPhysics.ground(level(),new Vec3(base.x,getY(),base.z),1.001,1.001,h.getBbWidth()/2);
+            Vec3 base=horseBasePosition(i);var ground=horseGround(h,base);
             double length=horseCapacity()==1?2.725:2.825;
             if(ground.present()&&!ground.forbidden()) { desired+=Math.atan2(ground.height()-base.y,length);hangingTicks[i]=0; }
             else { desired-=Math.atan2(1,length);if(!falling()&&++hangingTicks[i]>=40) { detachHorse(h.getUUID(),true);continue; } }
             count++;
         }
         float max=(float)Math.atan2(1,horseCapacity()==1?2.725:2.825);
-        shaftPitch=Mth.lerp(.25F,shaftPitch,Mth.clamp(count==0?0:(float)(desired/count),-max,max));
+        // Several individually legal steps may put the horse more than one block above
+        // the rear axle. Upward articulation follows that grade; downward reach stays limited.
+        shaftPitch=Mth.lerp(.4F,shaftPitch,Mth.clamp(count==0?0:(float)(desired/count),-max,(float)Math.toRadians(55)));
         worldBoxes=null;worldShape=null;
         for(int i=0;i<horseCapacity();i++) {
             AbstractHorse h=horse(i);if(h==null)continue;
-            Vec3 target=horsePosition(i),base=horseBasePosition(i);var ground=WagonPhysics.ground(level(),new Vec3(base.x,getY(),base.z),1.001,1.001,h.getBbWidth()/2);
+            Vec3 target=horsePosition(i),base=horseBasePosition(i);var ground=horseGround(h,base);
             if(ground.present()&&!ground.forbidden())target=new Vec3(target.x,ground.height(),target.z);
             AABB space=h.getDimensions(Pose.STANDING).makeBoundingBox(target).deflate(.002);
             if(!level().noBlockCollision(h,space))continue;
+            if(ground.present()&&!ground.forbidden())horseContactHeights[i]=ground.height();
             Vec3 movement=target.subtract(h.position());h.setPos(target);h.setYRot(getYRot()+(float)Math.toDegrees(steering));h.setYBodyRot(h.getYRot());
             h.walkAnimation.update((float)Math.min(1,movement.horizontalDistance()*4),.4F);h.setOnGround(ground.present());
         }
@@ -478,7 +489,7 @@ public class WagonEntity extends Entity implements GeoEntity {
         tag.put("Seats",entityData.get(SEATS).copy());
         tag.putFloat("Yaw",getYRot());tag.putFloat("Pitch",pitch);tag.putFloat("Roll",roll);tag.putFloat("Health",health);tag.putBoolean("MotionStarted",motionStarted);
         tag.putFloat("ShaftPitch",shaftPitch);tag.putFloat("Steering",steering);
-        for(int i=0;i<2;i++)if(horses[i]!=null) { tag.putUUID("Horse"+i,horses[i]);tag.putInt("Hanging"+i,hangingTicks[i]); }
+        for(int i=0;i<2;i++)if(horses[i]!=null) { tag.putUUID("Horse"+i,horses[i]);tag.putInt("Hanging"+i,hangingTicks[i]);if(Double.isFinite(horseContactHeights[i]))tag.putDouble("HorseContact"+i,horseContactHeights[i]); }
         for(int i=0;i<4;i++)tag.putFloat("Wheel"+i,wheels[i]);
         var simulation=new CompoundTag();physics.save(simulation);tag.put("Simulation",simulation);
         if (assemblyLock != null) tag.putLong("AssemblyLock",assemblyLock.asLong());
@@ -491,7 +502,7 @@ public class WagonEntity extends Entity implements GeoEntity {
         pitch=tag.getFloat("Pitch");roll=tag.getFloat("Roll");health=tag.contains("Health")?tag.getFloat("Health"):20;motionStarted=tag.getBoolean("MotionStarted");
         shaftPitch=tag.getFloat("ShaftPitch");steering=tag.getFloat("Steering");
         if(tag.contains("Yaw"))setYRot(tag.getFloat("Yaw"));
-        for(int i=0;i<2;i++) { horses[i]=tag.hasUUID("Horse"+i)?tag.getUUID("Horse"+i):null;hangingTicks[i]=tag.getInt("Hanging"+i); }
+        for(int i=0;i<2;i++) { horses[i]=tag.hasUUID("Horse"+i)?tag.getUUID("Horse"+i):null;hangingTicks[i]=tag.getInt("Hanging"+i);horseContactHeights[i]=tag.contains("HorseContact"+i)?tag.getDouble("HorseContact"+i):Double.NaN; }
         for(int i=0;i<4;i++)wheels[i]=tag.getFloat("Wheel"+i);
         physics.load(tag.getCompound("Simulation"));worldBoxes=null;worldShape=null;setBoundingBox(makeBoundingBox());if(level()!=null)WagonSpatialIndex.update(this);syncMotion();
     }
