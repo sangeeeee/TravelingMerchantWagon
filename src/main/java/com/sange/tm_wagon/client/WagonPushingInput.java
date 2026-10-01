@@ -25,11 +25,14 @@ public final class WagonPushingInput {
         int forward=enabled?(mc.options.keyUp.isDown()?1:0)-(mc.options.keyDown.isDown()?1:0):0;
         int sideways=enabled?(mc.options.keyLeft.isDown()?1:0)-(mc.options.keyRight.isDown()?1:0):0;
         WagonEntity target=null;double nearest=Double.POSITIVE_INFINITY;
-        if(forward!=0||sideways!=0)for(var wagon:WagonSpatialIndex.candidates(mc.level,mc.player.getBoundingBox().inflate(WagonEntity.PUSH_CONTACT_MARGIN))) {
+        // Entity floors set onGround too. Skip even the spatial lookup and push packets on a wagon or in midair.
+        if((forward!=0||sideways!=0)&&!mc.options.keyJump.isDown()&&WagonEntity.hasGroundForPushing(mc.player))
+        for(var wagon:WagonSpatialIndex.candidates(mc.level,mc.player.getBoundingBox().inflate(WagonEntity.PUSH_CONTACT_MARGIN))) {
             double distance=mc.player.distanceToSqr(wagon);
             if(distance<nearest&&wagon.pushDirection(mc.player,forward,sideways)!=0) { target=wagon;nearest=distance; }
         }
         int id=target==null?-1:target.getId();
+        if(id==-1)heartbeat=0;
         if(previousId!=id&&previousId!=-1)PacketDistributor.sendToServer(new WagonNetwork.Push(previousId,(byte)0,(byte)0));
         if(id!=-1&&(id!=previousId||forward!=previousForward||sideways!=previousSideways||++heartbeat>=2)) {
             PacketDistributor.sendToServer(new WagonNetwork.Push(id,(byte)forward,(byte)sideways));heartbeat=0;

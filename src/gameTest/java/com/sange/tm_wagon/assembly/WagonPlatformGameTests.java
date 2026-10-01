@@ -110,6 +110,72 @@ public class WagonPlatformGameTests {
         h.succeed();
     }
     @GameTest(template="assembly_test",timeoutTicks=40)
+    public static void standing_player_can_press_and_leave_walls_without_server_corrections(GameTestHelper h) {
+        var w=wagon(h);var player=h.makeMockServerPlayerInLevel();var client=h.makeMockPlayer(GameType.SURVIVAL);
+        player.gameMode.changeGameModeForPlayer(GameType.SURVIVAL);
+        try {
+            var id=net.minecraft.server.network.ServerGamePacketListenerImpl.class.getDeclaredField("awaitingTeleport");id.setAccessible(true);
+            player.connection.handleAcceptTeleportPacket(new net.minecraft.network.protocol.game.ServerboundAcceptTeleportationPacket(id.getInt(player.connection)));
+            var pending=net.minecraft.server.network.ServerGamePacketListenerImpl.class.getDeclaredField("awaitingPositionFromClient");pending.setAccessible(true);
+            for(float yaw:new float[]{180,90,0,270,203})for(Vec3 direction:new Vec3[]{new Vec3(1,0,0),new Vec3(-1,0,0),new Vec3(0,0,-1),new Vec3(0,0,1)}) {
+                w.applyPose(new WagonPose(w.position(),yaw,0,0));
+                player.setPos(w.pose().point(new Vec3(0,1.5,.4)));player.setOnGround(true);player.connection.resetPosition();
+                client.setPos(player.position());client.setOnGround(true);
+                for(int i=0;i<30;i++) {
+                    player.connection.tick();
+                    Vec3 walking=w.pose().vector(direction.scale(i<20?.12:-.12));
+                    client.move(MoverType.SELF,walking.add(0,-.08,0));client.setDeltaMovement(Vec3.ZERO);
+                    Vec3 local=w.pose().local(client.position());
+                    w.platform().acceptStandingMovement(player,new Vec3((float)local.x,(float)local.y,(float)local.z),0,0,true);
+                    h.assertTrue(pending.get(player.connection)==null,"Wall contact caused a correction: yaw="+yaw+" direction="+direction+" tick="+i+" local="+local);
+                    h.assertTrue(player.position().distanceTo(client.position())<.02,"Wall contact lost relative movement: "+local+" server="+w.pose().local(player.position()));
+                }
+            }
+        } catch(ReflectiveOperationException error) { throw new IllegalStateException(error); }
+        h.succeed();
+    }
+    @GameTest(template="assembly_test",timeoutTicks=40)
+    public static void turning_platform_keeps_wall_contacts_clear_and_delayed_input_can_retreat(GameTestHelper h) {
+        var w=wagon(h);var player=h.makeMockServerPlayerInLevel();player.gameMode.changeGameModeForPlayer(GameType.SURVIVAL);
+        try {
+            var id=net.minecraft.server.network.ServerGamePacketListenerImpl.class.getDeclaredField("awaitingTeleport");id.setAccessible(true);
+            player.connection.handleAcceptTeleportPacket(new net.minecraft.network.protocol.game.ServerboundAcceptTeleportationPacket(id.getInt(player.connection)));
+            var pending=net.minecraft.server.network.ServerGamePacketListenerImpl.class.getDeclaredField("awaitingPositionFromClient");pending.setAccessible(true);
+            for(Vec3 contact:new Vec3[]{new Vec3(.7,1.5,.4),new Vec3(0,1.5,-1.04375),new Vec3(0,1.5,1.91875)}) {
+                w.applyPose(new WagonPose(w.position(),180,0,0));player.setPos(w.pose().point(contact));player.setOnGround(true);player.setDeltaMovement(Vec3.ZERO);player.connection.resetPosition();
+                for(int i=0;i<12;i++) {
+                    player.connection.tick();
+                    w.platform().begin();
+                    h.assertTrue(w.platform().carries(player),"Contact fixture not carried: local="+w.pose().local(player.position())+" ground="+player.onGround()+" velocity="+player.getDeltaMovement()+" support="+w.platform().supports(player));
+                    try { h.assertTrue(w.platform().moveTo(new WagonPose(w.position(),w.getYRot()+1,0,0)),"Turning at a wall was blocked"); }
+                    finally { w.platform().end(); }
+                    h.assertTrue(h.getLevel().noCollision(player,player.getBoundingBox().deflate(.00001)),"Turning platform embedded wall occupant: "+contact+" yaw="+w.getYRot());
+                    // A delayed client still sends a contact position from its older, less-rotated geometry.
+                    w.platform().acceptStandingMovement(player,new Vec3((float)contact.x,(float)contact.y,(float)contact.z),0,0,true);
+                    h.assertTrue(pending.get(player.connection)==null,"Delayed wall contact caused a teleport correction");
+                }
+                Vec3 before=w.pose().local(player.position());
+                Vec3 retreat=contact.x!=0?new Vec3(-.2,0,0):new Vec3(0,0,contact.z<0?.2:-.2);
+                w.platform().acceptStandingMovement(player,before.add(retreat),0,0,true);
+                h.assertTrue(w.pose().local(player.position()).distanceTo(before.add(retreat))<.02,"Wall occupant could not retreat");
+            }
+        } catch(ReflectiveOperationException error) { throw new IllegalStateException(error); }
+        h.succeed();
+    }
+    @GameTest(template="assembly_test",timeoutTicks=40)
+    public static void exact_foot_contact_survives_ground_flag_changes_but_not_jump_or_air(GameTestHelper h) {
+        var w=wagon(h);var e=standing(h,w,EntityType.SHEEP,new Vec3(.2,1.5,.6));
+        e.setOnGround(false);e.setDeltaMovement(new Vec3(0,-.0784,0));
+        h.assertTrue(WagonPlatform.standingWagon(e)==w,"Exact foot contact lost packet eligibility when ground flag cleared");
+        w.platform().begin();h.assertTrue(w.platform().carries(e),"Exact contact lost carry eligibility");w.platform().end();
+        e.setDeltaMovement(new Vec3(0,.42,0));
+        h.assertTrue(WagonPlatform.standingWagon(e)==null,"Jump impulse retained standing packet eligibility");
+        w.platform().begin();h.assertTrue(!w.platform().carries(e),"Jump impulse retained carry eligibility");w.platform().end();
+        e.setDeltaMovement(Vec3.ZERO);e.setPos(e.position().add(0,.025,0));
+        h.assertTrue(WagonPlatform.standingWagon(e)==null,"Nearby airborne feet were snapped to platform");
+        w.platform().begin();h.assertTrue(!w.platform().carries(e),"Airborne entity was caught by the platform");w.platform().end();h.succeed();
+    }
+    @GameTest(template="assembly_test",timeoutTicks=40)
     public static void walking_jumping_and_leaving_are_not_locked_to_platform(GameTestHelper h) {
         var w=wagon(h);var p=driver(h,w);var e=standing(h,w,EntityType.SHEEP,new Vec3(0,1.5,.7));
         Vec3 local=w.pose().local(e.position());e.move(MoverType.SELF,new Vec3(.2,0,0));e.setOnGround(true);

@@ -290,17 +290,26 @@ public class WagonEntity extends Entity implements GeoEntity {
         return !isRemoved()&&assemblyLock==null&&!hasAttachedHorses()&&!falling()&&Integer.bitCount(supportMask)>=2
             &&Math.abs(pitch)<Math.toRadians(35)&&Math.abs(roll)<Math.toRadians(30);
     }
+    /** onGround also includes entity platforms; only real block support permits pushing. */
+    public static boolean hasGroundForPushing(Player player) {
+        if(!player.isAlive()||player.isRemoved()||player.isSpectator()||player.isPassenger()
+            ||!player.onGround()||player.getAbilities().flying||player.getDeltaMovement().y>.1)return false;
+        AABB feet=player.getBoundingBox();
+        // Recheck the current feet, not the cached supporting block (which can survive a position update).
+        return player.level().findSupportingBlock(player,new AABB(feet.minX,feet.minY-.005,feet.minZ,
+            feet.maxX,feet.minY+1e-6,feet.maxZ)).isPresent();
+    }
     /** Walking intent is reported because a player's actual movement becomes zero against a solid cart. */
     public int pushDirection(Player player,int forward,int sideways) {
-        if(!canBeManuallyPushed()||player.level()!=level()||!player.isAlive()||player.isRemoved()||player.isSpectator()
-            ||player.isPassenger()||!player.onGround()||player.getAbilities().flying||Math.abs(forward)>1||Math.abs(sideways)>1
-            ||(forward==0&&sideways==0))return 0;
+        if(Math.abs(forward)>1||Math.abs(sideways)>1||(forward==0&&sideways==0)
+            ||player.level()!=level()||!hasGroundForPushing(player)||!canBeManuallyPushed())return 0;
         Vec3 local=pose().local(player.position());
         if(local.y>.9||local.y<-.9)return 0;
         Vec3 intent=new Vec3(sideways,0,forward).normalize().yRot(-(float)Math.toRadians(player.getYRot()));
         Vec3 heading=new WagonPose(position(),getYRot(),0,0).forward();
         double along=intent.dot(heading);
-        if(Math.abs(along)<.25)return 0;
+        // Allow a little steering/camera tolerance, but reject transverse/diagonal pressure before scanning parts.
+        if(Math.abs(along)<Math.cos(Math.toRadians(30)))return 0;
         AABB contact=player.getBoundingBox().inflate(PUSH_CONTACT_MARGIN,.05,PUSH_CONTACT_MARGIN);
         // Use the surface touched, rather than fixed car-front/car-rear zones. Walking
         // alongside a contacted wheel or axle is also a useful longitudinal push.
@@ -318,6 +327,7 @@ public class WagonEntity extends Entity implements GeoEntity {
         else pushRequests.put(player.getUUID(),new PushRequest(player,forward,sideways,pushTick+PUSH_INPUT_TIMEOUT));
     }
     private int manualPushInput() {
+        if(pushRequests.isEmpty())return 0;
         if(!canBeManuallyPushed()) { pushRequests.clear();return 0; }
         int force=0;
         for(var iterator=pushRequests.values().iterator();iterator.hasNext();) {

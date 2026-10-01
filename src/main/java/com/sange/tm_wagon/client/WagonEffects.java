@@ -31,16 +31,20 @@ public final class WagonEffects {
     private static final class Rolling extends AbstractTickableSoundInstance {
         private final WagonEntity wagon;
         private Vec3 previous;
-        Rolling(WagonEntity wagon) {
+        Rolling(WagonEntity wagon,double distance) {
             super(WagonContent.ROLL.get(),SoundSource.NEUTRAL,RandomSource.create());this.wagon=wagon;
-            looping=true;delay=0;volume=.35F;previous=wagon.position();x=wagon.getX();y=wagon.getY()+.6;z=wagon.getZ();
+            looping=true;delay=0;volume=rollingVolume(distance);previous=wagon.position();x=wagon.getX();y=wagon.getY()+.6;z=wagon.getZ();
         }
         @Override public void tick() {
             double distance=wagon.position().subtract(previous).horizontalDistance();previous=wagon.position();
             if(wagon.isRemoved()||wagon.supportMask()==0||distance<.0001) { stop();return; }
             x=wagon.getX();y=wagon.getY()+.6;z=wagon.getZ();
-            volume=(float)Math.min(.45,.08+distance*2);pitch=(float)Math.min(1.1,.8+distance);
+            volume=rollingVolume(distance);pitch=(float)Math.min(1.1,.8+distance);
         }
+    }
+    private static float rollingVolume(double distance) {
+        // Four times the previous gain; cap at the sound engine's maximum rather than silently clipping there.
+        return (float)Math.min(1,4*Math.min(.45,.08+distance*2));
     }
     private static final class Dust extends TerrainParticle {
         Dust(ClientLevel level,Vec3 point,Vec3 trail,net.minecraft.world.level.block.state.BlockState state,BlockPos block) {
@@ -59,7 +63,7 @@ public final class WagonEffects {
             if(distance<.0001||distance>1||wagon.supportMask()==0) {
                 if(state.sound!=null) { mc.getSoundManager().stop(state.sound);state.sound=null; }continue;
             }
-            if(state.sound==null||state.sound.isStopped()) { state.sound=new Rolling(wagon);mc.getSoundManager().play(state.sound); }
+            if(state.sound==null||state.sound.isStopped()) { state.sound=new Rolling(wagon,distance);mc.getSoundManager().play(state.sound); }
             state.dustDistance+=distance;
             if(state.dustDistance<.18||mc.player==null||mc.player.distanceToSqr(wagon)>32*32)continue;
             state.dustDistance%=.18;

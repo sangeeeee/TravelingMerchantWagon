@@ -17,6 +17,7 @@ import net.minecraft.world.phys.Vec3;
 /** Temporary ground contacts, not passengers. Only a moving wagon performs a nearby query. */
 public final class WagonPlatform {
     private static final double CONTACT_EPSILON=.06;
+    private static final double CONTACT_SKIN=.0001,MAX_CONTACT_ADJUSTMENT=.18;
     private static final ThreadLocal<WagonEntity> EXCLUDED=new ThreadLocal<>();
     private final WagonEntity wagon;
     private final Set<Entity> standing=Collections.newSetFromMap(new IdentityHashMap<>());
@@ -39,7 +40,6 @@ public final class WagonPlatform {
     private static boolean upright(WagonPose pose) {
         return Math.abs(pose.pitch())<Math.toRadians(35)&&Math.abs(pose.roll())<Math.toRadians(30);
     }
-    private boolean eligible(Entity entity) { return entity.onGround()&&eligibleWithoutGroundFlag(entity); }
     private boolean eligibleWithoutGroundFlag(Entity entity) {
         return entity!=wagon&&!(entity instanceof WagonEntity)&&!entity.isRemoved()&&!entity.isSpectator()
             &&!entity.noPhysics&&!entity.isPassenger()&&entity.getDeltaMovement().y<=.1
@@ -54,6 +54,11 @@ public final class WagonPlatform {
             &&Math.abs(box.maxY-feet.minY)<=tolerance)top=Math.max(top,box.maxY);
         return top;
     }
+    private static boolean standingOnSurface(Entity entity,List<AABB> boxes) {
+        // Vanilla clears onGround during a zero-vertical-displacement tick, even at rest on
+        // a platform. Keep exact foot contact attached, but do not catch airborne entities.
+        return Double.isFinite(surface(entity.getBoundingBox(),boxes,entity.onGround()?CONTACT_EPSILON:1e-5));
+    }
     public boolean supports(Entity entity) {
         return !wagon.falling()&&upright(wagon.pose())&&eligibleWithoutGroundFlag(entity)
             &&Double.isFinite(surface(entity.getBoundingBox(),wagon.collisionBoxes(),CONTACT_EPSILON));
@@ -65,6 +70,13 @@ public final class WagonPlatform {
         return null;
     }
     public static boolean supportedByWagon(Entity entity) { return supportingWagon(entity)!=null; }
+    /** Packet/carry eligibility: a missing ground flag requires exact contact rather than proximity. */
+    public static WagonEntity standingWagon(Entity entity) {
+        for(WagonEntity wagon:WagonSpatialIndex.candidates(entity.level(),entity.getBoundingBox().inflate(CONTACT_EPSILON)))
+            if(!wagon.falling()&&upright(wagon.pose())&&wagon.platform().eligibleWithoutGroundFlag(entity)
+                &&standingOnSurface(entity,wagon.collisionBoxes()))return wagon;
+        return null;
+    }
     /** Reproject client-local feet onto the current authoritative platform. Keep vanilla movement validation. */
     public void acceptStandingMovement(ServerPlayer player,Vec3 local,float yaw,float pitch,boolean onGround) {
         if(!onGround||player.level()!=wagon.level()||!eligibleWithoutGroundFlag(player)||wagon.falling()||!upright(wagon.pose())
@@ -74,20 +86,49 @@ public final class WagonPlatform {
         // A platform packet cannot be used to approach a distant vehicle or bypass normal walking.
         if(target.distanceToSqr(player.position())>1.5*1.5||Math.abs(target.y-player.getY())>.6)return;
         AABB feet=player.getBoundingBox().move(target.subtract(player.position()));
-        double top=surface(feet,wagon.collisionBoxes(),.18);
+        List<AABB> boxes=wagon.collisionBoxes();
+        double top=surface(feet,boxes,.18);
         if(!Double.isFinite(top))return;
-        player.connection.handleMovePlayer(new ServerboundMovePlayerPacket.PosRot(target.x,top,target.z,yaw,pitch,true));
+        // The client's interpolated pose may leave its wall-contact position slightly inside
+        // the authoritative wall. Do not feed that penetration into vanilla's teleport check.
+        target=clearCartContact(player,new Vec3(target.x,top,target.z),boxes);
+        if(target==null)return;
+        Vec3 delta=target.subtract(player.position());
+        target=player.position().add(Entity.collideBoundingBox(player,delta,player.getBoundingBox(),wagon.level(),
+            wagon.level().getEntityCollisions(player,player.getBoundingBox().expandTowards(delta))));
+        if(!Double.isFinite(surface(player.getBoundingBox().move(target.subtract(player.position())),boxes,CONTACT_EPSILON)))return;
+        player.connection.handleMovePlayer(new ServerboundMovePlayerPacket.PosRot(target.x,target.y,target.z,yaw,pitch,true));
     }
     public void begin() {
         standing.clear();
         if(wagon.falling()||!upright(wagon.pose()))return;
         List<AABB> boxes=wagon.collisionBoxes();
-        for(Entity entity:wagon.level().getEntities(wagon,wagon.getBoundingBox().inflate(CONTACT_EPSILON),this::eligible))
-            if(Double.isFinite(surface(entity.getBoundingBox(),boxes,CONTACT_EPSILON)))standing.add(entity);
+        for(Entity entity:wagon.level().getEntities(wagon,wagon.getBoundingBox().inflate(CONTACT_EPSILON),this::eligibleWithoutGroundFlag))
+            if(standingOnSurface(entity,boxes))standing.add(entity);
     }
     public void end() { standing.clear(); }
 
     private record Transport(Entity entity,Vec3 destination) {}
+    /** Rotation changes clearance for an axis-aligned occupant. Resolve only shallow cart overlaps. */
+    private static Vec3 clearCartContact(Entity entity,Vec3 destination,List<AABB> boxes) {
+        Vec3 start=destination;
+        AABB bounds=entity.getBoundingBox().move(destination.subtract(entity.position()));
+        for(int iteration=0;iteration<12;iteration++) {
+            Vec3 correction=null;double deepest=0;
+            AABB interior=bounds.deflate(1e-7);
+            for(AABB box:boxes)if(box.intersects(interior)) {
+                double left=box.minX-bounds.maxX-CONTACT_SKIN,right=box.maxX-bounds.minX+CONTACT_SKIN;
+                double back=box.minZ-bounds.maxZ-CONTACT_SKIN,front=box.maxZ-bounds.minZ+CONTACT_SKIN;
+                double dx=Math.abs(left)<Math.abs(right)?left:right,dz=Math.abs(back)<Math.abs(front)?back:front;
+                Vec3 escape=Math.abs(dx)<Math.abs(dz)?new Vec3(dx,0,0):new Vec3(0,0,dz);
+                if(escape.lengthSqr()>deepest) { deepest=escape.lengthSqr();correction=escape; }
+            }
+            if(correction==null)return destination;
+            destination=destination.add(correction);bounds=bounds.move(correction);
+            if(destination.distanceToSqr(start)>MAX_CONTACT_ADJUSTMENT*MAX_CONTACT_ADJUSTMENT)return null;
+        }
+        return null;
+    }
     /** Called for each existing small physics step, so occupants cannot tunnel through walls/ceilings. */
     public boolean moveTo(WagonPose next) {
         WagonPose previous=wagon.pose();
@@ -98,7 +139,7 @@ public final class WagonPlatform {
         List<Transport> moves=new ArrayList<>(standing.size());
         for(var iterator=standing.iterator();iterator.hasNext();) {
             Entity entity=iterator.next();AABB bounds=entity.getBoundingBox();
-            if(!eligible(entity)||!Double.isFinite(surface(bounds,oldBoxes,CONTACT_EPSILON))) { iterator.remove();continue; }
+            if(!eligibleWithoutGroundFlag(entity)||!standingOnSurface(entity,oldBoxes)) { iterator.remove();continue; }
             Vec3 destination=next.point(previous.local(entity.position()));
             AABB shifted=bounds.move(destination.subtract(entity.position()));
             // Tilted geometry uses small conservative boxes. Match their actual top faces,
@@ -106,6 +147,16 @@ public final class WagonPlatform {
             double top=surface(shifted,newBoxes,.18);
             if(!Double.isFinite(top)) { iterator.remove();continue; }
             destination=new Vec3(destination.x,top,destination.z);
+            destination=clearCartContact(entity,destination,newBoxes);
+            if(destination==null) {
+                if(!wagon.level().isClientSide)return false;
+                iterator.remove();continue;
+            }
+            // Contact correction must still have a floor, and must respect external obstacles.
+            if(!Double.isFinite(surface(bounds.move(destination.subtract(entity.position())),newBoxes,CONTACT_EPSILON))) {
+                if(!wagon.level().isClientSide)return false;
+                iterator.remove();continue;
+            }
             Vec3 delta=destination.subtract(entity.position());
             Vec3 allowed=allowedMovement(entity,wagon,delta);
             boolean clear=allowed.distanceToSqr(delta)<1e-8&&wagon.level().hasChunkAt(BlockPos.containing(destination));

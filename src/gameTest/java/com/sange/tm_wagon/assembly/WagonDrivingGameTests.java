@@ -400,6 +400,40 @@ public class WagonDrivingGameTests {
         w.applyPose(new WagonPose(w.position(),180,-1.2F,0));h.assertTrue(!w.canBeManuallyPushed(),"Severe front tilt accepted pushing");h.succeed();
     }
     @GameTest(template="assembly_test",timeoutTicks=40)
+    public static void entity_supported_players_never_push_even_on_low_wheel_edges(GameTestHelper h) {
+        var w=wagon(h,false,false);var p=pusher(h,w,1);
+        h.assertTrue(WagonEntity.hasGroundForPushing(p),"Actual ground was rejected");
+        w.acceptPush(p,1,0);Vec3 parked=w.position();
+        // Keep the old supporting-block cache: it must not make a newly boarded player eligible.
+        p.setPos(w.pose().point(new Vec3(0,1.5,.7)));
+        h.assertTrue(p.onGround()&&!WagonEntity.hasGroundForPushing(p),"Stale ground cache allowed cargo-floor pushing");
+        w.tick();h.assertTrue(w.position().distanceToSqr(parked)<.000001,"Boarding retained an old push request");
+        // The wheel's low outside shoulder used to pass the local-height check and contact check.
+        p.setPos(w.pose().point(new Vec3(1.69,.86,-.31)));
+        p.move(net.minecraft.world.entity.MoverType.SELF,new Vec3(0,-.08,0));p.setDeltaMovement(Vec3.ZERO);
+        h.assertTrue(p.onGround()&&w.platform().supports(p)&&w.pose().local(p.position()).y<.9,"Low wheel shoulder fixture has no entity support");
+        h.assertTrue(!WagonEntity.hasGroundForPushing(p)&&w.pushDirection(p,1,0)==0,"Player standing on wheel entered push detection");
+        for(int i=0;i<8;i++) { w.acceptPush(p,1,0);w.tick(); }
+        h.assertTrue(w.position().distanceToSqr(parked)<.000001,"Wheel-edge input moved wagon");
+        placePusher(p,w,1);w.acceptPush(p,1,0);w.tick();
+        h.assertTrue(parked.z-w.getZ()>.02,"Returning to terrain did not restore pushing");h.succeed();
+    }
+    @GameTest(template="assembly_test",timeoutTicks=40)
+    public static void block_support_accepts_slabs_and_rejects_air_and_diagonal_pressure(GameTestHelper h) {
+        var w=wagon(h,false,false);var p=pusher(h,w,1);
+        var below=BlockPos.containing(p.position());
+        h.getLevel().setBlockAndUpdate(below,Blocks.OAK_SLAB.defaultBlockState());
+        p.setPos(p.position().add(0,.5,0));p.setOnGround(true);
+        h.assertTrue(WagonEntity.hasGroundForPushing(p)&&w.pushDirection(p,1,0)==1,"Slab-supported contact did not permit pushing");
+        p.setYRot(w.getYRot()+50);
+        h.assertTrue(w.pushDirection(p,1,0)==0,"Mostly transverse pressure entered pushing");
+        p.setYRot(w.getYRot()+20);
+        h.assertTrue(w.pushDirection(p,1,0)==1,"Small camera-angle tolerance was lost");
+        p.setDeltaMovement(new Vec3(0,.42,0));h.assertTrue(!WagonEntity.hasGroundForPushing(p),"Jump impulse with old ground flag permitted pushing");
+        p.setDeltaMovement(Vec3.ZERO);h.getLevel().setBlockAndUpdate(below,Blocks.AIR.defaultBlockState());
+        h.assertTrue(p.onGround()&&!WagonEntity.hasGroundForPushing(p)&&w.pushDirection(p,1,0)==0,"Ground flag without block support permitted pushing");h.succeed();
+    }
+    @GameTest(template="assembly_test",timeoutTicks=40)
     public static void manual_push_expires_rechecks_contact_and_cancels_opposed_forces(GameTestHelper h) {
         var w=wagon(h,false,false);var rear=pusher(h,w,1);var front=pusher(h,w,-1);Vec3 start=w.position();
         w.acceptPush(rear,1,0);w.acceptPush(front,1,0);w.tick();h.assertTrue(w.position().distanceToSqr(start)<.001,"Opposed pushes did not cancel");

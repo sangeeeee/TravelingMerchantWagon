@@ -16,8 +16,8 @@ public abstract class WagonStandingLocalPlayerMixin {
     @Redirect(method="sendPosition",at=@At(value="INVOKE",target="Lnet/minecraft/client/multiplayer/ClientPacketListener;send(Lnet/minecraft/network/protocol/Packet;)V"))
     private void tm_wagon$relativePosition(ClientPacketListener connection,Packet<?> packet) {
         LocalPlayer player=(LocalPlayer)(Object)this;
-        if(packet instanceof ServerboundMovePlayerPacket move&&move.isOnGround()) {
-            var wagon=WagonPlatform.supportingWagon(player);
+        if(packet instanceof ServerboundMovePlayerPacket move&&(move.isOnGround()||player.getDeltaMovement().y<=.1)) {
+            var wagon=WagonPlatform.standingWagon(player);
             if(wagon!=null) {
                 var local=wagon.pose().local(player.position());
                 PacketDistributor.sendToServer(new WagonNetwork.Standing(wagon.getId(),(float)local.x,(float)local.y,(float)local.z,
