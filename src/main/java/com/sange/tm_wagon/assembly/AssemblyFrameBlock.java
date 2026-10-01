@@ -3,7 +3,14 @@ package com.sange.tm_wagon.assembly;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.ItemInteractionResult;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
@@ -26,20 +33,43 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 public class AssemblyFrameBlock extends BaseEntityBlock {
     public static final MapCodec<AssemblyFrameBlock> CODEC = simpleCodec(AssemblyFrameBlock::new);
     public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
+    public static final BooleanProperty EXTENDED = BooleanProperty.create("extended");
     public AssemblyFrameBlock(Properties properties) {
-        super(properties); registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH));
+        super(properties.dynamicShape()); registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(EXTENDED,true));
     }
     @Override protected MapCodec<? extends BaseEntityBlock> codec() { return CODEC; }
-    @Override protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) { builder.add(FACING); }
+    @Override protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) { builder.add(FACING,EXTENDED); }
     @Override public BlockState getStateForPlacement(BlockPlaceContext context) { return defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite()); }
-    @Override protected RenderShape getRenderShape(BlockState state) { return RenderShape.MODEL; }
-    @Override protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) { return Shapes.block(); }
-    @Override protected VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) { return Shapes.block(); }
+    @Override protected RenderShape getRenderShape(BlockState state) { return RenderShape.ENTITYBLOCK_ANIMATED; }
+    @Override protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) { return level.getBlockEntity(pos) instanceof AssemblyFrameBlockEntity frame
+            ? WagonGeometry.shape(frame.frameCells().getOrDefault(BlockPos.ZERO,java.util.List.of())) : Shapes.block(); }
+    @Override protected VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) { return level.getBlockEntity(pos) instanceof AssemblyFrameBlockEntity frame
+            ? WagonGeometry.shape(frame.frameCells().getOrDefault(BlockPos.ZERO,java.util.List.of())) : Shapes.block(); }
+    @Override public void setPlacedBy(Level level, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack) {
+        super.setPlacedBy(level,pos,state,placer,stack);
+        if (!level.isClientSide && level.getBlockEntity(pos) instanceof AssemblyFrameBlockEntity frame) frame.ensureFrame();
+    }
     @Override public BlockEntity newBlockEntity(BlockPos pos, BlockState state) { return new AssemblyFrameBlockEntity(pos, state); }
     @Override public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
         return level.isClientSide ? null : createTickerHelper(type, WagonContent.FRAME_ENTITY.get(), (world,pos,s,frame) -> {
+            frame.tickFrame();
             if (world.getGameTime() % 20 == 0) frame.validateLoadedCells();
         });
+    }
+    @Override protected ItemInteractionResult useItemOn(ItemStack stack,BlockState state,Level level,BlockPos pos,Player player,InteractionHand hand,BlockHitResult hit) {
+        return stack.getItem() instanceof WagonPartItem || stack.getItem() instanceof AssemblyFrameItem
+            ? ItemInteractionResult.SKIP_DEFAULT_BLOCK_INTERACTION : ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+    }
+    @Override protected InteractionResult useWithoutItem(BlockState state,Level level,BlockPos pos,Player player,BlockHitResult hit) {
+        return interact(level,pos,player);
+    }
+    public static InteractionResult interact(Level level,BlockPos pos,Player player) {
+        var frame = AssemblyFrameBlockEntity.find(level,pos);
+        if (frame == null) return InteractionResult.PASS;
+        if (level.isClientSide) return InteractionResult.SUCCESS;
+        String error = frame.toggleFrame(player);
+        if (error != null) { player.displayClientMessage(Component.translatable(error),true); return InteractionResult.FAIL; }
+        return InteractionResult.CONSUME;
     }
     @Override public boolean onDestroyedByPlayer(BlockState state, Level level, BlockPos pos, Player player, boolean willHarvest, FluidState fluid) {
         if (level.isClientSide) return false;

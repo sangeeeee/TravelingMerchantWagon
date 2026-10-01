@@ -1,6 +1,6 @@
 {
   "textures": {
-    "particle": "tm_wagon:entity/wagon"
+    "particle": "tm_wagon:block/wagon_assembly_frame"
   },
   "elements": []
 }

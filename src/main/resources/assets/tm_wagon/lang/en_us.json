@@ -27,5 +27,7 @@
   "tooltip.tm_wagon.single_seat": "Mount: 2 blocks forward, 2 blocks up from the frame, centered.",
   "tooltip.tm_wagon.double_seat": "Mount: 2 blocks forward, 2 blocks up from the frame, centered.",
   "tooltip.tm_wagon.small_wheel": "Front axle: 1 forward, 1 left or right, at frame level.",
-  "tooltip.tm_wagon.large_wheel": "Rear axle: 1 back, 1 left or right, at frame level."
+  "tooltip.tm_wagon.large_wheel": "Rear axle: 1 back, 1 left or right, at frame level.",
+  "message.tm_wagon.frame_extend_first": "Extend the assembly frame and wait for the platform to rise before placing the cargo body.",
+  "tooltip.tm_wagon.wagon_assembly_frame": "Starts extended. Right-click the support or platform with an empty hand to fold or extend."
 }

@@ -22,7 +22,18 @@ public class AssemblyGameTests {
     private static AssemblyFrameBlockEntity frame(GameTestHelper helper, Direction facing) {
         BlockPos pos = helper.absolutePos(new BlockPos(11,2,17));
         helper.getLevel().setBlock(pos,WagonContent.FRAME.get().defaultBlockState().setValue(AssemblyFrameBlock.FACING,facing),3);
-        return (AssemblyFrameBlockEntity)helper.getLevel().getBlockEntity(pos);
+        var frame = (AssemblyFrameBlockEntity)helper.getLevel().getBlockEntity(pos);
+        helper.assertTrue(frame.initializeFrame()==null,"Frame platform could not be placed");
+        return frame;
+    }
+    private static java.util.Map<BlockPos,java.util.List<net.minecraft.world.phys.AABB>> collisionSnapshot(GameTestHelper helper,AssemblyFrameBlockEntity frame) {
+        var result=new java.util.HashMap<BlockPos,java.util.List<net.minecraft.world.phys.AABB>>();
+        result.put(frame.getBlockPos(),frame.getBlockState().getCollisionShape(helper.getLevel(),frame.getBlockPos()).toAabbs());
+        frame.layout().forEach((pos,cell)->{
+            var boxes=helper.getLevel().getBlockState(pos).getCollisionShape(helper.getLevel(),pos).toAabbs();
+            if(!boxes.isEmpty())result.put(pos,boxes);
+        });
+        return result;
     }
     private static ItemStack item(WagonPart part) { return new ItemStack(WagonContent.PART_ITEMS.get(part).get(),2); }
     private static void install(GameTestHelper helper, AssemblyFrameBlockEntity frame, WagonSlot slot, WagonPart part) {
@@ -57,7 +68,7 @@ public class AssemblyGameTests {
     public static void rejected_placement_is_atomic(GameTestHelper helper) {
         var frame = frame(helper,Direction.NORTH);
         var stack = item(WagonPart.CARGO_BODY);
-        BlockPos obstruction = frame.getBlockPos().offset(0,1,1);
+        BlockPos obstruction = frame.getBlockPos().offset(0,1,2);
         helper.getLevel().setBlock(obstruction,Blocks.STONE.defaultBlockState(),3);
         String error = frame.install(WagonSlot.BODY,WagonPart.CARGO_BODY,null,stack);
         helper.assertTrue("message.tm_wagon.blocked".equals(error),"Obstruction must reject placement");
@@ -86,7 +97,7 @@ public class AssemblyGameTests {
         var positions = java.util.Set.copyOf(frame.layout().keySet());
         frame.remove(EnumSet.of(WagonSlot.BODY),false);
         helper.assertTrue(frame.parts().isEmpty(),"Body removal must remove unsupported attachments");
-        for (BlockPos pos : positions) helper.assertTrue(helper.getLevel().getBlockState(pos).isAir(),"Left an orphan cell at "+pos);
+        for (BlockPos pos : positions) if (!frame.layout().containsKey(pos)) helper.assertTrue(helper.getLevel().getBlockState(pos).isAir(),"Left an orphan cell at "+pos);
         helper.assertTrue(helper.getLevel().getBlockState(frame.getBlockPos()).is(WagonContent.FRAME.get()),"Removing body deleted the frame");
         helper.succeed();
     }
@@ -118,7 +129,7 @@ public class AssemblyGameTests {
         var player = helper.makeMockPlayer(GameType.CREATIVE);
         player.getAbilities().instabuild=true;
         var stack = item(WagonPart.CARGO_BODY);player.setItemInHand(InteractionHand.MAIN_HAND,stack);
-        var hit = new BlockHitResult(Vec3.atCenterOf(frame.getBlockPos()).add(0,.5,0),Direction.UP,frame.getBlockPos(),false);
+        var hit = new BlockHitResult(Vec3.atLowerCornerOf(frame.getBlockPos()).add(.5,1.375,.5),Direction.UP,frame.getBlockPos().above(),false);
         var result = stack.getItem().useOn(new UseOnContext(player,InteractionHand.MAIN_HAND,hit));
         helper.assertTrue(result==InteractionResult.CONSUME&&frame.has(WagonSlot.BODY)&&stack.getCount()==2,"Creative item use failed or consumed the item");
         var seat = item(WagonPart.SINGLE_SEAT);player.setItemInHand(InteractionHand.MAIN_HAND,seat);
@@ -179,4 +190,163 @@ public class AssemblyGameTests {
         helper.assertTrue(drops.size()==1&&drops.getFirst().getItem().is(WagonContent.PART_ITEMS.get(WagonPart.SMALL_WHEEL).get()),"Wheel mining must drop exactly one wheel");
         helper.succeed();
     }
+    @GameTest(template="assembly_test")
+    public static void frame_platform_placement_and_breaking(GameTestHelper helper) {
+        var origin=helper.absolutePos(new BlockPos(11,2,17));
+        var player=helper.makeMockPlayer(GameType.SURVIVAL);
+        player.setYRot(0);
+        var stack=new ItemStack(WagonContent.FRAME_ITEM.get(),2);
+        player.setItemInHand(InteractionHand.MAIN_HAND,stack);
+        helper.getLevel().setBlock(origin.below(),Blocks.STONE.defaultBlockState(),3);
+        var hit=new BlockHitResult(Vec3.atLowerCornerOf(origin).add(.5,0,.5),Direction.UP,origin.below(),false);
+        var obstruction=origin.offset(1,1,0);
+        helper.getLevel().setBlock(obstruction,Blocks.STONE.defaultBlockState(),3);
+        helper.assertTrue(stack.getItem().useOn(new UseOnContext(player,InteractionHand.MAIN_HAND,hit))==InteractionResult.FAIL,"Platform obstruction must reject frame placement");
+        helper.assertTrue(stack.getCount()==2&&helper.getLevel().getBlockState(origin).isAir(),"Rejected frame left a partial structure or consumed an item");
+        helper.getLevel().setBlock(obstruction,Blocks.AIR.defaultBlockState(),3);
+        helper.assertTrue(stack.getItem().useOn(new UseOnContext(player,InteractionHand.MAIN_HAND,hit))==InteractionResult.CONSUME,"Frame item placement failed");
+        var frame=AssemblyFrameBlockEntity.find(helper.getLevel(),origin);
+        helper.assertTrue(frame!=null&&stack.getCount()==1,"Frame placement must consume one item");
+        var top=origin.above();
+        var shape=helper.getLevel().getBlockState(top).getCollisionShape(helper.getLevel(),top);
+        helper.assertTrue(shape.bounds().maxY==.375,"Platform collision must end at the cargo floor underside");
+        var body=item(WagonPart.CARGO_BODY);player.setItemInHand(InteractionHand.MAIN_HAND,body);
+        var lowerHit=new BlockHitResult(Vec3.atLowerCornerOf(origin).add(.5,1,.5),Direction.UP,origin,false);
+        helper.assertTrue(body.getItem().useOn(new UseOnContext(player,InteractionHand.MAIN_HAND,lowerHit))==InteractionResult.FAIL,"Lower support must not count as the top platform");
+        // Click the edge, outside the root cell: it still belongs to this platform.
+        var edgeHit=new BlockHitResult(Vec3.atLowerCornerOf(origin).add(1.1,1.375,.5),Direction.UP,obstruction,false);
+        helper.assertTrue(body.getItem().useOn(new UseOnContext(player,InteractionHand.MAIN_HAND,edgeHit))==InteractionResult.CONSUME&&frame.has(WagonSlot.BODY),"Platform edge must support cargo placement");
+        var positions=java.util.Set.copyOf(frame.layout().keySet());
+        helper.getLevel().setBlock(obstruction,Blocks.STONE.defaultBlockState(),3);
+        helper.assertTrue(helper.getLevel().getBlockState(origin).isAir(),"Breaking a platform section must remove the whole frame");
+        for(var pos:positions) if(!pos.equals(obstruction)) helper.assertTrue(helper.getLevel().getBlockState(pos).isAir(),"Platform break left an orphan");
+        helper.assertTrue(helper.getLevel().getBlockState(obstruction).is(Blocks.STONE),"Frame cleanup overwrote an external replacement");
+        var drops=helper.getLevel().getEntitiesOfClass(net.minecraft.world.entity.item.ItemEntity.class,helper.getBounds());
+        helper.assertTrue(drops.stream().mapToInt(e->e.getItem().getCount()).sum()==2,"Platform dismantling must drop the frame and body exactly once");
+        helper.succeed();
+    }
+
+    @GameTest(template="assembly_test")
+    public static void simplified_collision_and_extended_cargo(GameTestHelper helper) {
+        var body=WagonGeometry.cells(WagonPart.CARGO_BODY,WagonSlot.BODY,Direction.NORTH);
+        helper.assertTrue(body.containsKey(new BlockPos(0,1,2)),"Extended rear cargo floor is missing collision");
+        var interior=WagonGeometry.shape(body.get(new BlockPos(0,2,0))==null?java.util.List.of():body.get(new BlockPos(0,2,0)));
+        helper.assertTrue(interior.isEmpty(),"Cargo interior must remain an open box");
+        var wheels=WagonGeometry.cells(WagonPart.SMALL_WHEEL,WagonSlot.FRONT_LEFT,Direction.NORTH);
+        var origin=helper.absolutePos(new BlockPos(11,2,17));
+        var cell=origin.offset(-1,0,-1);
+        var eye=new Vec3(origin.getX()-3,origin.getY()+10.5/16,origin.getZ()+.5-20.0/16+.15);
+        helper.assertTrue(WagonGeometry.shape(wheels.get(new BlockPos(-1,0,-1))).clip(eye,eye.add(5,0,0),cell)!=null,"Wheel spokes must not leave holes in gameplay collision");
+        helper.succeed();
+    }
+
+    @GameTest(template="assembly_test",timeoutTicks=80)
+    public static void frame_right_click_fold_unfold_and_save(GameTestHelper helper) {
+        var frame=frame(helper,Direction.NORTH);
+        var origin=frame.getBlockPos();
+        var player=helper.makeMockPlayer(GameType.SURVIVAL);
+        var hit=new BlockHitResult(Vec3.atCenterOf(origin),Direction.NORTH,origin,false);
+        var raisedCollision=collisionSnapshot(helper,frame);
+        var loweredCollision=new java.util.HashMap<BlockPos,java.util.List<net.minecraft.world.phys.AABB>>();
+        helper.assertTrue(frame.extended()&&frame.frameProgress(0)==0,"Placed frames must begin fully extended");
+        helper.assertTrue(frame.getBlockState().useWithoutItem(helper.getLevel(),player,hit)==InteractionResult.CONSUME,"Empty-hand right click must start folding");
+        helper.assertTrue(!frame.extended()&&frame.frameMoving(),"Right click did not change target state");
+        helper.assertTrue(frame.getBlockState().getValue(AssemblyFrameBlock.EXTENDED),"Block state must commit only after the animation");
+        helper.assertTrue(collisionSnapshot(helper,frame).equals(raisedCollision),"Starting the animation changed collision");
+        for(int tick=1;tick<20;tick++)helper.runAtTickTime(tick,()->helper.assertTrue(collisionSnapshot(helper,frame).equals(raisedCollision),"Collision changed during folding"));
+        helper.runAtTickTime(10,()->{
+            helper.assertTrue(frame.frameProgress(0)>0&&frame.frameProgress(0)<1,"Folding must animate through intermediate poses");
+            helper.assertTrue(helper.getLevel().getBlockEntity(origin.offset(1,0,0)) instanceof AssemblyCellBlockEntity,"Motion must reserve the lower platform cells");
+        });
+        helper.runAtTickTime(24,()->{
+            helper.assertTrue(!frame.frameMoving()&&frame.frameProgress(0)==1,"Fold animation did not finish");
+            var shape=frame.getBlockState().getCollisionShape(helper.getLevel(),origin);
+            helper.assertTrue(Math.abs(shape.bounds().maxY-FrameMotion.collisionTop(1))<1e-6,"Collision did not follow the lowered platform");
+            helper.assertTrue(helper.getLevel().getBlockState(origin.above()).isAir(),"Folded frame left elevated collision cells");
+            var copy=new AssemblyFrameBlockEntity(origin,frame.getBlockState());
+            copy.loadWithComponents(frame.saveWithFullMetadata(helper.getLevel().registryAccess()),helper.getLevel().registryAccess());
+            helper.assertTrue(!copy.extended()&&copy.frameProgress(0)==1&&copy.layout().keySet().equals(frame.layout().keySet()),"Save/load lost the folded pose");
+            loweredCollision.putAll(collisionSnapshot(helper,frame));
+            var body=item(WagonPart.CARGO_BODY);
+            helper.assertTrue("message.tm_wagon.frame_extend_first".equals(frame.install(WagonSlot.BODY,WagonPart.CARGO_BODY,null,body))&&body.getCount()==2,"Folded frames must reject cargo placement without consuming items");
+            helper.assertTrue(frame.getBlockState().useWithoutItem(helper.getLevel(),player,hit)==InteractionResult.CONSUME,"Second right click must unfold");
+        });
+        for(int tick=25;tick<44;tick++)helper.runAtTickTime(tick,()->helper.assertTrue(collisionSnapshot(helper,frame).equals(loweredCollision),"Collision changed during unfolding"));
+        helper.runAtTickTime(48,()->{
+            helper.assertTrue(frame.extended()&&!frame.frameMoving()&&frame.frameProgress(0)==0,"Unfolding did not return to the extended state");
+            helper.assertTrue(collisionSnapshot(helper,frame).equals(raisedCollision),"Completed unfolding did not restore collision");
+            helper.assertTrue(frame.platformTop(new BlockHitResult(Vec3.atLowerCornerOf(origin).add(.5,1.375,.5),Direction.UP,origin.above(),false)),"Raised platform no longer accepts cargo");
+            helper.assertTrue(helper.getLevel().getBlockState(origin.offset(1,0,0)).isAir(),"Unfolding left a lower reservation cell");
+            helper.succeed();
+        });
+    }
+
+    @GameTest(template="assembly_test")
+    public static void frame_motion_rejects_obstructions_and_preserves_item_use(GameTestHelper helper) {
+        var frame=frame(helper,Direction.EAST);
+        var origin=frame.getBlockPos();
+        var obstruction=origin.offset(1,0,0);
+        helper.getLevel().setBlock(obstruction,Blocks.STONE.defaultBlockState(),3);
+        helper.assertTrue("message.tm_wagon.blocked".equals(frame.toggleFrame(null))&&frame.extended()&&!frame.frameMoving(),"Blocked folding changed the frame or overwrote a block");
+        helper.getLevel().setBlock(obstruction,Blocks.AIR.defaultBlockState(),3);
+        var pig=helper.spawn(net.minecraft.world.entity.EntityType.PIG,new BlockPos(12,2,17));
+        helper.assertTrue("message.tm_wagon.entity_blocked".equals(frame.toggleFrame(null)),"Entities in the platform sweep must block folding");
+        pig.discard();
+        var player=helper.makeMockPlayer(GameType.CREATIVE);
+        var body=item(WagonPart.CARGO_BODY);
+        var hit=new BlockHitResult(Vec3.atLowerCornerOf(origin).add(.5,1.375,.5),Direction.UP,origin.above(),false);
+        var state=helper.getLevel().getBlockState(origin.above());
+        helper.assertTrue(state.useItemOn(body,helper.getLevel(),player,InteractionHand.MAIN_HAND,hit)==net.minecraft.world.ItemInteractionResult.SKIP_DEFAULT_BLOCK_INTERACTION,"Component use must not toggle the frame");
+        helper.assertTrue(frame.extended()&&!frame.frameMoving(),"Holding a component started an animation");
+        helper.succeed();
+    }
+
+    @GameTest(template="assembly_test",timeoutTicks=60)
+    public static void reversing_frame_and_preserving_cargo(GameTestHelper helper) {
+        var frame=frame(helper,Direction.SOUTH);
+        install(helper,frame,WagonSlot.BODY,WagonPart.CARGO_BODY);
+        helper.assertTrue(frame.toggleFrame(null)==null,"Loaded frame could not fold");
+        helper.runAtTickTime(10,()->{
+            double before=frame.frameProgress(0);
+            helper.assertTrue(frame.toggleFrame(null)==null,"Moving frame could not reverse");
+            helper.assertTrue(Math.abs(frame.frameProgress(0)-before)<1e-6,"Reversing snapped the platform to an endpoint");
+            helper.assertTrue(frame.has(WagonSlot.BODY),"Folding removed the cargo body");
+        });
+        helper.runAtTickTime(35,()->{
+            helper.assertTrue(frame.extended()&&!frame.frameMoving(),"Reversal did not finish");
+            helper.assertTrue(frame.has(WagonSlot.BODY),"Animation completion removed cargo");
+            var positions=java.util.Set.copyOf(frame.layout().keySet());frame.dismantle(false,true);
+            for(var position:positions)helper.assertTrue(helper.getLevel().getBlockState(position).isAir(),"Animated frame dismantling left orphan cells");
+            helper.succeed();
+        });
+    }
+
+    @GameTest(template="assembly_test",timeoutTicks=80)
+    public static void frame_packet_order_does_not_flash_end_pose(GameTestHelper helper) {
+        var frame=frame(helper,Direction.NORTH);
+        var original=frame.getBlockState();
+        var receiver=new AssemblyFrameBlockEntity(frame.getBlockPos(),original);
+        receiver.setLevel(helper.getLevel());
+        receiver.setBlockState(original.setValue(AssemblyFrameBlock.EXTENDED,false));
+        helper.assertTrue(receiver.frameProgress(0)==0,"Block-state packet exposed the folded endpoint before animation data");
+        helper.assertTrue(frame.toggleFrame(null)==null,"Could not start packet-order test animation");
+        receiver.loadWithComponents(frame.getUpdateTag(helper.getLevel().registryAccess()),helper.getLevel().registryAccess());
+        helper.assertTrue(receiver.frameProgress(0)==frame.frameProgress(0)&&receiver.frameProgress(0)<.01,"Animation data must start at the previous pose");
+        helper.runAtTickTime(10,()->{
+            receiver.loadWithComponents(frame.getUpdateTag(helper.getLevel().registryAccess()),helper.getLevel().registryAccess());
+            helper.assertTrue(Math.abs(receiver.frameProgress(0)-frame.frameProgress(0))<1e-6,"Mid-animation sync changed the visual progress");
+        });
+        helper.runAtTickTime(24,()->{
+            var folded=frame.getBlockState();
+            var unfoldReceiver=new AssemblyFrameBlockEntity(frame.getBlockPos(),folded);
+            unfoldReceiver.setLevel(helper.getLevel());
+            unfoldReceiver.setBlockState(folded.setValue(AssemblyFrameBlock.EXTENDED,true));
+            helper.assertTrue(unfoldReceiver.frameProgress(0)==1,"Block-state packet exposed the extended endpoint before animation data");
+            helper.assertTrue(frame.toggleFrame(null)==null,"Could not start unfolding packet-order test");
+            unfoldReceiver.loadWithComponents(frame.getUpdateTag(helper.getLevel().registryAccess()),helper.getLevel().registryAccess());
+            helper.assertTrue(unfoldReceiver.frameProgress(0)==frame.frameProgress(0)&&unfoldReceiver.frameProgress(0)>.99,"Unfolding data must start at the folded pose");
+            helper.succeed();
+        });
+    }
+
 }

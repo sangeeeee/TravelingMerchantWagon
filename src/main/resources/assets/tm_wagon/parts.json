@@ -1,23 +1,23 @@
 {
   "cargo_body": {
-    "scale": 0.173118
+    "scale": 0.135848
   },
   "single_horse_shafts": {
-    "scale": 0.198139
+    "scale": 0.172737
   },
   "double_horse_shafts": {
-    "scale": 0.1889
+    "scale": 0.164682
   },
   "single_seat": {
-    "scale": 0.52
+    "scale": 0.453333
   },
   "double_seat": {
-    "scale": 0.397452
+    "scale": 0.346497
   },
   "small_wheel": {
-    "scale": 0.594286
+    "scale": 0.518095
   },
   "large_wheel": {
-    "scale": 0.462222
+    "scale": 0.402963
   }
 }

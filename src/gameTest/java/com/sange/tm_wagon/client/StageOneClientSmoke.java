@@ -34,11 +34,20 @@ public class StageOneClientSmoke {
         }
     }
 
+    private static class PoseProbe extends AssemblyFrameBlockEntity {
+        private double progress;
+        PoseProbe() { super(new BlockPos(20,0,0),WagonContent.FRAME.get().defaultBlockState()); }
+        @Override public double getTick(Object object) { return 100; }
+        @Override public double frameProgress(double partialTick) { return progress; }
+    }
+
     private static class PreviewScreen extends Screen {
         private int frames;
         private final List<ItemStack> items=new ArrayList<>();
         private final AssemblyRenderer renderer=new AssemblyRenderer();
         private final List<AssemblyFrameBlockEntity> assemblies=new ArrayList<>();
+        private final List<AssemblyFrameBlockEntity> framesOnly=new ArrayList<>();
+        private final PoseProbe probe=new PoseProbe();
         PreviewScreen() {
             super(Component.literal("Wagon stage-one renderer verification"));
             items.add(WagonContent.FRAME_ITEM.get().getDefaultInstance());
@@ -57,6 +66,7 @@ public class StageOneClientSmoke {
                 frame.loadWithComponents(tag,Minecraft.getInstance().getConnection()==null?net.minecraft.core.RegistryAccess.fromRegistryOfRegistries(net.minecraft.core.registries.BuiltInRegistries.REGISTRY):Minecraft.getInstance().level.registryAccess());
                 assemblies.add(frame);
             }
+            for(int i=0;i<2;i++)framesOnly.add(new AssemblyFrameBlockEntity(new BlockPos(10+i,0,0),WagonContent.FRAME.get().defaultBlockState().setValue(AssemblyFrameBlock.EXTENDED,i==0)));
         }
         @Override public void render(GuiGraphics graphics,int mouseX,int mouseY,float partialTick) {
             graphics.fill(0,0,width,height,0xffede6d7);
@@ -64,28 +74,52 @@ public class StageOneClientSmoke {
             if(frames<25) {
                 for(int i=0;i<items.size();i++) {
                     int x=width/6+(i%3)*width/3,y=60+(i/3)*100;
+                    graphics.fill(x-25,y-1,x+25,y+49,0xff5c4c38);
+                    graphics.fill(x-24,y,x+24,y+48,0xffd0c5af);
                     graphics.pose().pushPose();graphics.pose().translate(x-24,y,0);graphics.pose().scale(3,3,3);
                     graphics.renderItem(items.get(i),0,0);graphics.pose().popPose();
-                    graphics.drawCenteredString(font,items.get(i).getHoverName(),x,y+55,0xff463729);
+                    graphics.fill(x-9,y+51,x+9,y+69,0xff5c4c38);
+                    graphics.fill(x-8,y+52,x+8,y+68,0xffd0c5af);
+                    graphics.renderItem(items.get(i),x-8,y+52);
+                    graphics.drawCenteredString(font,items.get(i).getHoverName(),x,y+73,0xff463729);
                 }
-            } else {
+            } else if(frames<50) {
                 for(int i=0;i<4;i++) drawAssembly(graphics,assemblies.get(i),width/4+(i%2)*width/2,110+(i/2)*170,23);
                 // Render a body-only instance after full wagons, verifying shared
                 // model visibility is reset rather than inherited from a neighbour.
                 drawAssembly(graphics,assemblies.get(4),width/2,height-35,9);
+            } else {
+                for(int i=0;i<2;i++) {
+                    drawAssembly(graphics,framesOnly.get(i),width/4+i*width/2,height/2,80);
+                    graphics.drawCenteredString(font,i==0?"Extended / default":"Folded",width/4+i*width/2,height-40,0xff463729);
+                }
             }
+            if(frames==64)verifyCachedFramePose(graphics);
             graphics.flush();frames++;
             if(frames==15)save("stage-one-items.png");
             if(frames==40)save("stage-one-assemblies.png");
-            if(frames==55) {LogUtils.getLogger().info("TM_WAGON_CLIENT_SMOKE_PASS: 9 items, 4 combinations and body-only rendered");Minecraft.getInstance().stop();}
+            if(frames==65)save("folding-frame-states.png");
+            if(frames==75) {LogUtils.getLogger().info("TM_WAGON_CLIENT_SMOKE_PASS: 9 items, 4 combinations, body-only and both frame states rendered");Minecraft.getInstance().stop();}
         }
         private void drawAssembly(GuiGraphics graphics,AssemblyFrameBlockEntity frame,int x,int y,float scale) {
             graphics.pose().pushPose();graphics.pose().translate(x,y,500);
             graphics.pose().scale(scale,-scale,scale);graphics.pose().mulPose(Axis.XP.rotationDegrees(25));
-            graphics.pose().mulPose(Axis.YP.rotationDegrees(-35));graphics.pose().translate(-.5,-1.5,.7);
+            graphics.pose().mulPose(Axis.YP.rotationDegrees(-35));
+            if(frame.has(WagonSlot.BODY))graphics.pose().translate(-.5,-1.5,.7);
+            else graphics.pose().translate(-.5,-.68,-.5);
             Lighting.setupForEntityInInventory();
-            renderer.render(frame,0,graphics.pose(),graphics.bufferSource(),15728880,0);
+            renderer.render(frame,0,graphics.pose(),graphics.bufferSource(),15728880,net.minecraft.client.renderer.texture.OverlayTexture.NO_OVERLAY);
             graphics.flush();graphics.pose().popPose();Lighting.setupFor3DItems();
+        }
+        private void verifyCachedFramePose(GuiGraphics graphics) {
+            for(double progress:new double[]{0,.5,1,.5,0}) {
+                probe.progress=progress;
+                drawAssembly(graphics,probe,-1000,-1000,1);
+                var platform=renderer.getGeoModel().getBone("frame_grid_platform").orElseThrow();
+                if(Math.abs(platform.getPosY()-FrameMotion.platformOffset(progress))>.0001)
+                    throw new IllegalStateException("Cached renderer displayed a stale or endpoint frame pose");
+            }
+            LogUtils.getLogger().info("TM_WAGON_CACHED_POSE_PASS: both directions evaluated at the same animation tick");
         }
         private void save(String name) {
             try(var image=Screenshot.takeScreenshot(Minecraft.getInstance().getMainRenderTarget())) {

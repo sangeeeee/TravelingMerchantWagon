@@ -25,21 +25,96 @@ import net.minecraft.world.phys.Vec3;
 import software.bernie.geckolib.animatable.GeoBlockEntity;
 import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.animation.AnimatableManager;
+import software.bernie.geckolib.animation.AnimationController;
+import software.bernie.geckolib.animation.RawAnimation;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 public class AssemblyFrameBlockEntity extends BlockEntity implements GeoBlockEntity {
-    public record Cell(List<AABB> boxes, Set<WagonSlot> slots) {}
+    public record Cell(List<AABB> boxes, Set<WagonSlot> slots, boolean framePart) {}
     private final EnumMap<WagonSlot, WagonPart> parts = new EnumMap<>(WagonSlot.class);
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     private Map<BlockPos, Cell> layout;
     private boolean changing;
+    private boolean frameBuilt;
+    private long motionStart = Long.MIN_VALUE;
+    private double motionFrom;
+    private boolean motionTargetExtended;
+    private boolean collisionExtended;
+    private int motionDuration = FrameMotion.TICKS;
+    private static final RawAnimation FOLD = RawAnimation.begin().thenPlayAndHold("animation.tm_wagon.frame_fold");
+    private static final RawAnimation UNFOLD = RawAnimation.begin().thenPlayAndHold("animation.tm_wagon.frame_unfold");
+    private static final RawAnimation EXTENDED = RawAnimation.begin().thenLoop("animation.tm_wagon.frame_extended");
+    private static final RawAnimation FOLDED = RawAnimation.begin().thenLoop("animation.tm_wagon.frame_folded");
 
-    public AssemblyFrameBlockEntity(BlockPos pos, BlockState state) { super(WagonContent.FRAME_ENTITY.get(), pos, state); }
+    public AssemblyFrameBlockEntity(BlockPos pos, BlockState state) {
+        super(WagonContent.FRAME_ENTITY.get(),pos,state);
+        collisionExtended = state.getValue(AssemblyFrameBlock.EXTENDED);
+        motionTargetExtended = collisionExtended;
+    }
     public Direction facing() { return getBlockState().getValue(AssemblyFrameBlock.FACING); }
     public boolean has(WagonSlot slot) { return parts.containsKey(slot); }
     public WagonPart part(WagonSlot slot) { return parts.get(slot); }
     public boolean changing() { return changing; }
     public Map<WagonSlot, WagonPart> parts() { return Map.copyOf(parts); }
+
+    /** Requested visual state; the block state and collision commit at the end. */
+    public boolean extended() { return motionStart == Long.MIN_VALUE ? collisionExtended : motionTargetExtended; }
+    public double frameProgress(double partialTick) {
+        double target = extended() ? 0 : 1;
+        if (motionStart == Long.MIN_VALUE) return target;
+        if (level == null) return motionFrom;
+        double t = Math.clamp((level.getGameTime()+partialTick-motionStart)/motionDuration,0,1);
+        double eased = t*t*(3-2*t);
+        return motionFrom+(target-motionFrom)*eased;
+    }
+    public boolean frameMoving() {
+        return level != null && motionStart != Long.MIN_VALUE && level.getGameTime()-motionStart < motionDuration;
+    }
+    public Map<BlockPos,List<AABB>> frameCells() { return WagonGeometry.frameCells(facing(),collisionExtended?0:1); }
+
+    public String toggleFrame(Player player) {
+        if (level == null || level.isClientSide || changing) return "message.tm_wagon.server_only";
+        double from = frameProgress(0), target = extended() ? 1 : 0;
+        var sweep = WagonGeometry.frameSweep(facing(),from,target);
+        for (var entry : sweep.entrySet()) {
+            var pos = worldPosition.offset(entry.getKey());
+            if (!level.hasChunkAt(pos) || level.isOutsideBuildHeight(pos) || !level.getWorldBorder().isWithinBounds(pos)) return "message.tm_wagon.out_of_bounds";
+            if (player != null && !level.mayInteract(player,pos)) return "message.tm_wagon.protected";
+            var state = level.getBlockState(pos);
+            if (!pos.equals(worldPosition) && !owned(pos) && (!state.canBeReplaced() || !state.getFluidState().isEmpty() || state.hasBlockEntity())) return "message.tm_wagon.blocked";
+            List<AABB> oldBoxes = pos.equals(worldPosition) ? frameCells().getOrDefault(BlockPos.ZERO,List.of())
+                : layout().containsKey(pos) ? layout().get(pos).boxes : List.of();
+            var added = net.minecraft.world.phys.shapes.Shapes.join(WagonGeometry.shape(entry.getValue()),WagonGeometry.shape(oldBoxes),net.minecraft.world.phys.shapes.BooleanOp.ONLY_FIRST);
+            if (!level.isUnobstructed(null,added.move(pos.getX(),pos.getY(),pos.getZ()))) return "message.tm_wagon.entity_blocked";
+        }
+        long oldStart = motionStart; double oldFrom = motionFrom; int oldDuration = motionDuration;
+        boolean oldTarget = motionTargetExtended;
+        motionFrom = from; motionStart = level.getGameTime(); motionDuration = Math.max(1,(int)Math.round(FrameMotion.TICKS*Math.abs(target-from)));
+        // One BE update carries the target, start pose and timeline together.
+        // Sending a block-state update first can briefly expose the endpoint.
+        motionTargetExtended = target == 0;
+        String error = initializeFrame();
+        if (error != null) {
+            motionStart = oldStart; motionFrom = oldFrom; motionDuration = oldDuration;
+            motionTargetExtended = oldTarget; return error;
+        }
+        level.playSound(null,worldPosition,net.minecraft.sounds.SoundEvents.WOODEN_TRAPDOOR_CLOSE,net.minecraft.sounds.SoundSource.BLOCKS,.65F,extended()?1.15F:.85F);
+        return null;
+    }
+    public void tickFrame() {
+        if (level == null || level.isClientSide || changing || motionStart == Long.MIN_VALUE || frameMoving()) return;
+        long previousStart = motionStart;
+        boolean previousCollision = collisionExtended;
+        collisionExtended = motionTargetExtended;
+        motionStart = Long.MIN_VALUE;
+        String error = initializeFrame();
+        if (error != null) {
+            collisionExtended = previousCollision;
+            motionStart = previousStart;
+            return;
+        }
+        level.setBlock(worldPosition,getBlockState().setValue(AssemblyFrameBlock.EXTENDED,collisionExtended),3);
+    }
 
     public static AssemblyFrameBlockEntity find(BlockGetter level, BlockPos pos) {
         BlockEntity entity = level.getBlockEntity(pos);
@@ -53,10 +128,18 @@ public class AssemblyFrameBlockEntity extends BlockEntity implements GeoBlockEnt
 
     private Map<BlockPos, Cell> buildLayout(Map<WagonSlot, WagonPart> modules) {
         Map<BlockPos, Cell> result = new HashMap<>();
+        frameCells().forEach((relative, boxes) -> {
+            BlockPos pos = worldPosition.offset(relative);
+            if (!pos.equals(worldPosition)) result.put(pos,new Cell(new ArrayList<>(boxes),EnumSet.noneOf(WagonSlot.class),true));
+        });
+        if (frameMoving()) WagonGeometry.frameSweep(facing(),motionFrom,extended()?0:1).forEach((relative,boxes) -> {
+            BlockPos pos=worldPosition.offset(relative);
+            if (!pos.equals(worldPosition)) result.computeIfAbsent(pos,ignored -> new Cell(new ArrayList<>(),EnumSet.noneOf(WagonSlot.class),true));
+        });
         modules.forEach((slot, part) -> WagonGeometry.cells(part, slot, facing()).forEach((relative, boxes) -> {
             BlockPos pos = worldPosition.offset(relative);
-            if (pos.equals(worldPosition)) return; // The frame itself keeps its one-block collision.
-            Cell cell = result.computeIfAbsent(pos, ignored -> new Cell(new ArrayList<>(), EnumSet.noneOf(WagonSlot.class)));
+            if (pos.equals(worldPosition)) return; // The root contains the lower support; the platform uses proxy cells.
+            Cell cell = result.computeIfAbsent(pos, ignored -> new Cell(new ArrayList<>(), EnumSet.noneOf(WagonSlot.class),false));
             cell.boxes.addAll(boxes); cell.slots.add(slot);
         }));
         return result;
@@ -65,10 +148,49 @@ public class AssemblyFrameBlockEntity extends BlockEntity implements GeoBlockEnt
         if (layout == null) layout = buildLayout(parts);
         return layout;
     }
+    /** Also upgrades older controllers whose platform did not have world cells. */
+    public void ensureFrame() { if (!frameBuilt) initializeFrame(); }
+    public String initializeFrame() {
+        if (level == null || level.isClientSide || changing) return null;
+        Map<BlockPos,Cell> desired = buildLayout(parts);
+        for (BlockPos pos : desired.keySet()) {
+            if (!level.hasChunkAt(pos) || level.isOutsideBuildHeight(pos) || !level.getWorldBorder().isWithinBounds(pos)) return "message.tm_wagon.out_of_bounds";
+            var state = level.getBlockState(pos);
+            if (!owned(pos) && (!state.canBeReplaced() || !state.getFluidState().isEmpty() || state.hasBlockEntity())) return "message.tm_wagon.blocked";
+        }
+        Map<BlockPos,BlockState> snapshot = new HashMap<>();
+        Map<BlockPos,CompoundTag> tags = new HashMap<>();
+        var affected = new java.util.HashSet<>(layout().keySet()); affected.addAll(desired.keySet());
+        affected.forEach(pos -> {
+            snapshot.put(pos,level.getBlockState(pos));
+            var entity = level.getBlockEntity(pos);
+            if (entity != null) tags.put(pos,entity.saveWithFullMetadata(level.registryAccess()));
+        });
+        changing = true;
+        try { apply(desired,parts,true); layout = desired; frameBuilt = true; }
+        catch (RuntimeException failure) {
+            com.mojang.logging.LogUtils.getLogger().error("Frame placement failed at {}",worldPosition,failure);
+            for (var entry : snapshot.entrySet()) {
+                level.setBlock(entry.getKey(),entry.getValue(),3);
+                var entity = level.getBlockEntity(entry.getKey());
+                if (entity != null && tags.containsKey(entry.getKey())) entity.loadWithComponents(tags.get(entry.getKey()),level.registryAccess());
+            }
+            return "message.tm_wagon.blocked";
+        }
+        finally { changing = false; }
+        sync();
+        return null;
+    }
     public void validateLoadedCells() {
         if (level == null || changing) return;
+        if (!frameBuilt && initializeFrame() != null) return;
         Set<WagonSlot> missing = EnumSet.noneOf(WagonSlot.class);
-        layout().forEach((pos,cell) -> { if (level.hasChunkAt(pos) && !owned(pos)) missing.addAll(cell.slots); });
+        for (var entry : layout().entrySet()) {
+            if (level.hasChunkAt(entry.getKey()) && !owned(entry.getKey())) {
+                if (entry.getValue().framePart) { dismantle(true,true); return; }
+                missing.addAll(entry.getValue().slots);
+            }
+        }
         if (!missing.isEmpty()) remove(missing,true);
     }
     private boolean owned(BlockPos pos) {
@@ -79,6 +201,7 @@ public class AssemblyFrameBlockEntity extends BlockEntity implements GeoBlockEnt
     /** Returns a translated error key or null; no state changes occur on failure. */
     public String install(WagonSlot slot, WagonPart part, Player player, ItemStack stack) {
         if (level == null || level.isClientSide) return "message.tm_wagon.server_only";
+        if (slot == WagonSlot.BODY && (!extended() || frameMoving())) return "message.tm_wagon.frame_extend_first";
         if (!slot.accepts(part)) return "message.tm_wagon.wrong_slot";
         if (parts.containsKey(slot)) return "message.tm_wagon.occupied";
         if (slot != WagonSlot.BODY && !has(WagonSlot.BODY)) return "message.tm_wagon.body_required";
@@ -162,12 +285,32 @@ public class AssemblyFrameBlockEntity extends BlockEntity implements GeoBlockEnt
     }
 
     public void dismantle(boolean drops, boolean removeFrame) {
-        remove(EnumSet.allOf(WagonSlot.class), drops);
-        if (level == null || !removeFrame) return;
+        if (level == null || level.isClientSide || changing) return;
+        var removed = new ArrayList<>(parts.values());
         changing = true;
-        try { level.setBlock(worldPosition, Blocks.AIR.defaultBlockState(), 3); }
-        finally { changing = false; }
-        if (drops && level.getGameRules().getBoolean(GameRules.RULE_DOBLOCKDROPS)) Block.popResource(level, worldPosition, new ItemStack(WagonContent.FRAME_ITEM.get()));
+        try {
+            for (BlockPos pos : layout().keySet()) if (level.hasChunkAt(pos) && owned(pos)) level.setBlock(pos,Blocks.AIR.defaultBlockState(),3);
+            parts.clear(); layout = Map.of();
+            if (removeFrame) level.setBlock(worldPosition,Blocks.AIR.defaultBlockState(),3);
+        } finally { changing = false; }
+        if (drops && level.getGameRules().getBoolean(GameRules.RULE_DOBLOCKDROPS)) {
+            for (WagonPart part : removed) Block.popResource(level,worldPosition.above(),new ItemStack(WagonContent.PART_ITEMS.get(part).get()));
+            if (removeFrame) Block.popResource(level,worldPosition,new ItemStack(WagonContent.FRAME_ITEM.get()));
+        }
+    }
+
+    public boolean platformTop(net.minecraft.world.phys.BlockHitResult hit) {
+        if (!extended() || frameMoving()) return false;
+        if (hit.getDirection() != Direction.UP) return false;
+        List<AABB> boxes = frameCells().get(hit.getBlockPos().subtract(worldPosition));
+        if (boxes == null) return false;
+        Vec3 local = hit.getLocation().subtract(Vec3.atLowerCornerOf(hit.getBlockPos()));
+        for (AABB box : boxes) {
+            if (Math.abs(hit.getBlockPos().getY()+box.maxY-worldPosition.getY()-1.375) < 1e-6
+                && Math.abs(local.y-box.maxY)<.002 && local.x>=box.minX-.002 && local.x<=box.maxX+.002
+                && local.z>=box.minZ-.002 && local.z<=box.maxZ+.002) return true;
+        }
+        return false;
     }
 
     /** A ray against each module resolves shared cells without deleting neighbours. */
@@ -181,7 +324,12 @@ public class AssemblyFrameBlockEntity extends BlockEntity implements GeoBlockEnt
                 found = module.getKey(); distance = hit.getLocation().distanceToSqr(eye);
             }
         }
-        if (found == null && layout().containsKey(pos)) found = layout().get(pos).slots.iterator().next();
+        List<AABB> support = frameCells().get(pos.subtract(worldPosition));
+        if (support != null) {
+            var hit = WagonGeometry.shape(support).clip(eye,end,pos);
+            if (hit != null && hit.getLocation().distanceToSqr(eye) < distance) return null;
+        }
+        if (found == null && layout().containsKey(pos) && !layout().get(pos).framePart && !layout().get(pos).slots.isEmpty()) found = layout().get(pos).slots.iterator().next();
         return found;
     }
 
@@ -191,6 +339,10 @@ public class AssemblyFrameBlockEntity extends BlockEntity implements GeoBlockEnt
     }
     @Override protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
+        tag.putBoolean("FrameBuilt",frameBuilt);
+        tag.putBoolean("CollisionExtended",collisionExtended);
+        tag.putBoolean("MotionTargetExtended",motionTargetExtended);
+        tag.putLong("MotionStart",motionStart); tag.putDouble("MotionFrom",motionFrom); tag.putInt("MotionDuration",motionDuration);
         CompoundTag modules = new CompoundTag();
         parts.forEach((slot, part) -> modules.putString(slot.name(), part.name())); tag.put("Modules", modules);
     }
@@ -203,10 +355,21 @@ public class AssemblyFrameBlockEntity extends BlockEntity implements GeoBlockEnt
                 catch (IllegalArgumentException ignored) { /* Ignore unknown parts from incompatible saves. */ }
             }
         }
+        frameBuilt = tag.getBoolean("FrameBuilt");
+        motionStart = tag.contains("MotionStart") ? tag.getLong("MotionStart") : Long.MIN_VALUE;
+        motionFrom = Math.clamp(tag.getDouble("MotionFrom"),0,1);
+        motionDuration = Math.max(1,tag.getInt("MotionDuration"));
+        collisionExtended = tag.contains("CollisionExtended") ? tag.getBoolean("CollisionExtended")
+            : motionStart == Long.MIN_VALUE ? getBlockState().getValue(AssemblyFrameBlock.EXTENDED) : motionFrom < .5;
+        motionTargetExtended = tag.contains("MotionTargetExtended") ? tag.getBoolean("MotionTargetExtended")
+            : getBlockState().getValue(AssemblyFrameBlock.EXTENDED);
         layout = null;
     }
     @Override public CompoundTag getUpdateTag(HolderLookup.Provider registries) { return saveCustomOnly(registries); }
     @Override public ClientboundBlockEntityDataPacket getUpdatePacket() { return ClientboundBlockEntityDataPacket.create(this); }
-    @Override public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {}
+    @Override public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
+        controllers.add(new AnimationController<>(this,"frame_lift",0,state -> state.setAndContinue(
+            frameMoving() ? (extended()?UNFOLD:FOLD) : (extended()?EXTENDED:FOLDED))));
+    }
     @Override public AnimatableInstanceCache getAnimatableInstanceCache() { return cache; }
 }

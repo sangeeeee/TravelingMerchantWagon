@@ -3,6 +3,7 @@ package com.sange.tm_wagon;
 import com.sange.tm_wagon.assembly.WagonContent;
 import com.sange.tm_wagon.client.AssemblyRenderer;
 import com.sange.tm_wagon.client.PartItemRenderer;
+import com.sange.tm_wagon.client.FrameItemRenderer;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -19,6 +20,10 @@ public final class TravelingMerchantWagonClient {
     }
     @SubscribeEvent
     public static void items(RegisterClientExtensionsEvent event) {
+        event.registerItem(new IClientItemExtensions() {
+            private final FrameItemRenderer renderer = new FrameItemRenderer();
+            @Override public BlockEntityWithoutLevelRenderer getCustomRenderer() { return renderer; }
+        },WagonContent.FRAME_ITEM.get());
         WagonContent.PART_ITEMS.forEach((part, item) -> event.registerItem(new IClientItemExtensions() {
             private final PartItemRenderer renderer = new PartItemRenderer(part);
             @Override public BlockEntityWithoutLevelRenderer getCustomRenderer() { return renderer; }

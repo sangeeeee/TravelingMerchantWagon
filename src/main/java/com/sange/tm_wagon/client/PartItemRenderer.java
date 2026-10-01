@@ -20,6 +20,14 @@ public class PartItemRenderer extends GeoItemRenderer<WagonPartItem> {
             withScale(scale);
         } catch (java.io.IOException e) { throw new IllegalStateException(e); }
     }
+    @Override public void preRender(com.mojang.blaze3d.vertex.PoseStack poseStack, WagonPartItem item,
+            software.bernie.geckolib.cache.object.BakedGeoModel model, net.minecraft.client.renderer.MultiBufferSource sources,
+            com.mojang.blaze3d.vertex.VertexConsumer buffer, boolean reRender, float partialTick, int light, int overlay, int colour) {
+        this.itemRenderTranslations = new org.joml.Matrix4f(poseStack.last().pose());
+        // The inventory center must not be multiplied by the miniature scale.
+        if (!reRender) poseStack.translate(.5,.5,.5);
+        scaleModelForRender(this.scaleWidth,this.scaleHeight,poseStack,item,model,reRender,partialTick,light,overlay);
+    }
     private static class Model extends GeoModel<WagonPartItem> {
         private ResourceLocation resource(String path) { return ResourceLocation.fromNamespaceAndPath(TravelingMerchantWagon.MODID,path); }
         @Override public ResourceLocation getModelResource(WagonPartItem item) { return resource("geo/parts/"+item.part().id+".geo.json"); }

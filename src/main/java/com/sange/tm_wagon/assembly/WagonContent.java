@@ -26,7 +26,7 @@ public final class WagonContent {
     public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = DeferredRegister.create(Registries.BLOCK_ENTITY_TYPE, TravelingMerchantWagon.MODID);
     public static final DeferredRegister<CreativeModeTab> TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, TravelingMerchantWagon.MODID);
     public static final DeferredBlock<AssemblyFrameBlock> FRAME = BLOCKS.register("wagon_assembly_frame", () -> new AssemblyFrameBlock(properties()));
-    public static final DeferredItem<BlockItem> FRAME_ITEM = ITEMS.register("wagon_assembly_frame", () -> new BlockItem(FRAME.get(), new Item.Properties()));
+    public static final DeferredItem<BlockItem> FRAME_ITEM = ITEMS.register("wagon_assembly_frame", () -> new AssemblyFrameItem(FRAME.get(), new Item.Properties()));
     public static final DeferredBlock<AssemblyPartBlock> PROXY = BLOCKS.register("assembly_proxy", () -> new AssemblyPartBlock(properties()));
     public static final Map<WagonPart, DeferredBlock<AssemblyPartBlock>> PART_BLOCKS = new EnumMap<>(WagonPart.class);
     public static final Map<WagonPart, DeferredItem<WagonPartItem>> PART_ITEMS = new EnumMap<>(WagonPart.class);

@@ -25,6 +25,7 @@ public class AssemblyCellBlockEntity extends BlockEntity {
     public BlockPos owner() { return owner; }
     public VoxelShape shape() { return shape; }
     public void configure(BlockPos owner, List<AABB> boxes) {
+        if (this.owner.equals(owner) && this.boxes.equals(boxes)) return;
         this.owner = owner.immutable(); this.boxes = List.copyOf(boxes); this.shape = WagonGeometry.shape(boxes);
         setChanged();
         if (level != null) level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);

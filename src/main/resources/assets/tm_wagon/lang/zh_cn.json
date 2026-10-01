@@ -27,5 +27,7 @@
   "tooltip.tm_wagon.single_seat": "安装格：装配架前方 2 格、上方 2 格的中央位置。",
   "tooltip.tm_wagon.double_seat": "安装格：装配架前方 2 格、上方 2 格的中央位置。",
   "tooltip.tm_wagon.small_wheel": "安装于两侧前轴：向前 1 格、向左或右 1 格，与装配架同层。",
-  "tooltip.tm_wagon.large_wheel": "安装于两侧后轴：向后 1 格、向左或右 1 格，与装配架同层。"
+  "tooltip.tm_wagon.large_wheel": "安装于两侧后轴：向后 1 格、向左或右 1 格，与装配架同层。",
+  "message.tm_wagon.frame_extend_first": "请先展开装配架，等平台升起后再放置载荷主体。",
+  "tooltip.tm_wagon.wagon_assembly_frame": "默认展开；空手右键支架或平台可折叠、展开。"
 }
