@@ -3,6 +3,16 @@ package com.sange.tm_wagon.entity;
 import com.sange.tm_wagon.assembly.*;
 import java.util.EnumMap;
 import java.util.Map;
+import java.util.List;
+import java.util.UUID;
+import com.sange.tm_wagon.physics.WagonPose;
+import com.sange.tm_wagon.physics.WagonPhysics;
+import net.minecraft.util.Mth;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.animal.horse.AbstractHorse;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -25,6 +35,25 @@ public class WagonEntity extends Entity implements GeoEntity {
     private static final EntityDataAccessor<CompoundTag> MODULES = SynchedEntityData.defineId(WagonEntity.class,EntityDataSerializers.COMPOUND_TAG);
     private static final EntityDataAccessor<Integer> FACING = SynchedEntityData.defineId(WagonEntity.class,EntityDataSerializers.INT);
     private static final EntityDataAccessor<CompoundTag> SEATS = SynchedEntityData.defineId(WagonEntity.class,EntityDataSerializers.COMPOUND_TAG);
+    private static final EntityDataAccessor<CompoundTag> MOTION = SynchedEntityData.defineId(WagonEntity.class,EntityDataSerializers.COMPOUND_TAG);
+    private final WagonPhysics physics=new WagonPhysics();
+    private float pitch,roll,steering,shaftPitch,oldPitch,oldRoll,oldSteering,oldShaftPitch;
+    private final float[] wheels=new float[4],oldWheels=new float[4];
+    private final UUID[] horses=new UUID[2];
+    private final int[] hangingTicks=new int[2];
+    private int supportMask=15,forwardInput,steeringInput;
+    private long lastInput=Long.MIN_VALUE;
+    private UUID inputDriver;
+    private Vec3 lerpPosition;
+    private float lerpYaw;
+    private int lerpSteps;
+    private float health=20;
+    private boolean motionStarted;
+    private record Component(AABB box,WagonSlot slot) {}
+    private List<Component> components=List.of();
+    private List<AABB> worldBoxes;
+    private WagonPose boxesPose;
+    private float boxesSteering,boxesShaftPitch;
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     private VoxelShape localShape;
     private VoxelShape worldShape;
@@ -35,11 +64,11 @@ public class WagonEntity extends Entity implements GeoEntity {
     private final Map<java.util.UUID,Integer> departingSeats=new java.util.HashMap<>();
 
     public WagonEntity(EntityType<? extends WagonEntity> type, Level level) {
-        super(type,level); blocksBuilding = true; setNoGravity(true); rebuildGeometry();
+        super(type,level); blocksBuilding = true; setNoGravity(true); setYRot(180); rebuildGeometry();
     }
     @Override protected void defineSynchedData(SynchedEntityData.Builder builder) {
         builder.define(MODULES,encode(defaultParts())); builder.define(FACING,Direction.NORTH.get2DDataValue());
-        builder.define(SEATS,new CompoundTag());
+        builder.define(SEATS,new CompoundTag());builder.define(MOTION,new CompoundTag());
     }
     public static Map<WagonSlot,WagonPart> defaultParts() {
         var parts = new EnumMap<WagonSlot,WagonPart>(WagonSlot.class);
@@ -65,44 +94,158 @@ public class WagonEntity extends Entity implements GeoEntity {
         setYRot(direction.toYRot()); yRotO=getYRot();
     }
     public Map<WagonSlot,WagonPart> parts() { return modules; }
-    public Direction facing() { return Direction.from2DDataValue(entityData.get(FACING)); }
+    public Direction facing() { return Direction.fromYRot(getYRot()); }
     @Override public void onSyncedDataUpdated(EntityDataAccessor<?> key) {
         super.onSyncedDataUpdated(key);
         if (key.equals(MODULES) || key.equals(FACING)) rebuildGeometry();
     }
     private void rebuildGeometry() {
-        modules=decode(entityData.get(MODULES)); localShape=WagonGeometry.entityShape(modules,facing()); worldShape=null;
-        setBoundingBox(makeBoundingBox());
-        if (level()!=null) WagonSpatialIndex.update(this);
+        modules=decode(entityData.get(MODULES)); localShape=WagonGeometry.entityShape(modules,facing()); worldShape=null;worldBoxes=null;
+        var list=new java.util.ArrayList<Component>();
+        modules.forEach((slot,part)->{
+            for(AABB box:WagonGeometry.partBoxes(part)) {
+                if(slot==WagonSlot.FRONT_RIGHT||slot==WagonSlot.REAR_RIGHT)box=new AABB(-box.maxX,box.minY,box.minZ,-box.minX,box.maxY,box.maxZ);
+                box=box.move(slot.geometryOffset());
+                // Subdivide long boards so their rotated bounds preserve the open cargo interior.
+                int nx=Math.max(1,(int)Math.ceil(box.getXsize()/.65)),ny=Math.max(1,(int)Math.ceil(box.getYsize()/.65)),nz=Math.max(1,(int)Math.ceil(box.getZsize()/.65));
+                for(int x=0;x<nx;x++)for(int y=0;y<ny;y++)for(int z=0;z<nz;z++)list.add(new Component(new AABB(
+                    box.minX+box.getXsize()*x/nx,box.minY+box.getYsize()*y/ny,box.minZ+box.getZsize()*z/nz,
+                    box.minX+box.getXsize()*(x+1)/nx,box.minY+box.getYsize()*(y+1)/ny,box.minZ+box.getZsize()*(z+1)/nz),slot));
+            }
+        });components=List.copyOf(list);
+        setBoundingBox(makeBoundingBox());if(level()!=null)WagonSpatialIndex.update(this);
     }
     @Override public void setPos(double x,double y,double z) {
         super.setPos(x,y,z);
         if (level()!=null) WagonSpatialIndex.update(this);
     }
-    @Override public void refreshDimensions() { super.refreshDimensions();setBoundingBox(makeBoundingBox()); }
+    @Override public void refreshDimensions() { super.refreshDimensions();setBoundingBox(makeBoundingBox());if(level()!=null)WagonSpatialIndex.update(this); }
+    /** Compatibility shape is built lazily; movement and entity queries use individual boxes. */
     public VoxelShape collisionShape() {
-        if (worldShape == null || !position().equals(shapePosition)) {
-            shapePosition=position(); worldShape=localShape.move(getX(),getY(),getZ());
+        if(worldShape==null || !position().equals(shapePosition)) {
+            shapePosition=position();
+            if(Math.abs(pitch)<1e-6&&Math.abs(roll)<1e-6&&Math.abs(steering)<1e-6&&Math.abs(shaftPitch)<1e-6
+                && Math.abs(Mth.wrapDegrees(getYRot()-facing().toYRot()))<1e-5)
+                worldShape=WagonGeometry.entityShape(modules,facing()).move(getX(),getY(),getZ());
+            else worldShape=WagonGeometry.shape(collisionBoxes());
+        }return worldShape;
+    }
+    public WagonPose pose() { return new WagonPose(position(),getYRot(),pitch,roll); }
+    public float pitch() { return pitch; }
+    public float roll() { return roll; }
+    public float steering() { return steering; }
+    public float shaftPitch() { return shaftPitch; }
+    public int supportMask() { return supportMask; }
+    public void setSupportMask(int mask) { supportMask=mask; }
+    public void setSteering(float value) { steering=value;worldShape=null;worldBoxes=null; }
+    public void applyPose(WagonPose pose) {
+        pitch=pose.pitch();roll=pose.roll();setYRot(pose.yaw());worldShape=null;worldBoxes=null;setPos(pose.position());
+    }
+    private Vec3 articulated(Vec3 point,WagonSlot slot) {
+        if(slot==WagonSlot.SHAFTS)point=WagonPose.rotate(point.subtract(new Vec3(0,1.25,-26.0/16)),shaftPitch,0,0).add(0,1.25,-26.0/16);
+        if(slot==WagonSlot.SHAFTS||slot==WagonSlot.FRONT_LEFT||slot==WagonSlot.FRONT_RIGHT)
+            point=WagonPose.rotate(point.subtract(new Vec3(0,10.5/16,-20.0/16)),0,0,steering).add(0,10.5/16,-20.0/16);
+        return point;
+    }
+    public List<AABB> motionBoxesAt(WagonPose pose) { return boxesAt(pose,true); }
+    public List<AABB> boxesAt(WagonPose pose) { return boxesAt(pose,false); }
+    private List<AABB> boxesAt(WagonPose pose,boolean motion) {
+        if(!motion&&worldBoxes!=null&&pose.equals(boxesPose)&&boxesSteering==steering&&boxesShaftPitch==shaftPitch)return worldBoxes;
+        var boxes=new java.util.ArrayList<AABB>(components.size());
+        for(Component part:components) {
+            if(motion&&(part.slot==WagonSlot.FRONT_LEFT||part.slot==WagonSlot.FRONT_RIGHT||part.slot==WagonSlot.REAR_LEFT||part.slot==WagonSlot.REAR_RIGHT))continue;
+            AABB b=part.box;double x0=Double.POSITIVE_INFINITY,y0=x0,z0=x0,x1=-x0,y1=x1,z1=x1;
+            for(double x:new double[]{b.minX,b.maxX})for(double y:new double[]{b.minY,b.maxY})for(double z:new double[]{b.minZ,b.maxZ}) {
+                Vec3 p=pose.point(articulated(new Vec3(x,y,z),part.slot));
+                x0=Math.min(x0,p.x);y0=Math.min(y0,p.y);z0=Math.min(z0,p.z);x1=Math.max(x1,p.x);y1=Math.max(y1,p.y);z1=Math.max(z1,p.z);
+            }boxes.add(new AABB(x0,y0,z0,x1,y1,z1));
         }
-        return worldShape;
+        return boxes;
+    }
+    public List<AABB> collisionBoxes() {
+        WagonPose current=pose();
+        if(worldBoxes==null||!current.equals(boxesPose)||boxesSteering!=steering||boxesShaftPitch!=shaftPitch) {
+            worldBoxes=boxesAt(current);boxesPose=current;boxesSteering=steering;boxesShaftPitch=shaftPitch;
+        }return worldBoxes;
+    }
+    public boolean intersects(AABB area) { return collisionBoxes().stream().anyMatch(area::intersects); }
+    public java.util.Optional<Vec3> pick(Vec3 start,Vec3 end) {
+        Vec3 best=null;double distance=Double.POSITIVE_INFINITY;
+        for(AABB b:collisionBoxes()) {
+            var hit=b.clip(start,end);
+            if(b.contains(start))return java.util.Optional.of(start);
+            if(hit.isPresent()&&start.distanceToSqr(hit.get())<distance) { best=hit.get();distance=start.distanceToSqr(best); }
+        }return java.util.Optional.ofNullable(best);
     }
     @Override protected AABB makeBoundingBox() {
-        return localShape == null || localShape.isEmpty() ? super.makeBoundingBox() : localShape.bounds().move(position());
+        if(components==null||components.isEmpty())return localShape==null||localShape.isEmpty()?super.makeBoundingBox():localShape.bounds().move(position());
+        var boxes=collisionBoxes();AABB bounds=boxes.getFirst();for(AABB b:boxes)bounds=bounds.minmax(b);return bounds;
     }
+    public Vec3 wheelCentre(int i,WagonPose pose) {
+        Vec3 point=WagonPhysics.WHEELS[i].add(0,WagonPhysics.radius(i),0);
+        return pose.point(articulated(point,i==0?WagonSlot.FRONT_LEFT:i==1?WagonSlot.FRONT_RIGHT:i==2?WagonSlot.REAR_LEFT:WagonSlot.REAR_RIGHT));
+    }
+    public Vec3 wheelForward(int i) { return pose().vector(WagonPose.rotate(new Vec3(0,0,-1),0,0,i<2?steering:0)); }
+    public void addWheelAngle(int i,float value) { wheels[i]+=value; }
+    public float renderPitch(float tick) { return Mth.lerp(tick,oldPitch,pitch); }
+    public float renderRoll(float tick) { return Mth.lerp(tick,oldRoll,roll); }
+    public float renderSteering(float tick) { return Mth.lerp(tick,oldSteering,steering); }
+    public float renderShaftPitch(float tick) { return Mth.lerp(tick,oldShaftPitch,shaftPitch); }
+    public float renderWheel(int i,float tick) { return Mth.lerp(tick,oldWheels[i],wheels[i]); }
     @Override public boolean canBeCollidedWith() { return !isRemoved(); }
     @Override public boolean isPickable() { return !isRemoved(); }
     @Override public boolean isPushable() { return false; }
     @Override public void push(double x,double y,double z) {}
     @Override public void tick() {
-        super.tick(); setDeltaMovement(Vec3.ZERO); setNoGravity(true);
-        // No driving physics in this stage. Passenger positioning is handled by vanilla.
-        if (!level().isClientSide && assemblyLock != null && level().hasChunkAt(assemblyLock)) {
-            if (!(level().getBlockEntity(assemblyLock) instanceof AssemblyFrameBlockEntity frame) || !frame.restoring(getUUID())) assemblyLock=null;
+        super.tick();setNoGravity(true);
+        oldPitch=pitch;oldRoll=roll;oldSteering=steering;oldShaftPitch=shaftPitch;System.arraycopy(wheels,0,oldWheels,0,4);
+        if(level().isClientSide) {
+            if(lerpSteps>0) {
+                setPos(position().add(lerpPosition.subtract(position()).scale(1.0/lerpSteps)));
+                setYRot(getYRot()+Mth.wrapDegrees(lerpYaw-getYRot())/lerpSteps);lerpSteps--;
+            }
+            var motion=entityData.get(MOTION);
+            pitch=Mth.lerp(.5F,pitch,motion.getFloat("Pitch"));roll=Mth.lerp(.5F,roll,motion.getFloat("Roll"));
+            steering=Mth.lerp(.5F,steering,motion.getFloat("Steering"));shaftPitch=Mth.lerp(.5F,shaftPitch,motion.getFloat("ShaftPitch"));
+            for(int i=0;i<4;i++)wheels[i]=Mth.lerp(.5F,wheels[i],motion.getFloat("Wheel"+i));
+            supportMask=motion.contains("Support")?motion.getInt("Support"):15;worldShape=null;worldBoxes=null;setBoundingBox(makeBoundingBox());if(level()!=null)WagonSpatialIndex.update(this);
+            return;
         }
+        if(assemblyLock!=null&&level().hasChunkAt(assemblyLock)
+            && (!(level().getBlockEntity(assemblyLock) instanceof AssemblyFrameBlockEntity frame)||!frame.restoring(getUUID())))assemblyLock=null;
+        Player driver=driver();
+        if(driver==null||inputDriver==null||!driver.getUUID().equals(inputDriver)||level().getGameTime()-lastInput>10)forwardInput=steeringInput=0;
+        if(assemblyLock==null) {
+            boolean staged=!motionStarted && level().getBlockEntity(blockPosition()) instanceof AssemblyFrameBlockEntity;
+            if(forwardInput!=0&&readyToPull()) { motionStarted=true;staged=false; }
+            if(!staged)physics.tick(this,forwardInput,steeringInput,readyToPull());else setDeltaMovement(Vec3.ZERO);
+        } else { setDeltaMovement(Vec3.ZERO);physics.reset(); }
+        updateHorses();
+        if(tickCount%2==0)syncMotion();
+        if(getY()<level().getMinBuildHeight()-64)hurt(damageSources().fellOutOfWorld(),100);
+    }
+    @Override public void lerpTo(double x,double y,double z,float yaw,float xRot,int steps) {
+        lerpPosition=new Vec3(x,y,z);lerpYaw=yaw;lerpSteps=Math.max(1,Math.min(5,steps));
+    }
+    public Player driver() {
+        for(Entity passenger:getPassengers())if(passenger instanceof Player player&&passengerSeat(player)==0)return player;
+        return null;
+    }
+    public void acceptInput(Player player,int forward,int steer) {
+        if(level().isClientSide||driver()!=player||assemblyLock!=null)return;
+        forwardInput=Mth.clamp(forward,-1,1);steeringInput=Mth.clamp(steer,-1,1);lastInput=level().getGameTime();inputDriver=player.getUUID();
+    }
+    public boolean falling() { return physics.falling(); }
+    public void syncMotion() {
+        CompoundTag tag=new CompoundTag();tag.putFloat("Pitch",pitch);tag.putFloat("Roll",roll);tag.putFloat("Steering",steering);tag.putFloat("ShaftPitch",shaftPitch);
+        tag.putInt("Support",supportMask);
+        for(int i=0;i<4;i++)tag.putFloat("Wheel"+i,wheels[i]);
+        for(int i=0;i<2;i++)if(horses[i]!=null)tag.putUUID("Horse"+i,horses[i]);
+        entityData.set(MOTION,tag);
     }
     public boolean lock(net.minecraft.core.BlockPos frame) {
         if (assemblyLock != null && !assemblyLock.equals(frame)) return false;
-        assemblyLock=frame.immutable(); return true;
+        assemblyLock=frame.immutable();forwardInput=steeringInput=0;physics.reset();return true;
     }
     public void unlock() { assemblyLock=null; }
     public int seatCapacity() { return parts().get(WagonSlot.SEAT)==WagonPart.DOUBLE_SEAT ? 2 : 1; }
@@ -144,31 +287,29 @@ public class WagonEntity extends Entity implements GeoEntity {
     }
     private Vec3 seatPosition(int seat) {
         double x=seatCapacity()==1 ? 0 : (seat==0 ? -.45 : .45);
-        return position().add(WagonSlot.rotate(new Vec3(x,2.15625,-1.875),facing()));
+        return pose().point(new Vec3(x,2.15625,-1.875));
     }
     @Override public Vec3 getPassengerRidingPosition(Entity passenger) {
         return seatPosition(passengerSeat(passenger));
     }
-    private Vec3 localPosition(Vec3 relative) {
-        Direction inverse=switch(facing()) { case EAST -> Direction.WEST;case WEST -> Direction.EAST;default -> facing(); };
-        return WagonSlot.rotate(relative,inverse);
-    }
+    private Vec3 localPosition(Vec3 relative) { return pose().local(position().add(relative)); }
     private AABB seatBounds() { double width=seatCapacity()==1 ? .5625 : 1;return new AABB(-width,1.7,-2.25,width,3.05,-1.34375); }
     @Override public InteractionResult interactAt(Player player,Vec3 hit,InteractionHand hand) {
         Vec3 local=localPosition(hit);
+        int hitch=hitchSlot(local);
+        if(hitch>=0)return bindAt(player,hitch);
         if (!seatBounds().inflate(.025).contains(local)) return InteractionResult.PASS;
         return boardSeat(player,seatCapacity()==1 || local.x<0 ? 0 : 1);
     }
     @Override public InteractionResult interact(Player player,InteractionHand hand) {
         if (player.isSecondaryUseActive()) return InteractionResult.PASS;
         Vec3 start=player.getEyePosition(),end=start.add(player.getLookAngle().scale(player.entityInteractionRange()));
-        AABB seat=seatBounds();
-        Vec3 a=WagonSlot.rotate(new Vec3(seat.minX,seat.minY,seat.minZ),facing());
-        Vec3 b=WagonSlot.rotate(new Vec3(seat.maxX,seat.maxY,seat.maxZ),facing());
-        var hit=new AABB(a,b).move(position()).clip(start,end);
-        if (hit.isEmpty()) return InteractionResult.PASS;
-        double x=localPosition(hit.get().subtract(position())).x;
-        return boardSeat(player,seatCapacity()==1 || x<0 ? 0 : 1);
+        Vec3 a=pose().local(start),b=pose().local(end);
+        var hitchHit=pick(start,end);
+        if(hitchHit.isPresent()) { int slot=hitchSlot(pose().local(hitchHit.get()));if(slot>=0)return bindAt(player,slot); }
+        var hit=seatBounds().clip(a,b);
+        if(hit.isEmpty())return InteractionResult.PASS;
+        return boardSeat(player,seatCapacity()==1||hit.get().x<0?0:1);
     }
     private InteractionResult boardSeat(Player player,int seat) {
         if (player.isSecondaryUseActive()) return InteractionResult.PASS;
@@ -207,9 +348,139 @@ public class WagonEntity extends Entity implements GeoEntity {
         var riders=java.util.List.copyOf(getPassengers());
         for (Entity rider : riders) { Vec3 p=safeDismount(rider); rider.stopRiding(); rider.teleportTo(p.x,p.y,p.z); }
     }
+    public int horseCapacity() { return parts().get(WagonSlot.SHAFTS)==WagonPart.DOUBLE_HORSE_SHAFTS?2:1; }
+    public boolean hasHorse(UUID id) {
+        if(level().isClientSide) { var tag=entityData.get(MOTION);return (tag.hasUUID("Horse0")&&id.equals(tag.getUUID("Horse0")))||(tag.hasUUID("Horse1")&&id.equals(tag.getUUID("Horse1"))); }
+        return id.equals(horses[0])||id.equals(horses[1]);
+    }
+    public AbstractHorse horse(int slot) {
+        if(!(level() instanceof ServerLevel server)||horses[slot]==null)return null;
+        return server.getEntity(horses[slot]) instanceof AbstractHorse horse?horse:null;
+    }
+    public boolean readyToPull() {
+        for(int i=0;i<horseCapacity();i++) { var h=horse(i);if(h==null||!h.isAlive())return false; }
+        return true;
+    }
+    public Vec3 horsePosition(int slot) {
+        double x=horseCapacity()==1?0:slot==0?-1.05:1.05;
+        return pose().point(articulated(new Vec3(x,0,horseCapacity()==1?-4.35:-4.45),WagonSlot.SHAFTS));
+    }
+    private Vec3 horseBasePosition(int slot) {
+        double x=horseCapacity()==1?0:slot==0?-1.05:1.05;
+        Vec3 p=new Vec3(x,0,horseCapacity()==1?-4.35:-4.45);
+        p=WagonPose.rotate(p.subtract(new Vec3(0,10.5/16,-20.0/16)),0,0,steering).add(0,10.5/16,-20.0/16);
+        return pose().point(p);
+    }
+    public boolean horsesCanAdvance(Vec3 delta) {
+        for(int i=0;i<horseCapacity();i++) {
+            AbstractHorse h=horse(i);if(h==null)continue;
+            Vec3 base=horseBasePosition(i).add(delta);var g=WagonPhysics.ground(level(),new Vec3(base.x,getY(),base.z),1.001,1.05,h.getBbWidth()/2);
+            if(g.forbidden())return false;
+            Vec3 target=g.present()?new Vec3(base.x,g.height(),base.z):horsePosition(i).add(delta);
+            if(!level().noBlockCollision(h,h.getDimensions(Pose.STANDING).makeBoundingBox(target).deflate(.002)))return false;
+        }return true;
+    }
+    private int hitchSlot(Vec3 local) {
+        // Undo front axle steering and shaft pitch before checking model-space mounting zones.
+        Vec3 p=WagonPose.rotate(local.subtract(new Vec3(0,10.5/16,-20.0/16)),0,0,-steering).add(0,10.5/16,-20.0/16);
+        p=WagonPose.rotate(p.subtract(new Vec3(0,1.25,-26.0/16)),-shaftPitch,0,0).add(0,1.25,-26.0/16);
+        if(horseCapacity()==1)return p.z>=-5.7&&p.z<=-4.95&&p.y>=.85&&p.y<=1.65&&Math.abs(p.x)>.35&&Math.abs(p.x)<.95?0:-1;
+        return p.z>=-5.65&&p.z<=-5.05&&p.y>=.7&&p.y<=1.65&&Math.abs(p.x)>.35&&Math.abs(p.x)<1.65?(p.x<0?0:1):-1;
+    }
+    private InteractionResult bindAt(Player player,int slot) {
+        if(level().isClientSide)return InteractionResult.SUCCESS;
+        String error=horses[slot]!=null?"message.tm_wagon.hitch_occupied":null;
+        if(error==null&&assemblyLock!=null)error="message.tm_wagon.assembly_busy";
+        if(error==null) {
+            var candidates=level().getEntitiesOfClass(AbstractHorse.class,getBoundingBox().inflate(5),h->HorseHarness.eligible(h)&&h.getLeashHolder()==player&&!HorseHarness.attached(h));
+            var nearest=candidates.stream().min(java.util.Comparator.comparingDouble(h->h.position().distanceToSqr(horsePosition(slot)))).orElse(null);
+            error=nearest==null?"message.tm_wagon.lead_horse_required":attachHorse(player,nearest,slot);
+        }
+        if(error!=null)player.displayClientMessage(net.minecraft.network.chat.Component.translatable(error),true);
+        return InteractionResult.CONSUME;
+    }
+    /** Transfers the already-paid player leash; never consumes a second inventory lead. */
+    public String attachHorse(Player player,AbstractHorse horse,int slot) {
+        if(level().isClientSide||assemblyLock!=null||slot<0||slot>=horseCapacity()||horses[slot]!=null)return "message.tm_wagon.hitch_occupied";
+        if(horse.level()!=level()||!HorseHarness.eligible(horse)||HorseHarness.attached(horse)||horse.getLeashHolder()!=player)return "message.tm_wagon.lead_horse_required";
+        if(horse.position().distanceToSqr(horsePosition(slot))>64)return "message.tm_wagon.lead_horse_required";
+        Vec3 target=horsePosition(slot);var ground=WagonPhysics.ground(level(),target,1,1,horse.getBbWidth()/2);
+        if(!ground.present()||ground.forbidden())return "message.tm_wagon.hitch_blocked";
+        target=new Vec3(target.x,ground.height(),target.z);
+        AABB space=horse.getDimensions(Pose.STANDING).makeBoundingBox(target);
+        if(!level().getWorldBorder().isWithinBounds(space)||!level().noBlockCollision(horse,space.deflate(.001)))return "message.tm_wagon.hitch_blocked";
+        for(Entity e:level().getEntities(horse,space))if(e!=this&&e!=player&&!e.isPassengerOfSameVehicle(this)&&e.isAlive())return "message.tm_wagon.hitch_blocked";
+        horses[slot]=horse.getUUID();hangingTicks[slot]=0;HorseHarness.mark(horse,this);horse.setPos(target);horse.setYRot(getYRot());horse.setYBodyRot(getYRot());syncMotion();return null;
+    }
+    public void detachHorse(UUID id,boolean refund) {
+        for(int i=0;i<2;i++)if(id.equals(horses[i])) {
+            AbstractHorse h=horse(i);horses[i]=null;hangingTicks[i]=0;
+            if(h!=null) { HorseHarness.clear(h);h.setDeltaMovement(getDeltaMovement().add(0,-.08,0)); }
+            else if(level() instanceof ServerLevel server)HarnessSavedData.get(server).release(id);
+            if(refund&&!level().isClientSide) {
+                if(h!=null)h.spawnAtLocation(Items.LEAD);else spawnAtLocation(Items.LEAD);
+            }
+            syncMotion();return;
+        }
+    }
+    public void detachAllHorses() { for(UUID id:horses.clone())if(id!=null)detachHorse(id,true); }
+    private void updateHorses() {
+        double desired=0;int count=0;
+        for(int i=0;i<horseCapacity();i++) {
+            AbstractHorse h=horse(i);if(h==null)continue;
+            if(!h.isAlive()) { detachHorse(h.getUUID(),true);continue; }
+            if(!h.getPersistentData().hasUUID(HorseHarness.OWNER)||!h.getPersistentData().getUUID(HorseHarness.OWNER).equals(getUUID())) { detachHorse(h.getUUID(),true);continue; }
+            h.getNavigation().stop();h.setNoGravity(true);h.setDeltaMovement(Vec3.ZERO);h.fallDistance=0;
+            h.getPersistentData().putLong(HorseHarness.OWNER_POS,blockPosition().asLong());
+            if(h.getLeashHolder()!=this)h.setLeashedTo(this,true);
+            Vec3 base=horseBasePosition(i);var ground=WagonPhysics.ground(level(),new Vec3(base.x,getY(),base.z),1.001,1.001,h.getBbWidth()/2);
+            double length=horseCapacity()==1?2.725:2.825;
+            if(ground.present()&&!ground.forbidden()) { desired+=Math.atan2(ground.height()-base.y,length);hangingTicks[i]=0; }
+            else { desired-=Math.atan2(1,length);if(!falling()&&++hangingTicks[i]>=40) { detachHorse(h.getUUID(),true);continue; } }
+            count++;
+        }
+        float max=(float)Math.atan2(1,horseCapacity()==1?2.725:2.825);
+        shaftPitch=Mth.lerp(.25F,shaftPitch,Mth.clamp(count==0?0:(float)(desired/count),-max,max));
+        worldBoxes=null;worldShape=null;
+        for(int i=0;i<horseCapacity();i++) {
+            AbstractHorse h=horse(i);if(h==null)continue;
+            Vec3 target=horsePosition(i),base=horseBasePosition(i);var ground=WagonPhysics.ground(level(),new Vec3(base.x,getY(),base.z),1.001,1.001,h.getBbWidth()/2);
+            if(ground.present()&&!ground.forbidden())target=new Vec3(target.x,ground.height(),target.z);
+            AABB space=h.getDimensions(Pose.STANDING).makeBoundingBox(target).deflate(.002);
+            if(!level().noBlockCollision(h,space))continue;
+            Vec3 movement=target.subtract(h.position());h.setPos(target);h.setYRot(getYRot()+(float)Math.toDegrees(steering));h.setYBodyRot(h.getYRot());
+            h.walkAnimation.update((float)Math.min(1,movement.horizontalDistance()*4),.4F);h.setOnGround(ground.present());
+        }
+        setBoundingBox(makeBoundingBox());if(level()!=null)WagonSpatialIndex.update(this);
+    }
+    @Override public boolean canCollideWith(Entity entity) {
+        return !(entity instanceof AbstractHorse h&&hasHorse(h.getUUID()))&&!entity.isPassengerOfSameVehicle(this)
+            &&(entity.canBeCollidedWith()||entity.isPushable());
+    }
+    @Override public boolean hurt(DamageSource source,float amount) {
+        if(level().isClientSide||isRemoved()||isInvulnerableTo(source)||amount<=0)return false;
+        markHurt();health-=amount;
+        if(health<=0) {
+            releasePassengers();detachAllHorses();
+            if(level().getGameRules().getBoolean(net.minecraft.world.level.GameRules.RULE_DOENTITYDROPS)) {
+                spawnAtLocation(new net.minecraft.world.item.ItemStack(Items.OAK_PLANKS,6+random.nextInt(5)));
+                spawnAtLocation(new net.minecraft.world.item.ItemStack(Items.GREEN_WOOL,seatCapacity()));
+            }
+            discard();
+        }return true;
+    }
+    @Override public void remove(RemovalReason reason) {
+        if(level()!=null&&!level().isClientSide&&reason.shouldDestroy())detachAllHorses();
+        super.remove(reason);
+    }
     @Override protected void addAdditionalSaveData(CompoundTag tag) {
         tag.put("Modules",entityData.get(MODULES).copy()); tag.putInt("WagonFacing",facing().get2DDataValue());
         tag.put("Seats",entityData.get(SEATS).copy());
+        tag.putFloat("Yaw",getYRot());tag.putFloat("Pitch",pitch);tag.putFloat("Roll",roll);tag.putFloat("Health",health);tag.putBoolean("MotionStarted",motionStarted);
+        tag.putFloat("ShaftPitch",shaftPitch);tag.putFloat("Steering",steering);
+        for(int i=0;i<2;i++)if(horses[i]!=null) { tag.putUUID("Horse"+i,horses[i]);tag.putInt("Hanging"+i,hangingTicks[i]); }
+        for(int i=0;i<4;i++)tag.putFloat("Wheel"+i,wheels[i]);
+        var simulation=new CompoundTag();physics.save(simulation);tag.put("Simulation",simulation);
         if (assemblyLock != null) tag.putLong("AssemblyLock",assemblyLock.asLong());
     }
     @Override protected void readAdditionalSaveData(CompoundTag tag) {
@@ -217,6 +488,12 @@ public class WagonEntity extends Entity implements GeoEntity {
             Direction.from2DDataValue(tag.getInt("WagonFacing")));
         assemblyLock=tag.contains("AssemblyLock") ? net.minecraft.core.BlockPos.of(tag.getLong("AssemblyLock")) : null;
         entityData.set(SEATS,tag.getCompound("Seats").copy());
+        pitch=tag.getFloat("Pitch");roll=tag.getFloat("Roll");health=tag.contains("Health")?tag.getFloat("Health"):20;motionStarted=tag.getBoolean("MotionStarted");
+        shaftPitch=tag.getFloat("ShaftPitch");steering=tag.getFloat("Steering");
+        if(tag.contains("Yaw"))setYRot(tag.getFloat("Yaw"));
+        for(int i=0;i<2;i++) { horses[i]=tag.hasUUID("Horse"+i)?tag.getUUID("Horse"+i):null;hangingTicks[i]=tag.getInt("Hanging"+i); }
+        for(int i=0;i<4;i++)wheels[i]=tag.getFloat("Wheel"+i);
+        physics.load(tag.getCompound("Simulation"));worldBoxes=null;worldShape=null;setBoundingBox(makeBoundingBox());if(level()!=null)WagonSpatialIndex.update(this);syncMotion();
     }
     @Override public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {}
     @Override public AnimatableInstanceCache getAnimatableInstanceCache() { return cache; }

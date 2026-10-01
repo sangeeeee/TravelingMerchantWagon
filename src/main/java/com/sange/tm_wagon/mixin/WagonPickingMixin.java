@@ -19,14 +19,13 @@ public abstract class WagonPickingMixin {
     private static Optional<Vec3> tm_wagon$pickParts(Optional<Vec3> original,@Local(ordinal=2) Entity candidate,
             @Local(argsOnly=true,ordinal=0) Vec3 start,@Local(argsOnly=true,ordinal=1) Vec3 end) {
         if (!(candidate instanceof WagonEntity wagon)) return original;
-        var hit=wagon.collisionShape().clip(start,end,BlockPos.ZERO);
-        return hit==null ? Optional.empty() : Optional.of(hit.getLocation());
+        return wagon.pick(start,end);
     }
     @ModifyExpressionValue(method="getEntityHitResult(Lnet/minecraft/world/entity/Entity;Lnet/minecraft/world/phys/Vec3;Lnet/minecraft/world/phys/Vec3;Lnet/minecraft/world/phys/AABB;Ljava/util/function/Predicate;D)Lnet/minecraft/world/phys/EntityHitResult;",
         at=@At(value="INVOKE",target="Lnet/minecraft/world/phys/AABB;contains(Lnet/minecraft/world/phys/Vec3;)Z"))
     private static boolean tm_wagon$insideSolid(boolean original,@Local(ordinal=2) Entity candidate,
             @Local(argsOnly=true,ordinal=0) Vec3 start) {
         if (!(candidate instanceof WagonEntity wagon)) return original;
-        return wagon.collisionShape().toAabbs().stream().anyMatch(box -> box.contains(start));
+        return wagon.collisionBoxes().stream().anyMatch(box -> box.contains(start));
     }
 }

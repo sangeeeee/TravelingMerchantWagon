@@ -14,11 +14,11 @@ public class WagonRenderer extends GeoEntityRenderer<WagonEntity> {
     public WagonRenderer(EntityRendererProvider.Context context) { super(context,new Model()); shadowRadius=1.5F; }
     @Override protected void applyRotations(WagonEntity wagon,com.mojang.blaze3d.vertex.PoseStack poses,
             float age,float yaw,float tick,float scale) {
-        // GeckoLib's default non-living entity path supplies yaw=0; use the same
-        // orientation as the block renderer and compound collision geometry.
-        poses.mulPose(com.mojang.math.Axis.YP.rotationDegrees(switch(wagon.facing()) {
-            case NORTH -> 0; case EAST -> 270; case SOUTH -> 180; case WEST -> 90; default -> 0;
-        }));
+        poses.mulPose(com.mojang.math.Axis.YP.rotationDegrees(180-net.minecraft.util.Mth.rotLerp(tick,wagon.yRotO,wagon.getYRot())));
+        poses.translate(0,1.5,0);
+        poses.mulPose(com.mojang.math.Axis.ZP.rotation(wagon.renderRoll(tick)));
+        poses.mulPose(com.mojang.math.Axis.XP.rotation(wagon.renderPitch(tick)));
+        poses.translate(0,-1.5,0);
     }
     @Override public void renderRecursively(com.mojang.blaze3d.vertex.PoseStack poses,WagonEntity wagon,
             software.bernie.geckolib.cache.object.GeoBone bone,net.minecraft.client.renderer.RenderType type,
@@ -26,6 +26,14 @@ public class WagonRenderer extends GeoEntityRenderer<WagonEntity> {
             boolean reRender,float tick,int light,int overlay,int colour) {
         if (bone.getName().equals("frame_root")) bone.setHidden(true);
         else if (VISIBLE.contains(bone.getName())) bone.setHidden(false);
+        switch(bone.getName()) {
+            case "front_axle" -> bone.setRotY(-wagon.renderSteering(tick));
+            case "shafts" -> bone.setRotX(wagon.renderShaftPitch(tick));
+            case "front_left_wheel" -> bone.setRotX(wagon.renderWheel(0,tick));
+            case "front_right_wheel" -> bone.setRotX(wagon.renderWheel(1,tick));
+            case "rear_left_wheel" -> bone.setRotX(wagon.renderWheel(2,tick));
+            case "rear_right_wheel" -> bone.setRotX(wagon.renderWheel(3,tick));
+        }
         super.renderRecursively(poses,wagon,bone,type,buffers,buffer,reRender,tick,light,overlay,colour);
     }
     public static class Model extends GeoModel<WagonEntity> {
@@ -38,6 +46,11 @@ public class WagonRenderer extends GeoEntityRenderer<WagonEntity> {
         @Override public ResourceLocation getTextureResource(WagonEntity wagon) { return resource("textures/entity/wagon.png"); }
         @Override public ResourceLocation getAnimationResource(WagonEntity wagon) { return resource("animations/assembly.animation.json"); }
         @Override public void setCustomAnimations(WagonEntity wagon,long id,AnimationState<WagonEntity> state) {
+            float tick=state.getPartialTick();
+            getBone("front_axle").ifPresent(b->b.setRotY(-wagon.renderSteering(tick)));
+            getBone("shafts").ifPresent(b->b.setRotX(wagon.renderShaftPitch(tick)));
+            String[] wheelNames={"front_left_wheel","front_right_wheel","rear_left_wheel","rear_right_wheel"};
+            for(int i=0;i<4;i++) { final int index=i;getBone(wheelNames[i]).ifPresent(b->b.setRotX(wagon.renderWheel(index,tick))); }
             getBone("frame_root").ifPresent(b -> b.setHidden(true));
             for (String name : new String[]{"seat","shafts","front_left_wheel","front_right_wheel","rear_left_wheel","rear_right_wheel"})
                 getBone(name).ifPresent(b -> b.setHidden(false));

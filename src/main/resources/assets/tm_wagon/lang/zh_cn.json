@@ -37,5 +37,9 @@
   "message.tm_wagon.wagon_missing": "马车已离开装配架附近，或尚未加载。",
   "message.tm_wagon.restore_failed": "马车方块化失败：%s 装配架将自动缩回。",
   "message.tm_wagon.seats_full": "马车座位已坐满。",
-  "message.tm_wagon.seat_occupied": "这个座位已有人，请点击另一侧座位。"
+  "message.tm_wagon.seat_occupied": "这个座位已有人，请点击另一侧座位。",
+  "message.tm_wagon.hitch_occupied": "这个牵引位置已经有马匹。",
+  "message.tm_wagon.lead_horse_required": "请将由你牵引的成年马或驴带到车辕旁。",
+  "message.tm_wagon.hitch_blocked": "牵引位置需要有可站立的地面和足够空间。",
+  "subtitles.tm_wagon.wagon_roll": "马车轮子吱嘎作响"
 }

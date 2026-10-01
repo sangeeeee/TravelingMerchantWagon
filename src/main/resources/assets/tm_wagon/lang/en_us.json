@@ -37,5 +37,9 @@
   "message.tm_wagon.wagon_missing": "The wagon left the lift area or is not loaded.",
   "message.tm_wagon.restore_failed": "Could not restore wagon blocks: %s The lift will fold back down.",
   "message.tm_wagon.seats_full": "All wagon seats are occupied.",
-  "message.tm_wagon.seat_occupied": "This seat is occupied. Click the other seat."
+  "message.tm_wagon.seat_occupied": "This seat is occupied. Click the other seat.",
+  "message.tm_wagon.hitch_occupied": "This hitch position is occupied.",
+  "message.tm_wagon.lead_horse_required": "Bring an adult horse or donkey on your lead to this hitch.",
+  "message.tm_wagon.hitch_blocked": "Clear the horse position and provide nearby ground.",
+  "subtitles.tm_wagon.wagon_roll": "Wagon wheels creak"
 }

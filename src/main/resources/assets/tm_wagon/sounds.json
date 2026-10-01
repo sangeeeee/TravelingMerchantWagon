@@ -1,0 +1,11 @@
+{
+  "wagon_roll": {
+    "subtitle": "subtitles.tm_wagon.wagon_roll",
+    "sounds": [
+      {
+        "name": "tm_wagon:wagon_roll",
+        "stream": true
+      }
+    ]
+  }
+}

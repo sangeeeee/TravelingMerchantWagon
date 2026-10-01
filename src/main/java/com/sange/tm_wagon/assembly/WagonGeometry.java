@@ -50,6 +50,8 @@ public final class WagonGeometry {
         return result;
     }
 
+    public static List<AABB> partBoxes(WagonPart part) { return BOXES.get(part.id); }
+
     private record FrameKey(Direction facing, int height) {}
     private static final Map<FrameKey,Map<BlockPos,List<AABB>>> FRAME_CACHE = new HashMap<>();
 

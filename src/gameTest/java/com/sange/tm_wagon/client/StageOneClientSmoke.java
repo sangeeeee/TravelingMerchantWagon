@@ -111,13 +111,21 @@ public class StageOneClientSmoke {
                 }
             }
             if(frames==64)verifyCachedFramePose(graphics);
+            if(frames==80)verifyAudio();
             if(frames==90)verifyEntityAndFrameVisibility(graphics);
+            if(frames==93)verifyDrivingBones(graphics);
             graphics.flush();frames++;
             if(frames==15)save("stage-one-items.png");
             if(frames==40)save("stage-one-assemblies.png");
             if(frames==65)save("folding-frame-states.png");
             if(frames==90)save("wagon-entity-variants.png");
             if(frames==100) {LogUtils.getLogger().info("TM_WAGON_CLIENT_SMOKE_PASS: 9 items, 4 block and entity combinations, 4 entity directions, body-only and both frame states rendered");Minecraft.getInstance().stop();}
+        }
+        private void verifyAudio() {
+            try(var stream=new net.minecraft.client.sounds.JOrbisAudioStream(StageOneClientSmoke.class.getResourceAsStream("/assets/tm_wagon/sounds/wagon_roll.ogg"))) {
+                if(stream.getFormat().getChannels()!=1 || stream.read(8192).remaining()==0)throw new IllegalStateException("Invalid wagon OGG");
+                LogUtils.getLogger().info("TM_WAGON_AUDIO_PASS: mono OGG decoded, {} Hz",stream.getFormat().getSampleRate());
+            } catch(java.io.IOException error) { throw new IllegalStateException(error); }
         }
         private void drawAssembly(GuiGraphics graphics,AssemblyFrameBlockEntity frame,int x,int y,float scale) {
             graphics.pose().pushPose();graphics.pose().translate(x,y,500);
@@ -140,12 +148,32 @@ public class StageOneClientSmoke {
             LogUtils.getLogger().info("TM_WAGON_CACHED_POSE_PASS: both directions evaluated at the same animation tick");
         }
         private void drawWagon(GuiGraphics graphics,com.sange.tm_wagon.entity.WagonEntity wagon,int x,int y,float scale) {
+            drawWagon(graphics,wagon,x,y,scale,0);
+        }
+        private void drawWagon(GuiGraphics graphics,com.sange.tm_wagon.entity.WagonEntity wagon,int x,int y,float scale,float partial) {
             var entityRenderer=(WagonRenderer)Minecraft.getInstance().getEntityRenderDispatcher().getRenderer(wagon);
             graphics.pose().pushPose();graphics.pose().translate(x,y,500);graphics.pose().scale(scale,-scale,scale);
             graphics.pose().mulPose(Axis.XP.rotationDegrees(25));graphics.pose().mulPose(Axis.YP.rotationDegrees(-35));
             graphics.pose().translate(0,-1.5,.7);Lighting.setupForEntityInInventory();
-            entityRenderer.render(wagon,0,0,graphics.pose(),graphics.bufferSource(),15728880);
+            entityRenderer.render(wagon,0,partial,graphics.pose(),graphics.bufferSource(),15728880);
             graphics.flush();graphics.pose().popPose();Lighting.setupFor3DItems();
+        }
+        private void verifyDrivingBones(GuiGraphics graphics) {
+            var wagon=wagons.getFirst();var initial=wagon.pose();wagon.setSteering(.25F);wagon.addWheelAngle(0,-1.2F);wagon.addWheelAngle(1,-1.4F);
+            wagon.applyPose(new com.sange.tm_wagon.physics.WagonPose(wagon.position(),213,.15F,.1F));
+            var entityRenderer=(WagonRenderer)Minecraft.getInstance().getEntityRenderDispatcher().getRenderer(wagon);
+            for(int i=0;i<2;i++) {
+                drawWagon(graphics,wagon,-1000,-1000,1,1);
+                if(Math.abs(entityRenderer.getGeoModel().getBone("front_axle").orElseThrow().getRotY()+.25F)>.001
+                    ||Math.abs(entityRenderer.getGeoModel().getBone("front_left_wheel").orElseThrow().getRotX()+1.2F)>.001)
+                    throw new IllegalStateException("Driving bones were not applied at draw time");
+                drawAssembly(graphics,assemblies.getFirst(),-1000,-1000,1);
+                if(Math.abs(renderer.getGeoModel().getBone("front_axle").orElseThrow().getRotY())>.001
+                    ||Math.abs(renderer.getGeoModel().getBone("front_left_wheel").orElseThrow().getRotX())>.001)
+                    throw new IllegalStateException("Driving rotations leaked into assembled block model");
+            }
+            wagon.setSteering(0);wagon.addWheelAngle(0,1.2F);wagon.addWheelAngle(1,1.4F);wagon.applyPose(initial);
+            LogUtils.getLogger().info("TM_WAGON_DRIVING_RENDER_PASS: steering, wheel phase and same-tick block/entity cache isolation");
         }
         private void verifyEntityAndFrameVisibility(GuiGraphics graphics) {
             for(int i=0;i<4;i++) {

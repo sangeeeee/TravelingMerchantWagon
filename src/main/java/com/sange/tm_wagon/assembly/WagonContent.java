@@ -21,6 +21,8 @@ import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 public final class WagonContent {
+    public static final DeferredRegister<net.minecraft.sounds.SoundEvent> SOUNDS=DeferredRegister.create(Registries.SOUND_EVENT,TravelingMerchantWagon.MODID);
+    public static final DeferredHolder<net.minecraft.sounds.SoundEvent,net.minecraft.sounds.SoundEvent> ROLL=SOUNDS.register("wagon_roll",()->net.minecraft.sounds.SoundEvent.createVariableRangeEvent(net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(TravelingMerchantWagon.MODID,"wagon_roll")));
     public static final DeferredRegister.Blocks BLOCKS = DeferredRegister.createBlocks(TravelingMerchantWagon.MODID);
     public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(TravelingMerchantWagon.MODID);
     public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = DeferredRegister.create(Registries.BLOCK_ENTITY_TYPE, TravelingMerchantWagon.MODID);
@@ -28,7 +30,7 @@ public final class WagonContent {
     public static final DeferredRegister<net.minecraft.world.entity.EntityType<?>> ENTITIES = DeferredRegister.create(Registries.ENTITY_TYPE,TravelingMerchantWagon.MODID);
     public static final DeferredHolder<net.minecraft.world.entity.EntityType<?>,net.minecraft.world.entity.EntityType<com.sange.tm_wagon.entity.WagonEntity>> WAGON = ENTITIES.register("wagon",() ->
         net.minecraft.world.entity.EntityType.Builder.<com.sange.tm_wagon.entity.WagonEntity>of(com.sange.tm_wagon.entity.WagonEntity::new,net.minecraft.world.entity.MobCategory.MISC)
-            .sized(3,3).clientTrackingRange(12).updateInterval(3).fireImmune().build("tm_wagon:wagon"));
+            .sized(3,3).clientTrackingRange(12).updateInterval(2).build("tm_wagon:wagon"));
     public static final DeferredBlock<AssemblyFrameBlock> FRAME = BLOCKS.register("wagon_assembly_frame", () -> new AssemblyFrameBlock(properties()));
     public static final DeferredItem<BlockItem> FRAME_ITEM = ITEMS.register("wagon_assembly_frame", () -> new AssemblyFrameItem(FRAME.get(), new Item.Properties()));
     public static final DeferredBlock<AssemblyPartBlock> PROXY = BLOCKS.register("assembly_proxy", () -> new AssemblyPartBlock(properties()));
@@ -58,10 +60,10 @@ public final class WagonContent {
         }).build());
     private static BlockBehaviour.Properties properties() {
         return BlockBehaviour.Properties.of().mapColor(MapColor.WOOD).sound(SoundType.WOOD)
-            .strength(2.0F).noOcclusion().pushReaction(PushReaction.BLOCK);
+            .strength(2.0F,3.0F).noOcclusion().pushReaction(PushReaction.BLOCK);
     }
     public static void register(IEventBus bus) {
-        BLOCKS.register(bus); ITEMS.register(bus); BLOCK_ENTITIES.register(bus); TABS.register(bus); ENTITIES.register(bus);
+        BLOCKS.register(bus); ITEMS.register(bus); BLOCK_ENTITIES.register(bus); TABS.register(bus); ENTITIES.register(bus);SOUNDS.register(bus);
     }
     private WagonContent() {}
 }

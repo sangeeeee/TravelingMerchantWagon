@@ -12,6 +12,7 @@ import software.bernie.geckolib.model.GeoModel;
 import software.bernie.geckolib.renderer.GeoBlockRenderer;
 
 public class AssemblyRenderer extends GeoBlockRenderer<AssemblyFrameBlockEntity> {
+    private static final java.util.Set<String> MOVING_BONES=java.util.Set.of("front_axle","shafts","front_left_wheel","front_right_wheel","rear_left_wheel","rear_right_wheel");
     public AssemblyRenderer() { super(new Model()); }
     @Override public void render(AssemblyFrameBlockEntity frame, float tick, PoseStack poses, MultiBufferSource buffers, int light, int overlay) {
         super.render(frame,tick,poses,buffers,light,overlay);
@@ -23,6 +24,9 @@ public class AssemblyRenderer extends GeoBlockRenderer<AssemblyFrameBlockEntity>
         // GeckoLib may reuse an animation evaluation within the same tick.
         // Reapply the authoritative pose immediately before drawing the frame.
         if (bone.getName().equals("frame_root")) { bone.setHidden(false); ((Model)getGeoModel()).applyFramePose(frame,tick); }
+        if(MOVING_BONES.contains(bone.getName())) {
+            var initial=bone.getInitialSnapshot();bone.updateRotation(initial.getRotX(),initial.getRotY(),initial.getRotZ());
+        }
         super.renderRecursively(poses,frame,bone,type,buffers,buffer,reRender,tick,light,overlay,colour);
     }
     @Override public int getViewDistance() { return 128; }

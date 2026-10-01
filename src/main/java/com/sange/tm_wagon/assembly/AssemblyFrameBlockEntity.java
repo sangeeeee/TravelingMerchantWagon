@@ -194,7 +194,14 @@ public class AssemblyFrameBlockEntity extends BlockEntity implements GeoBlockEnt
         restoringWagon=null; restoringPlayer=null;
         if (wagon != null) wagon.unlock();
         if (error == null) {
-            wagon.releasePassengers(); wagon.discard();
+            wagon.releasePassengers();
+            var attached=new java.util.ArrayList<net.minecraft.world.entity.animal.horse.AbstractHorse>();
+            for(int i=0;i<wagon.horseCapacity();i++)if(wagon.horse(i)!=null)attached.add(wagon.horse(i));
+            wagon.detachAllHorses();
+            for(var horse:attached)if(!level.noCollision(horse,horse.getBoundingBox())) {
+                Vec3 p=wagon.safeDismount(horse);horse.teleportTo(p.x,p.y,p.z);
+            }
+            wagon.discard();
         } else {
             if (player != null) player.displayClientMessage(net.minecraft.network.chat.Component.translatable("message.tm_wagon.restore_failed",
                 net.minecraft.network.chat.Component.translatable(error)),true);
@@ -207,9 +214,11 @@ public class AssemblyFrameBlockEntity extends BlockEntity implements GeoBlockEnt
     private boolean unobstructed(net.minecraft.world.phys.shapes.VoxelShape shape,Entity ignored) {
         if (shape.isEmpty()) return true;
         for (Entity entity : level.getEntities((Entity)null,shape.bounds())) {
-            if (entity.isRemoved() || !entity.blocksBuilding || entity==ignored || (ignored!=null && entity.isPassengerOfSameVehicle(ignored))) continue;
-            var volume=entity instanceof WagonEntity wagon ? wagon.collisionShape() : net.minecraft.world.phys.shapes.Shapes.create(entity.getBoundingBox());
-            if (net.minecraft.world.phys.shapes.Shapes.joinIsNotEmpty(shape,volume,net.minecraft.world.phys.shapes.BooleanOp.AND)) return false;
+            if (entity.isRemoved() || !entity.blocksBuilding || entity==ignored || (ignored!=null && entity.isPassengerOfSameVehicle(ignored))
+                || (ignored instanceof WagonEntity wagon && wagon.hasHorse(entity.getUUID()))) continue;
+            if(entity instanceof WagonEntity wagon) {
+                if(shape.toAabbs().stream().anyMatch(wagon::intersects))return false;
+            } else if(net.minecraft.world.phys.shapes.Shapes.joinIsNotEmpty(shape,net.minecraft.world.phys.shapes.Shapes.create(entity.getBoundingBox()),net.minecraft.world.phys.shapes.BooleanOp.AND))return false;
         }
         return true;
     }
