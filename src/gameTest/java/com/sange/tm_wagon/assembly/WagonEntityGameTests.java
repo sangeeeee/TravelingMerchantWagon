@@ -250,4 +250,25 @@ public class WagonEntityGameTests {
         }
         helper.succeed();
     }
+    @GameTest(template="assembly_test",timeoutTicks=60)
+    public static void longer_double_shafts_update_block_and_entity_collision(GameTestHelper helper) {
+        var frame=frame(helper,Direction.NORTH);
+        var modules=new EnumMap<WagonSlot,WagonPart>(WagonSlot.class);modules.putAll(WagonEntity.defaultParts());modules.put(WagonSlot.SHAFTS,WagonPart.DOUBLE_HORSE_SHAFTS);
+        install(helper,frame,modules);
+        Vec3 origin=Vec3.atBottomCenterOf(frame.getBlockPos());
+        AABB tip=new AABB(-.05,1.1,-6.1,.05,1.2,-6.0).move(origin);
+        AABB bar=new AABB(.9,1.2,-5.38,1.0,1.27,-5.3).move(origin);
+        AABB oldBar=new AABB(.9,1.2,-4.88,1.0,1.27,-4.8).move(origin);
+        helper.assertTrue(!helper.getLevel().noCollision(null,tip)&&!helper.getLevel().noCollision(null,bar),"Extended pole or relocated yoke missing block collision");
+        helper.assertTrue(helper.getLevel().noCollision(null,oldBar),"Old yoke location retained collision");
+        // A saved world must refresh persisted cell shapes after the model update.
+        frame.layout().keySet().forEach(pos -> ((AssemblyCellBlockEntity)helper.getLevel().getBlockEntity(pos)).configure(frame.getBlockPos(),java.util.List.of()));
+        var saved=frame.saveWithFullMetadata(helper.getLevel().registryAccess());saved.remove("CollisionSignature");
+        frame.loadWithComponents(saved,helper.getLevel().registryAccess());frame.ensureFrame();
+        helper.assertTrue(frame.parts().equals(modules)&&!helper.getLevel().noCollision(null,tip),"Saved block cart did not refresh collision without losing modules");
+        helper.assertTrue(frame.toggleFrame(null)==null,"Updated wagon did not assemble");
+        helper.assertTrue(!helper.getLevel().noCollision(null,tip)&&!helper.getLevel().noCollision(null,bar),"Entity collision did not match extended double shafts");
+        helper.assertTrue(helper.getLevel().noCollision(null,oldBar),"Entity retained old yoke collision");
+        helper.succeed();
+    }
 }

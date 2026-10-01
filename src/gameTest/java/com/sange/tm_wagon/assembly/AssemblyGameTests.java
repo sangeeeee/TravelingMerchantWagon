@@ -301,21 +301,40 @@ public class AssemblyGameTests {
         helper.succeed();
     }
 
-    @GameTest(template="assembly_test",timeoutTicks=60)
-    public static void reversing_empty_frame(GameTestHelper helper) {
+    @GameTest(template="assembly_test",timeoutTicks=70)
+    public static void clicks_during_animation_are_ignored_until_state_commits(GameTestHelper helper) {
         var frame=frame(helper,Direction.SOUTH);
+        var player=helper.makeMockPlayer(GameType.CREATIVE);
+        var hit=new BlockHitResult(Vec3.atCenterOf(frame.getBlockPos()),Direction.NORTH,frame.getBlockPos(),false);
         helper.assertTrue(frame.toggleFrame(null)==null,"Empty frame could not fold");
-        helper.runAtTickTime(10,()->{
+        long start=frame.getUpdateTag(helper.getLevel().registryAccess()).getLong("MotionStart");
+        var collision=collisionSnapshot(helper,frame);
+        for (int tick=1;tick<20;tick++) helper.runAtTickTime(tick,()->{
             double before=frame.frameProgress(0);
-            helper.assertTrue(frame.toggleFrame(null)==null,"Moving frame could not reverse");
-            helper.assertTrue(Math.abs(frame.frameProgress(0)-before)<1e-6,"Reversing snapped the platform to an endpoint");
-            helper.assertTrue(frame.parts().isEmpty(),"Empty frame acquired parts");
+            for (int click=0;click<5;click++) {
+                helper.assertTrue("message.tm_wagon.assembly_busy".equals(frame.toggleFrame(null)),"Moving frame accepted a repeated toggle");
+                helper.assertTrue(frame.getBlockState().useWithoutItem(helper.getLevel(),player,hit)==InteractionResult.CONSUME,"Ignored click fell through to item use");
+            }
+            helper.assertTrue(frame.frameProgress(0)==before,"Repeated input changed animation pose");
+            helper.assertTrue(frame.getUpdateTag(helper.getLevel().registryAccess()).getLong("MotionStart")==start,"Repeated input restarted the timeline");
+            helper.assertTrue(collisionSnapshot(helper,frame).equals(collision),"Repeated input changed collision before animation ended");
         });
-        helper.runAtTickTime(35,()->{
-            helper.assertTrue(frame.extended()&&!frame.frameMoving(),"Reversal did not finish");
-            helper.assertTrue(frame.parts().isEmpty(),"Empty animation created components");
-            var positions=java.util.Set.copyOf(frame.layout().keySet());frame.dismantle(false,true);
-            for(var position:positions)helper.assertTrue(helper.getLevel().getBlockState(position).isAir(),"Animated frame dismantling left orphan cells");
+        helper.runAtTickTime(24,()->{
+            helper.assertTrue(!frame.extended()&&!frame.switching()&&!frame.getBlockState().getValue(AssemblyFrameBlock.EXTENDED),"Fold did not commit before unlocking");
+            helper.assertTrue(frame.toggleFrame(null)==null,"Committed folded state could not unfold");
+        });
+        helper.runAtTickTime(34,()->{
+            helper.assertTrue("message.tm_wagon.assembly_busy".equals(frame.toggleFrame(null)),"Unfolding accepted a reverse click");
+            // An elapsed animation is still busy until its collision/block-state commit.
+            var copy=new AssemblyFrameBlockEntity(frame.getBlockPos(),frame.getBlockState());copy.setLevel(helper.getLevel());
+            var tag=frame.getUpdateTag(helper.getLevel().registryAccess());tag.putLong("MotionStart",helper.getLevel().getGameTime()-20);
+            copy.loadWithComponents(tag,helper.getLevel().registryAccess());
+            helper.assertTrue(!copy.frameMoving()&&copy.switching(),"Elapsed animation unlocked before state commit");
+            helper.assertTrue("message.tm_wagon.assembly_busy".equals(copy.toggleFrame(null)),"Uncommitted endpoint accepted a toggle");
+        });
+        helper.runAtTickTime(48,()->{
+            helper.assertTrue(frame.extended()&&!frame.switching(),"Unfold did not commit");
+            helper.assertTrue(collisionSnapshot(helper,frame).equals(collision),"Completed cycle changed extended collision");
             helper.succeed();
         });
     }

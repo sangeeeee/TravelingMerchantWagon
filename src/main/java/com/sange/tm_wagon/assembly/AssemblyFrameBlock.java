@@ -66,6 +66,9 @@ public class AssemblyFrameBlock extends BaseEntityBlock {
     public static InteractionResult interact(Level level,BlockPos pos,Player player) {
         var frame = AssemblyFrameBlockEntity.find(level,pos);
         if (frame == null) return InteractionResult.PASS;
+        // Consume ignored input so it cannot fall through to item use. No queued
+        // toggle, timeline restart or repeated error message during animation.
+        if (frame.switching()) return InteractionResult.CONSUME;
         if (level.isClientSide) return InteractionResult.SUCCESS;
         String error = frame.toggleFrame(player);
         if (error != null) { player.displayClientMessage(Component.translatable(error),true); return InteractionResult.FAIL; }

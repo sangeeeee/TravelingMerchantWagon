@@ -54,6 +54,8 @@ public class AssemblyFrameBlockEntity extends BlockEntity implements GeoBlockEnt
         return REQUIRED.stream().allMatch(slot -> modules.containsKey(slot) && slot.accepts(modules.get(slot)));
     }
     public boolean restoring(UUID wagon) { return wagon.equals(restoringWagon); }
+    /** Remains locked until the final block state and collision have committed. */
+    public boolean switching() { return motionStart!=Long.MIN_VALUE || restoringWagon!=null; }
     public boolean acceptsParts() { return collisionExtended && motionStart==Long.MIN_VALUE && restoringWagon==null; }
     private static final RawAnimation FOLD = RawAnimation.begin().thenPlayAndHold("animation.tm_wagon.frame_fold");
     private static final RawAnimation UNFOLD = RawAnimation.begin().thenPlayAndHold("animation.tm_wagon.frame_unfold");
@@ -88,7 +90,7 @@ public class AssemblyFrameBlockEntity extends BlockEntity implements GeoBlockEnt
 
     public String toggleFrame(Player player) {
         if (level == null || level.isClientSide || changing) return "message.tm_wagon.server_only";
-        if (restoringWagon != null || (!parts.isEmpty() && motionStart!=Long.MIN_VALUE)) return "message.tm_wagon.assembly_busy";
+        if (switching()) return "message.tm_wagon.assembly_busy";
         if (!parts.isEmpty()) {
             if (!acceptsParts()) return "message.tm_wagon.frame_extend_first";
             if (!complete(parts)) return "message.tm_wagon.incomplete_assembly";
@@ -443,6 +445,7 @@ public class AssemblyFrameBlockEntity extends BlockEntity implements GeoBlockEnt
     @Override protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
         tag.putBoolean("FrameBuilt",frameBuilt);
+        tag.putInt("CollisionSignature",WagonGeometry.collisionSignature());
         tag.putBoolean("CollisionExtended",collisionExtended);
         tag.putBoolean("MotionTargetExtended",motionTargetExtended);
         if (restoringWagon != null) tag.putUUID("RestoringWagon",restoringWagon);
@@ -460,7 +463,10 @@ public class AssemblyFrameBlockEntity extends BlockEntity implements GeoBlockEnt
                 catch (IllegalArgumentException ignored) { /* Ignore unknown parts from incompatible saves. */ }
             }
         }
-        frameBuilt = tag.getBoolean("FrameBuilt");
+        // Existing proxy cells persist their collision boxes. Rebuild them when
+        // model collision data changes, preserving installed modules on failure.
+        frameBuilt = tag.getBoolean("FrameBuilt") && tag.contains("CollisionSignature")
+            && tag.getInt("CollisionSignature")==WagonGeometry.collisionSignature();
         motionStart = tag.contains("MotionStart") ? tag.getLong("MotionStart") : Long.MIN_VALUE;
         motionFrom = Math.clamp(tag.getDouble("MotionFrom"),0,1);
         motionDuration = Math.max(1,tag.getInt("MotionDuration"));

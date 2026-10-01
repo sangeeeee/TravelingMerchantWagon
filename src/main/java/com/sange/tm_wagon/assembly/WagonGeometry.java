@@ -18,6 +18,8 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 public final class WagonGeometry {
     private record Key(WagonPart part, WagonSlot slot, Direction facing) {}
     private static final Map<String, List<AABB>> BOXES = load();
+    private static final int COLLISION_SIGNATURE = BOXES.hashCode();
+    public static int collisionSignature() { return COLLISION_SIGNATURE; }
     private static final Map<Key, Map<BlockPos, List<AABB>>> CACHE = new HashMap<>();
     private record EntityKey(Map<WagonSlot,WagonPart> parts,Direction facing) {}
     private static final Map<EntityKey,VoxelShape> ENTITY_CACHE = new HashMap<>();
