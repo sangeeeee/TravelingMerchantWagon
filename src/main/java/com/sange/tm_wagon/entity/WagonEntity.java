@@ -24,18 +24,22 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 public class WagonEntity extends Entity implements GeoEntity {
     private static final EntityDataAccessor<CompoundTag> MODULES = SynchedEntityData.defineId(WagonEntity.class,EntityDataSerializers.COMPOUND_TAG);
     private static final EntityDataAccessor<Integer> FACING = SynchedEntityData.defineId(WagonEntity.class,EntityDataSerializers.INT);
+    private static final EntityDataAccessor<CompoundTag> SEATS = SynchedEntityData.defineId(WagonEntity.class,EntityDataSerializers.COMPOUND_TAG);
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     private VoxelShape localShape;
     private VoxelShape worldShape;
     private Vec3 shapePosition;
     private Map<WagonSlot,WagonPart> modules;
     private net.minecraft.core.BlockPos assemblyLock;
+    private int requestedSeat=-1;
+    private final Map<java.util.UUID,Integer> departingSeats=new java.util.HashMap<>();
 
     public WagonEntity(EntityType<? extends WagonEntity> type, Level level) {
         super(type,level); blocksBuilding = true; setNoGravity(true); rebuildGeometry();
     }
     @Override protected void defineSynchedData(SynchedEntityData.Builder builder) {
         builder.define(MODULES,encode(defaultParts())); builder.define(FACING,Direction.NORTH.get2DDataValue());
+        builder.define(SEATS,new CompoundTag());
     }
     public static Map<WagonSlot,WagonPart> defaultParts() {
         var parts = new EnumMap<WagonSlot,WagonPart>(WagonSlot.class);
@@ -106,24 +110,77 @@ public class WagonEntity extends Entity implements GeoEntity {
         return passenger instanceof LivingEntity && getPassengers().size()<seatCapacity() && passenger.getBbWidth()<=1.5F;
     }
     @Override protected boolean couldAcceptPassenger() { return getPassengers().size()<seatCapacity(); }
-    @Override public Vec3 getPassengerRidingPosition(Entity passenger) {
-        int index=Math.max(0,getPassengers().indexOf(passenger));
-        double x=seatCapacity()==1 ? 0 : (index==0 ? -.45 : .45);
+    /** Seat identity is independent of vanilla's passenger list ordering. */
+    public int passengerSeat(Entity passenger) {
+        var seats=entityData.get(SEATS);String key=passenger.getUUID().toString();
+        if (seats.contains(key)) return Math.clamp(seats.getInt(key),0,seatCapacity()-1);
+        return Math.clamp(getPassengers().indexOf(passenger),0,seatCapacity()-1);
+    }
+    private boolean seatOccupied(int seat,Entity except) {
+        return getPassengers().stream().anyMatch(passenger -> passenger!=except && passengerSeat(passenger)==seat);
+    }
+    @Override protected void addPassenger(Entity passenger) {
+        int seat=requestedSeat;
+        if (seat<0) {
+            String key=passenger.getUUID().toString();var seats=entityData.get(SEATS);
+            seat=seats.contains(key) ? seats.getInt(key) : -1;
+        }
+        if (seat<0 || seat>=seatCapacity() || seatOccupied(seat,passenger)) {
+            seat=0;while (seat<seatCapacity()-1 && seatOccupied(seat,passenger)) seat++;
+        }
+        super.addPassenger(passenger);
+        if (!level().isClientSide) {
+            var seats=entityData.get(SEATS).copy();seats.putInt(passenger.getUUID().toString(),seat);entityData.set(SEATS,seats);
+            departingSeats.remove(passenger.getUUID());
+        }
+    }
+    @Override protected void removePassenger(Entity passenger) {
+        int seat=passengerSeat(passenger);
+        super.removePassenger(passenger);
+        if (!level().isClientSide) {
+            if (!passenger.isRemoved()) departingSeats.put(passenger.getUUID(),seat);
+            var seats=entityData.get(SEATS).copy();seats.remove(passenger.getUUID().toString());entityData.set(SEATS,seats);
+        }
+    }
+    private Vec3 seatPosition(int seat) {
+        double x=seatCapacity()==1 ? 0 : (seat==0 ? -.45 : .45);
         return position().add(WagonSlot.rotate(new Vec3(x,2.15625,-1.875),facing()));
     }
-    @Override public InteractionResult interactAt(Player player,Vec3 hit,InteractionHand hand) { return interact(player,hand); }
+    @Override public Vec3 getPassengerRidingPosition(Entity passenger) {
+        return seatPosition(passengerSeat(passenger));
+    }
+    private Vec3 localPosition(Vec3 relative) {
+        Direction inverse=switch(facing()) { case EAST -> Direction.WEST;case WEST -> Direction.EAST;default -> facing(); };
+        return WagonSlot.rotate(relative,inverse);
+    }
+    private AABB seatBounds() { double width=seatCapacity()==1 ? .5625 : 1;return new AABB(-width,1.7,-2.25,width,3.05,-1.34375); }
+    @Override public InteractionResult interactAt(Player player,Vec3 hit,InteractionHand hand) {
+        Vec3 local=localPosition(hit);
+        if (!seatBounds().inflate(.025).contains(local)) return InteractionResult.PASS;
+        return boardSeat(player,seatCapacity()==1 || local.x<0 ? 0 : 1);
+    }
     @Override public InteractionResult interact(Player player,InteractionHand hand) {
         if (player.isSecondaryUseActive()) return InteractionResult.PASS;
         Vec3 start=player.getEyePosition(),end=start.add(player.getLookAngle().scale(player.entityInteractionRange()));
-        AABB seat=new AABB(-1,1.7,-2.25,1,3.05,-1.35);
+        AABB seat=seatBounds();
         Vec3 a=WagonSlot.rotate(new Vec3(seat.minX,seat.minY,seat.minZ),facing());
         Vec3 b=WagonSlot.rotate(new Vec3(seat.maxX,seat.maxY,seat.maxZ),facing());
-        if (new AABB(a,b).move(position()).clip(start,end).isEmpty()) return InteractionResult.PASS;
-        if (getPassengers().size()>=seatCapacity()) {
-            if (!level().isClientSide) player.displayClientMessage(net.minecraft.network.chat.Component.translatable("message.tm_wagon.seats_full"),true);
+        var hit=new AABB(a,b).move(position()).clip(start,end);
+        if (hit.isEmpty()) return InteractionResult.PASS;
+        double x=localPosition(hit.get().subtract(position())).x;
+        return boardSeat(player,seatCapacity()==1 || x<0 ? 0 : 1);
+    }
+    private InteractionResult boardSeat(Player player,int seat) {
+        if (player.isSecondaryUseActive()) return InteractionResult.PASS;
+        if (seatOccupied(seat,null)) {
+            if (!level().isClientSide) player.displayClientMessage(net.minecraft.network.chat.Component.translatable("message.tm_wagon.seat_occupied"),true);
             return InteractionResult.FAIL;
         }
-        if (!level().isClientSide && !player.startRiding(this)) return InteractionResult.FAIL;
+        if (!level().isClientSide) {
+            requestedSeat=seat;
+            try { if (!player.startRiding(this)) return InteractionResult.FAIL; }
+            finally { requestedSeat=-1; }
+        }
         return InteractionResult.sidedSuccess(level().isClientSide);
     }
     /** Search outside the future block footprint, so unseating never traps a rider. */
@@ -135,19 +192,31 @@ public class WagonEntity extends Entity implements GeoEntity {
         }
         return position().add(0,4,0);
     }
-    @Override public Vec3 getDismountLocationForPassenger(LivingEntity passenger) { return safeDismount(passenger); }
+    @Override public Vec3 getDismountLocationForPassenger(LivingEntity passenger) {
+        Integer previous=departingSeats.remove(passenger.getUUID());
+        Vec3 seat=seatPosition(previous==null ? passengerSeat(passenger) : previous);
+        // Stand on the cushion directly above the chosen seat. Wider riders or
+        // obstructions may require more vertical clearance, preserving X/Z.
+        for (double offset=.001;offset<=3;offset+=.125) {
+            Vec3 target=seat.add(0,offset,0);
+            if (level().noCollision(passenger,passenger.getDimensions(Pose.STANDING).makeBoundingBox(target))) return target;
+        }
+        return seat.add(0,3,0);
+    }
     public void releasePassengers() {
         var riders=java.util.List.copyOf(getPassengers());
         for (Entity rider : riders) { Vec3 p=safeDismount(rider); rider.stopRiding(); rider.teleportTo(p.x,p.y,p.z); }
     }
     @Override protected void addAdditionalSaveData(CompoundTag tag) {
         tag.put("Modules",entityData.get(MODULES).copy()); tag.putInt("WagonFacing",facing().get2DDataValue());
+        tag.put("Seats",entityData.get(SEATS).copy());
         if (assemblyLock != null) tag.putLong("AssemblyLock",assemblyLock.asLong());
     }
     @Override protected void readAdditionalSaveData(CompoundTag tag) {
         configure(tag.contains("Modules") ? decode(tag.getCompound("Modules")) : defaultParts(),
             Direction.from2DDataValue(tag.getInt("WagonFacing")));
         assemblyLock=tag.contains("AssemblyLock") ? net.minecraft.core.BlockPos.of(tag.getLong("AssemblyLock")) : null;
+        entityData.set(SEATS,tag.getCompound("Seats").copy());
     }
     @Override public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {}
     @Override public AnimatableInstanceCache getAnimatableInstanceCache() { return cache; }

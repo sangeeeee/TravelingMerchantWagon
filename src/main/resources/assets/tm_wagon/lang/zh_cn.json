@@ -36,5 +36,6 @@
   "message.tm_wagon.spawn_failed": "无法生成马车，已保留原有配件。",
   "message.tm_wagon.wagon_missing": "马车已离开装配架附近，或尚未加载。",
   "message.tm_wagon.restore_failed": "马车方块化失败：%s 装配架将自动缩回。",
-  "message.tm_wagon.seats_full": "马车座位已坐满。"
+  "message.tm_wagon.seats_full": "马车座位已坐满。",
+  "message.tm_wagon.seat_occupied": "这个座位已有人，请点击另一侧座位。"
 }

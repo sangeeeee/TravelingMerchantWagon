@@ -220,4 +220,34 @@ public class WagonEntityGameTests {
             helper.succeed();
         });
     }
+    @GameTest(template="assembly_test",timeoutTicks=60)
+    public static void clicked_double_seat_remains_assigned_and_dismounts_above_chair(GameTestHelper helper) {
+        for (Direction direction : new Direction[]{Direction.NORTH,Direction.EAST,Direction.SOUTH,Direction.WEST}) {
+            var frame=frame(helper,direction);
+            var modules=new EnumMap<WagonSlot,WagonPart>(WagonSlot.class);modules.putAll(WagonEntity.defaultParts());modules.put(WagonSlot.SEAT,WagonPart.DOUBLE_SEAT);
+            install(helper,frame,modules);helper.assertTrue(frame.toggleFrame(null)==null,"Assembly failed");var entity=wagon(helper,frame);
+            var right=helper.makeMockPlayer(GameType.SURVIVAL);right.setUUID(java.util.UUID.randomUUID());
+            var left=helper.makeMockPlayer(GameType.SURVIVAL);left.setUUID(java.util.UUID.randomUUID());
+            Vec3 rightHit=WagonSlot.rotate(new Vec3(.45,2.2,-1.875),direction);
+            Vec3 leftHit=WagonSlot.rotate(new Vec3(-.45,2.2,-1.875),direction);
+            helper.assertTrue(entity.interactAt(right,rightHit,net.minecraft.world.InteractionHand.MAIN_HAND).consumesAction(),"Right seat did not accept first passenger");
+            helper.assertTrue(entity.passengerSeat(right)==1,"First passenger was forced into left seat");
+            helper.assertTrue(entity.interactAt(left,rightHit,net.minecraft.world.InteractionHand.MAIN_HAND)==net.minecraft.world.InteractionResult.FAIL&&!left.isPassenger(),"Occupied right seat redirected click into free left seat");
+            helper.assertTrue(entity.interactAt(left,leftHit,net.minecraft.world.InteractionHand.MAIN_HAND).consumesAction()&&entity.passengerSeat(left)==0,"Left seat could not be selected independently");
+            entity.positionRider(right);entity.positionRider(left);
+            Vec3 rightPosition=entity.getPassengerRidingPosition(right),leftPosition=entity.getPassengerRidingPosition(left);
+            var tag=new net.minecraft.nbt.CompoundTag();entity.saveWithoutId(tag);
+            var copy=WagonContent.WAGON.get().create(helper.getLevel());copy.load(tag);
+            helper.assertTrue(copy.passengerSeat(right)==1&&copy.passengerSeat(left)==0,"Saved seat assignment was lost");
+            left.stopRiding();
+            helper.assertTrue(Math.abs(left.getX()-leftPosition.x)<1e-6&&Math.abs(left.getZ()-leftPosition.z)<1e-6,"Left passenger dismounted away from their chair");
+            helper.assertTrue(Math.abs(left.getY()-leftPosition.y-.001)<.001&&helper.getLevel().noCollision(left,left.getBoundingBox()),"Player did not stand on the cushion safely");
+            helper.assertTrue(entity.getPassengerRidingPosition(right).equals(rightPosition),"Remaining right passenger shifted left");
+            right.stopRiding();
+            helper.assertTrue(Math.abs(right.getX()-rightPosition.x)<1e-6&&Math.abs(right.getZ()-rightPosition.z)<1e-6,"Last right passenger dismounted above left chair");
+            helper.assertTrue(helper.getLevel().noCollision(right,right.getBoundingBox()),"Right passenger intersected chair after dismount");
+            entity.discard();frame.dismantle(false,true);
+        }
+        helper.succeed();
+    }
 }

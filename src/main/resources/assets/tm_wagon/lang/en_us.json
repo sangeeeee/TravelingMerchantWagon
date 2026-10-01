@@ -36,5 +36,6 @@
   "message.tm_wagon.spawn_failed": "Could not spawn the wagon. All components were preserved.",
   "message.tm_wagon.wagon_missing": "The wagon left the lift area or is not loaded.",
   "message.tm_wagon.restore_failed": "Could not restore wagon blocks: %s The lift will fold back down.",
-  "message.tm_wagon.seats_full": "All wagon seats are occupied."
+  "message.tm_wagon.seats_full": "All wagon seats are occupied.",
+  "message.tm_wagon.seat_occupied": "This seat is occupied. Click the other seat."
 }
