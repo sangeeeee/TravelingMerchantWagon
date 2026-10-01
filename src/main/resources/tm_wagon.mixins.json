@@ -7,6 +7,7 @@
     "WagonPickingMixin",
     "WagonQueryMixin",
     "HorseTravelMixin",
+    "HorseAnimationMixin",
     "HorseLeashMixin"
   ],
   "injectors": {

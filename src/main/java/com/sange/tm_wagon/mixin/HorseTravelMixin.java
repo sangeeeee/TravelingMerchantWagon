@@ -17,10 +17,7 @@ public abstract class HorseTravelMixin {
             HorseHarness.recover(horse);
             if(HorseHarness.attached(horse)) {
                 horse.setDeltaMovement(Vec3.ZERO);
-                if(horse.level().isClientSide) {
-                    double dx=horse.getX()-horse.xo,dz=horse.getZ()-horse.zo;
-                    horse.walkAnimation.update((float)Math.min(1,Math.sqrt(dx*dx+dz*dz)*4),.4F);
-                }
+                if(horse.level().isClientSide)horse.calculateEntityAnimation(false);
                 callback.cancel();
             }
         }

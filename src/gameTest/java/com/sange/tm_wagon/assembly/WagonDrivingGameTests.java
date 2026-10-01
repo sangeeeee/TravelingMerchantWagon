@@ -255,5 +255,46 @@ public class WagonDrivingGameTests {
         for(int i=0;i<45;i++)w.tick();
         h.assertTrue(!w.hasHorse(horse.getUUID())&&leads(h,w)==1&&!w.falling(),"Shaft motion gave hanging horse fictitious intermediate steps");h.succeed();
     }
+    @GameTest(template="assembly_test",timeoutTicks=40)
+    public static void ropes_attach_to_front_wood_beam_in_all_directions(GameTestHelper h) {
+        var w=wagon(h,false,false);
+        for(boolean single:new boolean[]{true,false})for(Direction direction:new Direction[]{Direction.NORTH,Direction.EAST,Direction.SOUTH,Direction.WEST}) {
+            var parts=new EnumMap<WagonSlot,WagonPart>(WagonSlot.class);parts.putAll(WagonEntity.defaultParts());
+            if(!single)parts.put(WagonSlot.SHAFTS,WagonPart.DOUBLE_HORSE_SHAFTS);
+            w.configure(parts,direction);
+            Vec3 beam=new Vec3(0,(single?19.75:20.15)/16,(single?-38.0:-39.0)/16);
+            Vec3 expected=w.position().add(WagonSlot.rotate(beam,direction));
+            h.assertTrue(w.getRopeHoldPosition(1).distanceToSqr(expected)<1e-8,"Rope misses front beam: "+direction+" single "+single);
+        }
+        w.configure(WagonEntity.defaultParts(),Direction.NORTH);
+        var p=driver(h,w);attach(h,w,p,0);drive(w,p,1,1,6);
+        Vec3 rope=w.getRopeHoldPosition(1);
+        h.assertTrue(rope.distanceToSqr(w.position())>4,"Moving rope returned to cargo centre");
+        w.xo=w.getX();w.yo=w.getY();w.zo=w.getZ();drive(w,p,1,1,1);
+        h.assertTrue(w.getRopeHoldPosition(0).distanceToSqr(rope)<1e-8,"Rope interpolation does not match old beam pose");
+        h.assertTrue(w.getRopeHoldPosition(.5F).distanceTo(rope)<w.getRopeHoldPosition(1).distanceTo(rope),"Rope jumps to next pose without interpolation");h.succeed();
+    }
+    @GameTest(template="assembly_test",timeoutTicks=40)
+    public static void pulling_horses_use_forward_gait_and_idle_only_when_parked(GameTestHelper h) {
+        var w=wagon(h,false,true);var p=driver(h,w);var horse=attach(h,w,p,0);var donkey=attach(h,w,p,1);
+        for(var animal:new AbstractHorse[]{horse,donkey}) {
+            animal.setEating(true);for(int i=0;i<4;i++)animal.tick();
+            h.assertTrue(animal.isEating()&&animal.getEatAnim(1)>.5,"Parked horse lost grazing behaviour");
+            animal.setYHeadRot(75);animal.setXRot(30);
+        }
+        drive(w,p,1,1,1);
+        for(var animal:new AbstractHorse[]{horse,donkey}) {
+            h.assertTrue(!animal.isEating()&&animal.getEatAnim(.5F)==0,"Moving horse retained grazing animation blend");
+            animal.setEating(true);animal.setStanding(true);animal.tick();
+            h.assertTrue(!animal.isEating()&&!animal.isStanding()&&animal.getStandAnim(.5F)==0,"Idle AI overrode pulling pose");
+            h.assertTrue(Math.abs(animal.getYHeadRot()-animal.getYRot())<.01&&Math.abs(animal.yBodyRot-animal.getYRot())<.01&&Math.abs(animal.getXRot())<.01,"Pulling horse looked away from driving direction");
+            h.assertTrue(animal.walkAnimation.speed()>0,"Pulling horse has no vanilla leg animation");
+        }
+        drive(w,p,-1,0,3);horse.setEating(true);h.assertTrue(!horse.isEating(),"Reverse driving allowed grazing");
+        drive(w,p,0,0,1);horse.setEating(true);horse.tick();
+        h.assertTrue(horse.isEating()&&horse.getEatAnim(1)>0,"Stopping did not restore idle animations");
+        w.detachAllHorses();horse.setEating(true);horse.setStanding(true);
+        h.assertTrue(horse.isStanding(),"Detached horse retained animation restrictions");h.succeed();
+    }
 
 }

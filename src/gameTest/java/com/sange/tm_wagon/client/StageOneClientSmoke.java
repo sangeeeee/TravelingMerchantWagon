@@ -114,6 +114,7 @@ public class StageOneClientSmoke {
             if(frames==80)verifyAudio();
             if(frames==90)verifyEntityAndFrameVisibility(graphics);
             if(frames==93)verifyDrivingBones(graphics);
+            if(frames==94)verifyHarnessRopeModel();
             graphics.flush();frames++;
             if(frames==15)save("stage-one-items.png");
             if(frames==40)save("stage-one-assemblies.png");
@@ -174,6 +175,28 @@ public class StageOneClientSmoke {
             }
             wagon.setSteering(0);wagon.addWheelAngle(0,1.2F);wagon.addWheelAngle(1,1.4F);wagon.applyPose(initial);
             LogUtils.getLogger().info("TM_WAGON_DRIVING_RENDER_PASS: steering, wheel phase and same-tick block/entity cache isolation");
+        }
+        private void verifyHarnessRopeModel() {
+            for(var wagon:wagons) {
+                var entityRenderer=(WagonRenderer)Minecraft.getInstance().getEntityRenderDispatcher().getRenderer(wagon);
+                var resource=entityRenderer.getGeoModel().getModelResource(wagon);
+                var point=wagon.pose().local(wagon.getRopeHoldPosition(1)).scale(16);
+                boolean onBeam=false;
+                try(var reader=Minecraft.getInstance().getResourceManager().getResourceOrThrow(resource).openAsReader()) {
+                    var geometry=com.google.gson.JsonParser.parseReader(reader).getAsJsonObject().getAsJsonArray("minecraft:geometry").get(0).getAsJsonObject();
+                    for(var entry:geometry.getAsJsonArray("bones")) {
+                        var bone=entry.getAsJsonObject();if(!bone.get("name").getAsString().equals("shafts"))continue;
+                        for(var cube:bone.getAsJsonArray("cubes")) {
+                            var origin=cube.getAsJsonObject().getAsJsonArray("origin");var size=cube.getAsJsonObject().getAsJsonArray("size");
+                            double x=origin.get(0).getAsDouble(),y=origin.get(1).getAsDouble(),z=origin.get(2).getAsDouble();
+                            if(x<0&&x+size.get(0).getAsDouble()>0&&Math.abs(point.z-z)<.001
+                                &&point.y>=y&&point.y<=y+size.get(1).getAsDouble()&&size.get(2).getAsDouble()<4)onBeam=true;
+                        }
+                    }
+                } catch(java.io.IOException error) { throw new IllegalStateException("Could not inspect rendered shaft model",error); }
+                if(!onBeam)throw new IllegalStateException("Leash endpoint misses rendered front wood beam: "+resource);
+            }
+            LogUtils.getLogger().info("TM_WAGON_HARNESS_RENDER_PASS: leash endpoint matches the wooden beam in all four rendered models");
         }
         private void verifyEntityAndFrameVisibility(GuiGraphics graphics) {
             for(int i=0;i<4;i++) {

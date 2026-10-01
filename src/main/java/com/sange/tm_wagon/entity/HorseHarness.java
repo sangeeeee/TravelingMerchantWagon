@@ -30,6 +30,17 @@ public final class HorseHarness {
             && server.getEntity(horse.getPersistentData().getUUID(OWNER)) instanceof WagonEntity wagon) return wagon;
         return null;
     }
+    public static boolean pulling(AbstractHorse horse) {
+        WagonEntity wagon=owner(horse);
+        return wagon!=null&&wagon.isMoving();
+    }
+    /** Match a ridden horse's forward head/body alignment without disabling its idle AI. */
+    public static void updateDrivingPose(AbstractHorse horse) {
+        if(!pulling(horse))return;
+        horse.setEating(false);horse.setStanding(false);horse.setXRot(0);
+        horse.setYHeadRot(horse.getYRot());horse.setYBodyRot(horse.getYRot());
+        horse.yHeadRotO=horse.yBodyRotO=horse.yRotO;
+    }
     public static void mark(AbstractHorse horse,WagonEntity wagon) {
         var tag=horse.getPersistentData();tag.putUUID(OWNER,wagon.getUUID());tag.putBoolean(GRAVITY,horse.isNoGravity());
         tag.putLong(OWNER_POS,wagon.blockPosition().asLong());horse.setNoGravity(true);horse.getNavigation().stop();

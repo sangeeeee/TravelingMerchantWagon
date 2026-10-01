@@ -143,10 +143,27 @@ public class WagonEntity extends Entity implements GeoEntity {
         pitch=pose.pitch();roll=pose.roll();setYRot(pose.yaw());worldShape=null;worldBoxes=null;setPos(pose.position());
     }
     private Vec3 articulated(Vec3 point,WagonSlot slot) {
+        return articulated(point,slot,steering,shaftPitch);
+    }
+    private static Vec3 articulated(Vec3 point,WagonSlot slot,float steering,float shaftPitch) {
         if(slot==WagonSlot.SHAFTS)point=WagonPose.rotate(point.subtract(new Vec3(0,1.25,-26.0/16)),shaftPitch,0,0).add(0,1.25,-26.0/16);
         if(slot==WagonSlot.SHAFTS||slot==WagonSlot.FRONT_LEFT||slot==WagonSlot.FRONT_RIGHT)
             point=WagonPose.rotate(point.subtract(new Vec3(0,10.5/16,-20.0/16)),0,0,steering).add(0,10.5/16,-20.0/16);
         return point;
+    }
+    /** Vanilla leash rendering asks its holder for an interpolated world-space endpoint. */
+    @Override public Vec3 getRopeHoldPosition(float partialTick) {
+        boolean single=horseCapacity()==1;
+        Vec3 beam=new Vec3(0,(single?19.75:20.15)/16,(single?-38.0:-39.0)/16);
+        WagonPose rendered=new WagonPose(getPosition(partialTick),Mth.rotLerp(partialTick,yRotO,getYRot()),renderPitch(partialTick),renderRoll(partialTick));
+        return rendered.point(articulated(beam,WagonSlot.SHAFTS,renderSteering(partialTick),renderShaftPitch(partialTick)));
+    }
+    public boolean isMoving() {
+        if(level()!=null&&level().isClientSide) {
+            double dx=getX()-xo,dz=getZ()-zo;
+            return dx*dx+dz*dz>1e-6;
+        }
+        return getDeltaMovement().horizontalDistanceSqr()>1e-6;
     }
     public List<AABB> motionBoxesAt(WagonPose pose) { return boxesAt(pose,true); }
     public List<AABB> boxesAt(WagonPose pose) { return boxesAt(pose,false); }
@@ -460,6 +477,7 @@ public class WagonEntity extends Entity implements GeoEntity {
             if(!level().noBlockCollision(h,space))continue;
             if(ground.present()&&!ground.forbidden())horseContactHeights[i]=ground.height();
             Vec3 movement=target.subtract(h.position());h.setPos(target);h.setYRot(getYRot()+(float)Math.toDegrees(steering));h.setYBodyRot(h.getYRot());
+            HorseHarness.updateDrivingPose(h);
             h.walkAnimation.update((float)Math.min(1,movement.horizontalDistance()*4),.4F);h.setOnGround(ground.present());
         }
         setBoundingBox(makeBoundingBox());if(level()!=null)WagonSpatialIndex.update(this);
