@@ -19,6 +19,16 @@ public final class WagonGeometry {
     private record Key(WagonPart part, WagonSlot slot, Direction facing) {}
     private static final Map<String, List<AABB>> BOXES = load();
     private static final Map<Key, Map<BlockPos, List<AABB>>> CACHE = new HashMap<>();
+    private record EntityKey(Map<WagonSlot,WagonPart> parts,Direction facing) {}
+    private static final Map<EntityKey,VoxelShape> ENTITY_CACHE = new HashMap<>();
+    public static synchronized VoxelShape entityShape(Map<WagonSlot,WagonPart> parts,Direction facing) {
+        return ENTITY_CACHE.computeIfAbsent(new EntityKey(Map.copyOf(parts),facing),key -> {
+            var boxes=new ArrayList<AABB>();
+            parts.forEach((slot,part) -> cells(part,slot,facing).forEach((cell,volumes) ->
+                volumes.forEach(box -> boxes.add(box.move(cell.getX()-.5,cell.getY(),cell.getZ()-.5)))));
+            return shape(boxes);
+        });
+    }
 
     private static Map<String, List<AABB>> load() {
         var result = new HashMap<String, List<AABB>>();

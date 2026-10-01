@@ -28,6 +28,13 @@
   "tooltip.tm_wagon.double_seat": "Mount: 2 blocks forward, 2 blocks up from the frame, centered.",
   "tooltip.tm_wagon.small_wheel": "Front axle: 1 forward, 1 left or right, at frame level.",
   "tooltip.tm_wagon.large_wheel": "Rear axle: 1 back, 1 left or right, at frame level.",
-  "message.tm_wagon.frame_extend_first": "Extend the assembly frame and wait for the platform to rise before placing the cargo body.",
-  "tooltip.tm_wagon.wagon_assembly_frame": "Starts extended. Right-click the support or platform with an empty hand to fold or extend."
+  "message.tm_wagon.frame_extend_first": "Fully extend the lift before installing any components.",
+  "tooltip.tm_wagon.wagon_assembly_frame": "Right-click an empty lift to fold/unfold; assemble complete parts or restore a wagon above a folded lift.",
+  "entity.tm_wagon.wagon": "Traveling Merchant Wagon",
+  "message.tm_wagon.incomplete_assembly": "Incomplete assembly: cargo body, seat, shafts, two small front wheels and two large rear wheels are required.",
+  "message.tm_wagon.assembly_busy": "Assembly or restoration is in progress. Wait for the lift to finish.",
+  "message.tm_wagon.spawn_failed": "Could not spawn the wagon. All components were preserved.",
+  "message.tm_wagon.wagon_missing": "The wagon left the lift area or is not loaded.",
+  "message.tm_wagon.restore_failed": "Could not restore wagon blocks: %s The lift will fold back down.",
+  "message.tm_wagon.seats_full": "All wagon seats are occupied."
 }

@@ -25,6 +25,10 @@ public final class WagonContent {
     public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(TravelingMerchantWagon.MODID);
     public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = DeferredRegister.create(Registries.BLOCK_ENTITY_TYPE, TravelingMerchantWagon.MODID);
     public static final DeferredRegister<CreativeModeTab> TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, TravelingMerchantWagon.MODID);
+    public static final DeferredRegister<net.minecraft.world.entity.EntityType<?>> ENTITIES = DeferredRegister.create(Registries.ENTITY_TYPE,TravelingMerchantWagon.MODID);
+    public static final DeferredHolder<net.minecraft.world.entity.EntityType<?>,net.minecraft.world.entity.EntityType<com.sange.tm_wagon.entity.WagonEntity>> WAGON = ENTITIES.register("wagon",() ->
+        net.minecraft.world.entity.EntityType.Builder.<com.sange.tm_wagon.entity.WagonEntity>of(com.sange.tm_wagon.entity.WagonEntity::new,net.minecraft.world.entity.MobCategory.MISC)
+            .sized(3,3).clientTrackingRange(12).updateInterval(3).fireImmune().build("tm_wagon:wagon"));
     public static final DeferredBlock<AssemblyFrameBlock> FRAME = BLOCKS.register("wagon_assembly_frame", () -> new AssemblyFrameBlock(properties()));
     public static final DeferredItem<BlockItem> FRAME_ITEM = ITEMS.register("wagon_assembly_frame", () -> new AssemblyFrameItem(FRAME.get(), new Item.Properties()));
     public static final DeferredBlock<AssemblyPartBlock> PROXY = BLOCKS.register("assembly_proxy", () -> new AssemblyPartBlock(properties()));
@@ -57,7 +61,7 @@ public final class WagonContent {
             .strength(2.0F).noOcclusion().pushReaction(PushReaction.BLOCK);
     }
     public static void register(IEventBus bus) {
-        BLOCKS.register(bus); ITEMS.register(bus); BLOCK_ENTITIES.register(bus); TABS.register(bus);
+        BLOCKS.register(bus); ITEMS.register(bus); BLOCK_ENTITIES.register(bus); TABS.register(bus); ENTITIES.register(bus);
     }
     private WagonContent() {}
 }

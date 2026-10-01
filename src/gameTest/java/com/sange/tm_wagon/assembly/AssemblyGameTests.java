@@ -302,19 +302,18 @@ public class AssemblyGameTests {
     }
 
     @GameTest(template="assembly_test",timeoutTicks=60)
-    public static void reversing_frame_and_preserving_cargo(GameTestHelper helper) {
+    public static void reversing_empty_frame(GameTestHelper helper) {
         var frame=frame(helper,Direction.SOUTH);
-        install(helper,frame,WagonSlot.BODY,WagonPart.CARGO_BODY);
-        helper.assertTrue(frame.toggleFrame(null)==null,"Loaded frame could not fold");
+        helper.assertTrue(frame.toggleFrame(null)==null,"Empty frame could not fold");
         helper.runAtTickTime(10,()->{
             double before=frame.frameProgress(0);
             helper.assertTrue(frame.toggleFrame(null)==null,"Moving frame could not reverse");
             helper.assertTrue(Math.abs(frame.frameProgress(0)-before)<1e-6,"Reversing snapped the platform to an endpoint");
-            helper.assertTrue(frame.has(WagonSlot.BODY),"Folding removed the cargo body");
+            helper.assertTrue(frame.parts().isEmpty(),"Empty frame acquired parts");
         });
         helper.runAtTickTime(35,()->{
             helper.assertTrue(frame.extended()&&!frame.frameMoving(),"Reversal did not finish");
-            helper.assertTrue(frame.has(WagonSlot.BODY),"Animation completion removed cargo");
+            helper.assertTrue(frame.parts().isEmpty(),"Empty animation created components");
             var positions=java.util.Set.copyOf(frame.layout().keySet());frame.dismantle(false,true);
             for(var position:positions)helper.assertTrue(helper.getLevel().getBlockState(position).isAir(),"Animated frame dismantling left orphan cells");
             helper.succeed();

@@ -16,6 +16,7 @@ import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsE
 public final class TravelingMerchantWagonClient {
     @SubscribeEvent
     public static void renderers(EntityRenderersEvent.RegisterRenderers event) {
+        event.registerEntityRenderer(WagonContent.WAGON.get(),com.sange.tm_wagon.client.WagonRenderer::new);
         event.registerBlockEntityRenderer(WagonContent.FRAME_ENTITY.get(), context -> new AssemblyRenderer());
     }
     @SubscribeEvent

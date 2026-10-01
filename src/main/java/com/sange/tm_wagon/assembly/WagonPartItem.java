@@ -23,6 +23,7 @@ public class WagonPartItem extends BlockItem implements GeoItem {
         var level = context.getLevel();
         var frame = AssemblyFrameBlockEntity.find(level,context.getClickedPos());
         if (frame == null) return fail(context,"message.tm_wagon.frame_required");
+        if (!frame.acceptsParts()) return fail(context,"message.tm_wagon.frame_extend_first");
         WagonSlot target = null;
         if (part == WagonPart.CARGO_BODY) {
             if (!frame.extended() || frame.frameMoving()) return fail(context,"message.tm_wagon.frame_extend_first");

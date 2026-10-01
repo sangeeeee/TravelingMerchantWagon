@@ -48,6 +48,7 @@ public class StageOneClientSmoke {
         private final List<AssemblyFrameBlockEntity> assemblies=new ArrayList<>();
         private final List<AssemblyFrameBlockEntity> framesOnly=new ArrayList<>();
         private final PoseProbe probe=new PoseProbe();
+        private final List<com.sange.tm_wagon.entity.WagonEntity> wagons=new ArrayList<>();
         PreviewScreen() {
             super(Component.literal("Wagon stage-one renderer verification"));
             items.add(WagonContent.FRAME_ITEM.get().getDefaultInstance());
@@ -67,6 +68,16 @@ public class StageOneClientSmoke {
                 assemblies.add(frame);
             }
             for(int i=0;i<2;i++)framesOnly.add(new AssemblyFrameBlockEntity(new BlockPos(10+i,0,0),WagonContent.FRAME.get().defaultBlockState().setValue(AssemblyFrameBlock.EXTENDED,i==0)));
+            for(int i=0;i<4;i++) {
+                // This preview runs on the title screen, without a world scoreboard.
+                var wagon=new com.sange.tm_wagon.entity.WagonEntity(WagonContent.WAGON.get(),null) {
+                    @Override public net.minecraft.world.scores.PlayerTeam getTeam() { return null; }
+                };
+                var parts=new java.util.EnumMap<WagonSlot,WagonPart>(WagonSlot.class);parts.putAll(com.sange.tm_wagon.entity.WagonEntity.defaultParts());
+                if(i>=2)parts.put(WagonSlot.SEAT,WagonPart.DOUBLE_SEAT);
+                if(i%2==1)parts.put(WagonSlot.SHAFTS,WagonPart.DOUBLE_HORSE_SHAFTS);
+                wagon.configure(parts,new Direction[]{Direction.NORTH,Direction.EAST,Direction.SOUTH,Direction.WEST}[i]);wagons.add(wagon);
+            }
         }
         @Override public void render(GuiGraphics graphics,int mouseX,int mouseY,float partialTick) {
             graphics.fill(0,0,width,height,0xffede6d7);
@@ -88,18 +99,25 @@ public class StageOneClientSmoke {
                 // Render a body-only instance after full wagons, verifying shared
                 // model visibility is reset rather than inherited from a neighbour.
                 drawAssembly(graphics,assemblies.get(4),width/2,height-35,9);
-            } else {
+            } else if(frames<75) {
                 for(int i=0;i<2;i++) {
                     drawAssembly(graphics,framesOnly.get(i),width/4+i*width/2,height/2,80);
                     graphics.drawCenteredString(font,i==0?"Extended / default":"Folded",width/4+i*width/2,height-40,0xff463729);
                 }
+            } else {
+                for(int i=0;i<4;i++) {
+                    drawWagon(graphics,wagons.get(i),width/4+(i%2)*width/2,105+(i/2)*175,25);
+                    graphics.drawCenteredString(font,wagons.get(i).facing().name(),width/4+(i%2)*width/2,172+(i/2)*175,0xff463729);
+                }
             }
             if(frames==64)verifyCachedFramePose(graphics);
+            if(frames==90)verifyEntityAndFrameVisibility(graphics);
             graphics.flush();frames++;
             if(frames==15)save("stage-one-items.png");
             if(frames==40)save("stage-one-assemblies.png");
             if(frames==65)save("folding-frame-states.png");
-            if(frames==75) {LogUtils.getLogger().info("TM_WAGON_CLIENT_SMOKE_PASS: 9 items, 4 combinations, body-only and both frame states rendered");Minecraft.getInstance().stop();}
+            if(frames==90)save("wagon-entity-variants.png");
+            if(frames==100) {LogUtils.getLogger().info("TM_WAGON_CLIENT_SMOKE_PASS: 9 items, 4 block and entity combinations, 4 entity directions, body-only and both frame states rendered");Minecraft.getInstance().stop();}
         }
         private void drawAssembly(GuiGraphics graphics,AssemblyFrameBlockEntity frame,int x,int y,float scale) {
             graphics.pose().pushPose();graphics.pose().translate(x,y,500);
@@ -120,6 +138,27 @@ public class StageOneClientSmoke {
                     throw new IllegalStateException("Cached renderer displayed a stale or endpoint frame pose");
             }
             LogUtils.getLogger().info("TM_WAGON_CACHED_POSE_PASS: both directions evaluated at the same animation tick");
+        }
+        private void drawWagon(GuiGraphics graphics,com.sange.tm_wagon.entity.WagonEntity wagon,int x,int y,float scale) {
+            var entityRenderer=(WagonRenderer)Minecraft.getInstance().getEntityRenderDispatcher().getRenderer(wagon);
+            graphics.pose().pushPose();graphics.pose().translate(x,y,500);graphics.pose().scale(scale,-scale,scale);
+            graphics.pose().mulPose(Axis.XP.rotationDegrees(25));graphics.pose().mulPose(Axis.YP.rotationDegrees(-35));
+            graphics.pose().translate(0,-1.5,.7);Lighting.setupForEntityInInventory();
+            entityRenderer.render(wagon,0,0,graphics.pose(),graphics.bufferSource(),15728880);
+            graphics.flush();graphics.pose().popPose();Lighting.setupFor3DItems();
+        }
+        private void verifyEntityAndFrameVisibility(GuiGraphics graphics) {
+            for(int i=0;i<4;i++) {
+                var wagon=wagons.get(i);
+                var entityRenderer=(WagonRenderer)Minecraft.getInstance().getEntityRenderDispatcher().getRenderer(wagon);
+                drawWagon(graphics,wagon,-1000,-1000,1);
+                if(!entityRenderer.getGeoModel().getBone("frame_root").orElseThrow().isHidden())throw new IllegalStateException("Entity renderer displayed lift");
+                drawAssembly(graphics,assemblies.get(i),-1000,-1000,1);
+                if(renderer.getGeoModel().getBone("frame_root").orElseThrow().isHidden())throw new IllegalStateException("Entity visibility leaked into block renderer");
+                drawWagon(graphics,wagon,-1000,-1000,1);
+                if(!entityRenderer.getGeoModel().getBone("frame_root").orElseThrow().isHidden())throw new IllegalStateException("Cached entity renderer inherited block lift");
+            }
+            LogUtils.getLogger().info("TM_WAGON_ENTITY_RENDER_PASS: all variants and shared-bone visibility verified");
         }
         private void save(String name) {
             try(var image=Screenshot.takeScreenshot(Minecraft.getInstance().getMainRenderTarget())) {

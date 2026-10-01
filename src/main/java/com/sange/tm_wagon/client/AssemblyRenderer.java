@@ -22,7 +22,7 @@ public class AssemblyRenderer extends GeoBlockRenderer<AssemblyFrameBlockEntity>
             float tick,int light,int overlay,int colour) {
         // GeckoLib may reuse an animation evaluation within the same tick.
         // Reapply the authoritative pose immediately before drawing the frame.
-        if (bone.getName().equals("frame_root")) ((Model)getGeoModel()).applyFramePose(frame,tick);
+        if (bone.getName().equals("frame_root")) { bone.setHidden(false); ((Model)getGeoModel()).applyFramePose(frame,tick); }
         super.renderRecursively(poses,frame,bone,type,buffers,buffer,reRender,tick,light,overlay,colour);
     }
     @Override public int getViewDistance() { return 128; }
@@ -41,6 +41,7 @@ public class AssemblyRenderer extends GeoBlockRenderer<AssemblyFrameBlockEntity>
         @Override public ResourceLocation getTextureResource(AssemblyFrameBlockEntity frame) { return resource("textures/entity/wagon.png"); }
         @Override public ResourceLocation getAnimationResource(AssemblyFrameBlockEntity frame) { return resource("animations/assembly.animation.json"); }
         @Override public void setCustomAnimations(AssemblyFrameBlockEntity frame, long id, AnimationState<AssemblyFrameBlockEntity> state) {
+            hidden("frame_root",false);
             applyFramePose(frame,state.getPartialTick());
             // Geo models are shared between instances; reset every optional bone.
             hidden("seat",!frame.has(WagonSlot.SEAT)); hidden("shafts",!frame.has(WagonSlot.SHAFTS));

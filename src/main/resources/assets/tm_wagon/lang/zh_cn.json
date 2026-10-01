@@ -28,6 +28,13 @@
   "tooltip.tm_wagon.double_seat": "安装格：装配架前方 2 格、上方 2 格的中央位置。",
   "tooltip.tm_wagon.small_wheel": "安装于两侧前轴：向前 1 格、向左或右 1 格，与装配架同层。",
   "tooltip.tm_wagon.large_wheel": "安装于两侧后轴：向后 1 格、向左或右 1 格，与装配架同层。",
-  "message.tm_wagon.frame_extend_first": "请先展开装配架，等平台升起后再放置载荷主体。",
-  "tooltip.tm_wagon.wagon_assembly_frame": "默认展开；空手右键支架或平台可折叠、展开。"
+  "message.tm_wagon.frame_extend_first": "请先展开装配架，等平台完全升起后再安装配件。",
+  "tooltip.tm_wagon.wagon_assembly_frame": "空车架右键伸缩；配件齐全后右键装配，缩回时可还原附近的马车。",
+  "entity.tm_wagon.wagon": "旅行商人马车",
+  "message.tm_wagon.incomplete_assembly": "配件不全，无法装配。需要载荷主体、座位、辕、两个小前轮和两个大后轮。",
+  "message.tm_wagon.assembly_busy": "装配或还原进行中，请等待装配架完成动作。",
+  "message.tm_wagon.spawn_failed": "无法生成马车，已保留原有配件。",
+  "message.tm_wagon.wagon_missing": "马车已离开装配架附近，或尚未加载。",
+  "message.tm_wagon.restore_failed": "马车方块化失败：%s 装配架将自动缩回。",
+  "message.tm_wagon.seats_full": "马车座位已坐满。"
 }

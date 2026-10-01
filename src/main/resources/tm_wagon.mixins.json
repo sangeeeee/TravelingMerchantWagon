@@ -1,0 +1,7 @@
+{
+  "required": true,
+  "package": "com.sange.tm_wagon.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": ["WagonCollisionMixin", "WagonPickingMixin", "WagonQueryMixin"],
+  "injectors": {"defaultRequire": 1}
+}
