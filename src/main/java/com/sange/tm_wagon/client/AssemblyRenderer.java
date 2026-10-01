@@ -16,6 +16,10 @@ public class AssemblyRenderer extends GeoBlockRenderer<AssemblyFrameBlockEntity>
     public AssemblyRenderer() { super(new Model()); }
     @Override public void render(AssemblyFrameBlockEntity frame, float tick, PoseStack poses, MultiBufferSource buffers, int light, int overlay) {
         super.render(frame,tick,poses,buffers,light,overlay);
+        if(frame.has(WagonSlot.BODY)) {
+            poses.pushPose();poses.translate(.5,0,.5);poses.mulPose(com.mojang.math.Axis.YP.rotationDegrees(180-frame.facing().toYRot()));
+            CargoRenderer.render(frame.cargo(),tick,poses,buffers,light,overlay);poses.popPose();
+        }
     }
     @Override public void renderRecursively(PoseStack poses,AssemblyFrameBlockEntity frame,
             software.bernie.geckolib.cache.object.GeoBone bone,net.minecraft.client.renderer.RenderType type,
@@ -27,6 +31,7 @@ public class AssemblyRenderer extends GeoBlockRenderer<AssemblyFrameBlockEntity>
         if(MOVING_BONES.contains(bone.getName())) {
             var initial=bone.getInitialSnapshot();bone.updateRotation(initial.getRotX(),initial.getRotY(),initial.getRotZ());
         }
+        if(bone.getName().equals("tailgate"))bone.setRotX((float)Math.PI*frame.cargo().gateProgress(tick));
         super.renderRecursively(poses,frame,bone,type,buffers,buffer,reRender,tick,light,overlay,colour);
     }
     @Override public int getViewDistance() { return 128; }
@@ -47,6 +52,7 @@ public class AssemblyRenderer extends GeoBlockRenderer<AssemblyFrameBlockEntity>
         @Override public void setCustomAnimations(AssemblyFrameBlockEntity frame, long id, AnimationState<AssemblyFrameBlockEntity> state) {
             hidden("frame_root",false);
             applyFramePose(frame,state.getPartialTick());
+            getBone("tailgate").ifPresent(b->b.setRotX((float)Math.PI*frame.cargo().gateProgress(state.getPartialTick())));
             // Geo models are shared between instances; reset every optional bone.
             hidden("seat",!frame.has(WagonSlot.SEAT)); hidden("shafts",!frame.has(WagonSlot.SHAFTS));
             hidden("front_left_wheel",!frame.has(WagonSlot.FRONT_LEFT));

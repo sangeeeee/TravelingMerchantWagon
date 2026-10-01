@@ -53,6 +53,7 @@ public class AssemblyFrameBlock extends BaseEntityBlock {
     @Override public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
         return level.isClientSide ? null : createTickerHelper(type, WagonContent.FRAME_ENTITY.get(), (world,pos,s,frame) -> {
             frame.tickFrame();
+            frame.cargo().tick();
             if (world.getGameTime() % 20 == 0) frame.validateLoadedCells();
         });
     }

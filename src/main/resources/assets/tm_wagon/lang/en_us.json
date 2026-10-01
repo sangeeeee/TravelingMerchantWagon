@@ -41,5 +41,8 @@
   "message.tm_wagon.hitch_occupied": "This hitch position is occupied.",
   "message.tm_wagon.lead_horse_required": "Bring an adult horse or donkey on your lead to this hitch.",
   "message.tm_wagon.hitch_blocked": "Clear the horse position and provide nearby ground.",
-  "subtitles.tm_wagon.wagon_roll": "Wagon wheels creak"
+  "subtitles.tm_wagon.wagon_roll": "Wagon wheels creak",
+  "message.tm_wagon.cargo_unsupported": "This block cannot be loaded as cargo (multi-block structures are unsupported)",
+  "message.tm_wagon.cargo_occupied": "This cargo position is occupied",
+  "message.tm_wagon.cargo_blocked": "This cargo position is obstructed by a block or entity"
 }

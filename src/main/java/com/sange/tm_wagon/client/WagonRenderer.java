@@ -12,6 +12,12 @@ import software.bernie.geckolib.renderer.GeoEntityRenderer;
 public class WagonRenderer extends GeoEntityRenderer<WagonEntity> {
     private static final java.util.Set<String> VISIBLE=java.util.Set.of("seat","shafts","front_left_wheel","front_right_wheel","rear_left_wheel","rear_right_wheel");
     public WagonRenderer(EntityRendererProvider.Context context) { super(context,new Model()); shadowRadius=1.5F; }
+    @Override public void render(WagonEntity wagon,float yaw,float tick,com.mojang.blaze3d.vertex.PoseStack poses,
+            net.minecraft.client.renderer.MultiBufferSource buffers,int light) {
+        super.render(wagon,yaw,tick,poses,buffers,light);
+        poses.pushPose();applyRotations(wagon,poses,0,yaw,tick,1);
+        CargoRenderer.render(wagon.cargo(),tick,poses,buffers,light,net.minecraft.client.renderer.texture.OverlayTexture.NO_OVERLAY);poses.popPose();
+    }
     @Override protected void applyRotations(WagonEntity wagon,com.mojang.blaze3d.vertex.PoseStack poses,
             float age,float yaw,float tick,float scale) {
         poses.mulPose(com.mojang.math.Axis.YP.rotationDegrees(180-net.minecraft.util.Mth.rotLerp(tick,wagon.yRotO,wagon.getYRot())));
@@ -33,6 +39,7 @@ public class WagonRenderer extends GeoEntityRenderer<WagonEntity> {
             case "front_right_wheel" -> bone.setRotX(wagon.renderWheel(1,tick));
             case "rear_left_wheel" -> bone.setRotX(wagon.renderWheel(2,tick));
             case "rear_right_wheel" -> bone.setRotX(wagon.renderWheel(3,tick));
+            case "tailgate" -> bone.setRotX((float)Math.PI*wagon.cargo().gateProgress(tick));
         }
         super.renderRecursively(poses,wagon,bone,type,buffers,buffer,reRender,tick,light,overlay,colour);
     }
@@ -49,6 +56,7 @@ public class WagonRenderer extends GeoEntityRenderer<WagonEntity> {
             float tick=state.getPartialTick();
             getBone("front_axle").ifPresent(b->b.setRotY(-wagon.renderSteering(tick)));
             getBone("shafts").ifPresent(b->b.setRotX(wagon.renderShaftPitch(tick)));
+            getBone("tailgate").ifPresent(b->b.setRotX((float)Math.PI*wagon.cargo().gateProgress(tick)));
             String[] wheelNames={"front_left_wheel","front_right_wheel","rear_left_wheel","rear_right_wheel"};
             for(int i=0;i<4;i++) { final int index=i;getBone(wheelNames[i]).ifPresent(b->b.setRotX(wagon.renderWheel(index,tick))); }
             getBone("frame_root").ifPresent(b -> b.setHidden(true));

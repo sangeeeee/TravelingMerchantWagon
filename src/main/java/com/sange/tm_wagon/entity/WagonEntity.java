@@ -31,7 +31,7 @@ import software.bernie.geckolib.animation.AnimatableManager;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 /** One tracked entity, with cached compound collision instead of ticking collider entities. */
-public class WagonEntity extends Entity implements GeoEntity {
+public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.cargo.CargoOwner {
     public static final int HORSE_HANG_TIMEOUT=60;
     public static final double PUSH_CONTACT_MARGIN=.15;
     private static final int PUSH_INPUT_TIMEOUT=6;
@@ -39,6 +39,8 @@ public class WagonEntity extends Entity implements GeoEntity {
     private static final EntityDataAccessor<Integer> FACING = SynchedEntityData.defineId(WagonEntity.class,EntityDataSerializers.INT);
     private static final EntityDataAccessor<CompoundTag> SEATS = SynchedEntityData.defineId(WagonEntity.class,EntityDataSerializers.COMPOUND_TAG);
     private static final EntityDataAccessor<CompoundTag> MOTION = SynchedEntityData.defineId(WagonEntity.class,EntityDataSerializers.COMPOUND_TAG);
+    private static final EntityDataAccessor<CompoundTag> CARGO=SynchedEntityData.defineId(WagonEntity.class,EntityDataSerializers.COMPOUND_TAG);
+    private final com.sange.tm_wagon.cargo.CargoHold cargo=new com.sange.tm_wagon.cargo.CargoHold(this);
     private final WagonPhysics physics=new WagonPhysics();
     private final WagonPlatform platform=new WagonPlatform(this);
     private final WagonCrowd crowd=new WagonCrowd(this);
@@ -78,6 +80,7 @@ public class WagonEntity extends Entity implements GeoEntity {
     @Override protected void defineSynchedData(SynchedEntityData.Builder builder) {
         builder.define(MODULES,encode(defaultParts())); builder.define(FACING,Direction.NORTH.get2DDataValue());
         builder.define(SEATS,new CompoundTag());builder.define(MOTION,new CompoundTag());
+        builder.define(CARGO,new CompoundTag());
     }
     public static Map<WagonSlot,WagonPart> defaultParts() {
         var parts = new EnumMap<WagonSlot,WagonPart>(WagonSlot.class);
@@ -107,12 +110,15 @@ public class WagonEntity extends Entity implements GeoEntity {
     @Override public void onSyncedDataUpdated(EntityDataAccessor<?> key) {
         super.onSyncedDataUpdated(key);
         if (key.equals(MODULES) || key.equals(FACING)) rebuildGeometry();
+        if(key.equals(CARGO)&&cargo!=null&&level()!=null&&level().isClientSide) {
+            cargo.load(entityData.get(CARGO),level().registryAccess());rebuildGeometry();
+        }
     }
     private void rebuildGeometry() {
         modules=decode(entityData.get(MODULES)); localShape=WagonGeometry.entityShape(modules,facing()); worldShape=null;worldBoxes=null;
         var list=new java.util.ArrayList<Component>();
         modules.forEach((slot,part)->{
-            for(AABB box:WagonGeometry.partBoxes(part)) {
+            for(AABB box:slot==WagonSlot.BODY&&cargo!=null?cargo.bodyBoxes():WagonGeometry.partBoxes(part)) {
                 if(slot==WagonSlot.FRONT_RIGHT||slot==WagonSlot.REAR_RIGHT)box=new AABB(-box.maxX,box.minY,box.minZ,-box.minX,box.maxY,box.maxZ);
                 box=box.move(slot.geometryOffset());
                 // Subdivide long boards so their rotated bounds preserve the open cargo interior.
@@ -133,13 +139,22 @@ public class WagonEntity extends Entity implements GeoEntity {
     public VoxelShape collisionShape() {
         if(worldShape==null || !position().equals(shapePosition)) {
             shapePosition=position();
-            if(Math.abs(pitch)<1e-6&&Math.abs(roll)<1e-6&&Math.abs(steering)<1e-6&&Math.abs(shaftPitch)<1e-6
+            if(cargo.empty()&&!cargo.gateOpen()&&Math.abs(pitch)<1e-6&&Math.abs(roll)<1e-6&&Math.abs(steering)<1e-6&&Math.abs(shaftPitch)<1e-6
                 && Math.abs(Mth.wrapDegrees(getYRot()-facing().toYRot()))<1e-5)
                 worldShape=WagonGeometry.entityShape(modules,facing()).move(getX(),getY(),getZ());
             else worldShape=WagonGeometry.shape(collisionBoxes());
         }return worldShape;
     }
     public WagonPose pose() { return new WagonPose(position(),getYRot(),pitch,roll); }
+    @Override public com.sange.tm_wagon.cargo.CargoHold cargo() { return cargo; }
+    @Override public Level cargoLevel() { return level(); }
+    @Override public WagonPose cargoPose() { return pose(); }
+    @Override public boolean cargoLive() { return !isRemoved()&&level()!=null; }
+    @Override public boolean cargoBusy() { return assemblyLock!=null; }
+    @Override public String cargoGeometryChanged() { rebuildGeometry();return null; }
+    @Override public void cargoChanged(boolean visible) {
+        if(visible&&!level().isClientSide)entityData.set(CARGO,cargo.save(level().registryAccess(),true));
+    }
     public WagonPlatform platform() { return platform; }
     public WagonCrowd crowd() { return crowd; }
     public float pitch() { return pitch; }
@@ -232,6 +247,7 @@ public class WagonEntity extends Entity implements GeoEntity {
     @Override public void push(double x,double y,double z) {}
     @Override public void tick() {
         super.tick();setNoGravity(true);
+        if(!level().isClientSide)cargo.tick();
         oldPitch=pitch;oldRoll=roll;oldSteering=steering;oldShaftPitch=shaftPitch;System.arraycopy(wheels,0,oldWheels,0,4);
         if(level().isClientSide) {
             WagonPose previous=pose();
@@ -347,7 +363,8 @@ public class WagonEntity extends Entity implements GeoEntity {
     }
     public boolean lock(net.minecraft.core.BlockPos frame) {
         if (assemblyLock != null && !assemblyLock.equals(frame)) return false;
-        assemblyLock=frame.immutable();forwardInput=steeringInput=0;pushRequests.clear();physics.reset();return true;
+        if(cargo.gateMoving())return false;
+        cargo.closeMenus();assemblyLock=frame.immutable();forwardInput=steeringInput=0;pushRequests.clear();physics.reset();return true;
     }
     public void unlock() { assemblyLock=null; }
     public int seatCapacity() { return parts().get(WagonSlot.SEAT)==WagonPart.DOUBLE_SEAT ? 2 : 1; }
@@ -398,14 +415,19 @@ public class WagonEntity extends Entity implements GeoEntity {
     private AABB seatBounds() { double width=seatCapacity()==1 ? .5625 : 1;return new AABB(-width,1.7,-2.25,width,3.05,-1.34375); }
     @Override public InteractionResult interactAt(Player player,Vec3 hit,InteractionHand hand) {
         Vec3 local=localPosition(hit);
+        Vec3 eye=player.getEyePosition();var actual=pick(eye,eye.add(player.getLookAngle().scale(player.entityInteractionRange())));
+        if(actual.isPresent())local=pose().local(actual.get());
+        InteractionResult freight=cargo.interact(player,hand,local);if(freight!=InteractionResult.PASS)return freight;
         int hitch=hitchSlot(local);
         if(hitch>=0)return bindAt(player,hitch);
         if (!seatBounds().inflate(.025).contains(local)) return InteractionResult.PASS;
         return boardSeat(player,seatCapacity()==1 || local.x<0 ? 0 : 1);
     }
     @Override public InteractionResult interact(Player player,InteractionHand hand) {
-        if (player.isSecondaryUseActive()) return InteractionResult.PASS;
         Vec3 start=player.getEyePosition(),end=start.add(player.getLookAngle().scale(player.entityInteractionRange()));
+        var cargoHit=pick(start,end);
+        if(cargoHit.isPresent()) { var freight=cargo.interact(player,hand,pose().local(cargoHit.get()));if(freight!=InteractionResult.PASS)return freight; }
+        if (player.isSecondaryUseActive()) return InteractionResult.PASS;
         Vec3 a=pose().local(start),b=pose().local(end);
         var hitchHit=pick(start,end);
         if(hitchHit.isPresent()) { int slot=hitchSlot(pose().local(hitchHit.get()));if(slot>=0)return bindAt(player,slot); }
@@ -592,11 +614,15 @@ public class WagonEntity extends Entity implements GeoEntity {
         }return true;
     }
     @Override public void remove(RemovalReason reason) {
-        if(level()!=null&&!level().isClientSide&&reason.shouldDestroy())detachAllHorses();
+        if(level()!=null&&!level().isClientSide) {
+            cargo.closeMenus();
+            if(reason.shouldDestroy()) { cargo.destroy(level().getGameRules().getBoolean(net.minecraft.world.level.GameRules.RULE_DOENTITYDROPS));detachAllHorses(); }
+        }
         super.remove(reason);
     }
     @Override protected void addAdditionalSaveData(CompoundTag tag) {
         tag.put("Modules",entityData.get(MODULES).copy()); tag.putInt("WagonFacing",facing().get2DDataValue());
+        tag.put("Cargo",cargo.save(level().registryAccess(),false));
         tag.put("Seats",entityData.get(SEATS).copy());
         tag.putFloat("Yaw",getYRot());tag.putFloat("Pitch",pitch);tag.putFloat("Roll",roll);tag.putFloat("Health",health);tag.putBoolean("MotionStarted",motionStarted);
         tag.putFloat("ShaftPitch",shaftPitch);tag.putFloat("Steering",steering);
@@ -609,6 +635,7 @@ public class WagonEntity extends Entity implements GeoEntity {
         pushRequests.clear();pushTick=0;
         configure(tag.contains("Modules") ? decode(tag.getCompound("Modules")) : defaultParts(),
             Direction.from2DDataValue(tag.getInt("WagonFacing")));
+        cargo.load(tag.getCompound("Cargo"),level().registryAccess());rebuildGeometry();cargoChanged(true);
         assemblyLock=tag.contains("AssemblyLock") ? net.minecraft.core.BlockPos.of(tag.getLong("AssemblyLock")) : null;
         entityData.set(SEATS,tag.getCompound("Seats").copy());
         pitch=tag.getFloat("Pitch");roll=tag.getFloat("Roll");health=tag.contains("Health")?tag.getFloat("Health"):20;motionStarted=tag.getBoolean("MotionStarted");

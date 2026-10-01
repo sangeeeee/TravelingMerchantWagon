@@ -104,11 +104,18 @@ public class StageOneClientSmoke {
                     drawAssembly(graphics,framesOnly.get(i),width/4+i*width/2,height/2,80);
                     graphics.drawCenteredString(font,i==0?"Extended / default":"Folded",width/4+i*width/2,height-40,0xff463729);
                 }
-            } else {
+            } else if(frames<100) {
                 for(int i=0;i<4;i++) {
                     drawWagon(graphics,wagons.get(i),width/4+(i%2)*width/2,105+(i/2)*175,25);
                     graphics.drawCenteredString(font,wagons.get(i).facing().name(),width/4+(i%2)*width/2,172+(i/2)*175,0xff463729);
                 }
+            } else {
+                for(int i=0;i<2;i++) {
+                    if(i==0)drawAssembly(graphics,assemblies.getFirst(),width/4,190,42);
+                    else drawWagon(graphics,wagons.getFirst(),width*3/4,190,42,1);
+                    graphics.drawCenteredString(font,i==0?"Block cargo":"Entity cargo",width/4+i*width/2,290,0xff463729);
+                }
+                graphics.drawCenteredString(font,frames<125?"10 scaled cargo slots / closed containers":"Open chest + shulker / lowered tailgate",width/2,height-40,0xff463729);
             }
             if(frames==64)verifyCachedFramePose(graphics);
             if(frames==80)verifyAudio();
@@ -116,12 +123,44 @@ public class StageOneClientSmoke {
             if(frames==93)verifyDrivingBones(graphics);
             if(frames==94)verifyHarnessRopeModel();
             if(frames==95)verifyStandingPlayerMixin();
+            if(frames==99)loadCargoPreview(false);
+            if(frames==124)loadCargoPreview(true);
+            if(frames==140)verifyCargoBones(graphics);
             graphics.flush();frames++;
             if(frames==15)save("stage-one-items.png");
             if(frames==40)save("stage-one-assemblies.png");
             if(frames==65)save("folding-frame-states.png");
             if(frames==90)save("wagon-entity-variants.png");
-            if(frames==100) {LogUtils.getLogger().info("TM_WAGON_CLIENT_SMOKE_PASS: 9 items, 4 block and entity combinations, 4 entity directions, body-only and both frame states rendered");Minecraft.getInstance().stop();}
+            if(frames==120)save("wagon-cargo-closed.png");
+            if(frames==145)save("wagon-cargo-open.png");
+            if(frames==150) {LogUtils.getLogger().info("TM_WAGON_CLIENT_SMOKE_PASS: previous render checks plus block/entity cargo, chest/shulker lids and tailgate cache isolation");Minecraft.getInstance().stop();}
+        }
+        private void loadCargoPreview(boolean open) {
+            var registry=net.minecraft.core.RegistryAccess.fromRegistryOfRegistries(net.minecraft.core.registries.BuiltInRegistries.REGISTRY);
+            var tag=new CompoundTag();var entries=new net.minecraft.nbt.ListTag();
+            var blocks=new net.minecraft.world.level.block.Block[]{net.minecraft.world.level.block.Blocks.CHEST,net.minecraft.world.level.block.Blocks.BLUE_SHULKER_BOX,
+                net.minecraft.world.level.block.Blocks.BARREL,net.minecraft.world.level.block.Blocks.FURNACE,net.minecraft.world.level.block.Blocks.SMOKER,
+                net.minecraft.world.level.block.Blocks.CRAFTING_TABLE,net.minecraft.world.level.block.Blocks.OAK_PLANKS,net.minecraft.world.level.block.Blocks.HAY_BLOCK,
+                net.minecraft.world.level.block.Blocks.PUMPKIN,net.minecraft.world.level.block.Blocks.IRON_BLOCK};
+            for(int i=0;i<blocks.length;i++) {
+                var value=new CompoundTag();value.putInt("Slot",i);value.putUUID("Id",java.util.UUID.randomUUID());
+                value.put("Item",new ItemStack(blocks[i]).save(registry));value.put("State",net.minecraft.nbt.NbtUtils.writeBlockState(blocks[i].defaultBlockState()));
+                value.putBoolean("Visual",true);value.putBoolean("Opened",open&&i<3);value.putLong("LidStart",Long.MIN_VALUE);entries.add(value);
+            }
+            tag.put("Entries",entries);tag.putBoolean("GateTarget",open);tag.putBoolean("GateCollision",open);tag.putLong("GateStart",Long.MIN_VALUE);
+            assemblies.getFirst().cargo().load(tag,registry);wagons.getFirst().cargo().load(tag,registry);wagons.getFirst().cargoGeometryChanged();
+        }
+        private void verifyCargoBones(GuiGraphics graphics) {
+            var wagon=wagons.getFirst();var entityRenderer=(WagonRenderer)Minecraft.getInstance().getEntityRenderDispatcher().getRenderer(wagon);
+            drawWagon(graphics,wagon,-1000,-1000,1,1);
+            if(Math.abs(entityRenderer.getGeoModel().getBone("tailgate").orElseThrow().getRotX()-Math.PI)>.001)
+                throw new IllegalStateException("Entity tailgate pose was not applied");
+            drawAssembly(graphics,assemblies.get(1),-1000,-1000,1);
+            if(Math.abs(renderer.getGeoModel().getBone("tailgate").orElseThrow().getRotX())>.001)
+                throw new IllegalStateException("Open tailgate pose leaked into neighbouring block wagon");
+            for(var entry:java.util.List.of(wagon.cargo().entry(0),wagon.cargo().entry(1)))if(entry.lid(1)!=1)
+                throw new IllegalStateException("Container lid did not remain open");
+            LogUtils.getLogger().info("TM_WAGON_CARGO_RENDER_PASS: ten slots in both forms, open chest/shulker, tailgate bone cache isolation");
         }
         private void verifyAudio() {
             try(var stream=new net.minecraft.client.sounds.JOrbisAudioStream(StageOneClientSmoke.class.getResourceAsStream("/assets/tm_wagon/sounds/wagon_roll.ogg"))) {
