@@ -30,9 +30,9 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
-/** Ten or twelve fixed positions; only occupied slots are ticked. Inventories are not included in render updates. */
+/** Dimensioned fixed positions; only occupied slots are ticked. Inventories are not included in render updates. */
 public final class CargoHold {
-    public static final int CAPACITY=10,MAX_CAPACITY=12,GATE_TICKS=16;
+    public static final int CAPACITY=10,MAX_CAPACITY=32,GATE_TICKS=16;
     public static final double SCALE=.68,FLOOR=1.5;
     /** A rejected action, deliberately silent instead of a user-facing translation key. */
     static final String ACCESS_BLOCKED="tm_wagon:access_blocked";
@@ -53,32 +53,44 @@ public final class CargoHold {
     public CargoHold(CargoOwner owner) { this.owner=owner; }
     public CargoOwner owner() { return owner; }
     public int capacity() { return owner.cargoBody().cargoCapacity(); }
+    public int columns() { return owner.cargoBody().columns(); }
+    public int rows() { return owner.cargoBody().rows(); }
     public double rearExtension() { return owner.cargoBody().rearExtension(); }
     public CargoEntry entry(int slot) { int anchor=anchorSlot(slot);return anchor<0?null:entries[anchor]; }
     /** Reserved cells reference one authoritative entry; save, drops and ticking visit anchors only. */
     public int anchorSlot(int slot) {
         if(slot<0||slot>=capacity())return -1;
         if(entries[slot]!=null)return slot;
-        for(int anchor=slot+2;anchor<capacity()&&anchor<=slot+4;anchor+=2)
+        for(int anchor=slot+columns();anchor<capacity()&&anchor<=slot+2*columns();anchor+=columns())
             if(entries[anchor]!=null&&entries[anchor].kind==CargoEntry.Kind.STRAW_MAT)return anchor;
         return -1;
     }
-    public static AABB matBox(int anchor) {
-        Vec3 p=centre(anchor);return new AABB(p.x-.43,FLOOR+.002,p.z-1.4-.34,p.x+.43,FLOOR+.125,p.z+.34);
+    public static AABB matBox(int anchor) { return matBox(anchor,WagonPart.CARGO_BODY); }
+    public static AABB matBox(int anchor,WagonPart body) {
+        Vec3 p=centre(anchor,body);return new AABB(p.x-.43,FLOOR+.002,p.z-1.4-.34,p.x+.43,FLOOR+.125,p.z+.34);
     }
-    public static AABB stoolBox(int slot) {
-        var box=slotBox(slot);return new AABB(box.minX,box.minY,box.minZ,box.maxX,FLOOR+.5,box.maxZ);
+    public static AABB stoolBox(int slot) { return stoolBox(slot,WagonPart.CARGO_BODY); }
+    public static AABB stoolBox(int slot,WagonPart body) {
+        var box=slotBox(slot,body);return new AABB(box.minX,box.minY,box.minZ,box.maxX,FLOOR+.5,box.maxZ);
     }
     public AABB entryBox(int anchor) { return switch(entries[anchor].kind) {
-        case STRAW_MAT->matBox(anchor);case STOOL->stoolBox(anchor);default->slotBox(anchor);
+        case STRAW_MAT->matBounds(anchor);case STOOL->stoolBounds(anchor);default->slotBounds(anchor);
     }; }
-    public static Vec3 centre(int slot) { return new Vec3(slot%2==0?-.5:.5,FLOOR,-.96+slot/2*.70); }
-    public static AABB slotBox(int slot) {
-        Vec3 p=centre(slot);return new AABB(p.x-SCALE/2,p.y,p.z-SCALE/2,p.x+SCALE/2,p.y+SCALE,p.z+SCALE/2);
+    public Vec3 centreAt(int slot) { return centre(slot,owner.cargoBody()); }
+    public AABB slotBounds(int slot) { return slotBox(slot,owner.cargoBody()); }
+    public AABB matBounds(int slot) { return matBox(slot,owner.cargoBody()); }
+    public AABB stoolBounds(int slot) { return stoolBox(slot,owner.cargoBody()); }
+    public static Vec3 centre(int slot) { return centre(slot,WagonPart.CARGO_BODY); }
+    public static Vec3 centre(int slot,WagonPart body) {
+        return new Vec3((slot%body.columns()-(body.columns()-1)/2.0)*body.columnSpacing(),FLOOR,body.firstRowZ()+slot/body.columns()*.70);
+    }
+    public static AABB slotBox(int slot) { return slotBox(slot,WagonPart.CARGO_BODY); }
+    public static AABB slotBox(int slot,WagonPart body) {
+        Vec3 p=centre(slot,body);return new AABB(p.x-SCALE/2,p.y,p.z-SCALE/2,p.x+SCALE/2,p.y+SCALE,p.z+SCALE/2);
     }
     public boolean empty() { if(cover.installed()||canopy.installed()||cabinet.installed())return false;for(var e:entries)if(e!=null)return false;return true; }
     public int slot(CargoEntry entry) { for(int i=0;i<MAX_CAPACITY;i++)if(entries[i]==entry)return i;return -1; }
-    public Vec3 position(CargoEntry entry) { int slot=slot(entry);return owner.cargoPose().point(slot<0?new Vec3(0,FLOOR,0):centre(slot)); }
+    public Vec3 position(CargoEntry entry) { int slot=slot(entry);return owner.cargoPose().point(slot<0?new Vec3(0,FLOOR,0):centreAt(slot)); }
     public boolean valid(CargoEntry entry,Player player) {
         return owner.cargoLive()&&!owner.cargoBusy()&&slot(entry)>=0&&entry.hold==this&&player.isAlive()
             &&player.level()==owner.cargoLevel()&&player.distanceToSqr(position(entry))<=64&&!coverObstructed(slot(entry),player);
@@ -87,7 +99,7 @@ public final class CargoHold {
         if(!cover.installed()&&!canopy.installed())return false;
         if(player==null)return true;
         Vec3 eye=owner.cargoPose().local(player.getEyePosition());
-        int anchor=anchorSlot(slot);AABB box=anchor<0?slotBox(slot):entryBox(anchor);
+        int anchor=anchorSlot(slot);AABB box=anchor<0?slotBounds(slot):entryBox(anchor);
         Vec3 target=new Vec3(net.minecraft.util.Mth.clamp(eye.x,box.minX,box.maxX),
             net.minecraft.util.Mth.clamp(eye.y,box.minY,box.maxY),net.minecraft.util.Mth.clamp(eye.z,box.minZ,box.maxZ));
         if(!cover.obstructs(eye,target))return false;
@@ -143,8 +155,11 @@ public final class CargoHold {
             if(candidate<distance) { nearest=i;distance=candidate; }
         }
         if(nearest>=0)return nearest;
-        if(point.y<FLOOR-.14||point.y>FLOOR+.025||Math.abs(point.x)>1||point.z< -1.34375||point.z>2.21875+rearExtension())return -1;
-        int row=Math.clamp((int)Math.round((point.z+.96)/.70),0,capacity()/2-1);int selected=row*2+(point.x<0?0:1);
+        if(point.y<FLOOR-.14||point.y>FLOOR+.025||Math.abs(point.x)>owner.cargoBody().widthScale()||point.z< -1.34375+owner.cargoBody().frontOffset()||point.z>2.21875+rearExtension())return -1;
+        var body=owner.cargoBody();
+        int row=Math.clamp((int)Math.round((point.z-body.firstRowZ())/.70),0,rows()-1);
+        int column=Math.clamp((int)Math.round(point.x/body.columnSpacing()+(columns()-1)/2.0),0,columns()-1);
+        int selected=row*columns()+column;
         int anchor=anchorSlot(selected);return anchor<0?selected:anchor;
     }
     /** Called with the first actual cart-surface hit, so a wall cannot be clicked through. */
@@ -195,18 +210,18 @@ public final class CargoHold {
         String restriction=placementRestriction(stack);if(restriction!=null)return restriction;
         boolean mat=stack.getItem() instanceof StrawMatItem,stool=stack.getItem() instanceof WagonStoolItem;
         if(mat) {
-            if(slot<4||entry(slot)!=null||entry(slot-2)!=null||entry(slot-4)!=null)return "message.tm_wagon.mat_space";
+            if(slot<2*columns()||entry(slot)!=null||entry(slot-columns())!=null||entry(slot-2*columns())!=null)return "message.tm_wagon.mat_space";
         } else if(entry(slot)!=null)return "message.tm_wagon.cargo_occupied";
-        Vec3 point=owner.cargoPose().point(centre(slot));
+        Vec3 point=owner.cargoPose().point(centreAt(slot));
         if(player==null||player.level()!=owner.cargoLevel()||player.distanceToSqr(point)>64
             ||!owner.cargoLevel().mayInteract(player,BlockPos.containing(point)))return "message.tm_wagon.protected";
         var state=mat?Blocks.HAY_BLOCK.defaultBlockState():stool?Blocks.OAK_PLANKS.defaultBlockState():CargoPlacement.state(this,slot,stack,player);
         var properties=stack.get(DataComponents.BLOCK_STATE);if(properties!=null)state=properties.apply(state);
         if(state.hasProperty(ChestBlock.TYPE))state=state.setValue(ChestBlock.TYPE,net.minecraft.world.level.block.state.properties.ChestType.SINGLE);
         if(state.getBlock() instanceof ShulkerBoxBlock)state=state.setValue(ShulkerBoxBlock.FACING,net.minecraft.core.Direction.UP);
-        if(mat)for(int cell=slot;cell>=slot-4;cell-=2)
-            if(!owner.cargoLevel().mayInteract(player,BlockPos.containing(owner.cargoPose().point(centre(cell)))))return "message.tm_wagon.protected";
-        AABB world=worldBox(mat?matBox(slot):stool?stoolBox(slot):slotBox(slot),owner.cargoPose());
+        if(mat)for(int cell=slot;cell>=slot-2*columns();cell-=columns())
+            if(!owner.cargoLevel().mayInteract(player,BlockPos.containing(owner.cargoPose().point(centreAt(cell)))))return "message.tm_wagon.protected";
+        AABB world=worldBox(mat?matBounds(slot):stool?stoolBounds(slot):slotBounds(slot),owner.cargoPose());
         if(!freeVolume(world))return "message.tm_wagon.cargo_blocked";
         CargoEntry entry=CargoEntry.fromItem(this,stack,state);entries[slot]=entry;
         String error=owner.cargoGeometryChanged();
@@ -303,7 +318,7 @@ public final class CargoHold {
         for(var value:tag.getList("Entries",Tag.TAG_COMPOUND)) {
             var entry=(CompoundTag)value;int slot=entry.getInt("Slot");if(slot<0||slot>=capacity()||entry(slot)!=null)continue;
             var loaded=CargoEntry.load(this,entry,lookup);if(loaded==null)continue;
-            if(loaded.kind==CargoEntry.Kind.STRAW_MAT&&(slot<4||entry(slot-2)!=null||entry(slot-4)!=null))continue;
+            if(loaded.kind==CargoEntry.Kind.STRAW_MAT&&(slot<2*columns()||entry(slot-columns())!=null||entry(slot-2*columns())!=null))continue;
             entries[slot]=loaded;
         }
         cover.load(tag.getCompound("Cover"));canopy.load(tag.getCompound("Canopy"));

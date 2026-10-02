@@ -30,12 +30,12 @@ public final class WagonComponentRecipe extends CustomRecipe {
         super(CraftingBookCategory.MISC);
         boolean known=java.util.Arrays.stream(WagonPart.values()).anyMatch(p->p.id.equals(component))
             ||List.of("wagon_assembly_frame","wagon_straw_mat","wagon_stool","wagon_cabinet","wagon_cargo_cover","wagon_canopy").contains(component);
-        boolean shapeless=component.equals("double_horse_shafts")||component.equals("double_wooden_seat");
+        boolean shapeless=component.equals("double_horse_shafts")||component.equals("double_wooden_seat")||component.equals("triple_wooden_seat");
         if(!known||count<1||count>64||pattern.size()>3||pattern.isEmpty()!=shapeless)
             throw new IllegalArgumentException("Invalid wagon component recipe: "+component);
         if(!shapeless) {
             int width=pattern.getFirst().length();
-            if(width<1||width>3||pattern.stream().anyMatch(row->row.length()!=width||row.chars().anyMatch(c->" SPLWIHRTBCEDO".indexOf(c)<0)))
+            if(width<1||width>3||pattern.stream().anyMatch(row->row.length()!=width||row.chars().anyMatch(c->" SPLWIHRTBCEDOUV".indexOf(c)<0)))
                 throw new IllegalArgumentException("Invalid wagon recipe pattern: "+component);
         }
         this.component=component;this.pattern=List.copyOf(pattern);this.count=count;
@@ -59,6 +59,7 @@ public final class WagonComponentRecipe extends CustomRecipe {
             case 'R'->stack.is(Items.LEAD)||stack.is(Items.VINE);case 'B'->stack.is(Items.BARREL);
             case 'T'->stack.is(ItemTags.WOODEN_TRAPDOORS);
             case 'C'->stack.is(part(WagonPart.CARGO_BODY));case 'E'->stack.is(part(WagonPart.SINGLE_WOODEN_SEAT));
+            case 'U'->stack.is(part(WagonPart.LONG_CARGO_BODY));case 'V'->stack.is(part(WagonPart.TRIPLE_WOODEN_SEAT));
             case 'D'->stack.is(part(WagonPart.DOUBLE_WOODEN_SEAT));case 'O'->stack.is(part(WagonPart.SMALL_WHEEL));
             default->false;
         };
@@ -82,13 +83,23 @@ public final class WagonComponentRecipe extends CustomRecipe {
                 for(var value:WoodMaterial.values())if(stack.is(value.trapdoor()))wood=value;
                 if(wood==null)return null;
             }
-            if(token=='C'||token=='E'||token=='D'||token=='O')wood=WagonMaterial.of(stack).wood();
+            if(token=='C'||token=='E'||token=='D'||token=='O'||token=='U'||token=='V')wood=WagonMaterial.of(stack).wood();
             if(wood!=null) { if(chosen!=null&&chosen!=wood)return null;chosen=wood; }
             if(token=='W') { var dye=wool(stack);if(dye==null||colour!=null&&colour!=dye)return null;colour=dye; }
         }
         return new WagonMaterial(chosen==null?WoodMaterial.OAK:chosen,colour==null?DyeColor.WHITE:colour);
     }
     private WagonMaterial match(CraftingInput input) {
+        if(component.equals("triple_wooden_seat")) {
+            int places=0;WoodMaterial wood=null;
+            for(int i=0;i<input.size();i++)if(!input.getItem(i).isEmpty()) {
+                var s=input.getItem(i);
+                int seats=s.is(part(WagonPart.SINGLE_WOODEN_SEAT))?1:s.is(part(WagonPart.DOUBLE_WOODEN_SEAT))?2:0;
+                if(seats==0||(places+=seats)>3)return null;
+                var current=WagonMaterial.of(s).wood();if(wood!=null&&wood!=current)return null;wood=current;
+            }
+            return places==3?new WagonMaterial(wood,DyeColor.WHITE):null;
+        }
         if(component.equals("double_horse_shafts")||component.equals("double_wooden_seat")) {
             Item required=part(component.equals("double_horse_shafts")?WagonPart.SINGLE_HORSE_SHAFTS:WagonPart.SINGLE_WOODEN_SEAT);
             int n=0;WoodMaterial wood=null;

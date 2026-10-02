@@ -11,6 +11,7 @@ import shutil
 from simplified_collision import volumes
 from extend_wagon_model import generate_long_variants
 from wooden_seat_models import generate_wooden_seats
+from wide_wagon_models import generate_wide_variants, SEATS, HORSES
 
 ROOT = Path(__file__).resolve().parents[1]
 RES = ROOT / 'src/main/resources'
@@ -86,6 +87,7 @@ def item_geometry(geometry, names, identifier):
 def main():
     generate_wooden_seats()
     generate_long_variants()
+    generate_wide_variants()
     collision = volumes()
     rig = ROOT/'modeling/wagon_assembly_frame/exports/assets/tm_wagon'
     frame_geo = json.loads((rig/'geo/wagon_assembly_frame.geo.json').read_text())
@@ -105,6 +107,9 @@ def main():
     specs = {
         'cargo_body': ('double_seat_double_horse', ['chassis','cargo_body','tailgate','front_axle','rear_axle','driver_platform'], (0,0,0)),
         'long_cargo_body': ('long_double_seat_double_horse', ['chassis','cargo_body','tailgate','front_axle','rear_axle','driver_platform'], (0,0,0)),
+        'wide_cargo_body': ('wide_double_seat_double_horse', ['chassis','cargo_body','tailgate','front_axle','rear_axle','driver_platform'], (0,0,0)),
+        'triple_seat': ('triple_seat_double_horse', ['seat'], (0,0,0)),
+        'triple_wooden_seat': ('triple_wooden_seat_double_horse', ['seat'], (0,0,0)),
         'single_horse_shafts': ('double_seat_single_horse', ['shafts'], (0,0,0)),
         'double_horse_shafts': ('double_seat_double_horse', ['shafts'], (0,0,0)),
         'single_seat': ('single_seat_double_horse', ['seat'], (0,0,0)),
@@ -146,9 +151,10 @@ def main():
     (ASSETS/'textures/entity').mkdir(parents=True,exist_ok=True)
     shutil.copyfile(VARIANTS/'double_seat_double_horse/wagon.png',ASSETS/'textures/entity/wagon.png')
     standard=tuple(f'{seat}_{horse}' for seat in ['single_seat','double_seat','single_wooden_seat','double_wooden_seat'] for horse in ['single_horse','double_horse'])
-    for variant in (*standard, *(f'long_{name}' for name in standard)):
+    wide=tuple(f'wide_{seat}_{horse}' for seat in SEATS for horse in HORSES)
+    for variant in (*standard, *(f'long_{name}' for name in standard), *wide):
         geo = json.loads((VARIANTS/variant/'wagon.geo.json').read_text())
-        geo['minecraft:geometry'][0]['description'].update(visible_bounds_width=12,visible_bounds_height=6,visible_bounds_offset=[0,2,-2])
+        geo['minecraft:geometry'][0]['description'].update(visible_bounds_width=24 if variant.startswith("wide_") else 12,visible_bounds_height=6,visible_bounds_offset=[0,2,-2])
         geo['minecraft:geometry'][0]['bones'].extend(copy.deepcopy(frame_bones))
         write(ASSETS/'geo/assembly'/f'{variant}.geo.json',geo)
     write(ASSETS/'animations/assembly.animation.json',frame_animations)
@@ -171,11 +177,12 @@ def main():
     write(ASSETS/'models/block/assembly_part.json', {'textures':{'particle':'tm_wagon:block/wagon_assembly_frame'},'elements':[]})
     for name in [*specs, 'assembly_proxy']:
         write(ASSETS/'blockstates'/f'{name}.json', {'variants':{'':{'model':'tm_wagon:block/assembly_part'}}})
+    write(RES/'data/minecraft/tags/block/mineable/axe.json', {'replace':False,'values':['tm_wagon:'+name for name in ['wagon_assembly_frame','assembly_proxy',*specs]]})
     write(ASSETS/'models/item/wagon_icon.json', {'parent':'minecraft:item/generated','textures':{'layer0':'tm_wagon:item/wagon_icon'}})
     # All part drops are issued once per module by the assembly controller.
     for name in [*specs,'assembly_proxy','wagon_assembly_frame']:
         write(RES/'data/tm_wagon/loot_table/blocks'/f'{name}.json', {'type':'minecraft:block','pools':[]})
-    print(f'Exported {len(specs)} parts, {2*len(standard)} assembly models, clipped-collision input and item display resources.')
+    print(f'Exported {len(specs)} parts, {2*len(standard)+len(wide)} assembly models, clipped-collision input and item display resources.')
 
 
 if __name__ == '__main__': main()

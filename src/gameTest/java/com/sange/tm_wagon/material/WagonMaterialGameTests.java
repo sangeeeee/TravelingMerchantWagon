@@ -20,7 +20,7 @@ import net.neoforged.neoforge.gametest.*;
 public class WagonMaterialGameTests {
     private static final Map<String,List<String>> PATTERNS=Map.ofEntries(
         Map.entry("wagon_assembly_frame",List.of("SPS"," S ","SSS")),Map.entry("cargo_body",List.of("PPP","PLT","PPP")),
-        Map.entry("long_cargo_body",List.of(" PP","CLT"," PP")),Map.entry("single_horse_shafts",List.of("SSS"," L ","SSS")),
+        Map.entry("wide_cargo_body",List.of("PPP"," U ","PPP")),Map.entry("triple_seat",List.of("PPP","WWW"," V ")),Map.entry("long_cargo_body",List.of(" PP","CLT"," PP")),Map.entry("single_horse_shafts",List.of("SSS"," L ","SSS")),
         Map.entry("single_wooden_seat",List.of("SPS","P P")),Map.entry("single_seat",List.of("P","W","E")),
         Map.entry("double_seat",List.of("PPP","WWW"," D ")),Map.entry("small_wheel",List.of("ISI","SLS","ISI")),
         Map.entry("large_wheel",List.of("PSP","SOS","PSP")),Map.entry("wagon_straw_mat",List.of("HHH","PPP")),
@@ -40,6 +40,7 @@ public class WagonMaterialGameTests {
             case 'I'->new ItemStack(Items.IRON_INGOT);case 'H'->new ItemStack(Items.WHEAT);case 'R'->new ItemStack(Items.VINE);
             case 'B'->new ItemStack(Items.BARREL);case 'C'->material.stack(item(WagonPart.CARGO_BODY));
             case 'E'->material.stack(item(WagonPart.SINGLE_WOODEN_SEAT));case 'D'->material.stack(item(WagonPart.DOUBLE_WOODEN_SEAT));
+            case 'U'->material.stack(item(WagonPart.LONG_CARGO_BODY));case 'V'->material.stack(item(WagonPart.TRIPLE_WOODEN_SEAT));
             case 'O'->material.stack(item(WagonPart.SMALL_WHEEL));default->ItemStack.EMPTY;
         });return result;
     }
@@ -79,13 +80,13 @@ public class WagonMaterialGameTests {
             var stacks=inputs("cargo_body",WoodMaterial.SPRUCE,DyeColor.WHITE);stacks.set(mismatch==Items.BIRCH_LOG?4:5,new ItemStack(mismatch));
             h.assertTrue(!recipe(h,"cargo_body").matches(input("cargo_body",stacks),h.getLevel()),"Mixed body log/trapdoor accepted");
         }
-        for(String name:List.of("double_seat","wagon_cargo_cover","wagon_canopy")) {
+        for(String name:List.of("triple_seat","double_seat","wagon_cargo_cover","wagon_canopy")) {
             var stacks=inputs(name,WoodMaterial.OAK,DyeColor.BLUE);int w=String.join("",PATTERNS.get(name)).indexOf('W');stacks.set(w,new ItemStack(Items.RED_WOOL));
             h.assertTrue(!recipe(h,name).matches(input(name,stacks),h.getLevel()),"Mixed wool accepted: "+name);
         }
         var dual=recipe(h,"double_wooden_seat");
         h.assertTrue(!dual.matches(CraftingInput.of(2,1,List.of(new WagonMaterial(WoodMaterial.BIRCH,DyeColor.WHITE).stack(item(WagonPart.SINGLE_WOODEN_SEAT)),new ItemStack(item(WagonPart.SINGLE_WOODEN_SEAT)))),h.getLevel()),"Mixed wood shapeless upgrade accepted");
-        for(String name:List.of("long_cargo_body","single_seat","double_seat","large_wheel","wagon_assembly_frame","wagon_straw_mat")) {
+        for(String name:List.of("wide_cargo_body","triple_seat","long_cargo_body","single_seat","double_seat","large_wheel","wagon_assembly_frame","wagon_straw_mat")) {
             var stacks=inputs(name,WoodMaterial.WARPED,DyeColor.GREEN);
             for(int i=0;i<stacks.size();i++)if(stacks.get(i).is(Items.WARPED_PLANKS))stacks.set(i,new ItemStack(Items.BAMBOO_PLANKS));
             var r=recipe(h,name);h.assertTrue(r.matches(input(name,stacks),h.getLevel()),"Arbitrary upgrade/frame/mat planks rejected: "+name);

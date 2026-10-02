@@ -147,8 +147,8 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
                 // Keep the simplified cabinet/support volume below the wool. Its wider
                 // upper portion must not hide the visible cushion sides behind an invisible box.
                 double baseTop=part.isWoodenSeat()?30.02/16:31.5/16;
-                picking.add(new Component(new AABB(lower.minX,lower.minY,lower.minZ,lower.maxX,baseTop,lower.maxZ),slot));
-                for(int i=1;i<seat.size();i++)picking.add(new Component(seat.get(i),slot));
+                picking.add(new Component(new AABB(lower.minX,lower.minY,lower.minZ,lower.maxX,baseTop,lower.maxZ).move(0,0,cargoBody().frontOffset()),slot));
+                for(int i=1;i<seat.size();i++)picking.add(new Component(seat.get(i).move(0,0,cargoBody().frontOffset()),slot));
                 for(AABB cushion:driverSeatSurfaces())picking.add(new Component(cushion,slot));
             }
         });components=List.copyOf(list);
@@ -177,7 +177,7 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
     public WagonPose pose() { return new WagonPose(position(),getYRot(),pitch,roll); }
     @Override public com.sange.tm_wagon.cargo.CargoHold cargo() { return cargo; }
     @Override public WagonPart cargoBody() { return modules==null?WagonPart.CARGO_BODY:modules.getOrDefault(WagonSlot.BODY,WagonPart.CARGO_BODY); }
-    public double wheelbase() { return WagonPhysics.WHEELBASE+cargoBody().rearExtension(); }
+    public double wheelbase() { return cargoBody().rearWheelZ()-cargoBody().frontWheelZ(); }
     @Override public Level cargoLevel() { return level(); }
     @Override public WagonPose cargoPose() { return pose(); }
     @Override public WagonPart cargoSeat() { return parts().get(WagonSlot.SEAT); }
@@ -202,16 +202,16 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
     private Vec3 articulated(Vec3 point,WagonSlot slot) {
         return articulated(point,slot,steering,shaftPitch);
     }
-    private static Vec3 articulated(Vec3 point,WagonSlot slot,float steering,float shaftPitch) {
-        if(slot==WagonSlot.SHAFTS)point=WagonPose.rotate(point.subtract(new Vec3(0,1.25,-26.0/16)),shaftPitch,0,0).add(0,1.25,-26.0/16);
+    private Vec3 articulated(Vec3 point,WagonSlot slot,float steering,float shaftPitch) {
+        if(slot==WagonSlot.SHAFTS)point=WagonPose.rotate(point.subtract(new Vec3(0,1.25,-26.0/16+cargoBody().frontOffset())),shaftPitch,0,0).add(0,1.25,-26.0/16+cargoBody().frontOffset());
         if(slot==WagonSlot.SHAFTS||slot==WagonSlot.FRONT_LEFT||slot==WagonSlot.FRONT_RIGHT)
-            point=WagonPose.rotate(point.subtract(new Vec3(0,10.5/16,-20.0/16)),0,0,steering).add(0,10.5/16,-20.0/16);
+            point=WagonPose.rotate(point.subtract(new Vec3(0,10.5/16,cargoBody().frontWheelZ())),0,0,steering).add(0,10.5/16,cargoBody().frontWheelZ());
         return point;
     }
     /** Vanilla leash rendering asks its holder for an interpolated world-space endpoint. */
     @Override public Vec3 getRopeHoldPosition(float partialTick) {
         boolean single=horseCapacity()==1;
-        Vec3 beam=new Vec3(0,(single?19.75:20.15)/16,(single?-38.0:-39.0)/16);
+        Vec3 beam=new Vec3(0,(single?19.75:20.15)/16,(single?-38.0:-39.0)/16+cargoBody().frontOffset());
         WagonPose rendered=new WagonPose(getPosition(partialTick),Mth.rotLerp(partialTick,yRotO,getYRot()),renderPitch(partialTick),renderRoll(partialTick));
         return rendered.point(articulated(beam,WagonSlot.SHAFTS,renderSteering(partialTick),renderShaftPitch(partialTick)));
     }
@@ -269,10 +269,10 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
         }return false;
     }
     private Vec3 unsteered(Vec3 point) {
-        return WagonPose.rotate(point.subtract(new Vec3(0,10.5/16,-20.0/16)),0,0,-steering).add(0,10.5/16,-20.0/16);
+        return WagonPose.rotate(point.subtract(new Vec3(0,10.5/16,cargoBody().frontWheelZ())),0,0,-steering).add(0,10.5/16,cargoBody().frontWheelZ());
     }
     private Vec3 unpitched(Vec3 point) {
-        return WagonPose.rotate(point.subtract(new Vec3(0,1.25,-26.0/16)),-shaftPitch,0,0).add(0,1.25,-26.0/16);
+        return WagonPose.rotate(point.subtract(new Vec3(0,1.25,-26.0/16+cargoBody().frontOffset())),-shaftPitch,0,0).add(0,1.25,-26.0/16+cargoBody().frontOffset());
     }
     @Override protected AABB makeBoundingBox() {
         if(components==null||components.isEmpty())return localShape==null||localShape.isEmpty()?super.makeBoundingBox():localShape.bounds().move(position());
@@ -283,7 +283,7 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
         return bounds;
     }
     public Vec3 wheelCentre(int i,WagonPose pose) {
-        Vec3 point=WagonPhysics.WHEELS[i].add(0,WagonPhysics.radius(i),i>=2?cargoBody().rearExtension():0);
+        Vec3 point=new Vec3((i%2==0?-1:1)*cargoBody().wheelHalfTrack(),WagonPhysics.radius(i),i<2?cargoBody().frontWheelZ():cargoBody().rearWheelZ());
         return pose.point(articulated(point,i==0?WagonSlot.FRONT_LEFT:i==1?WagonSlot.FRONT_RIGHT:i==2?WagonSlot.REAR_LEFT:WagonSlot.REAR_RIGHT));
     }
     public Vec3 wheelForward(int i) { return pose().vector(WagonPose.rotate(new Vec3(0,0,-1),0,0,i<2?steering:0)); }
@@ -423,7 +423,7 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
     }
     public void unlock() { assemblyLock=null; }
     public int seatCapacity() { var seat=parts().get(WagonSlot.SEAT);return seat==null?0:seat.seatCapacity(); }
-    public static final int CARGO_SEAT_BASE=2;
+    public static final int CARGO_SEAT_BASE=3;
     private boolean validSeat(int seat) {
         if(seat>=0&&seat<seatCapacity())return true;
         int slot=seat-CARGO_SEAT_BASE;
@@ -447,7 +447,7 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
             if(validSeat(i)&&(i<CARGO_SEAT_BASE||!cargo.cover().covered(i-CARGO_SEAT_BASE))&&!seatOccupied(i,null))return true;
         return false;
     }
-    /** Stable IDs 0/1 are driver seats; 2..11 are cargo stools, independent of passenger ordering. */
+    /** Stable IDs 0..2 are driver seats; 3..58 are cargo stools, independent of passenger ordering. */
     public int passengerSeat(Entity passenger) {
         var seats=entityData.get(SEATS);String key=passenger.getUUID().toString();
         if(seats.contains(key))return seats.getInt(key);
@@ -489,17 +489,28 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
     }
     private Vec3 seatPosition(int seat) {
         if(seat>=CARGO_SEAT_BASE&&seat<CARGO_SEAT_BASE+cargo.capacity())
-            return pose().point(com.sange.tm_wagon.cargo.CargoHold.centre(seat-CARGO_SEAT_BASE).add(0,.5,0));
-        double x=seatCapacity()==1 ? 0 : (seat==0 ? -.45 : .45);
-        return pose().point(new Vec3(x,cargoSeat()!=null&&cargoSeat().isWoodenSeat()?31.5/16:2.15625,-1.875));
+            return pose().point(cargo.centreAt(seat-CARGO_SEAT_BASE).add(0,.5,0));
+        double x=(seat-(seatCapacity()-1)/2.0)*(seatCapacity()==3?.94:.9);
+        return pose().point(new Vec3(x,cargoSeat()!=null&&cargoSeat().isWoodenSeat()?31.5/16:2.15625,-1.875+cargoBody().frontOffset()));
     }
     @Override public Vec3 getPassengerRidingPosition(Entity passenger) {
         return seatPosition(passengerSeat(passenger));
     }
     private Vec3 localPosition(Vec3 relative) { return pose().local(position().add(relative)); }
     private List<AABB> driverSeatSurfaces() {
-        if(cargoSeat()!=null&&cargoSeat().isWoodenSeat())return seatCapacity()==2?DOUBLE_WOODEN_SURFACES:SINGLE_WOODEN_SURFACES;
-        return seatCapacity()==2?DOUBLE_CUSHIONS:SINGLE_CUSHIONS;
+        List<AABB> surfaces;
+        if(seatCapacity()==3) {
+            var result=new java.util.ArrayList<AABB>();
+            for(int seat=0;seat<3;seat++) {
+                double centre=(seat-1)*.94;
+                boolean wooden=cargoSeat().isWoodenSeat();
+                result.add(new AABB(centre-.45,wooden?30.02/16:31.5/16,wooden?-35.5/16:-35.0/16,
+                    centre+.45,wooden?31.48/16:34.4/16,wooden?-23.5/16:-24.0/16));
+            }
+            surfaces=result;
+        } else if(cargoSeat()!=null&&cargoSeat().isWoodenSeat())surfaces=seatCapacity()==2?DOUBLE_WOODEN_SURFACES:SINGLE_WOODEN_SURFACES;
+        else surfaces=seatCapacity()==2?DOUBLE_CUSHIONS:SINGLE_CUSHIONS;
+        return surfaces.stream().map(b->b.move(0,0,cargoBody().frontOffset())).toList();
     }
     /** Only the first visible cushion or plain wooden top can board; supplied points cannot bypass an obstruction. */
     private InteractionResult boardVisibleDriverSeat(Player player,java.util.Optional<Vec3> actual) {
@@ -591,12 +602,12 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
     }
     public Vec3 horsePosition(int slot) {
         double x=horseCapacity()==1?0:slot==0?-1.05:1.05;
-        return pose().point(articulated(new Vec3(x,0,horseCapacity()==1?-4.35:-4.45),WagonSlot.SHAFTS));
+        return pose().point(articulated(new Vec3(x,0,(horseCapacity()==1?-4.35:-4.45)+cargoBody().frontOffset()),WagonSlot.SHAFTS));
     }
     private Vec3 horseBasePosition(int slot) {
         double x=horseCapacity()==1?0:slot==0?-1.05:1.05;
-        Vec3 p=new Vec3(x,0,horseCapacity()==1?-4.35:-4.45);
-        p=WagonPose.rotate(p.subtract(new Vec3(0,10.5/16,-20.0/16)),0,0,steering).add(0,10.5/16,-20.0/16);
+        Vec3 p=new Vec3(x,0,(horseCapacity()==1?-4.35:-4.45)+cargoBody().frontOffset());
+        p=WagonPose.rotate(p.subtract(new Vec3(0,10.5/16,cargoBody().frontWheelZ())),0,0,steering).add(0,10.5/16,cargoBody().frontWheelZ());
         return pose().point(p);
     }
     public boolean horsesCanAdvance(Vec3 delta) {
@@ -618,7 +629,7 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
     private int hitchSlot(Vec3 local) {
         Vec3 p=unpitched(unsteered(local));
         WagonPart shafts=parts().get(WagonSlot.SHAFTS);
-        if(shafts==null||WagonGeometry.partBoxes(shafts).stream().noneMatch(box->box.inflate(.025).contains(p)))return -1;
+        if(shafts==null||WagonGeometry.partBoxes(shafts).stream().noneMatch(box->box.move(0,0,cargoBody().frontOffset()).inflate(.025).contains(p)))return -1;
         if(horseCapacity()==1)return 0;
         // Any pole or crossbar can attach a horse. Prefer the clicked side,
         // then the other free hitch; centre-pole clicks fill the left first.
@@ -731,7 +742,7 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
     @Override protected void addAdditionalSaveData(CompoundTag tag) {
         tag.put("Materials",entityData.get(MATERIALS).copy());tag.put("Modules",entityData.get(MODULES).copy()); tag.putInt("WagonFacing",facing().get2DDataValue());
         tag.put("Cargo",cargo.save(level().registryAccess(),false));
-        tag.put("Seats",entityData.get(SEATS).copy());
+        tag.put("Seats",entityData.get(SEATS).copy());tag.putInt("SeatLayoutVersion",2);
         tag.putFloat("Yaw",getYRot());tag.putFloat("Pitch",pitch);tag.putFloat("Roll",roll);tag.putFloat("Health",health);tag.putBoolean("MotionStarted",motionStarted);
         tag.putFloat("ShaftPitch",shaftPitch);tag.putFloat("Steering",steering);
         for(int i=0;i<2;i++)if(horses[i]!=null) { tag.putUUID("Horse"+i,horses[i]);tag.putInt("Hanging"+i,hangingTicks[i]);if(Double.isFinite(horseContactHeights[i]))tag.putDouble("HorseContact"+i,horseContactHeights[i]); }
@@ -746,7 +757,9 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
         setMaterials(com.sange.tm_wagon.material.WagonMaterial.loadSlots(tag.getCompound("Materials")));
         cargo.load(tag.getCompound("Cargo"),level().registryAccess());rebuildGeometry();cargoChanged(true);
         assemblyLock=tag.contains("AssemblyLock") ? net.minecraft.core.BlockPos.of(tag.getLong("AssemblyLock")) : null;
-        entityData.set(SEATS,tag.getCompound("Seats").copy());
+        var savedSeats=tag.getCompound("Seats").copy();
+        if(tag.getInt("SeatLayoutVersion")<2)for(String key:savedSeats.getAllKeys())if(savedSeats.getInt(key)>=2)savedSeats.putInt(key,savedSeats.getInt(key)+1);
+        entityData.set(SEATS,savedSeats);
         pitch=tag.getFloat("Pitch");roll=tag.getFloat("Roll");health=tag.contains("Health")?tag.getFloat("Health"):20;motionStarted=tag.getBoolean("MotionStarted");
         shaftPitch=tag.getFloat("ShaftPitch");steering=tag.getFloat("Steering");
         if(tag.contains("Yaw"))setYRot(tag.getFloat("Yaw"));

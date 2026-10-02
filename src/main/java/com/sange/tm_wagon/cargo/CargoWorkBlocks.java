@@ -41,7 +41,7 @@ public final class CargoWorkBlocks {
             }
             case BOOKSHELF -> {
                 // Convert the clicked miniature face back to vanilla 0..1 coordinates.
-                Vec3 p=CargoHold.centre(hold.slot(e));double x=(local.x-p.x)/CargoHold.SCALE+.5,y=(local.y-p.y)/CargoHold.SCALE,z=(local.z-p.z)/CargoHold.SCALE+.5;
+                Vec3 p=hold.centreAt(hold.slot(e));double x=(local.x-p.x)/CargoHold.SCALE+.5,y=(local.y-p.y)/CargoHold.SCALE,z=(local.z-p.z)/CargoHold.SCALE+.5;
                 var facing=e.state.getValue(HorizontalDirectionalBlock.FACING);
                 boolean front=switch(facing) { case NORTH->z<.04;case SOUTH->z>.96;case WEST->x<.04;case EAST->x>.96;default->false; };
                 if(!front)return;

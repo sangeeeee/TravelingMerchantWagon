@@ -15,7 +15,7 @@ import software.bernie.geckolib.renderer.GeoRenderer;
 public final class MaterialRenderer {
     public static final ResourceLocation ATLAS=ResourceLocation.fromNamespaceAndPath("tm_wagon","textures/entity/component_atlas.png");
     private record Baked(GeoCube cube,boolean wool) {}
-    @SuppressWarnings("unchecked") private static final Map<GeoCube,Baked>[] CACHE=new Map[101];
+    @SuppressWarnings("unchecked") private static final Map<GeoCube,Baked>[] CACHE=new Map[131];
     public static void clear() { java.util.Arrays.fill(CACHE,null); }
     public static WagonSlot slot(String bone) {
         return switch(bone) {
@@ -26,10 +26,11 @@ public final class MaterialRenderer {
         };
     }
     private static int index(WagonPart part,WagonMaterial material) {
-        if(part==null||!WagonMaterial.wooden(part))return 100;
+        if(part==null||!WagonMaterial.wooden(part))return 130;
         int kind=switch(part) {
             case CARGO_BODY->0;case LONG_CARGO_BODY->1;case SINGLE_SEAT->2;case DOUBLE_SEAT->3;
             case SMALL_WHEEL->4;case LARGE_WHEEL->5;case SINGLE_WOODEN_SEAT->6;case DOUBLE_WOODEN_SEAT->7;
+            case WIDE_CARGO_BODY->8;case TRIPLE_SEAT->9;case TRIPLE_WOODEN_SEAT->10;
             default->throw new IllegalArgumentException("Unmapped material part");
         };return kind*10+material.wood().ordinal();
     }
@@ -49,7 +50,7 @@ public final class MaterialRenderer {
             for(int v=0;v<vertices.length;v++) {
                 var original=quad.vertices()[v];float u=original.texU()*64,t=original.texV()*64;
                 wool&=u>=48-.001&&u<=64+.001&&t>=16-.001&&t<=32+.001;
-                vertices[v]=original.withUVs((x+u)/1024,(y+t)/512);
+                vertices[v]=original.withUVs((x+u)/1024,(y+t)/1024);
             }
             quads[q]=new GeoQuad(vertices,quad.normal(),quad.direction());
         }

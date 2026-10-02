@@ -23,18 +23,28 @@ public enum WagonSlot {
     }
     public BlockPos position(BlockPos origin, Direction facing) { return position(origin,facing,WagonPart.CARGO_BODY); }
     public BlockPos position(BlockPos origin,Direction facing,WagonPart body) {
+        if(body==WagonPart.WIDE_CARGO_BODY) {
+            Vec3 local=switch(this) {
+                case BODY->new Vec3(0,1,0);
+                case SHAFTS,SEAT->new Vec3(0,anchor.getY(),anchor.getZ()+body.frontOffset());
+                default->geometryOffset(body);
+            };
+            Vec3 rotated=rotate(local,facing);
+            return origin.offset(BlockPos.containing(rotated.add(.5,0,.5)));
+        }
         int rear=(this==REAR_LEFT||this==REAR_RIGHT)&&body.rearExtension()>0?1:0;
         Vec3 p = rotate(new Vec3(anchor.getX(), anchor.getY(), anchor.getZ()+rear), facing);
         return origin.offset((int) p.x, (int) p.y, (int) p.z);
     }
     public Vec3 geometryOffset() { return geometryOffset(WagonPart.CARGO_BODY); }
     public Vec3 geometryOffset(WagonPart body) {
-        double rear=20.0/16+body.rearExtension();
+        double rear=body.rearWheelZ(),front=body.frontWheelZ(),x=body.wheelHalfTrack();
         return switch (this) {
-            case FRONT_LEFT -> new Vec3(-21.0 / 16, 0, -20.0 / 16);
-            case FRONT_RIGHT -> new Vec3(21.0 / 16, 0, -20.0 / 16);
-            case REAR_LEFT -> new Vec3(-21.0 / 16, 0, rear);
-            case REAR_RIGHT -> new Vec3(21.0 / 16, 0, rear);
+            case FRONT_LEFT -> new Vec3(-x,0,front);
+            case FRONT_RIGHT -> new Vec3(x,0,front);
+            case REAR_LEFT -> new Vec3(-x,0,rear);
+            case REAR_RIGHT -> new Vec3(x,0,rear);
+            case SHAFTS,SEAT->new Vec3(0,0,body.frontOffset());
             default -> Vec3.ZERO;
         };
     }

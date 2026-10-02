@@ -17,7 +17,7 @@ import net.minecraft.world.phys.Vec3;
 final class CargoPlacement {
     private static final java.util.Set<net.minecraft.world.level.block.Block> FALLBACKS=new java.util.HashSet<>();
     static BlockState state(CargoHold hold,int slot,ItemStack stack,Player player) {
-        var pose=hold.owner().cargoPose();var centre=CargoHold.centre(slot).add(0,CargoHold.SCALE/2,0);
+        var pose=hold.owner().cargoPose();var centre=hold.centreAt(slot).add(0,CargoHold.SCALE/2,0);
         Vec3 from=pose.local(player.getEyePosition());Vec3 toward=centre.subtract(from);
         if(toward.horizontalDistanceSqr()<1e-6)toward=pose.local(player.position().add(player.getLookAngle())).subtract(pose.local(player.position()));
         final Vec3 direction=toward;

@@ -5,6 +5,15 @@
   "long_cargo_body": {
     "scale": 0.109578
   },
+  "wide_cargo_body": {
+    "scale": 0.089193
+  },
+  "triple_seat": {
+    "scale": 0.229536
+  },
+  "triple_wooden_seat": {
+    "scale": 0.231489
+  },
   "single_horse_shafts": {
     "scale": 0.172737
   },

@@ -105,5 +105,11 @@
   "material.tm_wagon.colour.black": "Black",
   "item.tm_wagon.wood_name": "%s %s",
   "item.tm_wagon.colour_name": "%s %s",
-  "item.tm_wagon.wood_colour_name": "%s %s %s"
+  "item.tm_wagon.wood_colour_name": "%s %s %s",
+  "block.tm_wagon.wide_cargo_body": "Wide Cargo Body",
+  "tooltip.tm_wagon.wide_cargo_body": "Four columns and eight rows; centred on the assembly frame.",
+  "block.tm_wagon.triple_seat": "Triple Backrest Driver Seat",
+  "tooltip.tm_wagon.triple_seat": "Wide cargo bodies only; the left seat is the driver.",
+  "block.tm_wagon.triple_wooden_seat": "Triple Wooden Driver Seat",
+  "tooltip.tm_wagon.triple_wooden_seat": "Wide cargo bodies only; the left seat is the driver."
 }

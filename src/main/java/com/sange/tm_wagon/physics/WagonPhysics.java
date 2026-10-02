@@ -131,7 +131,7 @@ public final class WagonPhysics {
             double front=average(supports,0,1,old.position().y),rear=average(supports,2,3,old.position().y);
             double left=average(supports,0,2,old.position().y),right=average(supports,1,3,old.position().y);
             float targetPitch=Mth.clamp((float)Math.atan2(front-rear,wagon.wheelbase()),-NORMAL_PITCH,NORMAL_PITCH);
-            float targetRoll=Mth.clamp((float)Math.atan2(right-left,TRACK),-NORMAL_ROLL,NORMAL_ROLL);
+            float targetRoll=Mth.clamp((float)Math.atan2(right-left,wagon.cargoBody().wheelHalfTrack()*2),-NORMAL_ROLL,NORMAL_ROLL);
             if(recoveringTicks>0&&supports.count()<3) { targetPitch=0;targetRoll=0; }
             pitch=Mth.lerp(.3F,pitch,targetPitch);roll=Mth.lerp(.3F,roll,targetRoll);
             WagonPose tilted=new WagonPose(old.position(),yaw,pitch,roll);

@@ -82,7 +82,7 @@ public class StageOneClientSmoke {
         @Override public void render(GuiGraphics graphics,int mouseX,int mouseY,float partialTick) {
             graphics.fill(0,0,width,height,0xffede6d7);
             graphics.drawCenteredString(font,"TravelingMerchantWagon / native renderer check",width/2,12,0xff463729);
-            if(frames<25||frames>=710) {
+            if(frames<25||frames>=710&&frames<735) {
                 int columns=(int)Math.ceil(Math.sqrt(items.size()));
                 for(int i=0;i<items.size();i++) {
                     int x=width/(columns*2)+(i%columns)*width/columns,y=50+(i/columns)*100;
@@ -112,11 +112,11 @@ public class StageOneClientSmoke {
                 }
             } else {
                 for(int i=0;i<2;i++) {
-                    if(i==0)drawAssembly(graphics,assemblies.getFirst(),width/4,190,42);
-                    else drawWagon(graphics,wagons.getFirst(),width*3/4,190,42,1);
+                    if(i==0)drawAssembly(graphics,assemblies.getFirst(),width/4,190,frames>=735?23:42);
+                    else drawWagon(graphics,wagons.getFirst(),width*3/4,190,frames>=735?23:42,1);
                     graphics.drawCenteredString(font,i==0?"Block cargo":"Entity cargo",width/4+i*width/2,290,0xff463729);
                 }
-                graphics.drawCenteredString(font,frames>=630?"Mixed wood materials / dyed cushions and cloth":frames>=570?"Plain oak driver seats / top-only boarding / cabinet compatible":frames>=465?"Oak wagon cabinet / single and double seats / independent drawers":frames>=365?"White canopy / internal dark ribs / independent front and rear curtains":frames>=330?"Covered cargo remains visible through the open tailgate":frames>=255?"Grey cargo cover / roll toward rear / reusable cloth meshes":frames>=230?"Extended cargo compartment / 12 slots / rear axle moved":frames>=205?"Oak cargo stool / one slot / half-block height":frames>=180?"Straw mat / three cargo slots / adjacent cargo":frames>=150?"Cargo workstations / book and decorated pot renderers":frames<125?"10 scaled cargo slots / closed containers":"Open chest + shulker / lowered tailgate",width/2,height-40,0xff463729);
+                graphics.drawCenteredString(font,frames>=735?"Wide cargo / 4 columns x 8 rows / triple driver seats":frames>=630?"Mixed wood materials / dyed cushions and cloth":frames>=570?"Plain oak driver seats / top-only boarding / cabinet compatible":frames>=465?"Oak wagon cabinet / single and double seats / independent drawers":frames>=365?"White canopy / internal dark ribs / independent front and rear curtains":frames>=330?"Covered cargo remains visible through the open tailgate":frames>=255?"Grey cargo cover / roll toward rear / reusable cloth meshes":frames>=230?"Extended cargo compartment / 12 slots / rear axle moved":frames>=205?"Oak cargo stool / one slot / half-block height":frames>=180?"Straw mat / three cargo slots / adjacent cargo":frames>=150?"Cargo workstations / book and decorated pot renderers":frames<125?"10 scaled cargo slots / closed containers":"Open chest + shulker / lowered tailgate",width/2,height-40,0xff463729);
                 if(frames>=180) {
                     int x=width/2-24,y=40;graphics.fill(x,y,x+48,y+48,0xffd0c5af);
                     graphics.pose().pushPose();graphics.pose().translate(x,y,0);graphics.pose().scale(3,3,3);
@@ -183,7 +183,51 @@ public class StageOneClientSmoke {
             if(frames==695)save("wagon-dyed-canopy.png");
             if(frames==710)verifyMaterialItems();
             if(frames==725)save("wagon-material-items.png");
-            if(frames==735) {LogUtils.getLogger().info("TM_WAGON_CLIENT_SMOKE_PASS: cargo, work blocks, four driver seats, roofs and adaptive cabinets in both forms");Minecraft.getInstance().stop();}
+            if(frames==735) { verifyWideVariants(graphics);loadWidePreview(0); }
+            if(frames==750)save("wagon-wide-cargo.png");
+            if(frames==765)loadWidePreview(1);
+            if(frames==780)save("wagon-wide-mats.png");
+            if(frames==795)loadWidePreview(2);
+            if(frames==810)save("wagon-wide-cover.png");
+            if(frames==825)loadWidePreview(3);
+            if(frames==850)save("wagon-wide-canopy.png");
+            if(frames==865) {LogUtils.getLogger().info("TM_WAGON_CLIENT_SMOKE_PASS: 32-slot wide cargo, six driver seats, adaptive roofs/cabinets and existing wagons in both forms");Minecraft.getInstance().stop();}
+        }
+        private void verifyWideVariants(GuiGraphics graphics) {
+            var registry=net.minecraft.core.RegistryAccess.fromRegistryOfRegistries(net.minecraft.core.registries.BuiltInRegistries.REGISTRY);
+            for(var seat:WagonPart.values())if(seat.seatCapacity()>0)for(var shafts:new WagonPart[]{WagonPart.SINGLE_HORSE_SHAFTS,WagonPart.DOUBLE_HORSE_SHAFTS}) {
+                var parts=com.sange.tm_wagon.entity.WagonEntity.defaultParts();parts.put(WagonSlot.BODY,WagonPart.WIDE_CARGO_BODY);parts.put(WagonSlot.SEAT,seat);parts.put(WagonSlot.SHAFTS,shafts);
+                var tag=new CompoundTag();tag.put("Modules",com.sange.tm_wagon.entity.WagonEntity.encode(parts));assemblies.getFirst().loadWithComponents(tag,registry);
+                var w=wagons.getFirst();w.configure(parts,Direction.NORTH);w.cargo().load(new CompoundTag(),registry);w.cargoGeometryChanged();
+                drawAssembly(graphics,assemblies.getFirst(),-1000,-1000,1);drawWagon(graphics,w,-1000,-1000,1);
+                var er=(WagonRenderer)Minecraft.getInstance().getEntityRenderDispatcher().getRenderer(w);
+                if(er.getGeoModel().getBone("seat").orElseThrow().isHidden())throw new IllegalStateException("Missing wide driver seat "+seat);
+            }
+            LogUtils.getLogger().info("TM_WAGON_WIDE_RENDER_PASS: twelve wide configurations rendered in block/entity forms");
+        }
+        private void loadWidePreview(int kind) {
+            var registry=net.minecraft.core.RegistryAccess.fromRegistryOfRegistries(net.minecraft.core.registries.BuiltInRegistries.REGISTRY);
+            for(int i=0;i<2;i++) {
+                var parts=com.sange.tm_wagon.entity.WagonEntity.defaultParts();parts.put(WagonSlot.BODY,WagonPart.WIDE_CARGO_BODY);
+                parts.put(WagonSlot.SEAT,i==0?WagonPart.TRIPLE_WOODEN_SEAT:WagonPart.TRIPLE_SEAT);
+                parts.put(WagonSlot.SHAFTS,WagonPart.DOUBLE_HORSE_SHAFTS);
+                var styles=new java.util.EnumMap<WagonSlot,com.sange.tm_wagon.material.WagonMaterial>(WagonSlot.class);
+                for(var slot:WagonSlot.values())styles.put(slot,new com.sange.tm_wagon.material.WagonMaterial(i==0?com.sange.tm_wagon.material.WoodMaterial.OAK:com.sange.tm_wagon.material.WoodMaterial.values()[(slot.ordinal()+1)%10],slot==WagonSlot.SEAT?net.minecraft.world.item.DyeColor.BLUE:net.minecraft.world.item.DyeColor.WHITE));
+                var cargo=new CompoundTag();cargo.putLong("GateStart",Long.MIN_VALUE);var entries=new net.minecraft.nbt.ListTag();
+                for(int slot=0;slot<32;slot++) {
+                    boolean mat=kind!=0&&slot/4%3==2,stool=kind!=0&&slot>=24;
+                    if(kind!=0&&!mat&&!stool)continue;
+                    net.minecraft.world.item.Item item=mat?WagonContent.STRAW_MAT.get():stool?WagonContent.STOOL.get():slot%2==0?net.minecraft.world.item.Items.STONE:net.minecraft.world.item.Items.OAK_PLANKS;
+                    var state=mat?net.minecraft.world.level.block.Blocks.HAY_BLOCK.defaultBlockState():stool?net.minecraft.world.level.block.Blocks.OAK_PLANKS.defaultBlockState():((net.minecraft.world.item.BlockItem)item).getBlock().defaultBlockState();
+                    var entry=com.sange.tm_wagon.cargo.CargoEntry.fromItem(i==0?assemblies.getFirst().cargo():wagons.getFirst().cargo(),new ItemStack(item),state);
+                    var saved=entry.save(registry,true);saved.putInt("Slot",slot);entries.add(saved);
+                }
+                cargo.put("Entries",entries);
+                var cabinet=new CompoundTag();cabinet.putBoolean("Installed",true);cabinet.putInt("Rows",6);var drawer=new CompoundTag();drawer.putBoolean("Open",true);drawer.putLong("Start",Long.MIN_VALUE);cabinet.put("Drawer1",drawer);cargo.put("Cabinet",cabinet);
+                if(kind>=2) {var roof=new CompoundTag();roof.putBoolean("Installed",true);roof.putInt("OpenRows",i==0?3:8);roof.putBoolean("FrontClosed",i==1);roof.putBoolean("RearClosed",i==1);cargo.put(kind==2?"Cover":"Canopy",roof);}
+                if(i==0) {var tag=new CompoundTag();tag.put("Modules",com.sange.tm_wagon.entity.WagonEntity.encode(parts));tag.put("Materials",com.sange.tm_wagon.material.WagonMaterial.save(styles));tag.put("Cargo",cargo);assemblies.getFirst().loadWithComponents(tag,registry);}
+                else {var w=wagons.getFirst();w.configure(parts,Direction.NORTH);w.setMaterials(styles);w.cargo().load(cargo,registry);w.cargoGeometryChanged();}
+            }
         }
         private void loadMaterialPreview(int roofKind) {
             var registry=net.minecraft.core.RegistryAccess.fromRegistryOfRegistries(net.minecraft.core.registries.BuiltInRegistries.REGISTRY);
@@ -420,7 +464,7 @@ public class StageOneClientSmoke {
         }
         private void drawAssembly(GuiGraphics graphics,AssemblyFrameBlockEntity frame,int x,int y,float scale) {
             graphics.pose().pushPose();graphics.pose().translate(x,y,500);
-            graphics.pose().scale(scale,-scale,scale);graphics.pose().mulPose(Axis.XP.rotationDegrees(frames>=465?15:lowAngle()?2:25));
+            graphics.pose().scale(scale,-scale,scale);graphics.pose().mulPose(Axis.XP.rotationDegrees(frames>=735?30:frames>=465?15:lowAngle()?2:25));
             graphics.pose().mulPose(Axis.YP.rotationDegrees(frames>=465?-115:lowAngle()?-8:-35));
             if(frame.has(WagonSlot.BODY))graphics.pose().translate(-.5,-1.5,.7);
             else graphics.pose().translate(-.5,-.68,-.5);
@@ -444,7 +488,7 @@ public class StageOneClientSmoke {
         private void drawWagon(GuiGraphics graphics,com.sange.tm_wagon.entity.WagonEntity wagon,int x,int y,float scale,float partial) {
             var entityRenderer=(WagonRenderer)Minecraft.getInstance().getEntityRenderDispatcher().getRenderer(wagon);
             graphics.pose().pushPose();graphics.pose().translate(x,y,500);graphics.pose().scale(scale,-scale,scale);
-            graphics.pose().mulPose(Axis.XP.rotationDegrees(frames>=465?15:lowAngle()?2:25));graphics.pose().mulPose(Axis.YP.rotationDegrees(frames>=465?-115:lowAngle()?-8:-35));
+            graphics.pose().mulPose(Axis.XP.rotationDegrees(frames>=735?30:frames>=465?15:lowAngle()?2:25));graphics.pose().mulPose(Axis.YP.rotationDegrees(frames>=465?-115:lowAngle()?-8:-35));
             graphics.pose().translate(0,-1.5,.7);Lighting.setupForEntityInInventory();
             entityRenderer.render(wagon,0,partial,graphics.pose(),graphics.bufferSource(),15728880);
             graphics.flush();graphics.pose().popPose();Lighting.setupFor3DItems();

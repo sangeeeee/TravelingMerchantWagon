@@ -23,9 +23,12 @@ public final class CabinetRenderer {
     @SubscribeEvent public static void models(ModelEvent.RegisterAdditional event) { for(var wood:MODELS)for(var size:wood)for(var id:size)event.register(id); }
     public static void render(WagonCabinet cabinet,float tick,PoseStack poses,MultiBufferSource buffers,int light,int overlay) {
         if(!cabinet.installed())return;
-        var models=MODELS[cabinet.material().wood().ordinal()][cabinet.rows()==6?1:0];draw(models[0],poses,buffers,light,overlay,0);
-        draw(models[1],poses,buffers,light,overlay,-.4*cabinet.progress(0,tick));
-        draw(models[2],poses,buffers,light,overlay,.4*cabinet.progress(1,tick));
+        var models=MODELS[cabinet.material().wood().ordinal()][cabinet.rows()==6?1:0];poses.pushPose();poses.translate(0,0,cabinet.frontOffset());
+        if(cabinet.seatWidth()==3)poses.scale(47F/31F,1,1);
+        draw(models[0],poses,buffers,light,overlay,0);
+        draw(models[1],poses,buffers,light,overlay,-.4*cabinet.progress(0,tick)/(cabinet.seatWidth()==3?47.0/31:1));
+        draw(models[2],poses,buffers,light,overlay,.4*cabinet.progress(1,tick)/(cabinet.seatWidth()==3?47.0/31:1));
+        poses.popPose();
     }
     private static void draw(ModelResourceLocation id,PoseStack poses,MultiBufferSource buffers,int light,int overlay,double x) {
         poses.pushPose();poses.translate(x-.5,1.5,-2.5);

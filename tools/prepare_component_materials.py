@@ -25,10 +25,13 @@ COMPONENTS = {
     'large_wheel': ('大车轮', 'Large Wheel', 'wagon_atlas', 6),
     'single_wooden_seat': ('单人木制座位', 'Single Wooden Driver Seat', 'wagon_atlas', 5),
     'double_wooden_seat': ('双人木制座位', 'Double Wooden Driver Seat', 'wagon_atlas', 7),
+    'wide_cargo_body': ('加宽货物车厢', 'Wide Cargo Body', 'wagon_atlas', 2),
+    'triple_seat': ('三人带靠背座椅', 'Triple Backrest Driver Seat', 'wagon_atlas', 3),
+    'triple_wooden_seat': ('三人木制座位', 'Triple Wooden Driver Seat', 'wagon_atlas', 7),
     'wagon_stool': ('马车木凳', 'Wagon Stool', 'wood_tile', 8),
     'wagon_cabinet': ('马车柜', 'Wagon Cabinet', 'cabinet_atlas', 9),
 }
-WOOL_COMPONENTS = {'single_seat', 'double_seat'}
+WOOL_COMPONENTS = {'single_seat', 'double_seat', 'triple_seat'}
 WAGON_LAYOUT = {
     'planks': [0, 0, 32, 32], 'bark': [32, 0, 16, 32],
     'end': [48, 0, 16, 16], 'cushion': [48, 16, 16, 16],
@@ -202,9 +205,9 @@ def preview(materials, dyes):
     font_path = Path('C:/Windows/Fonts/msyh.ttc')
     font = ImageFont.truetype(str(font_path),16) if font_path.exists() else ImageFont.load_default()
     small = ImageFont.truetype(str(font_path),13) if font_path.exists() else ImageFont.load_default()
-    width,height = 1550,1540
+    width,height = 150+len(COMPONENTS)*140,1540
     sheet=Image.new('RGB',(width,height),'#E8E4DB');d=ImageDraw.Draw(sheet)
-    d.text((12,12),'10 woods × 10 component textures — fixed PNG resources',fill='#2B2926',font=font)
+    d.text((12,12),f'10 woods × {len(COMPONENTS)} component textures — fixed PNG resources',fill='#2B2926',font=font)
     for col,(component,(name,*_)) in enumerate(COMPONENTS.items()):
         x=140+col*140
         d.text((x,40),name.replace('带靠背','\n带靠背'),fill='#2B2926',font=small)
@@ -260,7 +263,7 @@ def main():
         'components':components,
         'dyes':{'source':'crafting_wool_colour','colours':COLOURS,
                 'textures':{name:'tm_wagon:component/dye/'+name for name in fabrics},
-                'bindings':{'single_seat':['seat_cushion'],'double_seat':['seat_cushion'],
+                'bindings':{'single_seat':['seat_cushion'],'double_seat':['seat_cushion'],'triple_seat':['seat_cushion'],
                             'wagon_cargo_cover':['cargo_cover_fabric','cargo_cover_spiral'],
                             'wagon_canopy':['canopy_cloth','canopy_curtain']},
                 'never_tint':['iron','brass','leather','light','rope','canopy_wood','wood_regions']},

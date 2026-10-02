@@ -42,7 +42,7 @@ public final class StrawMatSleep {
     public static WagonPose sleepingPose(Player player) { Session s=session(player);return s==null?null:s.pose; }
     public static Direction direction(Player player) { Session s=session(player);return s==null?null:Direction.fromYRot(s.pose.yaw()); }
     private static Vec3 head(CargoHold hold,int anchor) {
-        AABB box=CargoHold.matBox(anchor);
+        AABB box=hold.matBounds(anchor);
         return hold.owner().cargoPose().point(new Vec3((box.minX+box.maxX)/2,CargoHold.FLOOR+.16,box.minZ+.26));
     }
     private static boolean stable(CargoHold hold) {
@@ -121,7 +121,7 @@ public final class StrawMatSleep {
     }
     private static Vec3 standUp(Player player,Session s) {
         var pose=s.hold!=null&&s.hold.owner().cargoLive()?s.hold.owner().cargoPose():s.pose;
-        Vec3 centre=CargoHold.centre(s.anchor).add(0,0,-.7);
+        Vec3 centre=s.hold!=null?s.hold.centreAt(s.anchor).add(0,0,-.7):pose.local(s.head).add(0,-.16,.78);
         // Standing boxes remain world-aligned. Raise above the actual tilted collision tops,
         // then check the full standing dimensions instead of reusing the tiny sleeping box.
         for(double dx:new double[]{0,-.18,.18})for(double dz:new double[]{0,-.5,.5}) {

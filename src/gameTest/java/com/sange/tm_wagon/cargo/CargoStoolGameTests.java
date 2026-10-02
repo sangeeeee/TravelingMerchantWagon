@@ -94,12 +94,12 @@ public class CargoStoolGameTests {
         var w=wagon(h);place(h,w.cargo(),4);place(h,w.cargo(),5);
         var a=player(h,w.cargo());var b=player(h,w.cargo());var driver=player(h,w.cargo());var right=player(h,w.cargo());
         h.assertTrue(w.cargo().seats.sit(4,a)==null&&w.cargo().seats.sit(5,b)==null,"Two cargo seats could not be occupied");
-        h.assertTrue(w.driver()==null&&w.passengerSeat(a)==6&&w.passengerSeat(b)==7,"Cargo rider acquired driver identity");
+        h.assertTrue(w.driver()==null&&w.passengerSeat(a)==WagonEntity.CARGO_SEAT_BASE+4&&w.passengerSeat(b)==WagonEntity.CARGO_SEAT_BASE+5,"Cargo rider acquired driver identity");
         h.assertTrue(driver.startRiding(w)&&right.startRiding(w)&&w.driver()==driver&&w.passengerSeat(right)==1,"Cargo riders consumed the two front seats");
         h.assertTrue("message.tm_wagon.seat_occupied".equals(w.cargo().seats.sit(4,player(h,w.cargo()))),"Occupied seat accepted a second passenger");
         var pose=new WagonPose(w.position().add(.4,0,.3),213,.18F,.12F);w.applyPose(pose);
         for(var p:new Player[]{a,b}) {
-            w.positionRider(p);Vec3 expected=pose.point(CargoHold.centre(w.passengerSeat(p)-2).add(0,.5,0)).subtract(p.getVehicleAttachmentPoint(w));
+            w.positionRider(p);Vec3 expected=pose.point(CargoHold.centre(w.passengerSeat(p)-WagonEntity.CARGO_SEAT_BASE).add(0,.5,0)).subtract(p.getVehicleAttachmentPoint(w));
             h.assertTrue(p.position().distanceTo(expected)<.0001,"Cargo passenger did not follow translation/rotation");
         }
         a.stopRiding();Vec3 target=w.getDismountLocationForPassenger(a);a.setPos(target);a.setPose(Pose.STANDING);
@@ -113,7 +113,7 @@ public class CargoStoolGameTests {
         var pig=EntityType.PIG.create(h.getLevel());pig.setNoAi(true);pig.setPos(w.pose().point(CargoHold.centre(4).add(0,.5,0)));h.getLevel().addFreshEntity(pig);
         var p=h.makeMockServerPlayerInLevel();p.setPos(w.pose().point(CargoHold.centre(5).add(0,.5,0)));
         h.runAfterDelay(20,()->{
-            h.assertTrue(pig.getVehicle()==w&&w.passengerSeat(pig)==6,"Mob standing on a stool did not sit");
+            h.assertTrue(pig.getVehicle()==w&&w.passengerSeat(pig)==WagonEntity.CARGO_SEAT_BASE+4,"Mob standing on a stool did not sit");
             h.assertTrue(!p.isPassenger()&&!w.cargoSeatOccupied(5),"Player was auto-captured by a stool");
             w.cargo().destroy(false);h.assertTrue(!pig.isPassenger(),"Destroying stool retained mob passenger");h.succeed();
         });

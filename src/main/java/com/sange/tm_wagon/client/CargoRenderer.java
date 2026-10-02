@@ -24,7 +24,7 @@ public final class CargoRenderer {
         CargoCoverRenderer.render(hold.cover(),hold.owner().cargoBody(),poses,buffers,light,overlay);
         CanopyRenderer.render(hold.canopy(),hold.owner().cargoBody(),poses,buffers,light,overlay);
         for(int slot=0;slot<hold.capacity();slot++) {
-            var entry=hold.entry(slot);if(entry==null||hold.anchorSlot(slot)!=slot)continue;var p=CargoHold.centre(slot);
+            var entry=hold.entry(slot);if(entry==null||hold.anchorSlot(slot)!=slot)continue;var p=hold.centreAt(slot);
             if(entry.kind==CargoEntry.Kind.STRAW_MAT) {
                 poses.pushPose();poses.translate(p.x,CargoHold.FLOOR+1,p.z-.70);poses.scale(2,2,2);
                 mc.getItemRenderer().renderStatic(entry.item,ItemDisplayContext.NONE,light,overlay,poses,buffers,entry.holdOwnerLevel(),0);

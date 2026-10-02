@@ -54,7 +54,7 @@ public final class CargoSeats {
         anchors.values().removeIf(CargoSeatEntity::isRemoved);
         AABB area=null;
         for(int i=0;i<hold.capacity();i++)if(stool(i)&&!occupied(i)) {
-            var box=CargoHold.worldBox(CargoHold.stoolBox(i),hold.owner().cargoPose()).inflate(.2,.5,.2);
+            var box=CargoHold.worldBox(hold.stoolBounds(i),hold.owner().cargoPose()).inflate(.2,.5,.2);
             area=area==null?box:area.minmax(box);
         }
         if(area==null)return;
@@ -62,7 +62,7 @@ public final class CargoSeats {
             if(mob.isLeashed())continue;
             Vec3 local=hold.owner().cargoPose().local(mob.position());
             for(int i=0;i<hold.capacity();i++)if(stool(i)&&!occupied(i)) {
-                Vec3 p=CargoHold.centre(i);
+                Vec3 p=hold.centreAt(i);
                 if(Math.abs(local.x-p.x)<=CargoHold.SCALE/2&&Math.abs(local.z-p.z)<=CargoHold.SCALE/2
                     &&local.y>=CargoHold.FLOOR+.5-.1&&local.y<=CargoHold.FLOOR+.5+.3) {
                     sit(i,mob);break;
@@ -85,15 +85,15 @@ public final class CargoSeats {
     public static Vec3 standUp(CargoHold hold,int slot,LivingEntity rider,boolean outside) {
         var pose=hold.owner().cargoPose();
         if(!outside&&slot>=0&&slot<hold.capacity()) {
-            Vec3 centre=pose.point(CargoHold.centre(slot).add(0,.5,0));
-            double top=Math.max(centre.y,CargoHold.worldBox(CargoHold.stoolBox(slot),pose).maxY);
+            Vec3 centre=pose.point(hold.centreAt(slot).add(0,.5,0));
+            double top=Math.max(centre.y,CargoHold.worldBox(hold.stoolBounds(slot),pose).maxY);
             // Stay next to the seat surface. A tall vertical search could skip
             // the entire roof and teleport the rider onto its outside.
             // A world-upright rider can clip the tilted side wall's conservative
             // bounds. Try small inward offsets that still lie above the stool.
-            double inward=-Math.signum(CargoHold.centre(slot).x);
-            double middleZ=(CargoCanopy.FRONT+2.21875+hold.rearExtension())/2;
-            double longitudinal=Math.signum(middleZ-CargoHold.centre(slot).z);
+            double inward=-Math.signum(hold.centreAt(slot).x);
+            double middleZ=(hold.owner().cargoBody().frontOffset()+CargoCanopy.FRONT+2.21875+hold.rearExtension())/2;
+            double longitudinal=Math.signum(middleZ-hold.centreAt(slot).z);
             for(double rise=.001;rise<=.125;rise+=1.0/32)for(double shift=0;shift<=.25;shift+=1.0/16)for(double along=0;along<=.25;along+=1.0/16) {
                 Vec3 offset=pose.vector(new Vec3(inward*shift,0,longitudinal*along));
                 Vec3 target=new Vec3(centre.x+offset.x,top+rise,centre.z+offset.z);

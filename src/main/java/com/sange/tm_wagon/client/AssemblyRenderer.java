@@ -42,7 +42,7 @@ public class AssemblyRenderer extends GeoBlockRenderer<AssemblyFrameBlockEntity>
     }
     @Override public int getViewDistance() { return 128; }
     @Override public net.minecraft.world.phys.AABB getRenderBoundingBox(AssemblyFrameBlockEntity frame) {
-        return new net.minecraft.world.phys.AABB(frame.getBlockPos()).inflate(7,3,7);
+        return new net.minecraft.world.phys.AABB(frame.getBlockPos()).inflate(frame.cargoBody()==WagonPart.WIDE_CARGO_BODY?11:7,4,frame.cargoBody()==WagonPart.WIDE_CARGO_BODY?11:7);
     }
 
     private static class Model extends GeoModel<AssemblyFrameBlockEntity> {

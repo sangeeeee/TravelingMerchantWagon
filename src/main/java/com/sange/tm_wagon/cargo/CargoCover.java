@@ -28,34 +28,36 @@ public final class CargoCover {
     public CargoCover(CargoHold hold) { this.hold=hold; }
     public boolean installed() { return installed; }
     public int openRows() { return openRows; }
-    public int rows() { return hold.capacity()/2; }
-    public boolean covered(int slot) { return installed&&slot>=0&&slot<hold.capacity()&&slot/2>=openRows; }
+    public int rows() { return hold.rows(); }
+    public static double front(WagonPart body) { return FRONT+body.frontOffset(); }
+    public static double halfWidth(WagonPart body) { return HALF_WIDTH*body.widthScale(); }
+    public boolean covered(int slot) { return installed&&slot>=0&&slot<hold.capacity()&&slot/hold.columns()>=openRows; }
     public double back(WagonPart body) { return 2.34375+body.rearExtension(); }
     public double boundary(int row,WagonPart body) {
-        return row<=0?FRONT:row>=body.cargoCapacity()/2?back(body):-1.31+row*.7;
+        return row<=0?front(body):row>=body.rows()?back(body):body.firstRowZ()-.35+row*.7;
     }
     public double radius() { return (.055+.047*Math.sqrt(openRows))/Math.sqrt(2); }
     public double rollZ(WagonPart body) {
-        return openRows>=body.cargoCapacity()/2?back(body)-radius():boundary(openRows,body);
+        return openRows>=body.rows()?back(body)-radius():boundary(openRows,body);
     }
     /** Only the flat cloth supports weight; rolled fabric and hanging edges are decorative. */
     public List<AABB> boxes(WagonPart body) {
-        if(!installed||openRows>=body.cargoCapacity()/2)return List.of();
-        return List.of(new AABB(-HALF_WIDTH,Y,boundary(openRows,body),HALF_WIDTH,TOP,back(body)));
+        if(!installed||openRows>=body.rows())return List.of();
+        return List.of(new AABB(-halfWidth(body),Y,boundary(openRows,body),halfWidth(body),TOP,back(body)));
     }
     public AABB rollBox(WagonPart body) {
         double r=radius(),z=rollZ(body);
-        return new AABB(-HALF_WIDTH,TOP,z-r,HALF_WIDTH,TOP+2*r,z+r);
+        return new AABB(-halfWidth(body),TOP,z-r,halfWidth(body),TOP+2*r,z+r);
     }
     /** Outline/click volumes deliberately do not participate in movement collisions. */
     public List<AABB> selectionBoxes(WagonPart body) {
         if(!installed)return List.of();
         var result=new ArrayList<AABB>(boxes(body));
-        if(openRows<body.cargoCapacity()/2) {
+        if(openRows<body.rows()) {
             double front=boundary(openRows,body),back=back(body);
-            result.add(new AABB(-HALF_WIDTH,Y-.125,front,-HALF_WIDTH+.016,TOP,back));
-            result.add(new AABB(HALF_WIDTH-.016,Y-.125,front,HALF_WIDTH,TOP,back));
-            result.add(new AABB(-HALF_WIDTH,Y-.125,back-.016,HALF_WIDTH,TOP,back));
+            result.add(new AABB(-halfWidth(body),Y-.125,front,-halfWidth(body)+.016,TOP,back));
+            result.add(new AABB(halfWidth(body)-.016,Y-.125,front,halfWidth(body),TOP,back));
+            result.add(new AABB(-halfWidth(body),Y-.125,back-.016,halfWidth(body),TOP,back));
         }
         if(openRows>0)result.add(rollBox(body));
         return result;

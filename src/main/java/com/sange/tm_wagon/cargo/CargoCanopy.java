@@ -41,9 +41,9 @@ public final class CargoCanopy {
     // The rear skirt and curtain fit between the last cargo row and the
     // closed gate's inner plank surface (2.20625 blocks for the standard body).
     public double back(WagonPart body) { return REAR+body.rearExtension(); }
-    public double curtainZ(WagonPart body,boolean front) { return front?FRONT+FRONT_CURTAIN_INSET:back(body)-REAR_CURTAIN_INSET-THICK; }
+    public double curtainZ(WagonPart body,boolean front) { return front?CargoCover.front(body)+FRONT_CURTAIN_INSET:back(body)-REAR_CURTAIN_INSET-THICK; }
     public List<AABB> curtainBoxes(WagonPart body,boolean front) {
-        return GEOMETRY.get(closed(front)?"curtain_closed":"curtain_open").stream().map(b->b.move(0,0,curtainZ(body,front))).toList();
+        return GEOMETRY.get(closed(front)?"curtain_closed":"curtain_open").stream().map(b->scaled(b,body).move(0,0,curtainZ(body,front))).toList();
     }
     public List<AABB> boxes(WagonPart body) {
         return CACHE.computeIfAbsent(new Key(body,installed,frontClosed,rearClosed),key->{
@@ -51,7 +51,7 @@ public final class CargoCanopy {
             // Movement colliders come only from canvas and curtains. The rib
             // mesh is rendered separately and never contributes any collision.
             double back=back(body);var result=new ArrayList<AABB>();
-            for(AABB b:GEOMETRY.get("shell"))result.add(new AABB(b.minX,b.minY,FRONT,b.maxX,b.maxY,back));
+            for(AABB b:GEOMETRY.get("shell"))result.add(new AABB(b.minX*body.widthScale(),b.minY,CargoCover.front(body),b.maxX*body.widthScale(),b.maxY,back));
             result.addAll(curtainBoxes(body,true));result.addAll(curtainBoxes(body,false));return List.copyOf(result);
         });
     }
@@ -60,7 +60,7 @@ public final class CargoCanopy {
         if(!installed)return List.of();
         return RIM_CACHE.computeIfAbsent(body,key->{
             var result=new ArrayList<AABB>();
-            for(AABB b:GEOMETRY.get("end")) { result.add(b.move(0,0,FRONT+THICK/4));result.add(b.move(0,0,back(body)-THICK-THICK/4)); }
+            for(AABB b:GEOMETRY.get("end")) { result.add(scaled(b,body).move(0,0,CargoCover.front(body)+THICK/4));result.add(scaled(b,body).move(0,0,back(body)-THICK-THICK/4)); }
             return List.copyOf(result);
         });
     }
@@ -81,9 +81,9 @@ public final class CargoCanopy {
             if(!closed(front)) {
                 // Folded curtains are hidden behind the end trim; that exact
                 // projected patch of fabric remains a usable handle from outside.
-                double end=front?FRONT+THICK/4:back(hold.owner().cargoBody())-THICK-THICK/4;
+                double end=front?CargoCover.front(hold.owner().cargoBody())+THICK/4:back(hold.owner().cargoBody())-THICK-THICK/4;
                 for(AABB b:GEOMETRY.get("curtain_handles"))
-                    if(b.move(0,0,end).inflate(.035).contains(local))return front;
+                    if(scaled(b,hold.owner().cargoBody()).move(0,0,end).inflate(.035).contains(local))return front;
             }
         }
         return null;
@@ -151,6 +151,7 @@ public final class CargoCanopy {
         // Corrupt/foreign data never creates two mutually exclusive accessories.
         installed=tag.getBoolean("Installed")&&!hold.cover().installed();frontClosed=installed&&tag.getBoolean("FrontClosed");rearClosed=installed&&tag.getBoolean("RearClosed");
     }
+    private static AABB scaled(AABB b,WagonPart body) { return new AABB(b.minX*body.widthScale(),b.minY,b.minZ,b.maxX*body.widthScale(),b.maxY,b.maxZ); }
     private static Map<String,List<AABB>> loadGeometry() {
         try(var stream=CargoCanopy.class.getResourceAsStream("/data/tm_wagon/canopy_geometry.json")) {
             if(stream==null)throw new IllegalStateException("Missing canopy collision data");

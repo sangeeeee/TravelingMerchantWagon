@@ -1,6 +1,7 @@
 {
   "values": [
     "tm_wagon:single_wooden_seat",
-    "tm_wagon:double_wooden_seat"
+    "tm_wagon:double_wooden_seat",
+    "tm_wagon:triple_wooden_seat"
   ]
 }

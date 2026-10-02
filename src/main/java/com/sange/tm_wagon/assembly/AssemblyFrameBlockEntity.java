@@ -57,7 +57,8 @@ public class AssemblyFrameBlockEntity extends BlockEntity implements GeoBlockEnt
     private static final Set<WagonSlot> REQUIRED = Set.of(WagonSlot.BODY,WagonSlot.SEAT,WagonSlot.SHAFTS,
         WagonSlot.FRONT_LEFT,WagonSlot.FRONT_RIGHT,WagonSlot.REAR_LEFT,WagonSlot.REAR_RIGHT);
     public static boolean complete(Map<WagonSlot,WagonPart> modules) {
-        return REQUIRED.stream().allMatch(slot -> modules.containsKey(slot) && slot.accepts(modules.get(slot)));
+        return REQUIRED.stream().allMatch(slot -> modules.containsKey(slot) && slot.accepts(modules.get(slot)))
+            &&(modules.get(WagonSlot.SEAT).seatCapacity()<3||modules.get(WagonSlot.BODY)==WagonPart.WIDE_CARGO_BODY);
     }
     public boolean restoring(UUID wagon) { return wagon.equals(restoringWagon); }
     /** Remains locked until the final block state and collision have committed. */
@@ -355,7 +356,7 @@ public class AssemblyFrameBlockEntity extends BlockEntity implements GeoBlockEnt
     public String install(WagonSlot slot, WagonPart part, Player player, ItemStack stack) {
         if (level == null || level.isClientSide) return "message.tm_wagon.server_only";
         if (!acceptsParts()) return "message.tm_wagon.frame_extend_first";
-        if (!slot.accepts(part)) return "message.tm_wagon.wrong_slot";
+        if (!slot.accepts(part)||part.seatCapacity()==3&&cargoBody()!=WagonPart.WIDE_CARGO_BODY) return "message.tm_wagon.wrong_slot";
         if (parts.containsKey(slot)) return "message.tm_wagon.occupied";
         if (slot != WagonSlot.BODY && !has(WagonSlot.BODY)) return "message.tm_wagon.body_required";
         if (stack.isEmpty() || stack.getItem() != WagonContent.PART_ITEMS.get(part).get()) return "message.tm_wagon.invalid_item";

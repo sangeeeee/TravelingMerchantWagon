@@ -90,7 +90,7 @@ public class ExtendedCargoGameTests {
     public static void last_row_supports_straw_mat_stool_and_native_passenger_identity(GameTestHelper h) {
         var w=wagon(h);var hold=w.cargo();var p=player(h,hold);
         h.assertTrue(hold.place(10,new ItemStack(WagonContent.STRAW_MAT.get()),p)==null&&hold.entry(6)==hold.entry(10)&&hold.entry(8)==hold.entry(10),"Mat did not span the extended row");
-        h.assertTrue(hold.place(11,new ItemStack(WagonContent.STOOL.get()),p)==null&&hold.seats.sit(11,p)==null&&w.passengerSeat(p)==13&&w.driver()==null,"Last-row stool failed or took driving permission");
+        h.assertTrue(hold.place(11,new ItemStack(WagonContent.STOOL.get()),p)==null&&hold.seats.sit(11,p)==null&&w.passengerSeat(p)==WagonEntity.CARGO_SEAT_BASE+11&&w.driver()==null,"Last-row stool failed or took driving permission");
         hold.load(hold.save(h.getLevel().registryAccess(),false),h.getLevel().registryAccess());
         h.assertTrue(!p.isPassenger()&&hold.entry(11).kind==CargoEntry.Kind.STOOL&&hold.entry(6)==hold.entry(10),"Reload lost accessories or retained stale passenger");h.succeed();
     }

@@ -45,7 +45,7 @@ public record WagonMaterial(WoodMaterial wood,DyeColor colour) {
         return Map.copyOf(map);
     }
     public static boolean wooden(WagonPart p) { return p!=WagonPart.SINGLE_HORSE_SHAFTS&&p!=WagonPart.DOUBLE_HORSE_SHAFTS; }
-    public static boolean cushioned(WagonPart p) { return p==WagonPart.SINGLE_SEAT||p==WagonPart.DOUBLE_SEAT; }
+    public static boolean cushioned(WagonPart p) { return p.seatCapacity()>0&&!p.isWoodenSeat(); }
     public static WagonMaterial forPart(WagonPart p,ItemStack stack) { var v=of(stack);return new WagonMaterial(wooden(p)?v.wood:WoodMaterial.OAK,cushioned(p)?v.colour:DyeColor.WHITE); }
     public static boolean wooden(Item item) { return item instanceof WagonPartItem p?wooden(p.part()):item instanceof WagonStoolItem||item instanceof WagonCabinetItem; }
     public static boolean dyed(Item item) { return item instanceof WagonPartItem p?cushioned(p.part()):item instanceof WagonCoverItem||item instanceof WagonCanopyItem; }

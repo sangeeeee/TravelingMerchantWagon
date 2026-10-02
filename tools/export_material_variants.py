@@ -9,19 +9,19 @@ DATA=ROOT/'src/main/resources/data/tm_wagon'
 manifest=json.loads((ASSETS/'component_materials.json').read_text(encoding='utf-8'))
 woods=list(manifest['wood_sources'])
 manifest['status']='active'
-manifest['rendering']={'atlas':'tm_wagon:textures/entity/component_atlas.png','atlas_size':[1024,512],'tile_size':64,'fixed_parts_tile':100,'item_component':'tm_wagon:material','recipe_serializer':'tm_wagon:component'}
+manifest['rendering']={'atlas':'tm_wagon:textures/entity/component_atlas.png','atlas_size':[1024,1024],'tile_size':64,'fixed_parts_tile':130,'item_component':'tm_wagon:material','recipe_serializer':'tm_wagon:component'}
 
 def write(p,data):
     p.parent.mkdir(parents=True,exist_ok=True)
     p.write_text(json.dumps(data,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
 
-atlas=Image.new('RGBA',(1024,512))
+atlas=Image.new('RGBA',(1024,1024))
 for i,(component,definition) in enumerate(manifest['components'].items()):
     for j,wood in enumerate(woods):
         index=i*10+j
         with Image.open(ASSETS/f'textures/component/{component}/{wood}.png') as im:
             atlas.paste(im,(index%16*64,index//16*64))
-with Image.open(ASSETS/'textures/entity/wagon.png') as im:atlas.paste(im,(256,384))
+with Image.open(ASSETS/'textures/entity/wagon.png') as im:atlas.paste(im,(128,512))
 atlas.save(ASSETS/'textures/entity/component_atlas.png',optimize=True)
 write(ASSETS/'component_materials.json',manifest)
 
@@ -71,6 +71,9 @@ recipes={
     'long_cargo_body':[' PP','CLT',' PP'],
     'single_horse_shafts':['SSS',' L ','SSS'],
     'double_horse_shafts':[],
+    'wide_cargo_body':['PPP',' U ','PPP'],
+    'triple_wooden_seat':[],
+    'triple_seat':['PPP','WWW',' V '],
     'single_wooden_seat':['SPS','P P'],
     'double_wooden_seat':[],
     'single_seat':['P','W','E'],
@@ -89,9 +92,9 @@ for name,pattern in recipes.items():
     if name=='small_wheel':recipe['count']=2
     write(DATA/f'recipe/{name}.json',recipe)
 
-tags={'cargo_bodies':['cargo_body','long_cargo_body'],
-      'wooden_driver_seats':['single_wooden_seat','double_wooden_seat'],
-      'backrest_driver_seats':['single_seat','double_seat'],
+tags={'cargo_bodies':['cargo_body','long_cargo_body','wide_cargo_body'],
+      'wooden_driver_seats':['single_wooden_seat','double_wooden_seat','triple_wooden_seat'],
+      'backrest_driver_seats':['single_seat','double_seat','triple_seat'],
       'driver_seats':['#tm_wagon:wooden_driver_seats','#tm_wagon:backrest_driver_seats'],
       'wheels':['small_wheel','large_wheel'],
       'cargo_accessories':['wagon_stool','wagon_straw_mat','wagon_cabinet','wagon_cargo_cover','wagon_canopy']}
@@ -103,5 +106,9 @@ for locale in ['zh_cn','en_us']:
     for wood,spec in manifest['wood_sources'].items():lang['material.tm_wagon.wood.'+wood]=spec['zh_name' if locale=='zh_cn' else 'en_name']
     for colour,zh in zip(manifest['dyes']['colours'],colours_zh):lang['material.tm_wagon.colour.'+colour]=zh if locale=='zh_cn' else colour.replace('_',' ').title()
     for name,n in [('wood_name',2),('colour_name',2),('wood_colour_name',3)]:lang['item.tm_wagon.'+name]=('' if locale=='zh_cn' else ' ').join(['%s']*n)
+    new_names={'wide_cargo_body':('加宽货物车厢','Wide Cargo Body'), 'triple_seat':('三人带靠背车夫座椅','Triple Backrest Driver Seat'), 'triple_wooden_seat':('三人木制车夫座椅','Triple Wooden Driver Seat')}
+    for name,names in new_names.items():
+        lang['block.tm_wagon.'+name]=names[0 if locale=='zh_cn' else 1]
+        lang['tooltip.tm_wagon.'+name]=('4列×8行货位；以装配架为中心放置。' if locale=='zh_cn' else 'Four columns and eight rows; centred on the assembly frame.') if name=='wide_cargo_body' else ('仅适用于加宽货物车厢；最左侧为驾驶位。' if locale=='zh_cn' else 'Wide cargo bodies only; the left seat is the driver.')
     write(path,lang)
-print('Packed one shared 1024x512 atlas, tinted fabric models, 80 native wood models, 16 material-aware recipes and 6 item tags.')
+print('Packed one shared 1024x1024 atlas, tinted fabric models, 80 native wood models, 19 material-aware recipes and 6 item tags.')

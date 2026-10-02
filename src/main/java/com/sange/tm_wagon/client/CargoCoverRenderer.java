@@ -22,15 +22,15 @@ public final class CargoCoverRenderer {
     public static void render(CargoCover cover,WagonPart body,PoseStack poses,MultiBufferSource buffers,int light,int overlay) {
         if(!cover.installed())return;
         int colour=FabricColours.tint(cover.material().colour());
-        for(int row=cover.openRows();row<body.cargoCapacity()/2;row++) {
+        for(int row=cover.openRows();row<body.rows();row++) {
             double front=cover.boundary(row,body),back=cover.boundary(row+1,body);
-            draw(colour,SHEET,poses,buffers,light,overlay,-CargoCover.HALF_WIDTH,CargoCover.Y,front,CargoCover.HALF_WIDTH*2,1,back-front);
+            draw(colour,SHEET,poses,buffers,light,overlay,-CargoCover.halfWidth(body),CargoCover.Y,front,CargoCover.halfWidth(body)*2,1,back-front);
         }
-        if(cover.openRows()<body.cargoCapacity()/2)
-            draw(colour,BACK_HEM,poses,buffers,light,overlay,-CargoCover.HALF_WIDTH,CargoCover.Y,cover.back(body)-.016,CargoCover.HALF_WIDTH*2,1,.016);
+        if(cover.openRows()<body.rows())
+            draw(colour,BACK_HEM,poses,buffers,light,overlay,-CargoCover.halfWidth(body),CargoCover.Y,cover.back(body)-.016,CargoCover.halfWidth(body)*2,1,.016);
         if(cover.openRows()>0) {
             double r=cover.radius();
-            draw(colour,ROLL,poses,buffers,light,overlay,-CargoCover.HALF_WIDTH,CargoCover.TOP,cover.rollZ(body)-r,CargoCover.HALF_WIDTH*2,r*2,r*2);
+            draw(colour,ROLL,poses,buffers,light,overlay,-CargoCover.halfWidth(body),CargoCover.TOP,cover.rollZ(body)-r,CargoCover.halfWidth(body)*2,r*2,r*2);
         }
     }
     private static void draw(int colour,ModelResourceLocation id,PoseStack poses,MultiBufferSource buffers,int light,int overlay,

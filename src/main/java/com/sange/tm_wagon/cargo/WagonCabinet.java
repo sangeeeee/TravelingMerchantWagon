@@ -67,17 +67,19 @@ public final class WagonCabinet {
     public int rows() { return rows; }
     public SimpleContainer inventory() { return store; }
     public static AABB box(WagonPart seat) {
-        double half=(seat!=null&&seat.seatCapacity()==2?15.5:8.5)/16;
+        double half=(seat!=null&&seat.seatCapacity()==3?23.5:seat!=null&&seat.seatCapacity()==2?15.5:8.5)/16;
         return new AABB(-half,BOTTOM,FRONT,half,TOP,BACK);
     }
-    public AABB box() { return box(rows==6?WagonPart.DOUBLE_SEAT:WagonPart.SINGLE_SEAT); }
+    public AABB box() { return box(hold.owner().cargoSeat()).move(0,0,hold.owner().cargoBody().frontOffset()); }
+    public int seatWidth() { var seat=hold.owner().cargoSeat();return seat==null?1:seat.seatCapacity(); }
+    public double frontOffset() { return hold.owner().cargoBody().frontOffset(); }
     public List<AABB> boxes() { return installed?List.of(box()):List.of(); }
     // The existing solid lower-seat collider fully encloses this rectangular cabinet.
     // Reuse it instead of adding overlapping movement boxes for inaccessible space.
     private int side(Vec3 p) {
         var seat=hold.owner().cargoSeat();if(seat==null)return -1;
-        AABB b=box(seat);
-        if(p.y<BOTTOM-.025||p.y>TOP+.025||p.z<FRONT-.035||p.z>BACK+.035)return -1;
+        AABB b=box();
+        if(p.y<BOTTOM-.025||p.y>TOP+.025||p.z<b.minZ-.035||p.z>b.maxZ+.035)return -1;
         return Math.abs(Math.abs(p.x)-b.maxX)<=.04?(p.x<0?0:1):-1;
     }
     public InteractionResult interact(Player p,InteractionHand hand,Vec3 local) {
@@ -93,7 +95,7 @@ public final class WagonCabinet {
         String error=hold.cover().permission(p,local);if(error!=null)return error;
         if(!(hold.owner() instanceof AssemblyFrameBlockEntity))return "message.tm_wagon.cabinet_block_only";
         if(installed||side(local)<0||stack.isEmpty()||!(stack.getItem() instanceof WagonCabinetItem))return "message.tm_wagon.cabinet_side";
-        rows=hold.owner().cargoSeat().seatCapacity()==2?6:3;installed=true;store=new Store(this,rows*9);
+        rows=hold.owner().cargoSeat().seatCapacity()>=2?6:3;installed=true;store=new Store(this,rows*9);
         material=new com.sange.tm_wagon.material.WagonMaterial(com.sange.tm_wagon.material.WagonMaterial.of(stack).wood(),net.minecraft.world.item.DyeColor.WHITE);
         if(!p.getAbilities().instabuild)stack.shrink(1);
         hold.changed(true);sound(local,SoundEvents.WOOD_PLACE);return null;
@@ -123,7 +125,7 @@ public final class WagonCabinet {
     private void closed(Player p) {
         Integer side=viewers.remove(p);if(side==null)return;
         if(!viewers.containsValue(side))setOpen(side,false);
-        var b=box();sound(new Vec3(side==0?b.minX:b.maxX,(BOTTOM+TOP)/2,(FRONT+BACK)/2),SoundEvents.BARREL_CLOSE);
+        var b=box();sound(new Vec3(side==0?b.minX:b.maxX,(BOTTOM+TOP)/2,b.getCenter().z),SoundEvents.BARREL_CLOSE);
     }
     public float progress(int side,float tick) {
         Drawer d=drawers[side];if(d.start==Long.MIN_VALUE||hold.owner().cargoLevel()==null)return d.open?1:0;

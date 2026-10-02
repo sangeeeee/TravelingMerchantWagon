@@ -22,7 +22,7 @@ public final class CargoSeatEntity extends Entity {
     public CargoSeatEntity(EntityType<? extends CargoSeatEntity> type,Level level) { super(type,level);setNoGravity(true); }
     public void initialize(CargoHold hold,int slot,UUID id) {
         this.hold=hold;this.slot=slot;entryId=id;
-        setPos(hold.owner().cargoPose().point(CargoHold.centre(slot).add(0,.5,0)));
+        setPos(hold.owner().cargoPose().point(hold.centreAt(slot).add(0,.5,0)));
     }
     @Override protected void defineSynchedData(SynchedEntityData.Builder builder) {}
     @Override protected void addAdditionalSaveData(CompoundTag tag) {}
