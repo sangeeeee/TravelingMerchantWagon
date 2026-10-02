@@ -16,7 +16,7 @@ import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 public final class WagonGeometry {
-    private record Key(WagonPart part, WagonSlot slot, Direction facing) {}
+    private record Key(WagonPart part, WagonSlot slot, Direction facing,WagonPart body) {}
     private static final Map<String, List<AABB>> BOXES = load();
     private static final int COLLISION_SIGNATURE = BOXES.hashCode();
     public static int collisionSignature() { return COLLISION_SIGNATURE; }
@@ -26,7 +26,7 @@ public final class WagonGeometry {
     public static synchronized VoxelShape entityShape(Map<WagonSlot,WagonPart> parts,Direction facing) {
         return ENTITY_CACHE.computeIfAbsent(new EntityKey(Map.copyOf(parts),facing),key -> {
             var boxes=new ArrayList<AABB>();
-            parts.forEach((slot,part) -> cells(part,slot,facing).forEach((cell,volumes) ->
+            parts.forEach((slot,part) -> cells(part,slot,facing,parts.getOrDefault(WagonSlot.BODY,WagonPart.CARGO_BODY)).forEach((cell,volumes) ->
                 volumes.forEach(box -> boxes.add(box.move(cell.getX()-.5,cell.getY(),cell.getZ()-.5)))));
             return shape(boxes);
         });
@@ -57,16 +57,19 @@ public final class WagonGeometry {
     private static final Map<FrameKey,Map<BlockPos,List<AABB>>> FRAME_CACHE = new HashMap<>();
 
     /** Cell-local boxes; each box stays within [0,1] on every axis. */
-    public static synchronized Map<BlockPos, List<AABB>> cells(WagonPart part, WagonSlot slot, Direction facing) {
-        return CACHE.computeIfAbsent(new Key(part, slot, facing), key -> {
+    public static Map<BlockPos,List<AABB>> cells(WagonPart part,WagonSlot slot,Direction facing) {
+        return cells(part,slot,facing,WagonPart.CARGO_BODY);
+    }
+    public static synchronized Map<BlockPos,List<AABB>> cells(WagonPart part,WagonSlot slot,Direction facing,WagonPart body) {
+        return CACHE.computeIfAbsent(new Key(part,slot,facing,body), key -> {
             List<AABB> boxes = new ArrayList<>();
-            Vec3 offset = slot.geometryOffset();
+            Vec3 offset = slot.geometryOffset(body);
             for (AABB box : BOXES.get(part.id)) {
                 if (slot == WagonSlot.FRONT_RIGHT || slot == WagonSlot.REAR_RIGHT) box = new AABB(-box.maxX,box.minY,box.minZ,-box.minX,box.maxY,box.maxZ);
                 boxes.add(box.move(offset));
             }
             Map<BlockPos,List<AABB>> result = clip(boxes,facing);
-            result.computeIfAbsent(slot.position(BlockPos.ZERO,facing),ignored -> List.of());
+            result.computeIfAbsent(slot.position(BlockPos.ZERO,facing,body),ignored -> List.of());
             return Map.copyOf(result);
         });
     }

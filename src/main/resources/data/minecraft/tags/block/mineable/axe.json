@@ -4,6 +4,7 @@
     "tm_wagon:wagon_assembly_frame",
     "tm_wagon:assembly_proxy",
     "tm_wagon:cargo_body",
+    "tm_wagon:long_cargo_body",
     "tm_wagon:single_seat",
     "tm_wagon:double_seat",
     "tm_wagon:single_horse_shafts",

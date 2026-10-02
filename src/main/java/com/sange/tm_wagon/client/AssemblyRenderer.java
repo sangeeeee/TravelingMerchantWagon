@@ -45,7 +45,7 @@ public class AssemblyRenderer extends GeoBlockRenderer<AssemblyFrameBlockEntity>
             if (!frame.has(WagonSlot.BODY)) return resource("geo/wagon_assembly_frame.geo.json");
             String seat = frame.part(WagonSlot.SEAT) == WagonPart.DOUBLE_SEAT ? "double_seat" : "single_seat";
             String shafts = frame.part(WagonSlot.SHAFTS) == WagonPart.DOUBLE_HORSE_SHAFTS ? "double_horse" : "single_horse";
-            return resource("geo/assembly/"+seat+"_"+shafts+".geo.json");
+            return resource("geo/assembly/"+frame.cargoBody().modelPrefix()+seat+"_"+shafts+".geo.json");
         }
         @Override public ResourceLocation getTextureResource(AssemblyFrameBlockEntity frame) { return resource("textures/entity/wagon.png"); }
         @Override public ResourceLocation getAnimationResource(AssemblyFrameBlockEntity frame) { return resource("animations/assembly.animation.json"); }

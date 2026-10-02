@@ -120,7 +120,7 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
         modules.forEach((slot,part)->{
             for(AABB box:slot==WagonSlot.BODY&&cargo!=null?cargo.bodyBoxes():WagonGeometry.partBoxes(part)) {
                 if(slot==WagonSlot.FRONT_RIGHT||slot==WagonSlot.REAR_RIGHT)box=new AABB(-box.maxX,box.minY,box.minZ,-box.minX,box.maxY,box.maxZ);
-                box=box.move(slot.geometryOffset());
+                box=box.move(slot.geometryOffset(cargoBody()));
                 // Subdivide long boards so their rotated bounds preserve the open cargo interior.
                 int nx=Math.max(1,(int)Math.ceil(box.getXsize()/.65)),ny=Math.max(1,(int)Math.ceil(box.getYsize()/.65)),nz=Math.max(1,(int)Math.ceil(box.getZsize()/.65));
                 for(int x=0;x<nx;x++)for(int y=0;y<ny;y++)for(int z=0;z<nz;z++)list.add(new Component(new AABB(
@@ -147,6 +147,8 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
     }
     public WagonPose pose() { return new WagonPose(position(),getYRot(),pitch,roll); }
     @Override public com.sange.tm_wagon.cargo.CargoHold cargo() { return cargo; }
+    @Override public WagonPart cargoBody() { return modules==null?WagonPart.CARGO_BODY:modules.getOrDefault(WagonSlot.BODY,WagonPart.CARGO_BODY); }
+    public double wheelbase() { return WagonPhysics.WHEELBASE+cargoBody().rearExtension(); }
     @Override public Level cargoLevel() { return level(); }
     @Override public WagonPose cargoPose() { return pose(); }
     @Override public boolean cargoLive() { return !isRemoved()&&level()!=null; }
@@ -231,7 +233,7 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
         var boxes=collisionBoxes();AABB bounds=boxes.getFirst();for(AABB b:boxes)bounds=bounds.minmax(b);return bounds;
     }
     public Vec3 wheelCentre(int i,WagonPose pose) {
-        Vec3 point=WagonPhysics.WHEELS[i].add(0,WagonPhysics.radius(i),0);
+        Vec3 point=WagonPhysics.WHEELS[i].add(0,WagonPhysics.radius(i),i>=2?cargoBody().rearExtension():0);
         return pose.point(articulated(point,i==0?WagonSlot.FRONT_LEFT:i==1?WagonSlot.FRONT_RIGHT:i==2?WagonSlot.REAR_LEFT:WagonSlot.REAR_RIGHT));
     }
     public Vec3 wheelForward(int i) { return pose().vector(WagonPose.rotate(new Vec3(0,0,-1),0,0,i<2?steering:0)); }
@@ -378,7 +380,7 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
     private boolean validSeat(int seat) {
         if(seat>=0&&seat<seatCapacity())return true;
         int slot=seat-CARGO_SEAT_BASE;
-        return slot>=0&&slot<com.sange.tm_wagon.cargo.CargoHold.CAPACITY&&cargo.entry(slot)!=null
+        return slot>=0&&slot<cargo.capacity()&&cargo.entry(slot)!=null
             &&cargo.entry(slot).kind==com.sange.tm_wagon.cargo.CargoEntry.Kind.STOOL;
     }
     private int availableSeat(Entity passenger) {
@@ -393,7 +395,7 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
         return passenger instanceof LivingEntity&&seat>=0&&passenger.getBbWidth()<=(seat<CARGO_SEAT_BASE?1.5F:1F);
     }
     @Override protected boolean couldAcceptPassenger() {
-        for(int i=0;i<CARGO_SEAT_BASE+com.sange.tm_wagon.cargo.CargoHold.CAPACITY;i++)
+        for(int i=0;i<CARGO_SEAT_BASE+cargo.capacity();i++)
             if(validSeat(i)&&!seatOccupied(i,null))return true;
         return false;
     }
@@ -437,7 +439,7 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
         }
     }
     private Vec3 seatPosition(int seat) {
-        if(seat>=CARGO_SEAT_BASE&&seat<CARGO_SEAT_BASE+com.sange.tm_wagon.cargo.CargoHold.CAPACITY)
+        if(seat>=CARGO_SEAT_BASE&&seat<CARGO_SEAT_BASE+cargo.capacity())
             return pose().point(com.sange.tm_wagon.cargo.CargoHold.centre(seat-CARGO_SEAT_BASE).add(0,.5,0));
         double x=seatCapacity()==1 ? 0 : (seat==0 ? -.45 : .45);
         return pose().point(new Vec3(x,2.15625,-1.875));

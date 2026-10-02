@@ -75,6 +75,7 @@ public class AssemblyFrameBlockEntity extends BlockEntity implements GeoBlockEnt
     public boolean changing() { return changing; }
     public Map<WagonSlot, WagonPart> parts() { return Map.copyOf(parts); }
     @Override public com.sange.tm_wagon.cargo.CargoHold cargo() { return cargo; }
+    @Override public WagonPart cargoBody() { return parts.getOrDefault(WagonSlot.BODY,WagonPart.CARGO_BODY); }
     @Override public net.minecraft.world.level.Level cargoLevel() { return level; }
     @Override public com.sange.tm_wagon.physics.WagonPose cargoPose() { return new com.sange.tm_wagon.physics.WagonPose(Vec3.atBottomCenterOf(worldPosition),facing().toYRot(),0,0); }
     @Override public boolean cargoLive() { return level!=null&&level.hasChunkAt(worldPosition)&&level.getBlockEntity(worldPosition)==this&&has(WagonSlot.BODY); }
@@ -265,8 +266,8 @@ public class AssemblyFrameBlockEntity extends BlockEntity implements GeoBlockEnt
             if (!pos.equals(worldPosition)) result.computeIfAbsent(pos,ignored -> new Cell(new ArrayList<>(),EnumSet.noneOf(WagonSlot.class),true));
         });
         modules.forEach((slot, part) -> (slot==WagonSlot.BODY
-            ?WagonGeometry.customCells((layoutCargo==null?cargo:layoutCargo).bodyBoxes(),facing())
-            :WagonGeometry.cells(part, slot, facing())).forEach((relative, boxes) -> {
+            ?WagonGeometry.customCells((layoutCargo==null?cargo:layoutCargo).bodyBoxes(part),facing())
+            :WagonGeometry.cells(part,slot,facing(),modules.getOrDefault(WagonSlot.BODY,WagonPart.CARGO_BODY))).forEach((relative, boxes) -> {
             BlockPos pos = worldPosition.offset(relative);
             if (pos.equals(worldPosition)) return; // The root contains the lower support; the platform uses proxy cells.
             Cell cell = result.computeIfAbsent(pos, ignored -> new Cell(new ArrayList<>(), EnumSet.noneOf(WagonSlot.class),false));
@@ -394,7 +395,7 @@ public class AssemblyFrameBlockEntity extends BlockEntity implements GeoBlockEnt
             if (!placing && !owned(pos)) continue;
             BlockState state = WagonContent.PROXY.get().defaultBlockState();
             for (var module : modules.entrySet()) {
-                if (module.getKey().position(worldPosition, facing()).equals(pos)) {
+                if (module.getKey().position(worldPosition,facing(),modules.getOrDefault(WagonSlot.BODY,WagonPart.CARGO_BODY)).equals(pos)) {
                     state = WagonContent.PART_BLOCKS.get(module.getValue()).get().defaultBlockState(); break;
                 }
             }
@@ -456,7 +457,7 @@ public class AssemblyFrameBlockEntity extends BlockEntity implements GeoBlockEnt
     public WagonSlot hitSlot(BlockPos pos, Vec3 eye, Vec3 end) {
         WagonSlot found = null; double distance = Double.POSITIVE_INFINITY;
         for (var module : parts.entrySet()) {
-            List<AABB> boxes = WagonGeometry.cells(module.getValue(), module.getKey(), facing()).get(pos.subtract(worldPosition));
+            List<AABB> boxes = WagonGeometry.cells(module.getValue(),module.getKey(),facing(),cargoBody()).get(pos.subtract(worldPosition));
             if (boxes == null) continue;
             var hit = WagonGeometry.shape(boxes).clip(eye, end, pos);
             if (hit != null && hit.getLocation().distanceToSqr(eye) < distance) {

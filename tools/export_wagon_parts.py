@@ -9,6 +9,7 @@ import math
 from pathlib import Path
 import shutil
 from simplified_collision import volumes
+from extend_wagon_model import generate_long_variants
 
 ROOT = Path(__file__).resolve().parents[1]
 RES = ROOT / 'src/main/resources'
@@ -82,6 +83,7 @@ def item_geometry(geometry, names, identifier):
 
 
 def main():
+    generate_long_variants()
     collision = volumes()
     rig = ROOT/'modeling/wagon_assembly_frame/exports/assets/tm_wagon'
     frame_geo = json.loads((rig/'geo/wagon_assembly_frame.geo.json').read_text())
@@ -100,6 +102,7 @@ def main():
     definitions = {}
     specs = {
         'cargo_body': ('double_seat_double_horse', ['chassis','cargo_body','tailgate','front_axle','rear_axle','driver_platform'], (0,0,0)),
+        'long_cargo_body': ('long_double_seat_double_horse', ['chassis','cargo_body','tailgate','front_axle','rear_axle','driver_platform'], (0,0,0)),
         'single_horse_shafts': ('double_seat_single_horse', ['shafts'], (0,0,0)),
         'double_horse_shafts': ('double_seat_double_horse', ['shafts'], (0,0,0)),
         'single_seat': ('single_seat_double_horse', ['seat'], (0,0,0)),
@@ -138,7 +141,8 @@ def main():
     write(ASSETS/'parts.json', definitions)
     (ASSETS/'textures/entity').mkdir(parents=True,exist_ok=True)
     shutil.copyfile(VARIANTS/'double_seat_double_horse/wagon.png',ASSETS/'textures/entity/wagon.png')
-    for variant in ('single_seat_single_horse','single_seat_double_horse','double_seat_single_horse','double_seat_double_horse'):
+    standard=('single_seat_single_horse','single_seat_double_horse','double_seat_single_horse','double_seat_double_horse')
+    for variant in (*standard, *(f'long_{name}' for name in standard)):
         geo = json.loads((VARIANTS/variant/'wagon.geo.json').read_text())
         geo['minecraft:geometry'][0]['description'].update(visible_bounds_width=12,visible_bounds_height=6,visible_bounds_offset=[0,2,-2])
         geo['minecraft:geometry'][0]['bones'].extend(copy.deepcopy(frame_bones))
@@ -167,7 +171,7 @@ def main():
     # All part drops are issued once per module by the assembly controller.
     for name in [*specs,'assembly_proxy','wagon_assembly_frame']:
         write(RES/'data/tm_wagon/loot_table/blocks'/f'{name}.json', {'type':'minecraft:block','pools':[]})
-    print(f'Exported {len(specs)} parts, four assembly models, clipped-collision input and item display resources.')
+    print(f'Exported {len(specs)} parts, eight assembly models, clipped-collision input and item display resources.')
 
 
 if __name__ == '__main__': main()

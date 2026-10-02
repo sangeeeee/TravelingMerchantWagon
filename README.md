@@ -81,7 +81,7 @@ The oak assembly frame block model is in the [wagon assembly frame modeling subp
 
 ### 货物与后门
 
-方块形态和实体形态共用两列五排、共 10 个货位。手持方块，瞄准货箱内货板右键放入对应货位；所有货物统一缩放至原尺寸的 68%，保持在护板以内。瞄准已有货物潜行右键取出，优先放回玩家背包，背包满时掉落。床、门、高花等多格结构拒绝放入，失败不扣物品。其他模组的多格物品可通过 `tm_wagon:disallowed_cargo` 物品标签禁用。
+方块形态和实体形态共用货位：普通货物车厢为两列五排、共 10 个货位，加长货物车厢为两列六排、共 12 个货位。手持方块，瞄准货箱内货板右键放入对应货位；所有货物统一缩放至原尺寸的 68%，保持在护板以内。瞄准已有货物潜行右键取出，优先放回玩家背包，背包满时掉落。床、门、高花等多格结构拒绝放入，失败不扣物品。其他模组的多格物品可通过 `tm_wagon:disallowed_cargo` 物品标签禁用。
 
 普通单格方块作为货物保存原物品及组件，使用方块模型显示；需要特殊渲染时尝试物品模型。未适配的工作方块只作为货物保存和显示，不运行其原方块逻辑。极特殊的模组渲染器仍可能需要额外适配；渲染失败会回退，不丢弃货物。货物采用随马车变换的简化实体碰撞体，方块形态复用现有多方块碰撞格，不新增货物实体。碰撞使用货位内的缩放立方体，细小、非实心方块也使用该保守形状。
 
@@ -93,7 +93,7 @@ The oak assembly frame block model is in the [wagon assembly frame modeling subp
 
 库存只有一份服务端数据。装卸先验证空间和权限，通过后才扣除物品；移除、销毁及转换前关闭所有相关菜单并返还光标物品，避免继续操作旧容器。转换先提交目标结构，再移交货位和容器数据；失败保留原形态及内容。方块与实体形态互转保留货位、内容、加工进度和后门状态；区块卸载关闭菜单但保留货物。
 
-货物外观只在放入、取出、容器开合、燃烧状态切换和后门切换时同步；容器完整内容通过原版菜单只发送给查看者，行驶更新不携带库存。每辆车最多检查 10 个货位，仅熔炉、烟熏炉需要加工更新；没有新增碰撞实体、全世界搜索或每刻完整库存广播。
+货物外观只在放入、取出、容器开合、燃烧状态切换和后门切换时同步；容器完整内容通过原版菜单只发送给查看者，行驶更新不携带库存。每辆车最多检查 12 个货位，仅熔炉、烟熏炉需要加工更新；没有新增碰撞实体、全世界搜索或每刻完整库存广播。
 
 ### 货物朝向与工作方块兼容
 
@@ -137,6 +137,16 @@ The oak assembly frame block model is in the [wagon assembly frame modeling subp
 
 Blockbench 工程位于 `modeling/wagon_stool/wagon_stool.bbmodel`，已内嵌原版橡木贴图；`tools/export_wagon_stool.py` 可重新导出工程和游戏物品模型。客户端预览截图为 `run/screenshots/wagon-stools.png`。
 
+### 货物车厢与加长货物车厢
+
+原“马车载荷主体”现命名为“货物车厢”（英文 Cargo Compartment），保留 `tm_wagon:cargo_body` 的注册名，已有物品、结构与存档仍使用原主体。新增“加长货物车厢”（Extended Cargo Compartment，`tm_wagon:long_cargo_body`），放入马车创造物品栏，暂不添加配方。两者占用同一个必需的 BODY 安装位，二选一，无法同时安装。
+
+加长车厢保持宽度、车头、座位、脚板和装配台原点不变，仅向后延长 0.7 格，即一排货位的间距；容量从 10 增至 12。后门、后轮轴和两个大轮同步后移 0.7 格，后轮的方块安装格改为装配台后方 2 格，前轮仍在前方 1 格；其余安装位置不变。方块安装、拆除命中、实体碰撞、轮子接地、行驶转向和车轮粒子均采用相同位置，后门保留原有开合动画。
+
+新增的一排支持普通货物、原版工作方块、草席和木凳。转换时保留车厢类型、全部货位及容器内容；实体恢复成方块时检查新增后部空间，失败保留原实体和货物。保存、取出和拆毁遍历完整数据，防止源主体在转换过程中移除后丢掉最后一排。
+
+四种完整加长车型和裸车架的 Blockbench 工程分别位于 `modeling/open_cargo_wagon/variants/long_*/wagon.bbmodel`；工程保留原贴图、后门和车轮动画。`tools/extend_wagon_model.py` 生成这些工程，`tools/export_wagon_parts.py` 同时导出普通与加长模型。客户端预览为 `run/screenshots/wagon-extended-cargo.png`。
+
 ### 验证与开发
 
 - `gradlew runGameTestServer`：验证旋转、安装、失败不扣物品、共享格拆除、存档、实体阻挡、驾驶权限、车速与轮速、台阶、侧倾、悬崖、三秒悬空与重新着地、无马推动及转向、牵引卸载、方块化及损毁掉落；另验证货物朝向、制图/织布/锻造/切石配方、铁砧损耗、附魔消耗、酿造存档与带货转换、炼药锅和新增存储交互，以及货物装卸、数量守恒、多人菜单、工作台、熔炼进度/经验、带货转换成功与失败回退、存档和后门碰撞。
@@ -144,7 +154,7 @@ Blockbench 工程位于 `modeling/wagon_stool/wagon_stool.bbmodel`，已内嵌�
 - `python tools/verify_item_screenshot.py`：检查客户端截图中标准 16 × 16 格与放大格的物品边界和居中情况。
 - `gradlew runDismountSmokeTest`：在独立的 `build/dismount-client/` 目录测试 Shift 下车、视角、行走、跳跃及两端同步。运行前将用于复现的世界**副本**放入该目录的 `saves/repro/`，并复制一份 `options.txt` 到该目录以跳过首次启动引导；副本中玩家附近 12 格内需要有可乘坐的马车，前方需要有行走及落脚空间。测试会修改副本，不会打开 `run/saves/` 中的原存档。
 - `gradlew runStrawMatSleepSmokeTest`：在独立的 `build/straw-mat-client/` 目录测试真实客户端的方块草席睡眠、转为倾斜实体后的睡眠、原版离床请求、视角恢复、行走、跳跃、重生点不变及两端位置一致。先运行服务端 GameTest，再将生成的 `run/world/` **副本**复制到该目录的 `saves/repro/`，并复制 `run/options.txt` 到该目录跳过首次启动引导。测试仅在副本中搭建临时场地，不修改原存档；测试代码不打包进发布 JAR。
-- `gradlew runStoolSmokeTest`：在独立的 `build/stool-client/` 目录验证真实客户端的方块与倾斜实体木凳入座、Shift 离座、视角恢复、行走、跳跃、驾驶权限和两端位置一致。准备方式与草席测试相同，将测试世界副本放入 `saves/repro/` 并复制 `run/options.txt`，测试不会打开原存档。
+- `gradlew runStoolSmokeTest`：在独立的 `build/stool-client/` 目录验证真实客户端的方块与倾斜实体木凳入座、Shift 离座、视角恢复、行走、跳跃、驾驶权限和两端位置一致。准备方式与草席测试相同，将测试世界副本放入 `saves/repro/` 并复制 `run/options.txt`，测试不会打开原存档。加上 `-PextendedStoolSmoke=true` 可验证加长车厢第 12 个货位上的木凳。
 - `gradlew build`：生成 `build/libs/tm_wagon-1.0.0.jar`；测试类与测试结构不打包进发布 JAR。
 - `tools/export_wagon_parts.py`：从工作区 Blockbench 模型导出部件几何、贴图和物品显示资源，简化碰撞形状由 `tools/simplified_collision.py` 定义。生成结果已放入 `src/main/resources/`，正常构建不依赖建模子项目。
 

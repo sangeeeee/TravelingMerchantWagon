@@ -52,7 +52,7 @@ public final class CargoSeats {
         if(hold.owner().cargoBusy()||hold.owner().cargoLevel().getGameTime()%10!=0)return;
         anchors.values().removeIf(CargoSeatEntity::isRemoved);
         AABB area=null;
-        for(int i=0;i<CargoHold.CAPACITY;i++)if(stool(i)&&!occupied(i)) {
+        for(int i=0;i<hold.capacity();i++)if(stool(i)&&!occupied(i)) {
             var box=CargoHold.worldBox(CargoHold.stoolBox(i),hold.owner().cargoPose()).inflate(.2,.5,.2);
             area=area==null?box:area.minmax(box);
         }
@@ -60,7 +60,7 @@ public final class CargoSeats {
         for(var mob:hold.owner().cargoLevel().getEntitiesOfClass(Mob.class,area,CargoSeats::eligible)) {
             if(mob.isLeashed())continue;
             Vec3 local=hold.owner().cargoPose().local(mob.position());
-            for(int i=0;i<CargoHold.CAPACITY;i++)if(stool(i)&&!occupied(i)) {
+            for(int i=0;i<hold.capacity();i++)if(stool(i)&&!occupied(i)) {
                 Vec3 p=CargoHold.centre(i);
                 if(Math.abs(local.x-p.x)<=CargoHold.SCALE/2&&Math.abs(local.z-p.z)<=CargoHold.SCALE/2
                     &&local.y>=CargoHold.FLOOR+.5-.1&&local.y<=CargoHold.FLOOR+.5+.3) {
@@ -83,7 +83,7 @@ public final class CargoSeats {
     /** Standing boxes stay upright even on slopes; start above the rotated collision box. */
     public static Vec3 standUp(CargoHold hold,int slot,LivingEntity rider,boolean outside) {
         var pose=hold.owner().cargoPose();
-        if(!outside&&slot>=0&&slot<CargoHold.CAPACITY) {
+        if(!outside&&slot>=0&&slot<hold.capacity()) {
             Vec3 centre=pose.point(CargoHold.centre(slot).add(0,.5,0));
             double top=Math.max(centre.y,CargoHold.worldBox(CargoHold.stoolBox(slot),pose).maxY);
             for(double rise=.01;rise<=3;rise+=.125) {

@@ -52,7 +52,7 @@ public class StageOneClientSmoke {
         PreviewScreen() {
             super(Component.literal("Wagon stage-one renderer verification"));
             items.add(WagonContent.FRAME_ITEM.get().getDefaultInstance());
-            for(WagonPart part:WagonPart.values())items.add(WagonContent.PART_ITEMS.get(part).get().getDefaultInstance());
+            for(WagonPart part:WagonPart.values())if(part!=WagonPart.LONG_CARGO_BODY)items.add(WagonContent.PART_ITEMS.get(part).get().getDefaultInstance());
             items.add(WagonContent.ICON.get().getDefaultInstance());
             for(int i=0;i<5;i++) {
                 var frame=new AssemblyFrameBlockEntity(new BlockPos(i,0,0),WagonContent.FRAME.get().defaultBlockState().setValue(AssemblyFrameBlock.FACING,Direction.NORTH));
@@ -115,13 +115,13 @@ public class StageOneClientSmoke {
                     else drawWagon(graphics,wagons.getFirst(),width*3/4,190,42,1);
                     graphics.drawCenteredString(font,i==0?"Block cargo":"Entity cargo",width/4+i*width/2,290,0xff463729);
                 }
-                graphics.drawCenteredString(font,frames>=205?"Oak cargo stool / one slot / half-block height":frames>=180?"Straw mat / three cargo slots / adjacent cargo":frames>=150?"Cargo workstations / book and decorated pot renderers":frames<125?"10 scaled cargo slots / closed containers":"Open chest + shulker / lowered tailgate",width/2,height-40,0xff463729);
+                graphics.drawCenteredString(font,frames>=230?"Extended cargo compartment / 12 slots / rear axle moved":frames>=205?"Oak cargo stool / one slot / half-block height":frames>=180?"Straw mat / three cargo slots / adjacent cargo":frames>=150?"Cargo workstations / book and decorated pot renderers":frames<125?"10 scaled cargo slots / closed containers":"Open chest + shulker / lowered tailgate",width/2,height-40,0xff463729);
                 if(frames>=180) {
                     int x=width/2-24,y=40;graphics.fill(x,y,x+48,y+48,0xffd0c5af);
                     graphics.pose().pushPose();graphics.pose().translate(x,y,0);graphics.pose().scale(3,3,3);
-                    graphics.renderItem(new ItemStack(frames>=205?WagonContent.STOOL.get():WagonContent.STRAW_MAT.get()),0,0);graphics.pose().popPose();
-                    graphics.renderItem(new ItemStack(frames>=205?WagonContent.STOOL.get():WagonContent.STRAW_MAT.get()),width/2+30,y+16);
-                    graphics.drawCenteredString(font,Component.translatable(frames>=205?"item.tm_wagon.wagon_stool":"item.tm_wagon.wagon_straw_mat"),width/2,y+54,0xff463729);
+                    graphics.renderItem(new ItemStack(frames>=230?WagonContent.PART_ITEMS.get(WagonPart.LONG_CARGO_BODY).get():frames>=205?WagonContent.STOOL.get():WagonContent.STRAW_MAT.get()),0,0);graphics.pose().popPose();
+                    graphics.renderItem(new ItemStack(frames>=230?WagonContent.PART_ITEMS.get(WagonPart.LONG_CARGO_BODY).get():frames>=205?WagonContent.STOOL.get():WagonContent.STRAW_MAT.get()),width/2+30,y+16);
+                    graphics.drawCenteredString(font,Component.translatable(frames>=230?"block.tm_wagon.long_cargo_body":frames>=205?"item.tm_wagon.wagon_stool":"item.tm_wagon.wagon_straw_mat"),width/2,y+54,0xff463729);
                 }
             }
             if(frames==64)verifyCachedFramePose(graphics);
@@ -146,7 +146,42 @@ public class StageOneClientSmoke {
             if(frames==195)save("wagon-straw-mat.png");
             if(frames==205)loadStoolPreview();
             if(frames==220)save("wagon-stools.png");
-            if(frames==230) {LogUtils.getLogger().info("TM_WAGON_CLIENT_SMOKE_PASS: work blocks, straw mat and oak stools in both forms, baked accessory item models");Minecraft.getInstance().stop();}
+            if(frames==230)loadExtendedCargoPreview(graphics);
+            if(frames==245)save("wagon-extended-cargo.png");
+            if(frames==255) {LogUtils.getLogger().info("TM_WAGON_CLIENT_SMOKE_PASS: standard and extended compartments, 12 cargo slots, work blocks and accessories in both forms");Minecraft.getInstance().stop();}
+        }
+        private void loadExtendedCargoPreview(GuiGraphics graphics) {
+            var registry=net.minecraft.core.RegistryAccess.fromRegistryOfRegistries(net.minecraft.core.registries.BuiltInRegistries.REGISTRY);
+            var cargo=new CompoundTag();var entries=new net.minecraft.nbt.ListTag();
+            for(int slot=0;slot<12;slot++) {
+                var value=new CompoundTag();value.putInt("Slot",slot);value.putUUID("Id",java.util.UUID.randomUUID());
+                var block=slot==10?net.minecraft.world.level.block.Blocks.CHEST:slot==11?net.minecraft.world.level.block.Blocks.OAK_PLANKS:slot%2==0?net.minecraft.world.level.block.Blocks.HAY_BLOCK:net.minecraft.world.level.block.Blocks.OAK_PLANKS;
+                var item=slot==11?new ItemStack(WagonContent.STOOL.get()):new ItemStack(block);
+                value.put("Item",item.save(registry));value.put("State",net.minecraft.nbt.NbtUtils.writeBlockState(block.defaultBlockState()));value.putBoolean("Visual",true);entries.add(value);
+            }
+            cargo.put("Entries",entries);
+            var bodyOnly=new AssemblyFrameBlockEntity(new BlockPos(40,0,0),WagonContent.FRAME.get().defaultBlockState());
+            var tag=new CompoundTag();var modules=new CompoundTag();modules.putString("BODY","LONG_CARGO_BODY");tag.put("Modules",modules);bodyOnly.loadWithComponents(tag,registry);
+            drawAssembly(graphics,bodyOnly,-1000,-1000,1);
+            for(int i=0;i<4;i++) {
+                var parts=new java.util.EnumMap<WagonSlot,WagonPart>(WagonSlot.class);parts.putAll(wagons.get(i).parts());parts.put(WagonSlot.BODY,WagonPart.LONG_CARGO_BODY);
+                wagons.get(i).configure(parts,Direction.NORTH);wagons.get(i).cargo().load(cargo,registry);wagons.get(i).cargoGeometryChanged();
+                tag=new CompoundTag();tag.put("Modules",com.sange.tm_wagon.entity.WagonEntity.encode(parts));tag.put("Cargo",cargo);assemblies.get(i).loadWithComponents(tag,registry);
+                drawWagon(graphics,wagons.get(i),-1000,-1000,1,1);drawAssembly(graphics,assemblies.get(i),-1000,-1000,1);
+                if(wagons.get(i).cargo().capacity()!=12||wagons.get(i).cargo().entry(11)==null||assemblies.get(i).cargo().entry(10)==null)throw new IllegalStateException("Extended cargo render lost the final row");
+            }
+            try {
+                var resource=net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("tm_wagon","geo/assembly/long_single_seat_single_horse.geo.json");
+                try(var reader=Minecraft.getInstance().getResourceManager().getResourceOrThrow(resource).openAsReader()) {
+                    var bones=com.google.gson.JsonParser.parseReader(reader).getAsJsonObject().getAsJsonArray("minecraft:geometry").get(0).getAsJsonObject().getAsJsonArray("bones");
+                    for(var raw:bones) {
+                        var bone=raw.getAsJsonObject();String name=bone.get("name").getAsString();
+                        if(name.equals("rear_left_wheel")&&Math.abs(bone.getAsJsonArray("pivot").get(2).getAsDouble()-31.2)>.001)throw new IllegalStateException("Extended rear wheel pivot is wrong");
+                        if(name.equals("tailgate")&&Math.abs(bone.getAsJsonArray("pivot").get(2).getAsDouble()-48.8)>.001)throw new IllegalStateException("Extended gate pivot is wrong");
+                    }
+                }
+            }catch(java.io.IOException error){throw new IllegalStateException(error);}
+            LogUtils.getLogger().info("TM_WAGON_EXTENDED_RENDER_PASS: eight block/entity combinations and body-only extended model, 12 slots, correct rear/gate pivots");
         }
         private void loadStoolPreview() {
             var registry=net.minecraft.core.RegistryAccess.fromRegistryOfRegistries(net.minecraft.core.registries.BuiltInRegistries.REGISTRY);

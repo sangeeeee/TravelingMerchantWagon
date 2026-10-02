@@ -26,6 +26,23 @@ for index,name in enumerate(names):
                   ((bounds[1]+bounds[3])/2-(top+bottom)/2)/(bottom-top)]
         assert max(map(abs,offset))<.16, f'{name} is visibly off-center: {offset}'
         report.append({'item':name,'scale':kind,'pixel_bounds':bounds,'center_offset_fraction':offset})
+# The new compartment is previewed separately to keep the original nine-cell grid stable.
+extended = Image.open(ROOT/'run/screenshots/wagon-extended-cargo.png').convert('RGB')
+assert extended.size == (1200,800)
+for kind,rect in [('enlarged',(552,80,648,176)),('normal',(660,112,692,144))]:
+    left,top,right,bottom = rect
+    pixels = [(x,y) for y in range(top-2,bottom+2) for x in range(left-2,right+2)
+              if extended.getpixel((x,y)) not in background]
+    assert pixels, f'Extended compartment has no visible model at {kind} scale'
+    bounds = [min(x for x,y in pixels),min(y for x,y in pixels),
+              max(x for x,y in pixels)+1,max(y for x,y in pixels)+1]
+    assert bounds[0]>=left and bounds[1]>=top and bounds[2]<=right and bounds[3]<=bottom, \
+        f'Extended compartment overflows the {kind} inventory cell: {bounds}'
+    offset = [((bounds[0]+bounds[2])/2-(left+right)/2)/(right-left),
+              ((bounds[1]+bounds[3])/2-(top+bottom)/2)/(bottom-top)]
+    assert max(map(abs,offset))<.16, f'Extended compartment is off-center: {offset}'
+    report.append({'item':'long_cargo_body','scale':kind,'pixel_bounds':bounds,'center_offset_fraction':offset})
+
 target = ROOT/'build/item-render-verification.json'
 target.write_text(json.dumps(report,indent=2)+'\n',encoding='utf8')
-print(f'All {len(names)} items fit their normal and enlarged inventory cells and are centered.')
+print(f'All {len(names)+1} items fit their normal and enlarged inventory cells and are centered.')

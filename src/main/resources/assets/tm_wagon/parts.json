@@ -2,6 +2,9 @@
   "cargo_body": {
     "scale": 0.135848
   },
+  "long_cargo_body": {
+    "scale": 0.119181
+  },
   "single_horse_shafts": {
     "scale": 0.172737
   },

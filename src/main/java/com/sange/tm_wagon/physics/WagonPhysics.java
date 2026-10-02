@@ -109,7 +109,7 @@ public final class WagonPhysics {
         // A stranded driver can rock a tipped wagon even after its horses have detached.
         if(driverRecovery&&!powered)speed*=.35;
         if(!powered&&!driverRecovery&&!falling&&pushing!=0)speed=PUSH_SPEED*pushing;
-        float yaw=old.yaw()+(float)Math.toDegrees(speed*Math.tan(steer)/WHEELBASE);
+        float yaw=old.yaw()+(float)Math.toDegrees(speed*Math.tan(steer)/wagon.wheelbase());
         Vec3 direction=new WagonPose(old.position(),yaw,0,0).forward();
         Vec3 horizontal=direction.scale(speed);
         if(!driverRecovery&&!falling&&!wagon.horsesCanAdvance(horizontal)) { horizontal=Vec3.ZERO;yaw=old.yaw(); }
@@ -130,7 +130,7 @@ public final class WagonPhysics {
         if(!falling) {
             double front=average(supports,0,1,old.position().y),rear=average(supports,2,3,old.position().y);
             double left=average(supports,0,2,old.position().y),right=average(supports,1,3,old.position().y);
-            float targetPitch=Mth.clamp((float)Math.atan2(front-rear,WHEELBASE),-NORMAL_PITCH,NORMAL_PITCH);
+            float targetPitch=Mth.clamp((float)Math.atan2(front-rear,wagon.wheelbase()),-NORMAL_PITCH,NORMAL_PITCH);
             float targetRoll=Mth.clamp((float)Math.atan2(right-left,TRACK),-NORMAL_ROLL,NORMAL_ROLL);
             if(recoveringTicks>0&&supports.count()<3) { targetPitch=0;targetRoll=0; }
             pitch=Mth.lerp(.3F,pitch,targetPitch);roll=Mth.lerp(.3F,roll,targetRoll);

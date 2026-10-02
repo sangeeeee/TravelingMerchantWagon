@@ -30,26 +30,28 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
-/** Ten fixed positions; only occupied slots are ticked. Inventories are not included in render updates. */
+/** Ten or twelve fixed positions; only occupied slots are ticked. Inventories are not included in render updates. */
 public final class CargoHold {
-    public static final int CAPACITY=10,GATE_TICKS=16;
+    public static final int CAPACITY=10,MAX_CAPACITY=12,GATE_TICKS=16;
     public static final double SCALE=.68,FLOOR=1.5;
     public static final TagKey<Item> DISALLOWED=TagKey.create(Registries.ITEM,ResourceLocation.fromNamespaceAndPath("tm_wagon","disallowed_cargo"));
     private final CargoOwner owner;
     public final CargoSeats seats=new CargoSeats(this);
-    private final CargoEntry[] entries=new CargoEntry[CAPACITY];
+    private final CargoEntry[] entries=new CargoEntry[MAX_CAPACITY];
     private boolean gateTarget,gateCollision;
     private long gateStart=Long.MIN_VALUE;
     private float gateFrom;
     private boolean loading;
     public CargoHold(CargoOwner owner) { this.owner=owner; }
     public CargoOwner owner() { return owner; }
+    public int capacity() { return owner.cargoBody().cargoCapacity(); }
+    public double rearExtension() { return owner.cargoBody().rearExtension(); }
     public CargoEntry entry(int slot) { int anchor=anchorSlot(slot);return anchor<0?null:entries[anchor]; }
     /** Reserved cells reference one authoritative entry; save, drops and ticking visit anchors only. */
     public int anchorSlot(int slot) {
-        if(slot<0||slot>=CAPACITY)return -1;
+        if(slot<0||slot>=capacity())return -1;
         if(entries[slot]!=null)return slot;
-        for(int anchor=slot+2;anchor<CAPACITY&&anchor<=slot+4;anchor+=2)
+        for(int anchor=slot+2;anchor<capacity()&&anchor<=slot+4;anchor+=2)
             if(entries[anchor]!=null&&entries[anchor].kind==CargoEntry.Kind.STRAW_MAT)return anchor;
         return -1;
     }
@@ -67,20 +69,22 @@ public final class CargoHold {
         Vec3 p=centre(slot);return new AABB(p.x-SCALE/2,p.y,p.z-SCALE/2,p.x+SCALE/2,p.y+SCALE,p.z+SCALE/2);
     }
     public boolean empty() { for(var e:entries)if(e!=null)return false;return true; }
-    public int slot(CargoEntry entry) { for(int i=0;i<CAPACITY;i++)if(entries[i]==entry)return i;return -1; }
+    public int slot(CargoEntry entry) { for(int i=0;i<MAX_CAPACITY;i++)if(entries[i]==entry)return i;return -1; }
     public Vec3 position(CargoEntry entry) { int slot=slot(entry);return owner.cargoPose().point(slot<0?new Vec3(0,FLOOR,0):centre(slot)); }
     public boolean valid(CargoEntry entry,Player player) {
         return owner.cargoLive()&&!owner.cargoBusy()&&slot(entry)>=0&&entry.hold==this&&player.isAlive()
             &&player.level()==owner.cargoLevel()&&player.distanceToSqr(position(entry))<=64;
     }
     public void changed(boolean visible) { if(!loading&&owner.cargoLevel()!=null&&!owner.cargoLevel().isClientSide)owner.cargoChanged(visible); }
-    public List<AABB> boxes() { var result=new ArrayList<AABB>();for(int i=0;i<CAPACITY;i++)if(entries[i]!=null)result.add(entryBox(i));return result; }
-    public AABB tailBox() {
-        AABB box=WagonGeometry.partBoxes(WagonPart.CARGO_BODY).get(4);
-        return gateCollision?new AABB(box.minX,3.0625-box.maxY,4.70-box.maxZ,box.maxX,3.0625-box.minY,4.70-box.minZ):box;
+    public List<AABB> boxes() { var result=new ArrayList<AABB>();for(int i=0;i<MAX_CAPACITY;i++)if(entries[i]!=null)result.add(entryBox(i));return result; }
+    public AABB tailBox() { return tailBox(owner.cargoBody()); }
+    private AABB tailBox(WagonPart body) {
+        AABB box=WagonGeometry.partBoxes(body).get(4);double hinge=4.70+body.rearExtension()*2;
+        return gateCollision?new AABB(box.minX,3.0625-box.maxY,hinge-box.maxZ,box.maxX,3.0625-box.minY,hinge-box.minZ):box;
     }
-    public List<AABB> bodyBoxes() {
-        var boxes=new ArrayList<>(WagonGeometry.partBoxes(WagonPart.CARGO_BODY));boxes.set(4,tailBox());boxes.addAll(boxes());return boxes;
+    public List<AABB> bodyBoxes() { return bodyBoxes(owner.cargoBody()); }
+    public List<AABB> bodyBoxes(WagonPart body) {
+        var boxes=new ArrayList<>(WagonGeometry.partBoxes(body));boxes.set(4,tailBox(body));boxes.addAll(boxes());return boxes;
     }
     public float gateProgress(float partial) {
         if(gateStart==Long.MIN_VALUE||owner.cargoLevel()==null)return gateTarget?1:0;
@@ -92,7 +96,7 @@ public final class CargoHold {
     public String toggleGate() {
         if(owner.cargoBusy()||gateMoving())return "message.tm_wagon.assembly_busy";
         gateFrom=gateProgress(0);gateTarget=!gateTarget;gateStart=owner.cargoLevel().getGameTime();
-        Vec3 p=owner.cargoPose().point(new Vec3(0,1.53,2.35));
+        Vec3 p=owner.cargoPose().point(new Vec3(0,1.53,2.35+rearExtension()));
         owner.cargoLevel().playSound(null,p.x,p.y,p.z,gateTarget?net.minecraft.sounds.SoundEvents.WOODEN_TRAPDOOR_OPEN:net.minecraft.sounds.SoundEvents.WOODEN_TRAPDOOR_CLOSE,net.minecraft.sounds.SoundSource.BLOCKS,.65F,1);
         changed(true);return null;
     }
@@ -108,9 +112,9 @@ public final class CargoHold {
         seats.tick();
     }
     private int selected(Vec3 point) {
-        for(int i=0;i<CAPACITY;i++)if(entries[i]!=null&&entryBox(i).inflate(.015).contains(point))return i;
-        if(point.y<FLOOR-.14||point.y>FLOOR+.025||Math.abs(point.x)>1||point.z< -1.34375||point.z>2.21875)return -1;
-        int row=Math.clamp((int)Math.round((point.z+.96)/.70),0,4);int selected=row*2+(point.x<0?0:1);
+        for(int i=0;i<MAX_CAPACITY;i++)if(entries[i]!=null&&entryBox(i).inflate(.015).contains(point))return i;
+        if(point.y<FLOOR-.14||point.y>FLOOR+.025||Math.abs(point.x)>1||point.z< -1.34375||point.z>2.21875+rearExtension())return -1;
+        int row=Math.clamp((int)Math.round((point.z+.96)/.70),0,capacity()/2-1);int selected=row*2+(point.x<0?0:1);
         int anchor=anchorSlot(selected);return anchor<0?selected:anchor;
     }
     /** Called with the first actual cart-surface hit, so a wall cannot be clicked through. */
@@ -150,7 +154,7 @@ public final class CargoHold {
         return CargoConfig.allows(block)?null:"message.tm_wagon.cargo_filtered";
     }
     public String place(int slot,ItemStack stack,Player player) {
-        if(!owner.cargoLive()||owner.cargoBusy()||slot<0||slot>=CAPACITY)return "message.tm_wagon.assembly_busy";
+        if(!owner.cargoLive()||owner.cargoBusy()||slot<0||slot>=capacity())return "message.tm_wagon.assembly_busy";
         String restriction=placementRestriction(stack);if(restriction!=null)return restriction;
         boolean mat=stack.getItem() instanceof StrawMatItem,stool=stack.getItem() instanceof WagonStoolItem;
         if(mat) {
@@ -228,7 +232,7 @@ public final class CargoHold {
     public void destroy(boolean drops) {
         StrawMatSleep.wake(this,null);
         closeMenus();
-        for(int i=0;i<CAPACITY;i++) {
+        for(int i=0;i<MAX_CAPACITY;i++) {
             var entry=entries[i];if(entry==null)continue;Vec3 pos=position(entry);entries[i]=null;
             if(drops) { drop(pos,entry.returnedItem());dropContents(entry,pos,null); }
             else entry.inventory.clearContent();
@@ -238,21 +242,22 @@ public final class CargoHold {
     /** Called only after target creation/layout has committed, on the server thread. */
     public void transferTo(CargoHold target) {
         if(target==this||!target.empty())throw new IllegalStateException("Cargo target already owns entries");
+        for(int i=target.capacity();i<MAX_CAPACITY;i++)if(entries[i]!=null)throw new IllegalStateException("Cargo target is too small");
         closeMenus();
-        for(int i=0;i<CAPACITY;i++) { target.entries[i]=entries[i];entries[i]=null;if(target.entries[i]!=null)target.entries[i].hold=target; }
+        for(int i=0;i<MAX_CAPACITY;i++) { target.entries[i]=entries[i];entries[i]=null;if(target.entries[i]!=null)target.entries[i].hold=target; }
         target.gateTarget=gateTarget;target.gateCollision=gateCollision;target.gateStart=gateStart;target.gateFrom=gateFrom;
         gateTarget=gateCollision=false;gateStart=Long.MIN_VALUE;gateFrom=0;changed(true);target.changed(true);
     }
     public CompoundTag save(HolderLookup.Provider lookup,boolean visual) {
         var tag=new CompoundTag();var list=new ListTag();
-        for(int i=0;i<CAPACITY;i++)if(entries[i]!=null) { var saved=entries[i].save(lookup,visual);saved.putInt("Slot",i);list.add(saved); }
+        for(int i=0;i<MAX_CAPACITY;i++)if(entries[i]!=null) { var saved=entries[i].save(lookup,visual);saved.putInt("Slot",i);list.add(saved); }
         tag.put("Entries",list);tag.putBoolean("GateTarget",gateTarget);tag.putBoolean("GateCollision",gateCollision);tag.putLong("GateStart",gateStart);tag.putFloat("GateFrom",gateFrom);return tag;
     }
     public void load(CompoundTag tag,HolderLookup.Provider lookup) {
         if(owner.cargoLevel()!=null&&!owner.cargoLevel().isClientSide)closeMenus();
         loading=true;java.util.Arrays.fill(entries,null);
         for(var value:tag.getList("Entries",Tag.TAG_COMPOUND)) {
-            var entry=(CompoundTag)value;int slot=entry.getInt("Slot");if(slot<0||slot>=CAPACITY||entry(slot)!=null)continue;
+            var entry=(CompoundTag)value;int slot=entry.getInt("Slot");if(slot<0||slot>=capacity()||entry(slot)!=null)continue;
             var loaded=CargoEntry.load(this,entry,lookup);if(loaded==null)continue;
             if(loaded.kind==CargoEntry.Kind.STRAW_MAT&&(slot<4||entry(slot-2)!=null||entry(slot-4)!=null))continue;
             entries[slot]=loaded;

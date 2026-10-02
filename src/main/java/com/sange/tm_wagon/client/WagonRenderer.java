@@ -48,7 +48,7 @@ public class WagonRenderer extends GeoEntityRenderer<WagonEntity> {
         @Override public ResourceLocation getModelResource(WagonEntity wagon) {
             String seat=wagon.parts().get(WagonSlot.SEAT)==WagonPart.DOUBLE_SEAT ? "double_seat" : "single_seat";
             String shaft=wagon.parts().get(WagonSlot.SHAFTS)==WagonPart.DOUBLE_HORSE_SHAFTS ? "double_horse" : "single_horse";
-            return resource("geo/assembly/"+seat+"_"+shaft+".geo.json");
+            return resource("geo/assembly/"+wagon.cargoBody().modelPrefix()+seat+"_"+shaft+".geo.json");
         }
         @Override public ResourceLocation getTextureResource(WagonEntity wagon) { return resource("textures/entity/wagon.png"); }
         @Override public ResourceLocation getAnimationResource(WagonEntity wagon) { return resource("animations/assembly.animation.json"); }

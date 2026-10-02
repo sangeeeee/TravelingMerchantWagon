@@ -4,6 +4,7 @@ Coordinates are model units (16 per block). Wheel silhouettes are solid discs,
 so spokes, hubs, nails and gaps never create extra collision surfaces.
 """
 import math
+import copy
 
 
 def volumes():
@@ -21,6 +22,12 @@ def volumes():
         'single_horse_shafts': [[-11.5,17,-88,-8.5,21.5,-25],[8.5,17,-88,11.5,21.5,-25],[-9,19,-38,9,21,-36]],
         'double_horse_shafts': [[-2,14.5,-99,2,22,-25],[-23,18,-87,23,21,-84],[-22,19,-39,22,21.5,-36]],
     }
+    extended = copy.deepcopy(body)
+    for i in [0,1,2]: extended[i][5] += 11.2
+    for i in [4,10]:
+        extended[i][2] += 11.2
+        extended[i][5] += 11.2
+    result['long_cargo_body'] = extended
     for name, half in [('single_seat',8.5),('double_seat',15.5)]:
         result[name] = [
             [-half,24,-32,half,31.5,-29.5],

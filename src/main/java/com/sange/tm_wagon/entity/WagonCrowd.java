@@ -18,7 +18,6 @@ import net.minecraft.world.phys.Vec3;
 /** One nearby query per moving tick; road mobs yield, rather than acting as solid walls. */
 public final class WagonCrowd {
     // Collision data starts with the main cargo floor. Also protect occupants jumping above it.
-    private static final AABB DECK=WagonGeometry.partBoxes(WagonPart.CARGO_BODY).getFirst();
     private final WagonEntity wagon;
     private final Set<Mob> candidates=Collections.newSetFromMap(new IdentityHashMap<>());
     private final Set<Mob> handled=Collections.newSetFromMap(new IdentityHashMap<>());
@@ -28,9 +27,10 @@ public final class WagonCrowd {
     WagonCrowd(WagonEntity wagon) { this.wagon=wagon; }
 
     private boolean roadMob(Mob mob) {
+        AABB deck=WagonGeometry.partBoxes(wagon.cargoBody()).getFirst();
         Vec3 feet=wagon.pose().local(mob.position());
-        if(feet.y>=DECK.maxY-.1&&feet.x>=DECK.minX-.2&&feet.x<=DECK.maxX+.2
-            &&feet.z>=DECK.minZ-.2&&feet.z<=DECK.maxZ+.2)return false;
+        if(feet.y>=deck.maxY-.1&&feet.x>=deck.minX-.2&&feet.x<=deck.maxX+.2
+            &&feet.z>=deck.minZ-.2&&feet.z<=deck.maxZ+.2)return false;
         return mob.isAlive()&&!mob.isRemoved()&&!mob.noPhysics&&!mob.isSpectator()
             &&!mob.isPassengerOfSameVehicle(wagon)&&!wagon.hasHorse(mob.getUUID())
             &&!(mob instanceof AbstractHorse horse&&HorseHarness.attached(horse))

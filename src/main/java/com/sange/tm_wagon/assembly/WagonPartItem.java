@@ -25,15 +25,15 @@ public class WagonPartItem extends BlockItem implements GeoItem {
         if (frame == null) return fail(context,"message.tm_wagon.frame_required");
         if (!frame.acceptsParts()) return fail(context,"message.tm_wagon.frame_extend_first");
         WagonSlot target = null;
-        if (part == WagonPart.CARGO_BODY) {
+        if (part.isCargoBody()) {
             if (!frame.extended() || frame.frameMoving()) return fail(context,"message.tm_wagon.frame_extend_first");
             var hit = new net.minecraft.world.phys.BlockHitResult(context.getClickLocation(),context.getClickedFace(),context.getClickedPos(),false);
             if (frame.platformTop(hit)) target = WagonSlot.BODY;
         }
         for (WagonSlot slot : WagonSlot.values()) {
-            if (part == WagonPart.CARGO_BODY) break;
+            if (part.isCargoBody()) break;
             if (!slot.accepts(part)) continue;
-            var pos = slot.position(frame.getBlockPos(),frame.facing());
+            var pos = slot.position(frame.getBlockPos(),frame.facing(),frame.cargoBody());
             if (pos.equals(context.getClickedPos()) || pos.equals(context.getClickedPos().relative(context.getClickedFace()))) { target = slot; break; }
         }
         if (target == null) return fail(context,"message.tm_wagon.wrong_slot");

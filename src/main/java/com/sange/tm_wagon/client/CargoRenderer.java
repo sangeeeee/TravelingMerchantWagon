@@ -20,7 +20,7 @@ public final class CargoRenderer {
     private static final java.util.Set<net.minecraft.world.level.block.Block> FALLBACKS=new java.util.HashSet<>();
     public static void render(CargoHold hold,float tick,PoseStack poses,MultiBufferSource buffers,int light,int overlay) {
         var mc=Minecraft.getInstance();
-        for(int slot=0;slot<CargoHold.CAPACITY;slot++) {
+        for(int slot=0;slot<hold.capacity();slot++) {
             var entry=hold.entry(slot);if(entry==null||hold.anchorSlot(slot)!=slot)continue;var p=CargoHold.centre(slot);
             if(entry.kind==CargoEntry.Kind.STRAW_MAT) {
                 poses.pushPose();poses.translate(p.x,CargoHold.FLOOR+1,p.z-.70);poses.scale(2,2,2);
