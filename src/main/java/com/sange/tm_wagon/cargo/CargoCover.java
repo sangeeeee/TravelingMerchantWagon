@@ -70,7 +70,10 @@ public final class CargoCover {
         }
         return selectionCells;
     }
-    public boolean hit(Vec3 local) { return selectionBoxes(hold.owner().cargoBody()).stream().anyMatch(box->box.inflate(.018,.025,.018).contains(local)); }
+    public boolean hit(Vec3 local) {
+        // Block outlines round outward by up to 1/32 on every axis, including roll edges.
+        return selectionBoxes(hold.owner().cargoBody()).stream().anyMatch(box->box.inflate(1.0/32+.001).contains(local));
+    }
     /** A handful of local-space intersections, only during interaction/menu validation; no world scan. */
     public boolean obstructs(Vec3 eye,Vec3 target) {
         if(!installed&&!hold.canopy().installed())return false;

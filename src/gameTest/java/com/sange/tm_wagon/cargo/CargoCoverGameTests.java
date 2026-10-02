@@ -28,7 +28,10 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 public class CargoCoverGameTests {
     private static final Vec3 SIDE=new Vec3(-1.15625,1.9,.5);
     private static AssemblyFrameBlockEntity frame(GameTestHelper h,boolean extended) {
-        var pos=h.absolutePos(new BlockPos(11,2,17));h.getLevel().setBlock(pos,WagonContent.FRAME.get().defaultBlockState().setValue(AssemblyFrameBlock.FACING,Direction.NORTH),3);
+        return frame(h,extended,Direction.NORTH);
+    }
+    private static AssemblyFrameBlockEntity frame(GameTestHelper h,boolean extended,Direction facing) {
+        var pos=h.absolutePos(new BlockPos(11,2,17));h.getLevel().setBlock(pos,WagonContent.FRAME.get().defaultBlockState().setValue(AssemblyFrameBlock.FACING,facing),3);
         var f=(AssemblyFrameBlockEntity)h.getLevel().getBlockEntity(pos);h.assertTrue(f.initializeFrame()==null,"Frame init failed");
         var modules=new java.util.EnumMap<WagonSlot,WagonPart>(WagonSlot.class);modules.putAll(WagonEntity.defaultParts());
         if(extended)modules.put(WagonSlot.BODY,WagonPart.LONG_CARGO_BODY);
@@ -115,6 +118,74 @@ public class CargoCoverGameTests {
             h.assertTrue(!w.intersects(new AABB(top,top).inflate(.015)),"Entity roll retained physical collision");
             h.assertTrue(w.getBoundingBox().inflate(.001).contains(top),"Broad phase excludes decorative roll");h.succeed();
         });
+    }
+    @GameTest(template="assembly_test",timeoutTicks=45)
+    public static void standard_full_roll_every_outline_face_and_edge_spreads(GameTestHelper h) { rollFaces(h,false); }
+    @GameTest(template="assembly_test",timeoutTicks=45)
+    public static void extended_full_roll_every_outline_face_and_edge_spreads(GameTestHelper h) { rollFaces(h,true); }
+    private static void rollFaces(GameTestHelper h,boolean extended) {
+        for(Direction facing:Direction.Plane.HORIZONTAL) {
+            var f=frame(h,extended,facing);var hold=f.cargo();var p=player(h,hold);install(h,hold,p);
+            for(int row=0;row<hold.capacity()/2;row++)step(h,hold,p,1);
+            // Open the tailgate so the underside is visible without clicking through wood.
+            var saved=hold.save(h.getLevel().registryAccess(),false);saved.putBoolean("GateTarget",true);saved.putBoolean("GateCollision",true);saved.putLong("GateStart",Long.MIN_VALUE);
+            hold.load(saved,h.getLevel().registryAccess());h.assertTrue(f.cargoGeometryChanged()==null,"Gate geometry failed");
+            AABB outlineBox=null;
+            for(var cell:hold.cover().selectionCells(f.cargoBody(),facing).entrySet())for(var box:cell.getValue()) {
+                var pos=f.getBlockPos().offset(cell.getKey());var world=box.move(pos.getX(),pos.getY(),pos.getZ());
+                outlineBox=outlineBox==null?world:outlineBox.minmax(world);
+            }
+            h.assertTrue(outlineBox!=null&&hold.cover().boxes(f.cargoBody()).isEmpty(),"Full roll outline absent or became solid");
+            var centre=outlineBox.getCenter();var half=new Vec3(outlineBox.getXsize()/2,outlineBox.getYsize()/2,outlineBox.getZsize()/2);
+            for(Direction face:Direction.values())for(double u:new double[]{-.98,0,.98})for(double v:new double[]{-.98,0,.98}) {
+                Vec3 point=switch(face.getAxis()) {
+                    case X->centre.add(face.getStepX()*half.x,u*half.y,v*half.z);
+                    case Y->centre.add(u*half.x,face.getStepY()*half.y,v*half.z);
+                    case Z->centre.add(u*half.x,v*half.y,face.getStepZ()*half.z);
+                };
+                Vec3 axis=new Vec3(face.getStepX(),face.getStepY(),face.getStepZ());
+                var hit=h.getLevel().clip(new net.minecraft.world.level.ClipContext(point.add(axis.scale(.12)),point.subtract(axis.scale(.08)),net.minecraft.world.level.ClipContext.Block.OUTLINE,net.minecraft.world.level.ClipContext.Fluid.NONE,p));
+                h.assertTrue(hit.getType()==net.minecraft.world.phys.HitResult.Type.BLOCK&&hit.getLocation().distanceToSqr(point)<1e-6,"Native outline ray missed "+facing+"/"+face);
+                for(boolean sneak:new boolean[]{false,true}) {
+                    p.setShiftKeyDown(sneak);
+                    var event=new net.neoforged.neoforge.event.entity.player.PlayerInteractEvent.RightClickBlock(p,InteractionHand.MAIN_HAND,hit.getBlockPos(),hit);
+                    CargoInteractions.block(event);
+                    h.assertTrue(event.isCanceled()&&hold.cover().installed()&&hold.cover().openRows()==hold.capacity()/2-(sneak?1:0),"Full roll click rejected "+facing+"/"+face+" at "+f.cargoPose().local(hit.getLocation()));
+                }
+                p.setShiftKeyDown(false);step(h,hold,p,1);
+            }
+            f.dismantle(false,true);
+        }h.succeed();
+    }
+    @GameTest(template="assembly_test",timeoutTicks=45)
+    public static void tilted_standard_entity_full_roll_every_face_spreads(GameTestHelper h) { entityRollFaces(h,false); }
+    @GameTest(template="assembly_test",timeoutTicks=45)
+    public static void tilted_extended_entity_full_roll_every_face_spreads(GameTestHelper h) { entityRollFaces(h,true); }
+    private static void entityRollFaces(GameTestHelper h,boolean extended) {
+        var f=frame(h,extended);var hold=f.cargo();var p=player(h,hold);install(h,hold,p);
+        for(int row=0;row<hold.capacity()/2;row++)step(h,hold,p,1);
+        var saved=hold.save(h.getLevel().registryAccess(),false);saved.putBoolean("GateTarget",true);saved.putBoolean("GateCollision",true);saved.putLong("GateStart",Long.MIN_VALUE);
+        hold.load(saved,h.getLevel().registryAccess());h.assertTrue(f.toggleFrame(null)==null,"Entity conversion failed");
+        var w=h.getLevel().getEntitiesOfClass(WagonEntity.class,new AABB(f.getBlockPos()).inflate(6)).getFirst();
+        w.applyPose(new com.sange.tm_wagon.physics.WagonPose(w.position(),29.7F,.13F,-.07F));hold=w.cargo();
+        var box=hold.cover().rollBox(w.cargoBody());var centre=box.getCenter();var half=new Vec3(box.getXsize()/2,box.getYsize()/2,box.getZsize()/2);
+        for(Direction face:Direction.values())for(double u:new double[]{-.98,0,.98})for(double v:new double[]{-.98,0,.98}) {
+            Vec3 point=switch(face.getAxis()) {
+                case X->centre.add(face.getStepX()*half.x,u*half.y,v*half.z);
+                case Y->centre.add(u*half.x,face.getStepY()*half.y,v*half.z);
+                case Z->centre.add(u*half.x,v*half.y,face.getStepZ()*half.z);
+            };
+            Vec3 axis=new Vec3(face.getStepX(),face.getStepY(),face.getStepZ());
+            Vec3 start=w.pose().point(point.add(axis.scale(.12))),end=w.pose().point(point.subtract(axis.scale(.08)));
+            var hit=w.pick(start,end);h.assertTrue(hit.isPresent()&&hit.get().distanceToSqr(w.pose().point(point))<1e-6,"Tilted entity outline ray missed "+face);
+            p.setPos(start.add(0,-p.getEyeHeight(),0));Vec3 delta=end.subtract(start);
+            p.setYRot((float)-Math.toDegrees(Math.atan2(delta.x,delta.z)));p.setXRot((float)-Math.toDegrees(Math.atan2(delta.y,Math.hypot(delta.x,delta.z))));
+            for(boolean sneak:new boolean[]{false,true}) {
+                p.setShiftKeyDown(sneak);var result=w.interactAt(p,hit.get().subtract(w.position()),InteractionHand.MAIN_HAND);
+                h.assertTrue(result.consumesAction()&&hold.cover().installed()&&hold.cover().openRows()==hold.capacity()/2-(sneak?1:0),"Tilted entity full roll click rejected "+face);
+            }
+            p.setShiftKeyDown(false);step(h,hold,p,1);
+        }h.succeed();
     }
     @GameTest(template="assembly_test",timeoutTicks=40)
     public static void cloth_obstructed_cargo_is_unusable_and_open_rows_allow_place_take_and_menus(GameTestHelper h) {
