@@ -46,7 +46,7 @@ public class WagonRenderer extends GeoEntityRenderer<WagonEntity> {
     public static class Model extends GeoModel<WagonEntity> {
         private ResourceLocation resource(String path) { return ResourceLocation.fromNamespaceAndPath(TravelingMerchantWagon.MODID,path); }
         @Override public ResourceLocation getModelResource(WagonEntity wagon) {
-            String seat=wagon.parts().get(WagonSlot.SEAT)==WagonPart.DOUBLE_SEAT ? "double_seat" : "single_seat";
+            String seat=wagon.parts().getOrDefault(WagonSlot.SEAT,WagonPart.SINGLE_SEAT).id;
             String shaft=wagon.parts().get(WagonSlot.SHAFTS)==WagonPart.DOUBLE_HORSE_SHAFTS ? "double_horse" : "single_horse";
             return resource("geo/assembly/"+wagon.cargoBody().modelPrefix()+seat+"_"+shaft+".geo.json");
         }

@@ -17,6 +17,12 @@
   "double_seat": {
     "scale": 0.346497
   },
+  "single_wooden_seat": {
+    "scale": 0.64
+  },
+  "double_wooden_seat": {
+    "scale": 0.350968
+  },
   "small_wheel": {
     "scale": 0.518095
   },

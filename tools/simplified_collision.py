@@ -38,6 +38,9 @@ def volumes():
             [-half,34.5,-35,-half+2,40,-23.5],
             [half-2,34.5,-35,half,40,-23.5],
         ]
+    for name,half in [('single_wooden_seat',8.5),('double_wooden_seat',15.5)]:
+        # The cabinet recess and plain seat board share one simple solid box.
+        result[name]=[[-half,24,-35.5,half,31.5,-23.5]]
     for name, radius in [('small_wheel',10.5),('large_wheel',13.5)]:
         result[name] = []
         for i in range(8):

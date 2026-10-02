@@ -4,8 +4,8 @@
   "block.tm_wagon.cargo_body": "Cargo Compartment",
   "block.tm_wagon.single_horse_shafts": "Single-Horse Shafts",
   "block.tm_wagon.double_horse_shafts": "Double-Horse Pole",
-  "block.tm_wagon.single_seat": "Single Seat",
-  "block.tm_wagon.double_seat": "Double Seat",
+  "block.tm_wagon.single_seat": "Single Backrest Driver Seat",
+  "block.tm_wagon.double_seat": "Double Backrest Driver Seat",
   "block.tm_wagon.small_wheel": "Small Wagon Wheel",
   "block.tm_wagon.large_wheel": "Large Wagon Wheel",
   "block.tm_wagon.assembly_proxy": "Wagon Structure",
@@ -72,5 +72,9 @@
   "item.tm_wagon.wagon_cabinet": "Wagon Cabinet",
   "tooltip.tm_wagon.wagon_cabinet": "Install on the lower seat side in block form. Sneak-use to remove and spill contents in either form. Use either drawer end to open. Single seat: 27 slots; double seat: 54 slots.",
   "message.tm_wagon.cabinet_block_only": "Install the cabinet while the wagon is in block form.",
-  "message.tm_wagon.cabinet_side": "Use the side below the driver seat or either drawer end."
+  "message.tm_wagon.cabinet_side": "Use the side below the driver seat or either drawer end.",
+  "block.tm_wagon.single_wooden_seat": "Single Wooden Driver Seat",
+  "tooltip.tm_wagon.single_wooden_seat": "Mount: 2 blocks forward, 2 blocks up from the frame, centered. Board using the top surface. Compatible with a wagon cabinet.",
+  "block.tm_wagon.double_wooden_seat": "Double Wooden Driver Seat",
+  "tooltip.tm_wagon.double_wooden_seat": "Mount: 2 blocks forward, 2 blocks up from the frame, centered. Board using the top surface. Compatible with a wagon cabinet."
 }

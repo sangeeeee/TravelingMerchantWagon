@@ -17,8 +17,9 @@ def write(path, data):
 
 
 def generate_long_variants():
-    for variant in ['bare_frame', 'single_seat_single_horse', 'single_seat_double_horse',
-                    'double_seat_single_horse', 'double_seat_double_horse']:
+    variants=['bare_frame', *[f'{seat}_{horse}' for seat in ['single_seat','double_seat','single_wooden_seat','double_wooden_seat']
+                             for horse in ['single_horse','double_horse']]]
+    for variant in variants:
         source = VARIANTS / variant
         target = VARIANTS / ('long_' + variant)
         target.mkdir(parents=True, exist_ok=True)
@@ -79,7 +80,7 @@ def generate_long_variants():
         for filename in ['wagon.png', 'wagon.animation.json']:
             if (source / filename).exists():
                 shutil.copyfile(source / filename, target / filename)
-    print('Generated five rear-extended wagon model projects, including animated gate/wheels.')
+    print(f'Generated {len(variants)} rear-extended wagon model projects, including animated gate/wheels.')
 
 
 if __name__ == '__main__':

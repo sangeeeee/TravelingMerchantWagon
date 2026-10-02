@@ -71,14 +71,15 @@ def bb(parts, name, offset=0, installed=False, opened=False):
         result.append(q)
     return result
 
-for size, half in [('single', 8.5), ('double', 15.5)]:
+for size, half in [('single', 8.5), ('double', 15.5), ('single_wooden', 8.5), ('double_wooden', 15.5)]:
     groups = meshes(half)
     for label, parts in zip(['body', 'left', 'right'], groups):
         baked = copy.deepcopy(parts)
         for p in baked:
             for key in ['from', 'to']: p[key][0] += 8
             assert all(-16 <= n <= 32 for key in ['from', 'to'] for n in p[key]), 'Java model outside bake bounds'
-        write(ASSETS / f'models/block/cabinet_{size}_{label}.json', model(baked))
+        if not size.endswith('_wooden'):
+            write(ASSETS / f'models/block/cabinet_{size}_{label}.json', model(baked))
     for extended in [False, True]:
         prefix = 'long_' if extended else ''
         source = ROOT / f'modeling/open_cargo_wagon/variants/{prefix}{size}_seat_single_horse/wagon.bbmodel'
@@ -109,4 +110,4 @@ elements = bb(parts, 'cabinet_item')
 write(PROJECT / 'cabinet_item.bbmodel', {'meta': {'format_version': '4.10', 'model_format': 'java_block', 'box_uv': False},
     'name': 'wagon_cabinet_item', 'resolution': {'width': 16, 'height': 16}, 'textures': textures,
     'display': item['display'], 'elements': elements, 'outliner': [p['uuid'] for p in elements]})
-print('Exported six cabinet meshes, a miniature item and nine embedded-texture Blockbench projects.')
+print('Exported six cabinet meshes, a miniature item and seventeen embedded-texture Blockbench projects.')

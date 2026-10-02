@@ -65,6 +65,8 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
     private static final List<AABB> DOUBLE_CUSHIONS=List.of(
         new AABB(-14.7/16,31.5/16,-35.0/16,-.15/16,34.4/16,-24.0/16),
         new AABB(.15/16,31.5/16,-35.0/16,14.7/16,34.4/16,-24.0/16));
+    private static final List<AABB> SINGLE_WOODEN_SURFACES=List.of(new AABB(-8.5/16,30.02/16,-35.5/16,8.5/16,31.48/16,-23.5/16));
+    private static final List<AABB> DOUBLE_WOODEN_SURFACES=List.of(new AABB(-15.5/16,30.02/16,-35.5/16,15.5/16,31.48/16,-23.5/16));
     private List<Component> components=List.of();
     private List<Component> pickingComponents=List.of();
     private List<AABB> worldBoxes;
@@ -138,9 +140,10 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
                 var seat=WagonGeometry.partBoxes(part);var lower=seat.getFirst();
                 // Keep the simplified cabinet/support volume below the wool. Its wider
                 // upper portion must not hide the visible cushion sides behind an invisible box.
-                picking.add(new Component(new AABB(lower.minX,lower.minY,lower.minZ,lower.maxX,31.5/16,lower.maxZ),slot));
+                double baseTop=part.isWoodenSeat()?30.02/16:31.5/16;
+                picking.add(new Component(new AABB(lower.minX,lower.minY,lower.minZ,lower.maxX,baseTop,lower.maxZ),slot));
                 for(int i=1;i<seat.size();i++)picking.add(new Component(seat.get(i),slot));
-                for(AABB cushion:driverCushions())picking.add(new Component(cushion,slot));
+                for(AABB cushion:driverSeatSurfaces())picking.add(new Component(cushion,slot));
             }
         });components=List.copyOf(list);
         if(cargo!=null) {
@@ -413,7 +416,7 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
         cargo.closeMenus();assemblyLock=frame.immutable();forwardInput=steeringInput=0;pushRequests.clear();physics.reset();return true;
     }
     public void unlock() { assemblyLock=null; }
-    public int seatCapacity() { return parts().get(WagonSlot.SEAT)==WagonPart.DOUBLE_SEAT ? 2 : 1; }
+    public int seatCapacity() { var seat=parts().get(WagonSlot.SEAT);return seat==null?0:seat.seatCapacity(); }
     public static final int CARGO_SEAT_BASE=2;
     private boolean validSeat(int seat) {
         if(seat>=0&&seat<seatCapacity())return true;
@@ -482,25 +485,30 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
         if(seat>=CARGO_SEAT_BASE&&seat<CARGO_SEAT_BASE+cargo.capacity())
             return pose().point(com.sange.tm_wagon.cargo.CargoHold.centre(seat-CARGO_SEAT_BASE).add(0,.5,0));
         double x=seatCapacity()==1 ? 0 : (seat==0 ? -.45 : .45);
-        return pose().point(new Vec3(x,2.15625,-1.875));
+        return pose().point(new Vec3(x,cargoSeat()!=null&&cargoSeat().isWoodenSeat()?31.5/16:2.15625,-1.875));
     }
     @Override public Vec3 getPassengerRidingPosition(Entity passenger) {
         return seatPosition(passengerSeat(passenger));
     }
     private Vec3 localPosition(Vec3 relative) { return pose().local(position().add(relative)); }
-    private List<AABB> driverCushions() { return parts().get(WagonSlot.SEAT)==WagonPart.DOUBLE_SEAT?DOUBLE_CUSHIONS:SINGLE_CUSHIONS; }
-    /** Only the first visible wool surface can board, never a supplied point behind a backrest. */
-    private InteractionResult boardVisibleCushion(Player player,java.util.Optional<Vec3> actual) {
+    private List<AABB> driverSeatSurfaces() {
+        if(cargoSeat()!=null&&cargoSeat().isWoodenSeat())return seatCapacity()==2?DOUBLE_WOODEN_SURFACES:SINGLE_WOODEN_SURFACES;
+        return seatCapacity()==2?DOUBLE_CUSHIONS:SINGLE_CUSHIONS;
+    }
+    /** Only the first visible cushion or plain wooden top can board; supplied points cannot bypass an obstruction. */
+    private InteractionResult boardVisibleDriverSeat(Player player,java.util.Optional<Vec3> actual) {
         if(player.isSecondaryUseActive()||actual.isEmpty())return InteractionResult.PASS;
         Vec3 world=actual.get(),local=pose().local(world),eye=player.getEyePosition(),localEye=pose().local(eye);
-        var cushions=driverCushions();
+        var cushions=driverSeatSurfaces();
         for(int seat=0;seat<cushions.size();seat++) {
             AABB cushion=cushions.get(seat);
             if(!cushion.inflate(.00001).contains(local)||cushion.contains(localEye)||local.y<=cushion.minY+.00001)continue;
+            boolean wooden=cargoSeat()!=null&&cargoSeat().isWoodenSeat();
+            if(wooden&&(Math.abs(local.y-cushion.maxY)>.00001||localEye.y<=cushion.maxY+.00001))continue;
             var block=level().clip(new net.minecraft.world.level.ClipContext(eye,world,
                 net.minecraft.world.level.ClipContext.Block.OUTLINE,net.minecraft.world.level.ClipContext.Fluid.NONE,player));
             if(block.getType()!=net.minecraft.world.phys.HitResult.Type.MISS&&block.getLocation().distanceToSqr(eye)+.0001<world.distanceToSqr(eye))return InteractionResult.PASS;
-            return boardSeat(player,seat);
+            return boardSeat(player,wooden&&seatCapacity()==2?(local.x<0?0:1):seat);
         }
         return InteractionResult.PASS;
     }
@@ -512,7 +520,7 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
         InteractionResult freight=cargo.interact(player,hand,local);if(freight!=InteractionResult.PASS)return freight;
         int hitch=hitchSlot(local);
         if(hitch>=0)return bindAt(player,hitch);
-        return boardVisibleCushion(player,actual);
+        return boardVisibleDriverSeat(player,actual);
     }
     @Override public InteractionResult interact(Player player,InteractionHand hand) {
         Vec3 start=player.getEyePosition(),end=start.add(player.getLookAngle().scale(player.entityInteractionRange()));
@@ -521,7 +529,7 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
         if (player.isSecondaryUseActive()) return InteractionResult.PASS;
         var hitchHit=cargoHit;
         if(hitchHit.isPresent()) { int slot=hitchSlot(pose().local(hitchHit.get()));if(slot>=0)return bindAt(player,slot); }
-        return boardVisibleCushion(player,cargoHit);
+        return boardVisibleDriverSeat(player,cargoHit);
     }
     private InteractionResult boardSeat(Player player,int seat) {
         if (player.isSecondaryUseActive()) return InteractionResult.PASS;

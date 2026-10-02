@@ -4,8 +4,8 @@
   "block.tm_wagon.cargo_body": "货物车厢",
   "block.tm_wagon.single_horse_shafts": "单马辕",
   "block.tm_wagon.double_horse_shafts": "双马辕",
-  "block.tm_wagon.single_seat": "单人座位",
-  "block.tm_wagon.double_seat": "双人座位",
+  "block.tm_wagon.single_seat": "单人带靠背车夫座椅",
+  "block.tm_wagon.double_seat": "双人带靠背车夫座椅",
   "block.tm_wagon.small_wheel": "小车轮",
   "block.tm_wagon.large_wheel": "大车轮",
   "block.tm_wagon.assembly_proxy": "马车结构",
@@ -72,5 +72,9 @@
   "item.tm_wagon.wagon_cabinet": "马车柜",
   "tooltip.tm_wagon.wagon_cabinet": "方块形态：右键座位下方侧面安装。两种形态均可潜行右键拆卸并掉出物品；右键左右抽屉面打开。单人座 27 格，双人座 54 格。",
   "message.tm_wagon.cabinet_block_only": "只能在方块形态安装马车柜。",
-  "message.tm_wagon.cabinet_side": "请右键座位下方的侧面或马车柜的抽屉面。"
+  "message.tm_wagon.cabinet_side": "请右键座位下方的侧面或马车柜的抽屉面。",
+  "block.tm_wagon.single_wooden_seat": "单人木制车夫座位",
+  "tooltip.tm_wagon.single_wooden_seat": "安装格：装配架前方 2 格、上方 2 格的中央位置。右键座面上表面入座，可安装马车柜。",
+  "block.tm_wagon.double_wooden_seat": "双人木制车夫座位",
+  "tooltip.tm_wagon.double_wooden_seat": "安装格：装配架前方 2 格、上方 2 格的中央位置。右键座面上表面入座，可安装马车柜。"
 }

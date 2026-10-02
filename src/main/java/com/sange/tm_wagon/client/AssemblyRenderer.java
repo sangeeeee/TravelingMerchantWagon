@@ -43,7 +43,7 @@ public class AssemblyRenderer extends GeoBlockRenderer<AssemblyFrameBlockEntity>
         private ResourceLocation resource(String path) { return ResourceLocation.fromNamespaceAndPath(TravelingMerchantWagon.MODID,path); }
         @Override public ResourceLocation getModelResource(AssemblyFrameBlockEntity frame) {
             if (!frame.has(WagonSlot.BODY)) return resource("geo/wagon_assembly_frame.geo.json");
-            String seat = frame.part(WagonSlot.SEAT) == WagonPart.DOUBLE_SEAT ? "double_seat" : "single_seat";
+            String seat = frame.parts().getOrDefault(WagonSlot.SEAT,WagonPart.SINGLE_SEAT).id;
             String shafts = frame.part(WagonSlot.SHAFTS) == WagonPart.DOUBLE_HORSE_SHAFTS ? "double_horse" : "single_horse";
             return resource("geo/assembly/"+frame.cargoBody().modelPrefix()+seat+"_"+shafts+".geo.json");
         }

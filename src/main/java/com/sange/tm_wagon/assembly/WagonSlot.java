@@ -16,7 +16,7 @@ public enum WagonSlot {
         return switch (this) {
             case BODY -> part.isCargoBody();
             case SHAFTS -> part == WagonPart.SINGLE_HORSE_SHAFTS || part == WagonPart.DOUBLE_HORSE_SHAFTS;
-            case SEAT -> part == WagonPart.SINGLE_SEAT || part == WagonPart.DOUBLE_SEAT;
+            case SEAT -> part.seatCapacity()>0;
             case FRONT_LEFT, FRONT_RIGHT -> part == WagonPart.SMALL_WHEEL;
             case REAR_LEFT, REAR_RIGHT -> part == WagonPart.LARGE_WHEEL;
         };

@@ -65,7 +65,7 @@ public final class WagonCabinet {
     public int rows() { return rows; }
     public SimpleContainer inventory() { return store; }
     public static AABB box(WagonPart seat) {
-        double half=(seat==WagonPart.DOUBLE_SEAT?15.5:8.5)/16;
+        double half=(seat!=null&&seat.seatCapacity()==2?15.5:8.5)/16;
         return new AABB(-half,BOTTOM,FRONT,half,TOP,BACK);
     }
     public AABB box() { return box(rows==6?WagonPart.DOUBLE_SEAT:WagonPart.SINGLE_SEAT); }
@@ -91,7 +91,7 @@ public final class WagonCabinet {
         String error=hold.cover().permission(p,local);if(error!=null)return error;
         if(!(hold.owner() instanceof AssemblyFrameBlockEntity))return "message.tm_wagon.cabinet_block_only";
         if(installed||side(local)<0||stack.isEmpty()||!(stack.getItem() instanceof WagonCabinetItem))return "message.tm_wagon.cabinet_side";
-        rows=hold.owner().cargoSeat()==WagonPart.DOUBLE_SEAT?6:3;installed=true;store=new Store(this,rows*9);
+        rows=hold.owner().cargoSeat().seatCapacity()==2?6:3;installed=true;store=new Store(this,rows*9);
         if(!p.getAbilities().instabuild)stack.shrink(1);
         hold.changed(true);sound(local,SoundEvents.WOOD_PLACE);return null;
     }

@@ -83,8 +83,9 @@ public class StageOneClientSmoke {
             graphics.fill(0,0,width,height,0xffede6d7);
             graphics.drawCenteredString(font,"TravelingMerchantWagon / native renderer check",width/2,12,0xff463729);
             if(frames<25) {
+                int columns=(int)Math.ceil(Math.sqrt(items.size()));
                 for(int i=0;i<items.size();i++) {
-                    int x=width/6+(i%3)*width/3,y=60+(i/3)*100;
+                    int x=width/(columns*2)+(i%columns)*width/columns,y=50+(i/columns)*100;
                     graphics.fill(x-25,y-1,x+25,y+49,0xff5c4c38);
                     graphics.fill(x-24,y,x+24,y+48,0xffd0c5af);
                     graphics.pose().pushPose();graphics.pose().translate(x-24,y,0);graphics.pose().scale(3,3,3);
@@ -115,7 +116,7 @@ public class StageOneClientSmoke {
                     else drawWagon(graphics,wagons.getFirst(),width*3/4,190,42,1);
                     graphics.drawCenteredString(font,i==0?"Block cargo":"Entity cargo",width/4+i*width/2,290,0xff463729);
                 }
-                graphics.drawCenteredString(font,frames>=465?"Oak wagon cabinet / single and double seats / independent drawers":frames>=365?"White canopy / internal dark ribs / independent front and rear curtains":frames>=330?"Covered cargo remains visible through the open tailgate":frames>=255?"Grey cargo cover / roll toward rear / reusable cloth meshes":frames>=230?"Extended cargo compartment / 12 slots / rear axle moved":frames>=205?"Oak cargo stool / one slot / half-block height":frames>=180?"Straw mat / three cargo slots / adjacent cargo":frames>=150?"Cargo workstations / book and decorated pot renderers":frames<125?"10 scaled cargo slots / closed containers":"Open chest + shulker / lowered tailgate",width/2,height-40,0xff463729);
+                graphics.drawCenteredString(font,frames>=570?"Plain oak driver seats / top-only boarding / cabinet compatible":frames>=465?"Oak wagon cabinet / single and double seats / independent drawers":frames>=365?"White canopy / internal dark ribs / independent front and rear curtains":frames>=330?"Covered cargo remains visible through the open tailgate":frames>=255?"Grey cargo cover / roll toward rear / reusable cloth meshes":frames>=230?"Extended cargo compartment / 12 slots / rear axle moved":frames>=205?"Oak cargo stool / one slot / half-block height":frames>=180?"Straw mat / three cargo slots / adjacent cargo":frames>=150?"Cargo workstations / book and decorated pot renderers":frames<125?"10 scaled cargo slots / closed containers":"Open chest + shulker / lowered tailgate",width/2,height-40,0xff463729);
                 if(frames>=180) {
                     int x=width/2-24,y=40;graphics.fill(x,y,x+48,y+48,0xffd0c5af);
                     graphics.pose().pushPose();graphics.pose().translate(x,y,0);graphics.pose().scale(3,3,3);
@@ -170,9 +171,39 @@ public class StageOneClientSmoke {
             if(frames==530)save("wagon-cabinet-both-open.png");
             if(frames==540)loadCabinetPreview(true,false,true);
             if(frames==555)save("wagon-cabinet-other-sizes.png");
-            if(frames==570) {LogUtils.getLogger().info("TM_WAGON_CLIENT_SMOKE_PASS: cargo, work blocks, seats, roofs and adaptive cabinets in both forms");Minecraft.getInstance().stop();}
+            if(frames==570)loadWoodenSeatPreview(false);
+            if(frames==585)save("wagon-wooden-seats.png");
+            if(frames==600)loadWoodenSeatPreview(true);
+            if(frames==615)save("wagon-wooden-seats-extended.png");
+            if(frames==630) {LogUtils.getLogger().info("TM_WAGON_CLIENT_SMOKE_PASS: cargo, work blocks, four driver seats, roofs and adaptive cabinets in both forms");Minecraft.getInstance().stop();}
         }
         private boolean lowAngle() { return frames>=465||frames>=330&&frames<365||frames>=390&&frames<410; }
+        private void loadWoodenSeatPreview(boolean extended) {
+            var registry=net.minecraft.core.RegistryAccess.fromRegistryOfRegistries(net.minecraft.core.registries.BuiltInRegistries.REGISTRY);
+            for(int i=0;i<2;i++) {
+                boolean dual=(i==1)!=extended;var parts=com.sange.tm_wagon.entity.WagonEntity.defaultParts();parts.put(WagonSlot.SEAT,dual?WagonPart.DOUBLE_WOODEN_SEAT:WagonPart.SINGLE_WOODEN_SEAT);
+                if(extended)parts.put(WagonSlot.BODY,WagonPart.LONG_CARGO_BODY);
+                var cabinet=new CompoundTag();cabinet.putBoolean("Installed",true);cabinet.putInt("Rows",dual?6:3);
+                var drawer=new CompoundTag();drawer.putBoolean("Open",true);drawer.putLong("Start",Long.MIN_VALUE);cabinet.put("Drawer1",drawer);
+                var cargo=new CompoundTag();cargo.put("Cabinet",cabinet);cargo.putLong("GateStart",Long.MIN_VALUE);
+                if(i==0) {var tag=new CompoundTag();tag.put("Modules",com.sange.tm_wagon.entity.WagonEntity.encode(parts));tag.put("Cargo",cargo);assemblies.getFirst().loadWithComponents(tag,registry);}
+                else {var wagon=wagons.getFirst();wagon.configure(parts,Direction.NORTH);wagon.cargo().load(cargo,registry);wagon.cargoGeometryChanged();}
+            }
+            var mc=Minecraft.getInstance();
+            for(String seat:new String[]{"single_wooden_seat","double_wooden_seat"}) {
+                var stack=new ItemStack(WagonContent.PART_ITEMS.get(WagonPart.valueOf(seat.toUpperCase(java.util.Locale.ROOT))).get());
+                if(mc.getItemRenderer().getModel(stack,null,null,0)==mc.getModelManager().getMissingModel())throw new IllegalStateException("Missing wooden seat item: "+seat);
+                for(String prefix:new String[]{"","long_"})for(String horses:new String[]{"single_horse","double_horse"}) {
+                    var id=net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("tm_wagon","geo/assembly/"+prefix+seat+"_"+horses+".geo.json");
+                    try(var reader=mc.getResourceManager().getResourceOrThrow(id).openAsReader()) {
+                        var bones=com.google.gson.JsonParser.parseReader(reader).getAsJsonObject().getAsJsonArray("minecraft:geometry").get(0).getAsJsonObject().getAsJsonArray("bones");
+                        var seatBone=java.util.stream.StreamSupport.stream(bones.spliterator(),false).map(com.google.gson.JsonElement::getAsJsonObject).filter(b->b.get("name").getAsString().equals("seat")).findFirst().orElseThrow();
+                        if(seatBone.getAsJsonArray("cubes").size()!=6)throw new IllegalStateException("Wooden seat is missing its inset board or four bark edges: "+id);
+                    } catch(java.io.IOException e) {throw new IllegalStateException(e);}
+                }
+            }
+            LogUtils.getLogger().info("TM_WAGON_WOODEN_SEAT_RENDER_PASS: single/double wood-only seats, eight combinations and cabinets, extended={}",extended);
+        }
         private void loadCabinetPreview(boolean swap,boolean left,boolean right) {
             var registry=net.minecraft.core.RegistryAccess.fromRegistryOfRegistries(net.minecraft.core.registries.BuiltInRegistries.REGISTRY);
             for(int i=0;i<2;i++) {
