@@ -64,12 +64,12 @@ public final class WagonContent {
         .icon(() -> ICON.get().getDefaultInstance())
         .displayItems((parameters, output) -> {
             output.accept(FRAME_ITEM.get());
-            for (WagonPart part : WagonPart.values()) output.accept(PART_ITEMS.get(part).get());
+            for (WagonPart part : WagonPart.values()) com.sange.tm_wagon.material.WagonMaterial.creative(output,PART_ITEMS.get(part).get());
             output.accept(STRAW_MAT.get());
-            output.accept(STOOL.get());
-            output.accept(CARGO_COVER.get());
-            output.accept(CANOPY.get());
-            output.accept(CABINET.get());
+            com.sange.tm_wagon.material.WagonMaterial.creative(output,STOOL.get());
+            com.sange.tm_wagon.material.WagonMaterial.creative(output,CARGO_COVER.get());
+            com.sange.tm_wagon.material.WagonMaterial.creative(output,CANOPY.get());
+            com.sange.tm_wagon.material.WagonMaterial.creative(output,CABINET.get());
         }).build());
     private static BlockBehaviour.Properties properties() {
         return BlockBehaviour.Properties.of().mapColor(MapColor.WOOD).sound(SoundType.WOOD)

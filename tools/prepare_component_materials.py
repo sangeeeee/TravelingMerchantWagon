@@ -247,7 +247,7 @@ def main():
         components[component]={'zh_name':zh,'en_name':en,'layout':layout,'textures':variants,
             'dyed_regions':['cushion'] if component in WOOL_COMPONENTS else []}
         if component in WOOL_COMPONENTS:components[component]['dye_texture']='tm_wagon:component/dye/seat_cushion'
-    manifest={'format_version':1,'status':'prepared_assets_not_yet_wired_to_models',
+    manifest={'format_version':1,'status':'static_component_assets',
         'wood_sources':{wood:{'zh_name':s['zh_name'],'en_name':s['en_name'],
             'planks':'minecraft:'+wood+'_planks',
             'log':'minecraft:'+wood+('_stem' if wood in ['crimson','warped'] else '_log'),

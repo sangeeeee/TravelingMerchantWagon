@@ -26,6 +26,12 @@ public class WagonRenderer extends GeoEntityRenderer<WagonEntity> {
         poses.mulPose(com.mojang.math.Axis.XP.rotation(wagon.renderPitch(tick)));
         poses.translate(0,-1.5,0);
     }
+    @Override public void renderCubesOfBone(com.mojang.blaze3d.vertex.PoseStack poses,software.bernie.geckolib.cache.object.GeoBone bone,
+            com.mojang.blaze3d.vertex.VertexConsumer buffer,int light,int overlay,int colour) {
+        var host=getAnimatable();var slot=MaterialRenderer.slot(bone.getName());
+        MaterialRenderer.cubes(this,poses,bone,buffer,light,overlay,colour,slot==null?null:host.parts().get(slot),
+            slot==null?com.sange.tm_wagon.material.WagonMaterial.DEFAULT:host.material(slot));
+    }
     @Override public void renderRecursively(com.mojang.blaze3d.vertex.PoseStack poses,WagonEntity wagon,
             software.bernie.geckolib.cache.object.GeoBone bone,net.minecraft.client.renderer.RenderType type,
             net.minecraft.client.renderer.MultiBufferSource buffers,com.mojang.blaze3d.vertex.VertexConsumer buffer,
@@ -50,7 +56,7 @@ public class WagonRenderer extends GeoEntityRenderer<WagonEntity> {
             String shaft=wagon.parts().get(WagonSlot.SHAFTS)==WagonPart.DOUBLE_HORSE_SHAFTS ? "double_horse" : "single_horse";
             return resource("geo/assembly/"+wagon.cargoBody().modelPrefix()+seat+"_"+shaft+".geo.json");
         }
-        @Override public ResourceLocation getTextureResource(WagonEntity wagon) { return resource("textures/entity/wagon.png"); }
+        @Override public ResourceLocation getTextureResource(WagonEntity wagon) { return MaterialRenderer.ATLAS; }
         @Override public ResourceLocation getAnimationResource(WagonEntity wagon) { return resource("animations/assembly.animation.json"); }
         @Override public void setCustomAnimations(WagonEntity wagon,long id,AnimationState<WagonEntity> state) {
             float tick=state.getPartialTick();

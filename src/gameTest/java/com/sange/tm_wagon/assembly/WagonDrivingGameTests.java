@@ -187,7 +187,7 @@ public class WagonDrivingGameTests {
         w.hurt(w.damageSources().generic(),5);h.assertTrue(!w.isRemoved(),"Wagon is no stronger than a boat");w.hurt(w.damageSources().generic(),15);
         h.assertTrue(w.isRemoved()&&!p.isPassenger()&&!HorseHarness.attached(horse)&&leads(h,w)==1,"Destruction cleanup incorrect");
         var drops=h.getLevel().getEntitiesOfClass(ItemEntity.class,new AABB(w.position(),w.position()).inflate(10));
-        h.assertTrue(drops.stream().anyMatch(e->e.getItem().is(Items.OAK_PLANKS))&&drops.stream().anyMatch(e->e.getItem().is(Items.GREEN_WOOL)),"Destruction lacks wood/wool");
+        h.assertTrue(drops.stream().anyMatch(e->e.getItem().is(Items.OAK_PLANKS))&&drops.stream().anyMatch(e->e.getItem().is(Items.WHITE_WOOL)),"Destruction lacks wood/wool");
         h.assertTrue(drops.stream().noneMatch(e->e.getItem().getItem() instanceof WagonPartItem),"Destroyed wagon returned complete components");h.succeed();
     }
     @GameTest(template="assembly_test",timeoutTicks=40)

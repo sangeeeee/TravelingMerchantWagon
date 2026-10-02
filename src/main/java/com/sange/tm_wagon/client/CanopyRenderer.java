@@ -24,22 +24,22 @@ public final class CanopyRenderer {
         int rows=body.cargoCapacity()/2;
         for(int row=0;row<rows;row++) {
             double z=boundary(row,rows,canopy,body),end=boundary(row+1,rows,canopy,body);
-            draw(SHELL,poses,buffers,light,overlay,z,end-z);
+            draw(canopy.material().colour().getTextureDiffuseColor(),SHELL,poses,buffers,light,overlay,z,end-z);
         }
         for(int row=0;row<=rows;row++) {
             double z=boundary(row,rows,canopy,body)+(row==0?.065:row==rows?-.065:0);
-            draw(RIB,poses,buffers,light,overlay,z,1);
+            draw(canopy.material().colour().getTextureDiffuseColor(),RIB,poses,buffers,light,overlay,z,1);
         }
-        draw(END,poses,buffers,light,overlay,CargoCanopy.FRONT+CargoCanopy.THICK/4,1);
-        draw(END,poses,buffers,light,overlay,canopy.back(body)-CargoCanopy.THICK-CargoCanopy.THICK/4,1);
-        for(boolean front:new boolean[]{true,false})draw(canopy.closed(front)?CLOSED:OPEN,poses,buffers,light,overlay,canopy.curtainZ(body,front),1);
+        draw(canopy.material().colour().getTextureDiffuseColor(),END,poses,buffers,light,overlay,CargoCanopy.FRONT+CargoCanopy.THICK/4,1);
+        draw(canopy.material().colour().getTextureDiffuseColor(),END,poses,buffers,light,overlay,canopy.back(body)-CargoCanopy.THICK-CargoCanopy.THICK/4,1);
+        for(boolean front:new boolean[]{true,false})draw(canopy.material().colour().getTextureDiffuseColor(),canopy.closed(front)?CLOSED:OPEN,poses,buffers,light,overlay,canopy.curtainZ(body,front),1);
     }
     private static double boundary(int row,int rows,CargoCanopy canopy,WagonPart body) {
         return row==0?CargoCanopy.FRONT:row==rows?canopy.back(body):-1.31+row*.7;
     }
-    private static void draw(ModelResourceLocation id,PoseStack poses,MultiBufferSource buffers,int light,int overlay,double z,double depth) {
+    private static void draw(int colour,ModelResourceLocation id,PoseStack poses,MultiBufferSource buffers,int light,int overlay,double z,double depth) {
         var mc=Minecraft.getInstance();poses.pushPose();poses.translate(-1,CargoCanopy.BASE,z);poses.scale(2,2,(float)depth);
-        mc.getBlockRenderer().getModelRenderer().renderModel(poses.last(),buffers.getBuffer(RenderType.cutout()),null,mc.getModelManager().getModel(id),1,1,1,light,overlay);
+        mc.getBlockRenderer().getModelRenderer().renderModel(poses.last(),buffers.getBuffer(RenderType.cutout()),null,mc.getModelManager().getModel(id),((colour>>16)&255)/255F,((colour>>8)&255)/255F,(colour&255)/255F,light,overlay);
         poses.popPose();
     }
     private CanopyRenderer() {}

@@ -806,5 +806,67 @@
         0.65
       ]
     }
-  }
+  },
+  "overrides": [
+    {
+      "predicate": {
+        "tm_wagon:wood": 0
+      },
+      "model": "tm_wagon:item/material/wagon_stool_oak"
+    },
+    {
+      "predicate": {
+        "tm_wagon:wood": 1
+      },
+      "model": "tm_wagon:item/material/wagon_stool_spruce"
+    },
+    {
+      "predicate": {
+        "tm_wagon:wood": 2
+      },
+      "model": "tm_wagon:item/material/wagon_stool_birch"
+    },
+    {
+      "predicate": {
+        "tm_wagon:wood": 3
+      },
+      "model": "tm_wagon:item/material/wagon_stool_jungle"
+    },
+    {
+      "predicate": {
+        "tm_wagon:wood": 4
+      },
+      "model": "tm_wagon:item/material/wagon_stool_acacia"
+    },
+    {
+      "predicate": {
+        "tm_wagon:wood": 5
+      },
+      "model": "tm_wagon:item/material/wagon_stool_dark_oak"
+    },
+    {
+      "predicate": {
+        "tm_wagon:wood": 6
+      },
+      "model": "tm_wagon:item/material/wagon_stool_mangrove"
+    },
+    {
+      "predicate": {
+        "tm_wagon:wood": 7
+      },
+      "model": "tm_wagon:item/material/wagon_stool_cherry"
+    },
+    {
+      "predicate": {
+        "tm_wagon:wood": 8
+      },
+      "model": "tm_wagon:item/material/wagon_stool_crimson"
+    },
+    {
+      "predicate": {
+        "tm_wagon:wood": 9
+      },
+      "model": "tm_wagon:item/material/wagon_stool_warped"
+    }
+  ]
 }

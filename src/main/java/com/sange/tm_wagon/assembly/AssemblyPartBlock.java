@@ -80,7 +80,7 @@ public class AssemblyPartBlock extends BaseEntityBlock {
         if (frame == null) return ItemStack.EMPTY;
         var eye = player.getEyePosition();
         var slot = frame.hitSlot(pos,eye,target.getLocation().add(player.getLookAngle().scale(.01)));
-        return slot == null ? new ItemStack(WagonContent.FRAME_ITEM.get()) : new ItemStack(WagonContent.PART_ITEMS.get(frame.part(slot)).get());
+        return slot == null ? new ItemStack(WagonContent.FRAME_ITEM.get()) : frame.partStack(slot);
     }
     @Override protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState next, boolean moved) {
         if (!state.is(next.getBlock()) && !level.isClientSide) {

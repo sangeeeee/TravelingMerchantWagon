@@ -1,0 +1,10 @@
+{
+  "type": "tm_wagon:component",
+  "component": "small_wheel",
+  "pattern": [
+    "ISI",
+    "SLS",
+    "ISI"
+  ],
+  "count": 2
+}

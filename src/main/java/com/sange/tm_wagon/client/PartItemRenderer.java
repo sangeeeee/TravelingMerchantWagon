@@ -28,10 +28,15 @@ public class PartItemRenderer extends GeoItemRenderer<WagonPartItem> {
         if (!reRender) poseStack.translate(.5,.5,.5);
         scaleModelForRender(this.scaleWidth,this.scaleHeight,poseStack,item,model,reRender,partialTick,light,overlay);
     }
+    @Override public void renderCubesOfBone(com.mojang.blaze3d.vertex.PoseStack poses,software.bernie.geckolib.cache.object.GeoBone bone,
+            com.mojang.blaze3d.vertex.VertexConsumer buffer,int light,int overlay,int colour) {
+        var part=getAnimatable().part();var stack=getCurrentItemStack();
+        MaterialRenderer.cubes(this,poses,bone,buffer,light,overlay,colour,part,com.sange.tm_wagon.material.WagonMaterial.forPart(part,stack));
+    }
     private static class Model extends GeoModel<WagonPartItem> {
         private ResourceLocation resource(String path) { return ResourceLocation.fromNamespaceAndPath(TravelingMerchantWagon.MODID,path); }
         @Override public ResourceLocation getModelResource(WagonPartItem item) { return resource("geo/parts/"+item.part().id+".geo.json"); }
-        @Override public ResourceLocation getTextureResource(WagonPartItem item) { return resource("textures/entity/wagon.png"); }
+        @Override public ResourceLocation getTextureResource(WagonPartItem item) { return MaterialRenderer.ATLAS; }
         @Override public ResourceLocation getAnimationResource(WagonPartItem item) { return resource("animations/assembly.animation.json"); }
     }
 }

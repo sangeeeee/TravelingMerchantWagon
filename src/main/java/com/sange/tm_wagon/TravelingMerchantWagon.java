@@ -12,6 +12,7 @@ public class TravelingMerchantWagon {
     public static final String MODID = "tm_wagon";
 
     public TravelingMerchantWagon(IEventBus bus, ModContainer container) {
+        com.sange.tm_wagon.material.WagonMaterial.register(bus);
         WagonContent.register(bus);
         container.registerConfig(ModConfig.Type.SERVER,CargoConfig.SPEC,"tm_wagon-server.toml");
         bus.addListener((ModConfigEvent.Loading event)->CargoConfig.refresh(event));

@@ -1,6 +1,6 @@
 {
   "format_version": 1,
-  "status": "prepared_assets_not_yet_wired_to_models",
+  "status": "active",
   "wood_sources": {
     "oak": {
       "zh_name": "橡木",
@@ -1255,5 +1255,16 @@
       ],
       "sha256": "d75c5e5552684433216091ed343e653efe5900b843532430998b998875d3651f"
     }
-  ]
+  ],
+  "rendering": {
+    "atlas": "tm_wagon:textures/entity/component_atlas.png",
+    "atlas_size": [
+      1024,
+      512
+    ],
+    "tile_size": 64,
+    "fixed_parts_tile": 100,
+    "item_component": "tm_wagon:material",
+    "recipe_serializer": "tm_wagon:component"
+  }
 }

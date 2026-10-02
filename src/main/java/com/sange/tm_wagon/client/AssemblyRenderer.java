@@ -21,6 +21,12 @@ public class AssemblyRenderer extends GeoBlockRenderer<AssemblyFrameBlockEntity>
             CargoRenderer.render(frame.cargo(),tick,poses,buffers,light,overlay);poses.popPose();
         }
     }
+    @Override public void renderCubesOfBone(com.mojang.blaze3d.vertex.PoseStack poses,software.bernie.geckolib.cache.object.GeoBone bone,
+            com.mojang.blaze3d.vertex.VertexConsumer buffer,int light,int overlay,int colour) {
+        var host=getAnimatable();var slot=MaterialRenderer.slot(bone.getName());
+        MaterialRenderer.cubes(this,poses,bone,buffer,light,overlay,colour,slot==null?null:host.part(slot),
+            slot==null?com.sange.tm_wagon.material.WagonMaterial.DEFAULT:host.material(slot));
+    }
     @Override public void renderRecursively(PoseStack poses,AssemblyFrameBlockEntity frame,
             software.bernie.geckolib.cache.object.GeoBone bone,net.minecraft.client.renderer.RenderType type,
             MultiBufferSource buffers,com.mojang.blaze3d.vertex.VertexConsumer buffer,boolean reRender,
@@ -47,7 +53,7 @@ public class AssemblyRenderer extends GeoBlockRenderer<AssemblyFrameBlockEntity>
             String shafts = frame.part(WagonSlot.SHAFTS) == WagonPart.DOUBLE_HORSE_SHAFTS ? "double_horse" : "single_horse";
             return resource("geo/assembly/"+frame.cargoBody().modelPrefix()+seat+"_"+shafts+".geo.json");
         }
-        @Override public ResourceLocation getTextureResource(AssemblyFrameBlockEntity frame) { return resource("textures/entity/wagon.png"); }
+        @Override public ResourceLocation getTextureResource(AssemblyFrameBlockEntity frame) { return MaterialRenderer.ATLAS; }
         @Override public ResourceLocation getAnimationResource(AssemblyFrameBlockEntity frame) { return resource("animations/assembly.animation.json"); }
         @Override public void setCustomAnimations(AssemblyFrameBlockEntity frame, long id, AnimationState<AssemblyFrameBlockEntity> state) {
             hidden("frame_root",false);

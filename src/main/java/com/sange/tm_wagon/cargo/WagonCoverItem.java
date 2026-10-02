@@ -9,6 +9,7 @@ import net.minecraft.world.item.TooltipFlag;
 /** Optional cart accessory, never a placeable world block or a cargo entry. */
 public final class WagonCoverItem extends Item {
     public WagonCoverItem(Properties properties) { super(properties); }
+    @Override public Component getName(ItemStack stack) { return com.sange.tm_wagon.material.WagonMaterial.name(stack,super.getName(stack)); }
     @Override public void appendHoverText(ItemStack stack,TooltipContext context,List<Component> lines,TooltipFlag flag) {
         lines.add(Component.translatable("tooltip.tm_wagon.wagon_cargo_cover"));
     }

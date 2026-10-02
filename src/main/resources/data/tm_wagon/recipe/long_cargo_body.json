@@ -1,0 +1,9 @@
+{
+  "type": "tm_wagon:component",
+  "component": "long_cargo_body",
+  "pattern": [
+    " PP",
+    "CLT",
+    " PP"
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "type": "tm_wagon:component",
+  "component": "wagon_cargo_cover",
+  "pattern": [
+    "RWR",
+    "WWW",
+    "RWR"
+  ]
+}

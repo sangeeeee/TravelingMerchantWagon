@@ -20,6 +20,8 @@ import net.minecraft.world.phys.Vec3;
 /** One optional accessory and a bounded row counter; no cargo slots or extra entities. */
 public final class CargoCover {
     public static final double HALF_WIDTH=1.1875,Y=2.359375,TOP=2.375,FRONT=-1.34375;
+    private com.sange.tm_wagon.material.WagonMaterial material=com.sange.tm_wagon.material.WagonMaterial.DEFAULT;
+    public com.sange.tm_wagon.material.WagonMaterial material() { return material; }
     private final CargoHold hold;
     private boolean installed;
     private int openRows;
@@ -119,6 +121,7 @@ public final class CargoCover {
         if(!clearAdded(List.of())) { installed=false;return "message.tm_wagon.cover_blocked"; }
         error=hold.owner().cargoGeometryChanged();
         if(error!=null) { installed=false;return error; }
+        material=new com.sange.tm_wagon.material.WagonMaterial(com.sange.tm_wagon.material.WoodMaterial.OAK,com.sange.tm_wagon.material.WagonMaterial.of(stack).colour());
         if(!player.getAbilities().instabuild)stack.shrink(1);
         conceal();hold.changed(true);sound(true);return null;
     }
@@ -130,7 +133,7 @@ public final class CargoCover {
         error=hold.owner().cargoGeometryChanged();
         if(error!=null) { installed=true;openRows=previous;return error; }
         // Clear ownership before giving back the single reusable cover.
-        player.getInventory().placeItemBackInInventory(new ItemStack(WagonContent.CARGO_COVER.get()));
+        player.getInventory().placeItemBackInInventory(material.stack(WagonContent.CARGO_COVER.get()));
         hold.changed(true);sound(false);return null;
     }
     public String step(Player player,Vec3 local,int direction) {
@@ -160,15 +163,16 @@ public final class CargoCover {
     }
     public void destroy(boolean drops) {
         if(!installed)return;installed=false;openRows=0;
-        if(drops)hold.drop(hold.owner().cargoPose().point(new Vec3(0,TOP,0)),new ItemStack(WagonContent.CARGO_COVER.get()));
+        if(drops)hold.drop(hold.owner().cargoPose().point(new Vec3(0,TOP,0)),material.stack(WagonContent.CARGO_COVER.get()));
     }
     void transferTo(CargoCover target) {
-        target.installed=installed;target.openRows=Math.clamp(openRows,0,target.rows());installed=false;openRows=0;
+        target.material=material;target.installed=installed;target.openRows=Math.clamp(openRows,0,target.rows());installed=false;openRows=0;
     }
     public CompoundTag save() {
-        var tag=new CompoundTag();tag.putBoolean("Installed",installed);tag.putInt("OpenRows",openRows);return tag;
+        var tag=new CompoundTag();tag.put("Material",material.save());tag.putBoolean("Installed",installed);tag.putInt("OpenRows",openRows);return tag;
     }
     public void load(CompoundTag tag) {
+        material=com.sange.tm_wagon.material.WagonMaterial.load(tag.getCompound("Material"));
         installed=tag.getBoolean("Installed");openRows=installed?Math.clamp(tag.getInt("OpenRows"),0,rows()):0;
     }
 }

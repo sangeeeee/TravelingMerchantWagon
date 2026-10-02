@@ -2,10 +2,10 @@
   "credit": "TravelingMerchantWagon / tools/export_cargo_cover.py",
   "ambientocclusion": false,
   "textures": {
-    "fabric": "tm_wagon:block/cargo_cover_fabric",
+    "fabric": "tm_wagon:component/dye/cargo_cover_fabric",
     "rope": "tm_wagon:block/cargo_cover_rope",
-    "spiral": "tm_wagon:block/cargo_cover_spiral",
-    "particle": "tm_wagon:block/cargo_cover_fabric"
+    "spiral": "tm_wagon:component/dye/cargo_cover_spiral",
+    "particle": "tm_wagon:component/dye/cargo_cover_fabric"
   },
   "elements": [
     {
@@ -28,7 +28,8 @@
             16,
             16
           ],
-          "texture": "#fabric"
+          "texture": "#fabric",
+          "tintindex": 0
         },
         "south": {
           "uv": [
@@ -37,7 +38,8 @@
             16,
             16
           ],
-          "texture": "#fabric"
+          "texture": "#fabric",
+          "tintindex": 0
         },
         "east": {
           "texture": "#spiral",
@@ -46,7 +48,8 @@
             13.656854240000001,
             11.313708479999999,
             16
-          ]
+          ],
+          "tintindex": 0
         },
         "west": {
           "texture": "#spiral",
@@ -55,7 +58,8 @@
             13.656854240000001,
             11.313708479999999,
             16
-          ]
+          ],
+          "tintindex": 0
         },
         "up": {
           "uv": [
@@ -64,7 +68,8 @@
             16,
             16
           ],
-          "texture": "#fabric"
+          "texture": "#fabric",
+          "tintindex": 0
         },
         "down": {
           "uv": [
@@ -73,7 +78,8 @@
             16,
             16
           ],
-          "texture": "#fabric"
+          "texture": "#fabric",
+          "tintindex": 0
         }
       }
     },
@@ -235,7 +241,8 @@
             16,
             16
           ],
-          "texture": "#fabric"
+          "texture": "#fabric",
+          "tintindex": 0
         },
         "south": {
           "uv": [
@@ -244,7 +251,8 @@
             16,
             16
           ],
-          "texture": "#fabric"
+          "texture": "#fabric",
+          "tintindex": 0
         },
         "east": {
           "texture": "#spiral",
@@ -253,7 +261,8 @@
             11.313708479999999,
             13.656854240000001,
             13.656854240000001
-          ]
+          ],
+          "tintindex": 0
         },
         "west": {
           "texture": "#spiral",
@@ -262,7 +271,8 @@
             11.313708479999999,
             13.656854240000001,
             13.656854240000001
-          ]
+          ],
+          "tintindex": 0
         },
         "up": {
           "uv": [
@@ -271,7 +281,8 @@
             16,
             16
           ],
-          "texture": "#fabric"
+          "texture": "#fabric",
+          "tintindex": 0
         },
         "down": {
           "uv": [
@@ -280,7 +291,8 @@
             16,
             16
           ],
-          "texture": "#fabric"
+          "texture": "#fabric",
+          "tintindex": 0
         }
       }
     },
@@ -442,7 +454,8 @@
             16,
             16
           ],
-          "texture": "#fabric"
+          "texture": "#fabric",
+          "tintindex": 0
         },
         "south": {
           "uv": [
@@ -451,7 +464,8 @@
             16,
             16
           ],
-          "texture": "#fabric"
+          "texture": "#fabric",
+          "tintindex": 0
         },
         "east": {
           "texture": "#spiral",
@@ -460,7 +474,8 @@
             4.686291520000001,
             16,
             11.313708479999999
-          ]
+          ],
+          "tintindex": 0
         },
         "west": {
           "texture": "#spiral",
@@ -469,7 +484,8 @@
             4.686291520000001,
             16,
             11.313708479999999
-          ]
+          ],
+          "tintindex": 0
         },
         "up": {
           "uv": [
@@ -478,7 +494,8 @@
             16,
             16
           ],
-          "texture": "#fabric"
+          "texture": "#fabric",
+          "tintindex": 0
         },
         "down": {
           "uv": [
@@ -487,7 +504,8 @@
             16,
             16
           ],
-          "texture": "#fabric"
+          "texture": "#fabric",
+          "tintindex": 0
         }
       }
     },
@@ -649,7 +667,8 @@
             16,
             16
           ],
-          "texture": "#fabric"
+          "texture": "#fabric",
+          "tintindex": 0
         },
         "south": {
           "uv": [
@@ -658,7 +677,8 @@
             16,
             16
           ],
-          "texture": "#fabric"
+          "texture": "#fabric",
+          "tintindex": 0
         },
         "east": {
           "texture": "#spiral",
@@ -667,7 +687,8 @@
             2.3431457599999987,
             13.656854240000001,
             4.686291520000001
-          ]
+          ],
+          "tintindex": 0
         },
         "west": {
           "texture": "#spiral",
@@ -676,7 +697,8 @@
             2.3431457599999987,
             13.656854240000001,
             4.686291520000001
-          ]
+          ],
+          "tintindex": 0
         },
         "up": {
           "uv": [
@@ -685,7 +707,8 @@
             16,
             16
           ],
-          "texture": "#fabric"
+          "texture": "#fabric",
+          "tintindex": 0
         },
         "down": {
           "uv": [
@@ -694,7 +717,8 @@
             16,
             16
           ],
-          "texture": "#fabric"
+          "texture": "#fabric",
+          "tintindex": 0
         }
       }
     },
@@ -856,7 +880,8 @@
             16,
             16
           ],
-          "texture": "#fabric"
+          "texture": "#fabric",
+          "tintindex": 0
         },
         "south": {
           "uv": [
@@ -865,7 +890,8 @@
             16,
             16
           ],
-          "texture": "#fabric"
+          "texture": "#fabric",
+          "tintindex": 0
         },
         "east": {
           "texture": "#spiral",
@@ -874,7 +900,8 @@
             0,
             11.313708479999999,
             2.3431457599999987
-          ]
+          ],
+          "tintindex": 0
         },
         "west": {
           "texture": "#spiral",
@@ -883,7 +910,8 @@
             0,
             11.313708479999999,
             2.3431457599999987
-          ]
+          ],
+          "tintindex": 0
         },
         "up": {
           "uv": [
@@ -892,7 +920,8 @@
             16,
             16
           ],
-          "texture": "#fabric"
+          "texture": "#fabric",
+          "tintindex": 0
         },
         "down": {
           "uv": [
@@ -901,7 +930,8 @@
             16,
             16
           ],
-          "texture": "#fabric"
+          "texture": "#fabric",
+          "tintindex": 0
         }
       }
     },

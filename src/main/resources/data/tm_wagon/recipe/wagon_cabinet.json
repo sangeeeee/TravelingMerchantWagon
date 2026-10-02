@@ -1,0 +1,9 @@
+{
+  "type": "tm_wagon:component",
+  "component": "wagon_cabinet",
+  "pattern": [
+    "PPP",
+    " B ",
+    "PPP"
+  ]
+}

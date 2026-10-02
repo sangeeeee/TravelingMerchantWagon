@@ -36,6 +36,10 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 public class AssemblyFrameBlockEntity extends BlockEntity implements GeoBlockEntity,com.sange.tm_wagon.cargo.CargoOwner {
     public record Cell(List<AABB> boxes, Set<WagonSlot> slots, boolean framePart) {}
     private final EnumMap<WagonSlot, WagonPart> parts = new EnumMap<>(WagonSlot.class);
+    private final EnumMap<WagonSlot,com.sange.tm_wagon.material.WagonMaterial> materials=new EnumMap<>(WagonSlot.class);
+    public Map<WagonSlot,com.sange.tm_wagon.material.WagonMaterial> materials() { return Map.copyOf(materials); }
+    public com.sange.tm_wagon.material.WagonMaterial material(WagonSlot slot) { return materials.getOrDefault(slot,com.sange.tm_wagon.material.WagonMaterial.DEFAULT); }
+    public ItemStack partStack(WagonSlot slot) { return material(slot).stack(WagonContent.PART_ITEMS.get(part(slot)).get()); }
     private final com.sange.tm_wagon.cargo.CargoHold cargo=new com.sange.tm_wagon.cargo.CargoHold(this);
     private com.sange.tm_wagon.cargo.CargoHold layoutCargo;
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
@@ -112,14 +116,14 @@ public class AssemblyFrameBlockEntity extends BlockEntity implements GeoBlockEnt
                 if (!level.hasChunkAt(pos) || !owned(pos)) return "message.tm_wagon.blocked";
                 if (player != null && !level.mayInteract(player,pos)) return "message.tm_wagon.protected";
             }
-            Map<WagonSlot,WagonPart> modules=parts();
+            Map<WagonSlot,WagonPart> modules=parts();var styles=materials();
             cargo.closeMenus();
             long oldStart=motionStart; double oldFrom=motionFrom; int oldDuration=motionDuration;
             boolean oldTarget=motionTargetExtended;
             String error=animateFrame(player,null);
             if (error != null) return error;
             WagonEntity wagon=WagonContent.WAGON.get().create(level);
-            if (wagon != null) { wagon.configure(modules,facing()); wagon.setPos(Vec3.atBottomCenterOf(worldPosition)); }
+            if (wagon != null) { wagon.configure(modules,facing());wagon.setMaterials(styles); wagon.setPos(Vec3.atBottomCenterOf(worldPosition)); }
             boolean spawned=wagon != null && level.addFreshEntity(wagon);
             error=spawned ? replaceModules(Map.of(),player,wagon,false) : "message.tm_wagon.spawn_failed";
             if (error != null) {
@@ -216,6 +220,7 @@ public class AssemblyFrameBlockEntity extends BlockEntity implements GeoBlockEnt
         restoringWagon=null; restoringPlayer=null;
         if (wagon != null) wagon.unlock();
         if (error == null) {
+            materials.clear();materials.putAll(wagon.materials());
             wagon.cargo().transferTo(cargo);
             wagon.releasePassengers();
             var attached=new java.util.ArrayList<net.minecraft.world.entity.animal.horse.AbstractHorse>();
@@ -315,7 +320,7 @@ public class AssemblyFrameBlockEntity extends BlockEntity implements GeoBlockEnt
             if (entity != null) tags.put(pos,entity.saveWithFullMetadata(level.registryAccess()));
         });
         changing = true;
-        try { apply(desired,next,true); parts.clear(); parts.putAll(next); layout = desired; frameBuilt = true; }
+        try { apply(desired,next,true); parts.clear(); parts.putAll(next);materials.keySet().retainAll(next.keySet()); layout = desired; frameBuilt = true; }
         catch (RuntimeException failure) {
             com.mojang.logging.LogUtils.getLogger().error("Frame placement failed at {}",worldPosition,failure);
             for (var entry : snapshot.entrySet()) {
@@ -389,6 +394,7 @@ public class AssemblyFrameBlockEntity extends BlockEntity implements GeoBlockEnt
             }
             return "message.tm_wagon.blocked";
         } finally { changing = false; }
+        materials.put(slot,com.sange.tm_wagon.material.WagonMaterial.forPart(part,stack));
         if (player == null || !player.getAbilities().instabuild) stack.shrink(1);
         sync();
         return null;
@@ -419,35 +425,36 @@ public class AssemblyFrameBlockEntity extends BlockEntity implements GeoBlockEnt
         if (level == null || level.isClientSide || changing) return;
         Set<WagonSlot> removing = EnumSet.noneOf(WagonSlot.class); removing.addAll(requested);
         if (removing.contains(WagonSlot.BODY)) removing.addAll(parts.keySet());
+        var cabinetItem=cargo.cabinet().material().stack(WagonContent.CABINET.get());
         boolean returnCabinet=!removing.contains(WagonSlot.BODY)&&removing.contains(WagonSlot.SEAT)&&cargo.cabinet().installed();
         if(removing.contains(WagonSlot.BODY))cargo.destroy(level.getGameRules().getBoolean(GameRules.RULE_DOBLOCKDROPS));
         else if(removing.contains(WagonSlot.SEAT))cargo.cabinet().destroy(level.getGameRules().getBoolean(GameRules.RULE_DOBLOCKDROPS));
         var next = new EnumMap<>(parts);
-        var removed = new ArrayList<WagonPart>();
-        for (WagonSlot slot : removing) { WagonPart part = next.remove(slot); if (part != null) removed.add(part); }
+        var removed = new ArrayList<ItemStack>();
+        for (WagonSlot slot : removing) { if(next.containsKey(slot))removed.add(partStack(slot));next.remove(slot); }
         Map<BlockPos, Cell> desired = buildLayout(next);
         changing = true;
-        try { apply(desired, next, false); parts.clear(); parts.putAll(next); layout = desired; }
+        try { apply(desired, next, false); parts.clear(); parts.putAll(next);materials.keySet().retainAll(next.keySet()); layout = desired; }
         finally { changing = false; }
         if (drops && level.getGameRules().getBoolean(GameRules.RULE_DOBLOCKDROPS)) {
-            if(returnCabinet)Block.popResource(level,worldPosition.above(),new ItemStack(WagonContent.CABINET.get()));
-            for (WagonPart part : removed) Block.popResource(level, worldPosition.above(), new ItemStack(WagonContent.PART_ITEMS.get(part).get()));
+            if(returnCabinet)Block.popResource(level,worldPosition.above(),cabinetItem);
+            for (ItemStack stack : removed) Block.popResource(level, worldPosition.above(), stack);
         }
         sync();
     }
 
     public void dismantle(boolean drops, boolean removeFrame) {
         if (level == null || level.isClientSide || changing) return;
-        var removed = new ArrayList<>(parts.values());
+        var removed = parts.keySet().stream().map(this::partStack).toList();
         changing = true;
         try {
             cargo.destroy(level.getGameRules().getBoolean(GameRules.RULE_DOBLOCKDROPS));
             for (BlockPos pos : layout().keySet()) if (level.hasChunkAt(pos) && owned(pos)) level.setBlock(pos,Blocks.AIR.defaultBlockState(),3);
-            parts.clear(); layout = Map.of();
+            parts.clear();materials.clear(); layout = Map.of();
             if (removeFrame) level.setBlock(worldPosition,Blocks.AIR.defaultBlockState(),3);
         } finally { changing = false; }
         if (drops && level.getGameRules().getBoolean(GameRules.RULE_DOBLOCKDROPS)) {
-            for (WagonPart part : removed) Block.popResource(level,worldPosition.above(),new ItemStack(WagonContent.PART_ITEMS.get(part).get()));
+            for (ItemStack stack : removed) Block.popResource(level,worldPosition.above(),stack);
             if (removeFrame) Block.popResource(level,worldPosition,new ItemStack(WagonContent.FRAME_ITEM.get()));
         }
     }
@@ -504,10 +511,11 @@ public class AssemblyFrameBlockEntity extends BlockEntity implements GeoBlockEnt
         tag.putLong("MotionStart",motionStart); tag.putDouble("MotionFrom",motionFrom); tag.putInt("MotionDuration",motionDuration);
         CompoundTag modules = new CompoundTag();
         parts.forEach((slot, part) -> modules.putString(slot.name(), part.name())); tag.put("Modules", modules);
+        tag.put("Materials",com.sange.tm_wagon.material.WagonMaterial.save(materials));
         tag.put("Cargo",cargo.save(registries,visual));
     }
     @Override protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries); parts.clear();
+        super.loadAdditional(tag, registries); parts.clear();materials.clear();materials.putAll(com.sange.tm_wagon.material.WagonMaterial.loadSlots(tag.getCompound("Materials")));
         CompoundTag modules = tag.getCompound("Modules");
         for (WagonSlot slot : WagonSlot.values()) {
             if (modules.contains(slot.name())) {

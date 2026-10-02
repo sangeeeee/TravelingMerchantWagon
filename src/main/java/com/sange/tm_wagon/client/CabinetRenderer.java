@@ -12,18 +12,18 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ModelEvent;
 
-/** Six baked meshes; drawers move visually without rebuilding collision or sending tick packets. */
+/** Six meshes per wood family; drawers move without rebuilding collision or sending tick packets. */
 @EventBusSubscriber(modid="tm_wagon",value=Dist.CLIENT)
 public final class CabinetRenderer {
-    private static final ModelResourceLocation[][] MODELS=new ModelResourceLocation[2][3];
+    private static final ModelResourceLocation[][][] MODELS=new ModelResourceLocation[10][2][3];
     static {
-        for(int size=0;size<2;size++)for(int part=0;part<3;part++)MODELS[size][part]=ModelResourceLocation.standalone(
-            ResourceLocation.fromNamespaceAndPath("tm_wagon","block/cabinet_"+(size==0?"single":"double")+"_"+new String[]{"body","left","right"}[part]));
+        for(var wood:com.sange.tm_wagon.material.WoodMaterial.values())for(int size=0;size<2;size++)for(int part=0;part<3;part++)MODELS[wood.ordinal()][size][part]=ModelResourceLocation.standalone(
+            ResourceLocation.fromNamespaceAndPath("tm_wagon","block/material/cabinet_"+wood.getSerializedName()+"_"+(size==0?"single":"double")+"_"+new String[]{"body","left","right"}[part]));
     }
-    @SubscribeEvent public static void models(ModelEvent.RegisterAdditional event) { for(var size:MODELS)for(var id:size)event.register(id); }
+    @SubscribeEvent public static void models(ModelEvent.RegisterAdditional event) { for(var wood:MODELS)for(var size:wood)for(var id:size)event.register(id); }
     public static void render(WagonCabinet cabinet,float tick,PoseStack poses,MultiBufferSource buffers,int light,int overlay) {
         if(!cabinet.installed())return;
-        var models=MODELS[cabinet.rows()==6?1:0];draw(models[0],poses,buffers,light,overlay,0);
+        var models=MODELS[cabinet.material().wood().ordinal()][cabinet.rows()==6?1:0];draw(models[0],poses,buffers,light,overlay,0);
         draw(models[1],poses,buffers,light,overlay,-.4*cabinet.progress(0,tick));
         draw(models[2],poses,buffers,light,overlay,.4*cabinet.progress(1,tick));
     }

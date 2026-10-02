@@ -2,10 +2,10 @@
   "credit": "TravelingMerchantWagon / tools/export_wagon_canopy.py",
   "ambientocclusion": false,
   "textures": {
-    "cloth": "tm_wagon:block/canopy_cloth",
+    "cloth": "tm_wagon:component/dye/canopy_cloth",
     "wood": "tm_wagon:block/canopy_wood",
-    "curtain": "tm_wagon:block/canopy_curtain",
-    "particle": "tm_wagon:block/canopy_cloth"
+    "curtain": "tm_wagon:component/dye/canopy_curtain",
+    "particle": "tm_wagon:component/dye/canopy_cloth"
   },
   "elements": [
     {
@@ -29,7 +29,8 @@
             16
           ],
           "texture": "#cloth",
-          "rotation": 90
+          "rotation": 90,
+          "tintindex": 0
         },
         "west": {
           "uv": [
@@ -39,7 +40,8 @@
             16
           ],
           "texture": "#cloth",
-          "rotation": 90
+          "rotation": 90,
+          "tintindex": 0
         },
         "up": {
           "uv": [
@@ -48,7 +50,8 @@
             16,
             16
           ],
-          "texture": "#cloth"
+          "texture": "#cloth",
+          "tintindex": 0
         },
         "down": {
           "uv": [
@@ -57,7 +60,8 @@
             16,
             16
           ],
-          "texture": "#cloth"
+          "texture": "#cloth",
+          "tintindex": 0
         }
       }
     },
@@ -81,7 +85,8 @@
             16,
             16
           ],
-          "texture": "#cloth"
+          "texture": "#cloth",
+          "tintindex": 0
         },
         "west": {
           "uv": [
@@ -90,7 +95,8 @@
             16,
             16
           ],
-          "texture": "#cloth"
+          "texture": "#cloth",
+          "tintindex": 0
         },
         "up": {
           "uv": [
@@ -99,7 +105,8 @@
             16,
             16
           ],
-          "texture": "#cloth"
+          "texture": "#cloth",
+          "tintindex": 0
         },
         "down": {
           "uv": [
@@ -108,7 +115,8 @@
             16,
             16
           ],
-          "texture": "#cloth"
+          "texture": "#cloth",
+          "tintindex": 0
         }
       },
       "rotation": {
@@ -142,7 +150,8 @@
             16,
             16
           ],
-          "texture": "#cloth"
+          "texture": "#cloth",
+          "tintindex": 0
         },
         "west": {
           "uv": [
@@ -151,7 +160,8 @@
             16,
             16
           ],
-          "texture": "#cloth"
+          "texture": "#cloth",
+          "tintindex": 0
         },
         "up": {
           "uv": [
@@ -160,7 +170,8 @@
             16,
             16
           ],
-          "texture": "#cloth"
+          "texture": "#cloth",
+          "tintindex": 0
         },
         "down": {
           "uv": [
@@ -169,7 +180,8 @@
             16,
             16
           ],
-          "texture": "#cloth"
+          "texture": "#cloth",
+          "tintindex": 0
         }
       },
       "rotation": {
@@ -203,7 +215,8 @@
             16,
             16
           ],
-          "texture": "#cloth"
+          "texture": "#cloth",
+          "tintindex": 0
         },
         "west": {
           "uv": [
@@ -212,7 +225,8 @@
             16,
             16
           ],
-          "texture": "#cloth"
+          "texture": "#cloth",
+          "tintindex": 0
         },
         "up": {
           "uv": [
@@ -221,7 +235,8 @@
             16,
             16
           ],
-          "texture": "#cloth"
+          "texture": "#cloth",
+          "tintindex": 0
         },
         "down": {
           "uv": [
@@ -230,7 +245,8 @@
             16,
             16
           ],
-          "texture": "#cloth"
+          "texture": "#cloth",
+          "tintindex": 0
         }
       }
     },
@@ -254,7 +270,8 @@
             16,
             16
           ],
-          "texture": "#cloth"
+          "texture": "#cloth",
+          "tintindex": 0
         },
         "west": {
           "uv": [
@@ -263,7 +280,8 @@
             16,
             16
           ],
-          "texture": "#cloth"
+          "texture": "#cloth",
+          "tintindex": 0
         },
         "up": {
           "uv": [
@@ -272,7 +290,8 @@
             16,
             16
           ],
-          "texture": "#cloth"
+          "texture": "#cloth",
+          "tintindex": 0
         },
         "down": {
           "uv": [
@@ -281,7 +300,8 @@
             16,
             16
           ],
-          "texture": "#cloth"
+          "texture": "#cloth",
+          "tintindex": 0
         }
       },
       "rotation": {
@@ -315,7 +335,8 @@
             16,
             16
           ],
-          "texture": "#cloth"
+          "texture": "#cloth",
+          "tintindex": 0
         },
         "west": {
           "uv": [
@@ -324,7 +345,8 @@
             16,
             16
           ],
-          "texture": "#cloth"
+          "texture": "#cloth",
+          "tintindex": 0
         },
         "up": {
           "uv": [
@@ -333,7 +355,8 @@
             16,
             16
           ],
-          "texture": "#cloth"
+          "texture": "#cloth",
+          "tintindex": 0
         },
         "down": {
           "uv": [
@@ -342,7 +365,8 @@
             16,
             16
           ],
-          "texture": "#cloth"
+          "texture": "#cloth",
+          "tintindex": 0
         }
       },
       "rotation": {
@@ -377,7 +401,8 @@
             16
           ],
           "texture": "#cloth",
-          "rotation": 90
+          "rotation": 90,
+          "tintindex": 0
         },
         "west": {
           "uv": [
@@ -387,7 +412,8 @@
             16
           ],
           "texture": "#cloth",
-          "rotation": 90
+          "rotation": 90,
+          "tintindex": 0
         },
         "up": {
           "uv": [
@@ -396,7 +422,8 @@
             16,
             16
           ],
-          "texture": "#cloth"
+          "texture": "#cloth",
+          "tintindex": 0
         },
         "down": {
           "uv": [
@@ -405,7 +432,8 @@
             16,
             16
           ],
-          "texture": "#cloth"
+          "texture": "#cloth",
+          "tintindex": 0
         }
       }
     },

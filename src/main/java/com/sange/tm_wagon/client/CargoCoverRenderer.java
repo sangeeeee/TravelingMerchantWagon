@@ -23,20 +23,20 @@ public final class CargoCoverRenderer {
         if(!cover.installed())return;
         for(int row=cover.openRows();row<body.cargoCapacity()/2;row++) {
             double front=cover.boundary(row,body),back=cover.boundary(row+1,body);
-            draw(SHEET,poses,buffers,light,overlay,-CargoCover.HALF_WIDTH,CargoCover.Y,front,CargoCover.HALF_WIDTH*2,1,back-front);
+            draw(cover.material().colour().getTextureDiffuseColor(),SHEET,poses,buffers,light,overlay,-CargoCover.HALF_WIDTH,CargoCover.Y,front,CargoCover.HALF_WIDTH*2,1,back-front);
         }
         if(cover.openRows()<body.cargoCapacity()/2)
-            draw(BACK_HEM,poses,buffers,light,overlay,-CargoCover.HALF_WIDTH,CargoCover.Y,cover.back(body)-.016,CargoCover.HALF_WIDTH*2,1,.016);
+            draw(cover.material().colour().getTextureDiffuseColor(),BACK_HEM,poses,buffers,light,overlay,-CargoCover.HALF_WIDTH,CargoCover.Y,cover.back(body)-.016,CargoCover.HALF_WIDTH*2,1,.016);
         if(cover.openRows()>0) {
             double r=cover.radius();
-            draw(ROLL,poses,buffers,light,overlay,-CargoCover.HALF_WIDTH,CargoCover.TOP,cover.rollZ(body)-r,CargoCover.HALF_WIDTH*2,r*2,r*2);
+            draw(cover.material().colour().getTextureDiffuseColor(),ROLL,poses,buffers,light,overlay,-CargoCover.HALF_WIDTH,CargoCover.TOP,cover.rollZ(body)-r,CargoCover.HALF_WIDTH*2,r*2,r*2);
         }
     }
-    private static void draw(ModelResourceLocation id,PoseStack poses,MultiBufferSource buffers,int light,int overlay,
+    private static void draw(int colour,ModelResourceLocation id,PoseStack poses,MultiBufferSource buffers,int light,int overlay,
             double x,double y,double z,double sx,double sy,double sz) {
         var mc=Minecraft.getInstance();poses.pushPose();poses.translate(x,y,z);poses.scale((float)sx,(float)sy,(float)sz);
         mc.getBlockRenderer().getModelRenderer().renderModel(poses.last(),buffers.getBuffer(RenderType.cutout()),null,
-            mc.getModelManager().getModel(id),1,1,1,light,overlay);
+            mc.getModelManager().getModel(id),((colour>>16)&255)/255F,((colour>>8)&255)/255F,(colour&255)/255F,light,overlay);
         poses.popPose();
     }
     private CargoCoverRenderer() {}

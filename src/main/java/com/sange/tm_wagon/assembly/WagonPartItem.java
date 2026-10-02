@@ -47,6 +47,7 @@ public class WagonPartItem extends BlockItem implements GeoItem {
         if (!context.getLevel().isClientSide && context.getPlayer() != null) context.getPlayer().displayClientMessage(Component.translatable(key),true);
         return InteractionResult.FAIL;
     }
+    @Override public Component getName(ItemStack stack) { return com.sange.tm_wagon.material.WagonMaterial.name(stack,super.getName(stack)); }
     @Override public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
         tooltip.add(Component.translatable("tooltip.tm_wagon."+part.id).withStyle(net.minecraft.ChatFormatting.GRAY));
     }

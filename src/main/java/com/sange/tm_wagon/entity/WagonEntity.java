@@ -36,6 +36,11 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
     public static final double PUSH_CONTACT_MARGIN=.15;
     private static final int PUSH_INPUT_TIMEOUT=6;
     private static final EntityDataAccessor<CompoundTag> MODULES = SynchedEntityData.defineId(WagonEntity.class,EntityDataSerializers.COMPOUND_TAG);
+    private static final EntityDataAccessor<CompoundTag> MATERIALS=SynchedEntityData.defineId(WagonEntity.class,EntityDataSerializers.COMPOUND_TAG);
+    private Map<WagonSlot,com.sange.tm_wagon.material.WagonMaterial> materials=Map.of();
+    public Map<WagonSlot,com.sange.tm_wagon.material.WagonMaterial> materials() { return materials; }
+    public com.sange.tm_wagon.material.WagonMaterial material(WagonSlot slot) { return materials.getOrDefault(slot,com.sange.tm_wagon.material.WagonMaterial.DEFAULT); }
+    public void setMaterials(Map<WagonSlot,com.sange.tm_wagon.material.WagonMaterial> values) { entityData.set(MATERIALS,com.sange.tm_wagon.material.WagonMaterial.save(values));materials=Map.copyOf(values); }
     private static final EntityDataAccessor<Integer> FACING = SynchedEntityData.defineId(WagonEntity.class,EntityDataSerializers.INT);
     private static final EntityDataAccessor<CompoundTag> SEATS = SynchedEntityData.defineId(WagonEntity.class,EntityDataSerializers.COMPOUND_TAG);
     private static final EntityDataAccessor<CompoundTag> MOTION = SynchedEntityData.defineId(WagonEntity.class,EntityDataSerializers.COMPOUND_TAG);
@@ -85,7 +90,7 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
         super(type,level); blocksBuilding = true; setNoGravity(true); setYRot(180); rebuildGeometry();
     }
     @Override protected void defineSynchedData(SynchedEntityData.Builder builder) {
-        builder.define(MODULES,encode(defaultParts())); builder.define(FACING,Direction.NORTH.get2DDataValue());
+        builder.define(MATERIALS,new CompoundTag());builder.define(MODULES,encode(defaultParts())); builder.define(FACING,Direction.NORTH.get2DDataValue());
         builder.define(SEATS,new CompoundTag());builder.define(MOTION,new CompoundTag());
         builder.define(CARGO,new CompoundTag());
     }
@@ -117,6 +122,7 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
     @Override public void onSyncedDataUpdated(EntityDataAccessor<?> key) {
         super.onSyncedDataUpdated(key);
         if (key.equals(MODULES) || key.equals(FACING)) rebuildGeometry();
+        if(key.equals(MATERIALS))materials=com.sange.tm_wagon.material.WagonMaterial.loadSlots(entityData.get(MATERIALS));
         if(key.equals(CARGO)&&cargo!=null&&level()!=null&&level().isClientSide) {
             cargo.load(entityData.get(CARGO),level().registryAccess());rebuildGeometry();
         }
@@ -709,7 +715,8 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
             releasePassengers();detachAllHorses();
             if(level().getGameRules().getBoolean(net.minecraft.world.level.GameRules.RULE_DOENTITYDROPS)) {
                 spawnAtLocation(new net.minecraft.world.item.ItemStack(Items.OAK_PLANKS,6+random.nextInt(5)));
-                spawnAtLocation(new net.minecraft.world.item.ItemStack(Items.GREEN_WOOL,seatCapacity()));
+                spawnAtLocation(new net.minecraft.world.item.ItemStack(Items.WHITE_WOOL,seatCapacity()));
+                spawnAtLocation(new net.minecraft.world.item.ItemStack(Items.STICK,2+random.nextInt(3)));
             }
             discard();
         }return true;
@@ -722,7 +729,7 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
         super.remove(reason);
     }
     @Override protected void addAdditionalSaveData(CompoundTag tag) {
-        tag.put("Modules",entityData.get(MODULES).copy()); tag.putInt("WagonFacing",facing().get2DDataValue());
+        tag.put("Materials",entityData.get(MATERIALS).copy());tag.put("Modules",entityData.get(MODULES).copy()); tag.putInt("WagonFacing",facing().get2DDataValue());
         tag.put("Cargo",cargo.save(level().registryAccess(),false));
         tag.put("Seats",entityData.get(SEATS).copy());
         tag.putFloat("Yaw",getYRot());tag.putFloat("Pitch",pitch);tag.putFloat("Roll",roll);tag.putFloat("Health",health);tag.putBoolean("MotionStarted",motionStarted);
@@ -736,6 +743,7 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
         pushRequests.clear();pushTick=0;
         configure(tag.contains("Modules") ? decode(tag.getCompound("Modules")) : defaultParts(),
             Direction.from2DDataValue(tag.getInt("WagonFacing")));
+        setMaterials(com.sange.tm_wagon.material.WagonMaterial.loadSlots(tag.getCompound("Materials")));
         cargo.load(tag.getCompound("Cargo"),level().registryAccess());rebuildGeometry();cargoChanged(true);
         assemblyLock=tag.contains("AssemblyLock") ? net.minecraft.core.BlockPos.of(tag.getLong("AssemblyLock")) : null;
         entityData.set(SEATS,tag.getCompound("Seats").copy());

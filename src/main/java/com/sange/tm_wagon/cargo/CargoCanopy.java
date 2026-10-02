@@ -30,6 +30,8 @@ public final class CargoCanopy {
     private record SelectionKey(WagonPart body,net.minecraft.core.Direction facing,boolean installed) {}
     private SelectionKey selectionKey;
     private Map<net.minecraft.core.BlockPos,List<AABB>> selectionCells=Map.of();
+    private com.sange.tm_wagon.material.WagonMaterial material=com.sange.tm_wagon.material.WagonMaterial.DEFAULT;
+    public com.sange.tm_wagon.material.WagonMaterial material() { return material; }
     private final CargoHold hold;
     private boolean installed,frontClosed,rearClosed;
     public static int geometrySignature() { return 31*GEOMETRY.hashCode()+2; }
@@ -104,6 +106,7 @@ public final class CargoCanopy {
         installed=true;frontClosed=rearClosed=false;
         if(!clearAdded(List.of())) { installed=false;return "message.tm_wagon.canopy_blocked"; }
         error=hold.owner().cargoGeometryChanged();if(error!=null) { installed=false;return error; }
+        material=new com.sange.tm_wagon.material.WagonMaterial(com.sange.tm_wagon.material.WoodMaterial.OAK,com.sange.tm_wagon.material.WagonMaterial.of(stack).colour());
         if(!player.getAbilities().instabuild)stack.shrink(1);
         CargoMenus.closeObstructed(hold);hold.changed(true);sound(local,true);return null;
     }
@@ -113,7 +116,7 @@ public final class CargoCanopy {
         if(!installed||!hold.cover().side(local))return "message.tm_wagon.canopy_side";
         installed=false;error=hold.owner().cargoGeometryChanged();if(error!=null) { installed=true;return error; }
         frontClosed=rearClosed=false;
-        player.getInventory().placeItemBackInInventory(new ItemStack(WagonContent.CANOPY.get()));hold.changed(true);sound(local,false);return null;
+        player.getInventory().placeItemBackInInventory(material.stack(WagonContent.CANOPY.get()));hold.changed(true);sound(local,false);return null;
     }
     public String toggle(Player player,Vec3 local,boolean front) {
         String error=hold.cover().permission(player,local);if(error!=null)return error;
@@ -135,15 +138,16 @@ public final class CargoCanopy {
     }
     public void destroy(boolean drops) {
         if(!installed)return;installed=frontClosed=rearClosed=false;
-        if(drops)hold.drop(hold.owner().cargoPose().point(new Vec3(0,BASE,0)),new ItemStack(WagonContent.CANOPY.get()));
+        if(drops)hold.drop(hold.owner().cargoPose().point(new Vec3(0,BASE,0)),material.stack(WagonContent.CANOPY.get()));
     }
     void transferTo(CargoCanopy target) {
-        target.installed=installed;target.frontClosed=frontClosed;target.rearClosed=rearClosed;installed=frontClosed=rearClosed=false;
+        target.material=material;target.installed=installed;target.frontClosed=frontClosed;target.rearClosed=rearClosed;installed=frontClosed=rearClosed=false;
     }
     public CompoundTag save() {
-        var tag=new CompoundTag();tag.putBoolean("Installed",installed);tag.putBoolean("FrontClosed",frontClosed);tag.putBoolean("RearClosed",rearClosed);return tag;
+        var tag=new CompoundTag();tag.put("Material",material.save());tag.putBoolean("Installed",installed);tag.putBoolean("FrontClosed",frontClosed);tag.putBoolean("RearClosed",rearClosed);return tag;
     }
     public void load(CompoundTag tag) {
+        material=com.sange.tm_wagon.material.WagonMaterial.load(tag.getCompound("Material"));
         // Corrupt/foreign data never creates two mutually exclusive accessories.
         installed=tag.getBoolean("Installed")&&!hold.cover().installed();frontClosed=installed&&tag.getBoolean("FrontClosed");rearClosed=installed&&tag.getBoolean("RearClosed");
     }

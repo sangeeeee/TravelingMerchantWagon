@@ -269,12 +269,13 @@ public final class CargoHold {
     }
     public void destroy(boolean drops) {
         cabinet.destroy(drops);
-        cover.destroy(drops);canopy.destroy(drops);
+        boolean remnants=owner instanceof com.sange.tm_wagon.entity.WagonEntity;
+        cover.destroy(drops&&!remnants);canopy.destroy(drops&&!remnants);
         StrawMatSleep.wake(this,null);
         closeMenus();
         for(int i=0;i<MAX_CAPACITY;i++) {
             var entry=entries[i];if(entry==null)continue;Vec3 pos=position(entry);entries[i]=null;
-            if(drops) { drop(pos,entry.returnedItem());dropContents(entry,pos,null); }
+            if(drops) { if(!remnants||entry.kind!=CargoEntry.Kind.STOOL&&entry.kind!=CargoEntry.Kind.STRAW_MAT)drop(pos,entry.returnedItem());dropContents(entry,pos,null); }
             else entry.inventory.clearContent();
         }
     }

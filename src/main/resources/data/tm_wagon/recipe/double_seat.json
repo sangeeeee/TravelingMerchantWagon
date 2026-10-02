@@ -1,0 +1,9 @@
+{
+  "type": "tm_wagon:component",
+  "component": "double_seat",
+  "pattern": [
+    "PPP",
+    "WWW",
+    " D "
+  ]
+}

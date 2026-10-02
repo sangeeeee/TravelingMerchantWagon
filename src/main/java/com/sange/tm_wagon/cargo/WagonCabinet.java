@@ -27,6 +27,8 @@ import net.minecraft.world.phys.Vec3;
 public final class WagonCabinet {
     public static final int DRAWER_TICKS=5;
     public static final double BOTTOM=24.04/16,TOP=29.96/16,FRONT=-34.15/16,BACK=-23.52/16;
+    private com.sange.tm_wagon.material.WagonMaterial material=com.sange.tm_wagon.material.WagonMaterial.DEFAULT;
+    public com.sange.tm_wagon.material.WagonMaterial material() { return material; }
     private final CargoHold hold;
     private Store store;
     private boolean installed;
@@ -92,6 +94,7 @@ public final class WagonCabinet {
         if(!(hold.owner() instanceof AssemblyFrameBlockEntity))return "message.tm_wagon.cabinet_block_only";
         if(installed||side(local)<0||stack.isEmpty()||!(stack.getItem() instanceof WagonCabinetItem))return "message.tm_wagon.cabinet_side";
         rows=hold.owner().cargoSeat().seatCapacity()==2?6:3;installed=true;store=new Store(this,rows*9);
+        material=new com.sange.tm_wagon.material.WagonMaterial(com.sange.tm_wagon.material.WagonMaterial.of(stack).wood(),net.minecraft.world.item.DyeColor.WHITE);
         if(!p.getAbilities().instabuild)stack.shrink(1);
         hold.changed(true);sound(local,SoundEvents.WOOD_PLACE);return null;
     }
@@ -99,7 +102,7 @@ public final class WagonCabinet {
         String error=hold.cover().permission(p,local);if(error!=null)return error;
         if(!installed||!box().inflate(.035).contains(local))return "message.tm_wagon.cabinet_side";
         destroy(true);
-        p.getInventory().placeItemBackInInventory(new ItemStack(WagonContent.CABINET.get()));
+        p.getInventory().placeItemBackInInventory(material.stack(WagonContent.CABINET.get()));
         hold.changed(true);sound(local,SoundEvents.WOOD_BREAK);return null;
     }
     public boolean valid(Player p) {
@@ -145,13 +148,13 @@ public final class WagonCabinet {
     }
     void transferTo(WagonCabinet target) {
         if(target.installed||target.store!=null)throw new IllegalStateException("Cabinet target already owns inventory");
-        target.installed=installed;target.rows=rows;target.store=store;
+        target.material=material;target.installed=installed;target.rows=rows;target.store=store;
         if(store!=null)store.cabinet=target;
         installed=false;store=null;rows=0;resetDrawers();target.resetDrawers();
     }
     private void resetDrawers() { for(Drawer d:drawers) { d.open=false;d.from=0;d.start=Long.MIN_VALUE; } }
     public CompoundTag save(HolderLookup.Provider lookup,boolean visual) {
-        var tag=new CompoundTag();tag.putBoolean("Installed",installed);tag.putInt("Rows",rows);
+        var tag=new CompoundTag();tag.put("Material",material.save());tag.putBoolean("Installed",installed);tag.putInt("Rows",rows);
         if(visual)for(int i=0;i<2;i++) {
             var d=new CompoundTag();d.putBoolean("Open",drawers[i].open);d.putLong("Start",drawers[i].start);d.putFloat("From",drawers[i].from);tag.put("Drawer"+i,d);
         }
@@ -163,6 +166,7 @@ public final class WagonCabinet {
         return tag;
     }
     void load(CompoundTag tag,HolderLookup.Provider lookup) {
+        material=com.sange.tm_wagon.material.WagonMaterial.load(tag.getCompound("Material"));
         installed=tag.getBoolean("Installed");rows=tag.getInt("Rows")==6?6:3;store=null;resetDrawers();
         if(!installed) { rows=0;return; }
         boolean client=hold.owner().cargoLevel()!=null&&hold.owner().cargoLevel().isClientSide;

@@ -1,0 +1,9 @@
+{
+  "type": "tm_wagon:component",
+  "component": "wagon_assembly_frame",
+  "pattern": [
+    "SPS",
+    " S ",
+    "SSS"
+  ]
+}

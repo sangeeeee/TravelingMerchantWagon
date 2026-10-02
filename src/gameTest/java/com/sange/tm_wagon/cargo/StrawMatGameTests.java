@@ -85,7 +85,7 @@ public class StrawMatGameTests {
         }
         hold.destroy(true);hold.destroy(true);
         var drops=h.getLevel().getEntitiesOfClass(ItemEntity.class,new AABB(w.position(),w.position()).inflate(5),e->e.getItem().is(WagonContent.STRAW_MAT.get()));
-        h.assertTrue(drops.size()==1&&drops.getFirst().getItem().getCount()==1&&drops.getFirst().getItem().getHoverName().getString().equals("Dry mat"),"Mat destruction duplicated items or lost components");h.succeed();
+        h.assertTrue(drops.isEmpty(),"Entity destruction returned a wagon accessory instead of debris");h.succeed();
     }
     @GameTest(template="assembly_test",timeoutTicks=90)
     public static void straw_mat_block_entity_round_trip_keeps_span_and_content(GameTestHelper h) {

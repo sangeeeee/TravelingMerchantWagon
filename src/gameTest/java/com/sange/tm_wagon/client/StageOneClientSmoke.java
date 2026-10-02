@@ -82,7 +82,7 @@ public class StageOneClientSmoke {
         @Override public void render(GuiGraphics graphics,int mouseX,int mouseY,float partialTick) {
             graphics.fill(0,0,width,height,0xffede6d7);
             graphics.drawCenteredString(font,"TravelingMerchantWagon / native renderer check",width/2,12,0xff463729);
-            if(frames<25) {
+            if(frames<25||frames>=710) {
                 int columns=(int)Math.ceil(Math.sqrt(items.size()));
                 for(int i=0;i<items.size();i++) {
                     int x=width/(columns*2)+(i%columns)*width/columns,y=50+(i/columns)*100;
@@ -116,7 +116,7 @@ public class StageOneClientSmoke {
                     else drawWagon(graphics,wagons.getFirst(),width*3/4,190,42,1);
                     graphics.drawCenteredString(font,i==0?"Block cargo":"Entity cargo",width/4+i*width/2,290,0xff463729);
                 }
-                graphics.drawCenteredString(font,frames>=570?"Plain oak driver seats / top-only boarding / cabinet compatible":frames>=465?"Oak wagon cabinet / single and double seats / independent drawers":frames>=365?"White canopy / internal dark ribs / independent front and rear curtains":frames>=330?"Covered cargo remains visible through the open tailgate":frames>=255?"Grey cargo cover / roll toward rear / reusable cloth meshes":frames>=230?"Extended cargo compartment / 12 slots / rear axle moved":frames>=205?"Oak cargo stool / one slot / half-block height":frames>=180?"Straw mat / three cargo slots / adjacent cargo":frames>=150?"Cargo workstations / book and decorated pot renderers":frames<125?"10 scaled cargo slots / closed containers":"Open chest + shulker / lowered tailgate",width/2,height-40,0xff463729);
+                graphics.drawCenteredString(font,frames>=630?"Mixed wood materials / dyed cushions and cloth":frames>=570?"Plain oak driver seats / top-only boarding / cabinet compatible":frames>=465?"Oak wagon cabinet / single and double seats / independent drawers":frames>=365?"White canopy / internal dark ribs / independent front and rear curtains":frames>=330?"Covered cargo remains visible through the open tailgate":frames>=255?"Grey cargo cover / roll toward rear / reusable cloth meshes":frames>=230?"Extended cargo compartment / 12 slots / rear axle moved":frames>=205?"Oak cargo stool / one slot / half-block height":frames>=180?"Straw mat / three cargo slots / adjacent cargo":frames>=150?"Cargo workstations / book and decorated pot renderers":frames<125?"10 scaled cargo slots / closed containers":"Open chest + shulker / lowered tailgate",width/2,height-40,0xff463729);
                 if(frames>=180) {
                     int x=width/2-24,y=40;graphics.fill(x,y,x+48,y+48,0xffd0c5af);
                     graphics.pose().pushPose();graphics.pose().translate(x,y,0);graphics.pose().scale(3,3,3);
@@ -175,7 +175,45 @@ public class StageOneClientSmoke {
             if(frames==585)save("wagon-wooden-seats.png");
             if(frames==600)loadWoodenSeatPreview(true);
             if(frames==615)save("wagon-wooden-seats-extended.png");
-            if(frames==630) {LogUtils.getLogger().info("TM_WAGON_CLIENT_SMOKE_PASS: cargo, work blocks, four driver seats, roofs and adaptive cabinets in both forms");Minecraft.getInstance().stop();}
+            if(frames==630)loadMaterialPreview(0);
+            if(frames==645)save("wagon-mixed-materials.png");
+            if(frames==655)loadMaterialPreview(1);
+            if(frames==670)save("wagon-dyed-cover.png");
+            if(frames==680)loadMaterialPreview(2);
+            if(frames==695)save("wagon-dyed-canopy.png");
+            if(frames==710)verifyMaterialItems();
+            if(frames==725)save("wagon-material-items.png");
+            if(frames==735) {LogUtils.getLogger().info("TM_WAGON_CLIENT_SMOKE_PASS: cargo, work blocks, four driver seats, roofs and adaptive cabinets in both forms");Minecraft.getInstance().stop();}
+        }
+        private void loadMaterialPreview(int roofKind) {
+            var registry=net.minecraft.core.RegistryAccess.fromRegistryOfRegistries(net.minecraft.core.registries.BuiltInRegistries.REGISTRY);
+            for(int i=0;i<2;i++) {
+                var parts=com.sange.tm_wagon.entity.WagonEntity.defaultParts();parts.put(WagonSlot.BODY,WagonPart.LONG_CARGO_BODY);parts.put(WagonSlot.SEAT,WagonPart.DOUBLE_SEAT);
+                var styles=new java.util.EnumMap<WagonSlot,com.sange.tm_wagon.material.WagonMaterial>(WagonSlot.class);
+                for(var slot:WagonSlot.values())styles.put(slot,new com.sange.tm_wagon.material.WagonMaterial(com.sange.tm_wagon.material.WoodMaterial.values()[(slot.ordinal()+i*3+1)%10],slot==WagonSlot.SEAT?net.minecraft.world.item.DyeColor.RED:net.minecraft.world.item.DyeColor.WHITE));
+                var cargo=new CompoundTag();cargo.putLong("GateStart",Long.MIN_VALUE);
+                var cabinet=new CompoundTag();cabinet.putBoolean("Installed",true);cabinet.putInt("Rows",6);cabinet.put("Material",new com.sange.tm_wagon.material.WagonMaterial(com.sange.tm_wagon.material.WoodMaterial.CHERRY,net.minecraft.world.item.DyeColor.WHITE).save());
+                var drawer=new CompoundTag();drawer.putBoolean("Open",true);drawer.putLong("Start",Long.MIN_VALUE);cabinet.put("Drawer1",drawer);cargo.put("Cabinet",cabinet);
+                if(roofKind!=0) {var roof=new CompoundTag();roof.putBoolean("Installed",true);roof.putInt("OpenRows",2);roof.put("Material",new com.sange.tm_wagon.material.WagonMaterial(com.sange.tm_wagon.material.WoodMaterial.OAK,i==0?net.minecraft.world.item.DyeColor.BLUE:net.minecraft.world.item.DyeColor.GREEN).save());cargo.put(roofKind==1?"Cover":"Canopy",roof);}
+                if(i==0) {var tag=new CompoundTag();tag.put("Modules",com.sange.tm_wagon.entity.WagonEntity.encode(parts));tag.put("Materials",com.sange.tm_wagon.material.WagonMaterial.save(styles));tag.put("Cargo",cargo);assemblies.getFirst().loadWithComponents(tag,registry);}
+                else {var w=wagons.getFirst();w.configure(parts,Direction.NORTH);w.setMaterials(styles);w.cargo().load(cargo,registry);w.cargoGeometryChanged();}
+            }
+        }
+        private void verifyMaterialItems() {
+            items.clear();var mc=Minecraft.getInstance();
+            for(var wood:com.sange.tm_wagon.material.WoodMaterial.values()) {
+                var material=new com.sange.tm_wagon.material.WagonMaterial(wood,net.minecraft.world.item.DyeColor.WHITE);
+                var stack=material.stack(WagonContent.STOOL.get());var model=mc.getItemRenderer().getModel(stack,null,null,0);
+                if(model==mc.getModelManager().getMissingModel())throw new IllegalStateException("Missing material item: "+wood);
+                var texture=model.getParticleIcon().contents().name();
+                if(!texture.getPath().equals("component/wagon_stool/"+wood.getSerializedName()))throw new IllegalStateException("Wrong stool texture: "+texture);
+                items.add(stack);
+                for(String size:new String[]{"single","double"})for(String part:new String[]{"body","left","right"}) {
+                    var id=net.minecraft.client.resources.model.ModelResourceLocation.standalone(net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("tm_wagon","block/material/cabinet_"+wood.getSerializedName()+"_"+size+"_"+part));
+                    if(mc.getModelManager().getModel(id)==mc.getModelManager().getMissingModel())throw new IllegalStateException("Missing wood cabinet: "+id);
+                }
+            }
+            LogUtils.getLogger().info("TM_WAGON_MATERIAL_RENDER_PASS: ten item variants, sixty cabinet meshes, mixed wagon wood and dyed roofs");
         }
         private boolean lowAngle() { return frames>=465||frames>=330&&frames<365||frames>=390&&frames<410; }
         private void loadWoodenSeatPreview(boolean extended) {
@@ -216,7 +254,7 @@ public class StageOneClientSmoke {
             }
             var manager=Minecraft.getInstance().getModelManager();
             for(String size:new String[]{"single","double"})for(String part:new String[]{"body","left","right"}) {
-                var id=net.minecraft.client.resources.model.ModelResourceLocation.standalone(net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("tm_wagon","block/cabinet_"+size+"_"+part));
+                var id=net.minecraft.client.resources.model.ModelResourceLocation.standalone(net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("tm_wagon","block/material/cabinet_oak_"+size+"_"+part));
                 if(manager.getModel(id)==manager.getMissingModel())throw new IllegalStateException("Missing cabinet mesh "+id);
             }
             if(manager.getModel(net.minecraft.client.resources.model.ModelResourceLocation.inventory(net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("tm_wagon","wagon_cabinet")))==manager.getMissingModel())throw new IllegalStateException("Missing cabinet item");
