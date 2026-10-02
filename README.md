@@ -208,6 +208,12 @@ Additional Resources:
 Community Documentation: https://docs.neoforged.net/  
 NeoForged Discord: https://discord.neoforged.net/
 
+组件材质资源已预备在 `src/main/resources/assets/tm_wagon/textures/component/`：10 种原版木材（不含竹子）分别提供货物车厢、加长货物车厢、单双人带靠背座椅、单双人木制座位、大小车轮、木凳与马车柜，共 100 张静态 PNG。木材配色、纹路笔画和树皮特征在 `tools/materials/wood_art.json` 中单独设计，`tools/prepare_component_materials.py` 仅在开发阶段将其输出为资源，不读取原版木纹，也不在游戏中动态生成。
+
+材质清单与 UV 区域位于 `assets/tm_wagon/component_materials.json`。马车组件图集为 64×64，木凳为 16×16，马车柜为 32×32；柜体图集分别提供木板、去皮木、抽屉内部和铁把手区域，后续接入时需要匹配对应 UV。`textures/component/dye/` 提供一张共用坐垫灰度图，以及覆盖布表面、布卷端面、车篷和半幅帘子的灰度图。坐垫为 16×16，布料为 64×64（保持粗像素纹理）；全部染色输入满足 R=G=B。带靠背座椅图集中的坐垫区也使用同一灰度纹理，染色只能作用于该区域，不能染色整张木材图集。
+
+本阶段仅准备资源，不启用木材／颜色变种、不更换当前模型贴图，也未添加配方。后续按合成羊毛记录颜色，并保留绳索、金属件与木支架的原色。材质总览位于 `modeling/materials/wood-components.png` 与 `modeling/materials/grayscale-fabrics.png`。
+
 马车柜：方块形态下，手持马车柜右键座位下方侧面安装；两种形态均可潜行右键拆卸，返还空柜并掉出内容。单人座 27 格、双人座 54 格，两端抽屉共用库存；方块／实体形态均可手持物品右键抽屉面使用原版箱子界面。抽屉开合为 5 tick、弹出 0.4 格，无额外碰撞；仅显示状态同步到旁观客户端，库存只在存档及使用界面中传输。形态转换先关闭菜单并移交同一个库存对象；单独破坏方块形态的座位时，分别掉落座位、空马车柜及柜内全部物品；破坏整辆马车时只掉出柜内物品，不返还柜体。建模项目位于 `modeling/wagon_cabinet/`。
 
 车夫座位新增单人／双人纯木版本；原版本命名为单人／双人带靠背车夫座椅。四种座位共用一个必选安装位，只能安装其中一种。木座位为倒 L 结构，座板四周是橡木树皮边框，中间镶嵌一整块横向橡木板，贴图密度较原版木座位提高约一倍，只能点击可见座面上表面入座；双人木座位按点击左右区域选择位置，左侧为驾驶员。木座位坐乘高度按木座面调整，离座站在对应座面上方。两种木座位均可安装马车柜，容量与相应人数的带靠背版本一致，安装、拆卸、破坏及形态转换沿用同一库存流程。Blockbench 项目及生成说明见 `modeling/open_cargo_wagon/wooden_seats/README.md`。

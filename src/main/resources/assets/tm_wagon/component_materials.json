@@ -1,0 +1,1259 @@
+{
+  "format_version": 1,
+  "status": "prepared_assets_not_yet_wired_to_models",
+  "wood_sources": {
+    "oak": {
+      "zh_name": "橡木",
+      "en_name": "Oak",
+      "planks": "minecraft:oak_planks",
+      "log": "minecraft:oak_log",
+      "stripped_log": "minecraft:stripped_oak_log",
+      "trapdoor": "minecraft:oak_trapdoor"
+    },
+    "spruce": {
+      "zh_name": "云杉木",
+      "en_name": "Spruce",
+      "planks": "minecraft:spruce_planks",
+      "log": "minecraft:spruce_log",
+      "stripped_log": "minecraft:stripped_spruce_log",
+      "trapdoor": "minecraft:spruce_trapdoor"
+    },
+    "birch": {
+      "zh_name": "白桦木",
+      "en_name": "Birch",
+      "planks": "minecraft:birch_planks",
+      "log": "minecraft:birch_log",
+      "stripped_log": "minecraft:stripped_birch_log",
+      "trapdoor": "minecraft:birch_trapdoor"
+    },
+    "jungle": {
+      "zh_name": "丛林木",
+      "en_name": "Jungle",
+      "planks": "minecraft:jungle_planks",
+      "log": "minecraft:jungle_log",
+      "stripped_log": "minecraft:stripped_jungle_log",
+      "trapdoor": "minecraft:jungle_trapdoor"
+    },
+    "acacia": {
+      "zh_name": "金合欢木",
+      "en_name": "Acacia",
+      "planks": "minecraft:acacia_planks",
+      "log": "minecraft:acacia_log",
+      "stripped_log": "minecraft:stripped_acacia_log",
+      "trapdoor": "minecraft:acacia_trapdoor"
+    },
+    "dark_oak": {
+      "zh_name": "深色橡木",
+      "en_name": "Dark Oak",
+      "planks": "minecraft:dark_oak_planks",
+      "log": "minecraft:dark_oak_log",
+      "stripped_log": "minecraft:stripped_dark_oak_log",
+      "trapdoor": "minecraft:dark_oak_trapdoor"
+    },
+    "mangrove": {
+      "zh_name": "红树木",
+      "en_name": "Mangrove",
+      "planks": "minecraft:mangrove_planks",
+      "log": "minecraft:mangrove_log",
+      "stripped_log": "minecraft:stripped_mangrove_log",
+      "trapdoor": "minecraft:mangrove_trapdoor"
+    },
+    "cherry": {
+      "zh_name": "樱花木",
+      "en_name": "Cherry",
+      "planks": "minecraft:cherry_planks",
+      "log": "minecraft:cherry_log",
+      "stripped_log": "minecraft:stripped_cherry_log",
+      "trapdoor": "minecraft:cherry_trapdoor"
+    },
+    "crimson": {
+      "zh_name": "绯红木",
+      "en_name": "Crimson",
+      "planks": "minecraft:crimson_planks",
+      "log": "minecraft:crimson_stem",
+      "stripped_log": "minecraft:stripped_crimson_stem",
+      "trapdoor": "minecraft:crimson_trapdoor"
+    },
+    "warped": {
+      "zh_name": "诡异木",
+      "en_name": "Warped",
+      "planks": "minecraft:warped_planks",
+      "log": "minecraft:warped_stem",
+      "stripped_log": "minecraft:stripped_warped_stem",
+      "trapdoor": "minecraft:warped_trapdoor"
+    }
+  },
+  "allow_bamboo": false,
+  "allow_modded_wood_crafting": false,
+  "layouts": {
+    "wagon_atlas": {
+      "size": [
+        64,
+        64
+      ],
+      "regions": {
+        "planks": [
+          0,
+          0,
+          32,
+          32
+        ],
+        "bark": [
+          32,
+          0,
+          16,
+          32
+        ],
+        "end": [
+          48,
+          0,
+          16,
+          16
+        ],
+        "cushion": [
+          48,
+          16,
+          16,
+          16
+        ],
+        "iron": [
+          0,
+          32,
+          16,
+          16
+        ],
+        "spoke": [
+          16,
+          32,
+          16,
+          16
+        ],
+        "leather": [
+          32,
+          32,
+          16,
+          16
+        ],
+        "light": [
+          48,
+          32,
+          16,
+          16
+        ],
+        "brass": [
+          0,
+          48,
+          16,
+          16
+        ],
+        "rim": [
+          16,
+          48,
+          16,
+          16
+        ],
+        "stripped": [
+          32,
+          48,
+          16,
+          16
+        ],
+        "end_dark": [
+          48,
+          48,
+          16,
+          16
+        ]
+      }
+    },
+    "wood_tile": {
+      "size": [
+        16,
+        16
+      ],
+      "regions": {
+        "planks": [
+          0,
+          0,
+          16,
+          16
+        ]
+      }
+    },
+    "cabinet_atlas": {
+      "size": [
+        32,
+        32
+      ],
+      "regions": {
+        "planks": [
+          0,
+          0,
+          16,
+          16
+        ],
+        "stripped": [
+          16,
+          0,
+          16,
+          16
+        ],
+        "interior": [
+          0,
+          16,
+          16,
+          16
+        ],
+        "iron": [
+          16,
+          16,
+          16,
+          16
+        ]
+      }
+    }
+  },
+  "components": {
+    "cargo_body": {
+      "zh_name": "货物车厢",
+      "en_name": "Cargo Body",
+      "layout": "wagon_atlas",
+      "textures": {
+        "oak": "tm_wagon:component/cargo_body/oak",
+        "spruce": "tm_wagon:component/cargo_body/spruce",
+        "birch": "tm_wagon:component/cargo_body/birch",
+        "jungle": "tm_wagon:component/cargo_body/jungle",
+        "acacia": "tm_wagon:component/cargo_body/acacia",
+        "dark_oak": "tm_wagon:component/cargo_body/dark_oak",
+        "mangrove": "tm_wagon:component/cargo_body/mangrove",
+        "cherry": "tm_wagon:component/cargo_body/cherry",
+        "crimson": "tm_wagon:component/cargo_body/crimson",
+        "warped": "tm_wagon:component/cargo_body/warped"
+      },
+      "dyed_regions": []
+    },
+    "long_cargo_body": {
+      "zh_name": "加长货物车厢",
+      "en_name": "Extended Cargo Body",
+      "layout": "wagon_atlas",
+      "textures": {
+        "oak": "tm_wagon:component/long_cargo_body/oak",
+        "spruce": "tm_wagon:component/long_cargo_body/spruce",
+        "birch": "tm_wagon:component/long_cargo_body/birch",
+        "jungle": "tm_wagon:component/long_cargo_body/jungle",
+        "acacia": "tm_wagon:component/long_cargo_body/acacia",
+        "dark_oak": "tm_wagon:component/long_cargo_body/dark_oak",
+        "mangrove": "tm_wagon:component/long_cargo_body/mangrove",
+        "cherry": "tm_wagon:component/long_cargo_body/cherry",
+        "crimson": "tm_wagon:component/long_cargo_body/crimson",
+        "warped": "tm_wagon:component/long_cargo_body/warped"
+      },
+      "dyed_regions": []
+    },
+    "single_seat": {
+      "zh_name": "单人带靠背座椅",
+      "en_name": "Single Backrest Driver Seat",
+      "layout": "wagon_atlas",
+      "textures": {
+        "oak": "tm_wagon:component/single_seat/oak",
+        "spruce": "tm_wagon:component/single_seat/spruce",
+        "birch": "tm_wagon:component/single_seat/birch",
+        "jungle": "tm_wagon:component/single_seat/jungle",
+        "acacia": "tm_wagon:component/single_seat/acacia",
+        "dark_oak": "tm_wagon:component/single_seat/dark_oak",
+        "mangrove": "tm_wagon:component/single_seat/mangrove",
+        "cherry": "tm_wagon:component/single_seat/cherry",
+        "crimson": "tm_wagon:component/single_seat/crimson",
+        "warped": "tm_wagon:component/single_seat/warped"
+      },
+      "dyed_regions": [
+        "cushion"
+      ],
+      "dye_texture": "tm_wagon:component/dye/seat_cushion"
+    },
+    "double_seat": {
+      "zh_name": "双人带靠背座椅",
+      "en_name": "Double Backrest Driver Seat",
+      "layout": "wagon_atlas",
+      "textures": {
+        "oak": "tm_wagon:component/double_seat/oak",
+        "spruce": "tm_wagon:component/double_seat/spruce",
+        "birch": "tm_wagon:component/double_seat/birch",
+        "jungle": "tm_wagon:component/double_seat/jungle",
+        "acacia": "tm_wagon:component/double_seat/acacia",
+        "dark_oak": "tm_wagon:component/double_seat/dark_oak",
+        "mangrove": "tm_wagon:component/double_seat/mangrove",
+        "cherry": "tm_wagon:component/double_seat/cherry",
+        "crimson": "tm_wagon:component/double_seat/crimson",
+        "warped": "tm_wagon:component/double_seat/warped"
+      },
+      "dyed_regions": [
+        "cushion"
+      ],
+      "dye_texture": "tm_wagon:component/dye/seat_cushion"
+    },
+    "small_wheel": {
+      "zh_name": "小车轮",
+      "en_name": "Small Wheel",
+      "layout": "wagon_atlas",
+      "textures": {
+        "oak": "tm_wagon:component/small_wheel/oak",
+        "spruce": "tm_wagon:component/small_wheel/spruce",
+        "birch": "tm_wagon:component/small_wheel/birch",
+        "jungle": "tm_wagon:component/small_wheel/jungle",
+        "acacia": "tm_wagon:component/small_wheel/acacia",
+        "dark_oak": "tm_wagon:component/small_wheel/dark_oak",
+        "mangrove": "tm_wagon:component/small_wheel/mangrove",
+        "cherry": "tm_wagon:component/small_wheel/cherry",
+        "crimson": "tm_wagon:component/small_wheel/crimson",
+        "warped": "tm_wagon:component/small_wheel/warped"
+      },
+      "dyed_regions": []
+    },
+    "large_wheel": {
+      "zh_name": "大车轮",
+      "en_name": "Large Wheel",
+      "layout": "wagon_atlas",
+      "textures": {
+        "oak": "tm_wagon:component/large_wheel/oak",
+        "spruce": "tm_wagon:component/large_wheel/spruce",
+        "birch": "tm_wagon:component/large_wheel/birch",
+        "jungle": "tm_wagon:component/large_wheel/jungle",
+        "acacia": "tm_wagon:component/large_wheel/acacia",
+        "dark_oak": "tm_wagon:component/large_wheel/dark_oak",
+        "mangrove": "tm_wagon:component/large_wheel/mangrove",
+        "cherry": "tm_wagon:component/large_wheel/cherry",
+        "crimson": "tm_wagon:component/large_wheel/crimson",
+        "warped": "tm_wagon:component/large_wheel/warped"
+      },
+      "dyed_regions": []
+    },
+    "single_wooden_seat": {
+      "zh_name": "单人木制座位",
+      "en_name": "Single Wooden Driver Seat",
+      "layout": "wagon_atlas",
+      "textures": {
+        "oak": "tm_wagon:component/single_wooden_seat/oak",
+        "spruce": "tm_wagon:component/single_wooden_seat/spruce",
+        "birch": "tm_wagon:component/single_wooden_seat/birch",
+        "jungle": "tm_wagon:component/single_wooden_seat/jungle",
+        "acacia": "tm_wagon:component/single_wooden_seat/acacia",
+        "dark_oak": "tm_wagon:component/single_wooden_seat/dark_oak",
+        "mangrove": "tm_wagon:component/single_wooden_seat/mangrove",
+        "cherry": "tm_wagon:component/single_wooden_seat/cherry",
+        "crimson": "tm_wagon:component/single_wooden_seat/crimson",
+        "warped": "tm_wagon:component/single_wooden_seat/warped"
+      },
+      "dyed_regions": []
+    },
+    "double_wooden_seat": {
+      "zh_name": "双人木制座位",
+      "en_name": "Double Wooden Driver Seat",
+      "layout": "wagon_atlas",
+      "textures": {
+        "oak": "tm_wagon:component/double_wooden_seat/oak",
+        "spruce": "tm_wagon:component/double_wooden_seat/spruce",
+        "birch": "tm_wagon:component/double_wooden_seat/birch",
+        "jungle": "tm_wagon:component/double_wooden_seat/jungle",
+        "acacia": "tm_wagon:component/double_wooden_seat/acacia",
+        "dark_oak": "tm_wagon:component/double_wooden_seat/dark_oak",
+        "mangrove": "tm_wagon:component/double_wooden_seat/mangrove",
+        "cherry": "tm_wagon:component/double_wooden_seat/cherry",
+        "crimson": "tm_wagon:component/double_wooden_seat/crimson",
+        "warped": "tm_wagon:component/double_wooden_seat/warped"
+      },
+      "dyed_regions": []
+    },
+    "wagon_stool": {
+      "zh_name": "马车木凳",
+      "en_name": "Wagon Stool",
+      "layout": "wood_tile",
+      "textures": {
+        "oak": "tm_wagon:component/wagon_stool/oak",
+        "spruce": "tm_wagon:component/wagon_stool/spruce",
+        "birch": "tm_wagon:component/wagon_stool/birch",
+        "jungle": "tm_wagon:component/wagon_stool/jungle",
+        "acacia": "tm_wagon:component/wagon_stool/acacia",
+        "dark_oak": "tm_wagon:component/wagon_stool/dark_oak",
+        "mangrove": "tm_wagon:component/wagon_stool/mangrove",
+        "cherry": "tm_wagon:component/wagon_stool/cherry",
+        "crimson": "tm_wagon:component/wagon_stool/crimson",
+        "warped": "tm_wagon:component/wagon_stool/warped"
+      },
+      "dyed_regions": []
+    },
+    "wagon_cabinet": {
+      "zh_name": "马车柜",
+      "en_name": "Wagon Cabinet",
+      "layout": "cabinet_atlas",
+      "textures": {
+        "oak": "tm_wagon:component/wagon_cabinet/oak",
+        "spruce": "tm_wagon:component/wagon_cabinet/spruce",
+        "birch": "tm_wagon:component/wagon_cabinet/birch",
+        "jungle": "tm_wagon:component/wagon_cabinet/jungle",
+        "acacia": "tm_wagon:component/wagon_cabinet/acacia",
+        "dark_oak": "tm_wagon:component/wagon_cabinet/dark_oak",
+        "mangrove": "tm_wagon:component/wagon_cabinet/mangrove",
+        "cherry": "tm_wagon:component/wagon_cabinet/cherry",
+        "crimson": "tm_wagon:component/wagon_cabinet/crimson",
+        "warped": "tm_wagon:component/wagon_cabinet/warped"
+      },
+      "dyed_regions": []
+    }
+  },
+  "dyes": {
+    "source": "crafting_wool_colour",
+    "colours": [
+      "white",
+      "orange",
+      "magenta",
+      "light_blue",
+      "yellow",
+      "lime",
+      "pink",
+      "gray",
+      "light_gray",
+      "cyan",
+      "purple",
+      "blue",
+      "brown",
+      "green",
+      "red",
+      "black"
+    ],
+    "textures": {
+      "seat_cushion": "tm_wagon:component/dye/seat_cushion",
+      "cargo_cover_fabric": "tm_wagon:component/dye/cargo_cover_fabric",
+      "canopy_cloth": "tm_wagon:component/dye/canopy_cloth",
+      "canopy_curtain": "tm_wagon:component/dye/canopy_curtain",
+      "cargo_cover_spiral": "tm_wagon:component/dye/cargo_cover_spiral"
+    },
+    "bindings": {
+      "single_seat": [
+        "seat_cushion"
+      ],
+      "double_seat": [
+        "seat_cushion"
+      ],
+      "wagon_cargo_cover": [
+        "cargo_cover_fabric",
+        "cargo_cover_spiral"
+      ],
+      "wagon_canopy": [
+        "canopy_cloth",
+        "canopy_curtain"
+      ]
+    },
+    "never_tint": [
+      "iron",
+      "brass",
+      "leather",
+      "light",
+      "rope",
+      "canopy_wood",
+      "wood_regions"
+    ]
+  },
+  "files": [
+    {
+      "path": "textures/component/cargo_body/oak.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "1fb07a5fa3ecbe3f3851f55f198cd206d408cf4a92d42c1415c6f64ecae65444"
+    },
+    {
+      "path": "textures/component/cargo_body/spruce.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "3c86afdc0dc7f31d9b40f786e5e6a4b4139ce5a12eba29ed0f309d7fd199ff06"
+    },
+    {
+      "path": "textures/component/cargo_body/birch.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "adc5964460200c12dfe0b3bf22a3557b80cf853b4eca8aa04200ad80f0fdd78e"
+    },
+    {
+      "path": "textures/component/cargo_body/jungle.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "c667ad486af50fba3542adc6e0f409c44f52b219b3217c62f7178fd0c5d3fded"
+    },
+    {
+      "path": "textures/component/cargo_body/acacia.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "c525119ec696694b6a83209c85f465fce7a90d2eafc818ce96e45511fe1333bf"
+    },
+    {
+      "path": "textures/component/cargo_body/dark_oak.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "7b7aef57e135844064bef73ef3f0bb961a0bae5c81978bd023fb57153ab5bf13"
+    },
+    {
+      "path": "textures/component/cargo_body/mangrove.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "7d7bb6ee591dfd930843d9f387feb2f6092b60c380b8ae423f668191d0471979"
+    },
+    {
+      "path": "textures/component/cargo_body/cherry.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "f01baa3907689ff1e1120b99fd58ced0d11be42ee82f01f910351c409a262cc6"
+    },
+    {
+      "path": "textures/component/cargo_body/crimson.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "a83f78ffe4f2bfbda62588c01dab1a6c4a5a8f119e3a493ff5bd3ce2b305f456"
+    },
+    {
+      "path": "textures/component/cargo_body/warped.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "988395b28bf5cae1c1bfc408eb0e811ecf71c71109098dd3295ca83dacd1ec0b"
+    },
+    {
+      "path": "textures/component/long_cargo_body/oak.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "2abb2676f7ef9e635eaf57268875e210cc72e3560502e3da8519d3b3edb1ece9"
+    },
+    {
+      "path": "textures/component/long_cargo_body/spruce.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "a8c81318047d24e6c3bb98885cf19186c7d1175ee79fd51844f9877d21caaefb"
+    },
+    {
+      "path": "textures/component/long_cargo_body/birch.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "8b8dc909a27d89095e04913dbe291079d4d8b8dc55e16007f3192ee47a9f155d"
+    },
+    {
+      "path": "textures/component/long_cargo_body/jungle.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "abef99325535f31d4965c094608a8e4444b443a80d2aaf2dfbc602f81181c3d7"
+    },
+    {
+      "path": "textures/component/long_cargo_body/acacia.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "69f2472981c418a805fc57dacf4195b8fb476695a75b5a946a1e50582da63bb2"
+    },
+    {
+      "path": "textures/component/long_cargo_body/dark_oak.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "1831ccd3ff38d09a66dbd3de8e150f4fc2244fe7794f3c1a5cdea0e3e987c684"
+    },
+    {
+      "path": "textures/component/long_cargo_body/mangrove.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "e5add037435ce8b4bb1e3147acfa52b5f1bcad7b951966a05ea85ac21ae75b38"
+    },
+    {
+      "path": "textures/component/long_cargo_body/cherry.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "25b8864ee5f0366479df54857898a12df922c6bc86b172bc481059054be28d6e"
+    },
+    {
+      "path": "textures/component/long_cargo_body/crimson.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "4561fc556d81f5e11e74b13654a8fc48b46586347cfaa4340774ef7b94e691f0"
+    },
+    {
+      "path": "textures/component/long_cargo_body/warped.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "b9f52e875576e201b5943beb93a42b4435360f1951fe3cd5426cdcdce6b2a2d1"
+    },
+    {
+      "path": "textures/component/single_seat/oak.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "ff444d955859f55dfc564a875c5dc438ea5499b5fa534f636e6c4f1256378671"
+    },
+    {
+      "path": "textures/component/single_seat/spruce.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "d7e1b58f1827cda7cb49397663a2f3259eb9a7bfdfd4cc980cbcd840413d048a"
+    },
+    {
+      "path": "textures/component/single_seat/birch.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "4174d257f174a23a9b726aa4550b3979ea6c1e4d3365586e1e519610f2ae4703"
+    },
+    {
+      "path": "textures/component/single_seat/jungle.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "b07521451163e43252dce94dee688248cd8a5466894065d18910bc765f03b7be"
+    },
+    {
+      "path": "textures/component/single_seat/acacia.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "eaf2576810183aa41b7f00cda286ee6c0b3c622d5d85f2e4d3321dabb838cd40"
+    },
+    {
+      "path": "textures/component/single_seat/dark_oak.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "aaacecf33e7efdf4d34c8affa81631564af5e37e99d57b527fbcead1e9b1e6f8"
+    },
+    {
+      "path": "textures/component/single_seat/mangrove.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "745a3f72ce0d002f7d139076763b05117fab68dca383895532afdaf2a8088c16"
+    },
+    {
+      "path": "textures/component/single_seat/cherry.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "6232f83f73ed4e1713a3ac55b862b8f0439dec46315f899d43bbc257041957ba"
+    },
+    {
+      "path": "textures/component/single_seat/crimson.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "2b0127be17685e5b692cbb27add08ae520aa78c4bd161bc421a66787d40e3d19"
+    },
+    {
+      "path": "textures/component/single_seat/warped.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "8d01f5f88256471285afa3fe170beaba42d19067bb1db41c55798ec939b50eac"
+    },
+    {
+      "path": "textures/component/double_seat/oak.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "cb5fd49723453033fc9dfa32f007187496256f932d059e5ae8e5c7eca84fa121"
+    },
+    {
+      "path": "textures/component/double_seat/spruce.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "5b11ac2672dfc1c5c1b3bda5c1e3dc340f40c9d7d7f8886ed5bd03eb7f76799f"
+    },
+    {
+      "path": "textures/component/double_seat/birch.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "92b5b0127fe85060ec0da0a3652f518260a375676fa61fa9d5df835ca94a54cf"
+    },
+    {
+      "path": "textures/component/double_seat/jungle.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "a3aad643165ac6d515dc73ee1e719bebad7aa97ccd52cf27aad0c41941738f1f"
+    },
+    {
+      "path": "textures/component/double_seat/acacia.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "294bb0e6f43abf37e513ab144e70968c612e30846046689a5f9aba7c00564902"
+    },
+    {
+      "path": "textures/component/double_seat/dark_oak.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "ab5cc110cb846ca5aab22ddf7d299d15cba8da7b04a6178ed46d055af144efa2"
+    },
+    {
+      "path": "textures/component/double_seat/mangrove.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "073a5b163e6752b5b76ac2fb2e1a372752a2b0652f5de01a494a199a2d1ce691"
+    },
+    {
+      "path": "textures/component/double_seat/cherry.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "9a76b28a8344708df89e6d66ebd0022cac39aa137a7370bf437ce7244710654c"
+    },
+    {
+      "path": "textures/component/double_seat/crimson.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "fdeddb921b158ebb252d62ec937f921336798465cf5aefba62bccf8b0b15ec4f"
+    },
+    {
+      "path": "textures/component/double_seat/warped.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "db06307f4671196f6a0970f4000282a1540601fc292f927a73aa75e24e01e25b"
+    },
+    {
+      "path": "textures/component/small_wheel/oak.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "cd5b7f49ef5e2d31d767f758044487f3c2e6d2f2c17657b9fec7535fd9d0536d"
+    },
+    {
+      "path": "textures/component/small_wheel/spruce.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "74321acb58adaa423af0a9fcdd4c649bdd330918784b4d5e919008309dde3238"
+    },
+    {
+      "path": "textures/component/small_wheel/birch.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "9c5315c93ce560196d62f553196f3fdda6e5c0649a1fe00e3f54617a7a1e5589"
+    },
+    {
+      "path": "textures/component/small_wheel/jungle.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "a86b04f171102d542641c1a070e6a456d18f30a5aff02cdccbd97ae824b1134e"
+    },
+    {
+      "path": "textures/component/small_wheel/acacia.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "71b749cad7e8054787b7e1340833ac729a5630b49911014259ad572e509d8e6a"
+    },
+    {
+      "path": "textures/component/small_wheel/dark_oak.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "c52af3684371c6e4054dcc85874f60fda3be882e8ba7fadf25bd4b80f42bfdb1"
+    },
+    {
+      "path": "textures/component/small_wheel/mangrove.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "8845ecf5d85e5581e5c1f93edc5db3e328d45dde1824edbd4a736295ce62fb9d"
+    },
+    {
+      "path": "textures/component/small_wheel/cherry.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "42792031e6927f8e9e848f5596d96db0f501fb4d24b1814750d804ed2305ef15"
+    },
+    {
+      "path": "textures/component/small_wheel/crimson.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "d0f964d0fcb9ab492d8a8914418df23474d30d086e06e58f825155f074c3f419"
+    },
+    {
+      "path": "textures/component/small_wheel/warped.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "ee8bdf58d25d290208b42ce26de1d22436f52bbb4e73a5eca86478535cc7d97f"
+    },
+    {
+      "path": "textures/component/large_wheel/oak.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "6a92efefff865b3a8c5797af61ca25fec0a8adc507f8d427c2c7daf604a4b123"
+    },
+    {
+      "path": "textures/component/large_wheel/spruce.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "0ca468198adb8e9d09b77a06a7b75c1257ae33f537df19533ce328ec25d845c1"
+    },
+    {
+      "path": "textures/component/large_wheel/birch.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "7ba98918db327652d1dc1dfa3c25d5e3ab28a95a7e87e73f3943d129819f449b"
+    },
+    {
+      "path": "textures/component/large_wheel/jungle.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "3c8a20a2b79afd94856a2a1b5994cbc874ff700224864ccc104bbfc9225e44c4"
+    },
+    {
+      "path": "textures/component/large_wheel/acacia.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "19da760aa8fb7c6944d873ddb4f8bbf0a9ba5dc4eeeb9fc5c0a9a90da0a24514"
+    },
+    {
+      "path": "textures/component/large_wheel/dark_oak.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "55d2244cb6f15942b4eca8adb264427f872b04a6b6532d3291ecd5ae6b1415ac"
+    },
+    {
+      "path": "textures/component/large_wheel/mangrove.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "47a187cc0c7c22f51a4fc2e81b07fcc2e79b27093bb8f0efd8b37e08950e88a0"
+    },
+    {
+      "path": "textures/component/large_wheel/cherry.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "04ff2cdf28cb854abcc3ee8c5a0119ab6319f21154a15ca5671df29de177ca2a"
+    },
+    {
+      "path": "textures/component/large_wheel/crimson.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "8810897a8bf1c56648b4910d20e3743342942ea5a2027f2695493b908dc5edf8"
+    },
+    {
+      "path": "textures/component/large_wheel/warped.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "906294572300cf11ed551694f7c1a6c552b785f5bfa376e93db20a289e4e1bed"
+    },
+    {
+      "path": "textures/component/single_wooden_seat/oak.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "0827c036c6f5c23ae1b0414c776b2a6ed1482bde0ac07834adc7f9e80501af25"
+    },
+    {
+      "path": "textures/component/single_wooden_seat/spruce.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "4fb21d5e1298e83acee03da0b0faa7fbb051d770c7474cdb992200d4ee883ce7"
+    },
+    {
+      "path": "textures/component/single_wooden_seat/birch.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "86593b8444d55bb3d7aee5ceaa7ab76af844435a4aa284a996cc2182cbdb6f69"
+    },
+    {
+      "path": "textures/component/single_wooden_seat/jungle.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "8d54f2c5da48c44099c389bbe115fb8734e6e44cdb4b7f391bc91913ac88b8e0"
+    },
+    {
+      "path": "textures/component/single_wooden_seat/acacia.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "0ba184fdf22028a9930951c22e69684afd9d640e38e2c340cfab0ecb796bcc94"
+    },
+    {
+      "path": "textures/component/single_wooden_seat/dark_oak.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "0392984bef2ba19791df05a593b4352bb4c6d80674cb6d1b1ad3feb00dec686f"
+    },
+    {
+      "path": "textures/component/single_wooden_seat/mangrove.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "8bb4b5f138c4172d1d72af05a438f7cccac3505902d04462564e34204ea585ba"
+    },
+    {
+      "path": "textures/component/single_wooden_seat/cherry.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "ecc142bce3c3abdb8b10fa3d6976774d5f01beef4944dada369bece0231d4d69"
+    },
+    {
+      "path": "textures/component/single_wooden_seat/crimson.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "633a9b154b26be2037b1edb4065d61c56b39ba03e0ef996fd3d98ac10944549f"
+    },
+    {
+      "path": "textures/component/single_wooden_seat/warped.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "8fbd563cd654160ff00c8081652aef6d8e3a67a68d1038099a3b0548c2618d8a"
+    },
+    {
+      "path": "textures/component/double_wooden_seat/oak.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "d95b56ec35a13ad99f7863c8374a8576f0344839fda2541a0f4dd9f70349018f"
+    },
+    {
+      "path": "textures/component/double_wooden_seat/spruce.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "7594b4740bd7b7ce75e40edac26064457839a5266b2585808c54a0a135844561"
+    },
+    {
+      "path": "textures/component/double_wooden_seat/birch.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "b365793081308d0b2cd92a645211423e6dc7108ea51fb8c68644771cbd26d2ec"
+    },
+    {
+      "path": "textures/component/double_wooden_seat/jungle.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "d2ce18a1c46dfa63044fc273e284784df639b38239496ec0f923ba9fdaffd650"
+    },
+    {
+      "path": "textures/component/double_wooden_seat/acacia.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "e41ec0214917ca464d8b99bdeebbdbdcf57b4c0928393707beb0528bc3b12b07"
+    },
+    {
+      "path": "textures/component/double_wooden_seat/dark_oak.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "f985c1109d6abefa0a151686828b72e9ff2ce0a925ad0846355d24b21ff1a686"
+    },
+    {
+      "path": "textures/component/double_wooden_seat/mangrove.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "46e53d39b86138cecc9f3207cecb68b18aad2e2f2147db020f89204394ad4990"
+    },
+    {
+      "path": "textures/component/double_wooden_seat/cherry.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "2b69c6013740eb1af8afb6915b345084e191cc6d283603adfbf1750eed6b55ac"
+    },
+    {
+      "path": "textures/component/double_wooden_seat/crimson.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "6cee49803840817d14f181356d3acba39c8182256750c7e4e40ea5700550feef"
+    },
+    {
+      "path": "textures/component/double_wooden_seat/warped.png",
+      "size": [
+        64,
+        64
+      ],
+      "sha256": "707ab2c12762f2736b7a714499496de964e3718138463b6f1a8a8fdc7ff00141"
+    },
+    {
+      "path": "textures/component/wagon_stool/oak.png",
+      "size": [
+        16,
+        16
+      ],
+      "sha256": "54ae61c0164a8994deb1cca2b72ea1dfb871798f50f280c408e4a020e554e324"
+    },
+    {
+      "path": "textures/component/wagon_stool/spruce.png",
+      "size": [
+        16,
+        16
+      ],
+      "sha256": "6af45199d632c89d3b54111ce7cce3bbe0a02a98ef32bdaf8ec1d32217d8012d"
+    },
+    {
+      "path": "textures/component/wagon_stool/birch.png",
+      "size": [
+        16,
+        16
+      ],
+      "sha256": "d6841f87a401fc1ce9a779964e94ae5a1b19cda12f68aeeab99b098a1a6248db"
+    },
+    {
+      "path": "textures/component/wagon_stool/jungle.png",
+      "size": [
+        16,
+        16
+      ],
+      "sha256": "1fe5786bb42231c1271e1a3d353df5bf0c2544f9a59d194fb486a79d378d5d01"
+    },
+    {
+      "path": "textures/component/wagon_stool/acacia.png",
+      "size": [
+        16,
+        16
+      ],
+      "sha256": "59e38b6ca04a545c763eade9dc8d80f7d5e885882f3f0817a8313d2e1b6a76f7"
+    },
+    {
+      "path": "textures/component/wagon_stool/dark_oak.png",
+      "size": [
+        16,
+        16
+      ],
+      "sha256": "ff3491265be2976f42f8303275811b2e83d38e19b5f74186341ec909beba9885"
+    },
+    {
+      "path": "textures/component/wagon_stool/mangrove.png",
+      "size": [
+        16,
+        16
+      ],
+      "sha256": "89c8497d6006038cf83ce64533fbd018ce5611b1859a875cf36040a580a795a1"
+    },
+    {
+      "path": "textures/component/wagon_stool/cherry.png",
+      "size": [
+        16,
+        16
+      ],
+      "sha256": "fb412194cdd7177b59a4320493723696b0abd8305f2df44eef60e4a1e2d65825"
+    },
+    {
+      "path": "textures/component/wagon_stool/crimson.png",
+      "size": [
+        16,
+        16
+      ],
+      "sha256": "291b5c019523c2f66ecd237dee2e876e3e85e1cbe5f460023f265e2f48cb4215"
+    },
+    {
+      "path": "textures/component/wagon_stool/warped.png",
+      "size": [
+        16,
+        16
+      ],
+      "sha256": "82465165630761632481a0c661e50821588906024838b375d4719d4bbd54d466"
+    },
+    {
+      "path": "textures/component/wagon_cabinet/oak.png",
+      "size": [
+        32,
+        32
+      ],
+      "sha256": "9af200f958ee1371a560715f9992ba1ed649e0b66ba38749667c05ee821a23fa"
+    },
+    {
+      "path": "textures/component/wagon_cabinet/spruce.png",
+      "size": [
+        32,
+        32
+      ],
+      "sha256": "2adf61438a559065893a7ea68f98c40089bb14668e50b0aa1b63c98c39b3ffd2"
+    },
+    {
+      "path": "textures/component/wagon_cabinet/birch.png",
+      "size": [
+        32,
+        32
+      ],
+      "sha256": "f750ce8033869c8b7ba09ec523aab45e11d0d520b909defe4c75e4ae0d6385f7"
+    },
+    {
+      "path": "textures/component/wagon_cabinet/jungle.png",
+      "size": [
+        32,
+        32
+      ],
+      "sha256": "4fae9a5dbef7cb2a924ac341013943135a0572219fd7406796490940bab1599f"
+    },
+    {
+      "path": "textures/component/wagon_cabinet/acacia.png",
+      "size": [
+        32,
+        32
+      ],
+      "sha256": "796c9b41cac4912e385b2737c3d48ccd9b2085047b5a21d17e9c3ab5b2d4bd55"
+    },
+    {
+      "path": "textures/component/wagon_cabinet/dark_oak.png",
+      "size": [
+        32,
+        32
+      ],
+      "sha256": "49c2b018a37b69259431cfb40ca4910de66144d499a248c7ab78436a50c36547"
+    },
+    {
+      "path": "textures/component/wagon_cabinet/mangrove.png",
+      "size": [
+        32,
+        32
+      ],
+      "sha256": "9c7c618344156c72b6915ff79202bfe93456e3fecfd576503d262d852b86b270"
+    },
+    {
+      "path": "textures/component/wagon_cabinet/cherry.png",
+      "size": [
+        32,
+        32
+      ],
+      "sha256": "b095b661a81cd07d93388414f6a916643e8b98a6991e58d9dac04b7bf3c6ba81"
+    },
+    {
+      "path": "textures/component/wagon_cabinet/crimson.png",
+      "size": [
+        32,
+        32
+      ],
+      "sha256": "4bb6a2f09ce3af8bac2b2b8765d61b86060d21be917b12c4a7b778ace85c1b80"
+    },
+    {
+      "path": "textures/component/wagon_cabinet/warped.png",
+      "size": [
+        32,
+        32
+      ],
+      "sha256": "d75c5e5552684433216091ed343e653efe5900b843532430998b998875d3651f"
+    }
+  ]
+}
