@@ -475,6 +475,7 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
     }
     private Vec3 localPosition(Vec3 relative) { return pose().local(position().add(relative)); }
     private AABB seatBounds() { double width=seatCapacity()==1 ? .5625 : 1;return new AABB(-width,1.7,-2.25,width,3.05,-1.34375); }
+    @Override public boolean canRiderInteract() { return true; }
     @Override public InteractionResult interactAt(Player player,Vec3 hit,InteractionHand hand) {
         Vec3 local=localPosition(hit);
         Vec3 eye=player.getEyePosition();var actual=pick(eye,eye.add(player.getLookAngle().scale(player.entityInteractionRange())));
@@ -491,7 +492,7 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
         if(cargoHit.isPresent()) { var freight=cargo.interact(player,hand,pose().local(cargoHit.get()));if(freight!=InteractionResult.PASS)return freight; }
         if (player.isSecondaryUseActive()) return InteractionResult.PASS;
         Vec3 a=pose().local(start),b=pose().local(end);
-        var hitchHit=pick(start,end);
+        var hitchHit=cargoHit;
         if(hitchHit.isPresent()) { int slot=hitchSlot(pose().local(hitchHit.get()));if(slot>=0)return bindAt(player,slot); }
         var hit=seatBounds().clip(a,b);
         if(hit.isEmpty())return InteractionResult.PASS;
@@ -576,11 +577,14 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
         return WagonPhysics.ground(level(),new Vec3(next.x,reference,next.z),1.001,1.001,horse.getBbWidth()/2);
     }
     private int hitchSlot(Vec3 local) {
-        // Undo front axle steering and shaft pitch before checking model-space mounting zones.
-        Vec3 p=WagonPose.rotate(local.subtract(new Vec3(0,10.5/16,-20.0/16)),0,0,-steering).add(0,10.5/16,-20.0/16);
-        p=WagonPose.rotate(p.subtract(new Vec3(0,1.25,-26.0/16)),-shaftPitch,0,0).add(0,1.25,-26.0/16);
-        if(horseCapacity()==1)return p.z>=-5.7&&p.z<=-4.95&&p.y>=.85&&p.y<=1.65&&Math.abs(p.x)>.35&&Math.abs(p.x)<.95?0:-1;
-        return p.z>=-5.65&&p.z<=-5.05&&p.y>=.7&&p.y<=1.65&&Math.abs(p.x)>.35&&Math.abs(p.x)<1.65?(p.x<0?0:1):-1;
+        Vec3 p=unpitched(unsteered(local));
+        WagonPart shafts=parts().get(WagonSlot.SHAFTS);
+        if(shafts==null||WagonGeometry.partBoxes(shafts).stream().noneMatch(box->box.inflate(.025).contains(p)))return -1;
+        if(horseCapacity()==1)return 0;
+        // Any pole or crossbar can attach a horse. Prefer the clicked side,
+        // then the other free hitch; centre-pole clicks fill the left first.
+        int preferred=p.x>0?1:0;
+        return horses[preferred]!=null&&horses[1-preferred]==null?1-preferred:preferred;
     }
     private InteractionResult bindAt(Player player,int slot) {
         if(level().isClientSide)return InteractionResult.SUCCESS;

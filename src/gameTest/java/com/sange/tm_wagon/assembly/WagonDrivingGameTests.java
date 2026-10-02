@@ -49,6 +49,45 @@ public class WagonDrivingGameTests {
         return h.getLevel().getEntitiesOfClass(ItemEntity.class,wagon.getBoundingBox().inflate(15)).stream()
             .filter(e->e.getItem().is(Items.LEAD)).mapToInt(e->e.getItem().getCount()).sum();
     }
+    private static void clickShaft(GameTestHelper h,WagonEntity w,Player p,Vec3 local) {
+        Vec3 eye=p.getEyePosition(),target=w.pose().point(local),direction=target.subtract(eye).normalize();
+        p.setYRot((float)Math.toDegrees(Math.atan2(-direction.x,direction.z)));
+        p.setXRot((float)-Math.toDegrees(Math.asin(direction.y)));
+        var hit=net.minecraft.world.entity.projectile.ProjectileUtil.getEntityHitResult(p,eye,eye.add(p.getLookAngle().scale(p.entityInteractionRange())),w.getBoundingBox().inflate(1),e->e==w,p.entityInteractionRange()*p.entityInteractionRange());
+        h.assertTrue(hit!=null,"Native ray did not select shafts from "+w.pose().local(eye)+" toward "+local);
+        h.assertTrue(w.interactAt(p,hit.getLocation().subtract(w.position()),InteractionHand.MAIN_HAND).consumesAction(),"Shaft click did not consume interaction");
+    }
+    private static AbstractHorse lead(GameTestHelper h,WagonEntity w,Player p,int slot) {
+        var horse=(slot==0?EntityType.HORSE:EntityType.DONKEY).create(h.getLevel());horse.setNoAi(true);horse.setPos(w.horsePosition(slot));
+        h.getLevel().addFreshEntity(horse);horse.setLeashedTo(p,true);return horse;
+    }
+    @GameTest(template="assembly_test",timeoutTicks=35)
+    public static void seated_driver_can_bind_from_middle_of_single_shafts_without_second_lead(GameTestHelper h) {
+        var w=wagon(h,false,false);var p=driver(h,w);w.positionRider(p);
+        var horse=lead(h,w,p,0);p.setItemInHand(InteractionHand.MAIN_HAND,new ItemStack(Items.LEAD,2));
+        h.assertTrue(w.canRiderInteract(),"Vehicle blocks its own rider's picking");
+        clickShaft(h,w,p,new Vec3(.525,21.5/16,-3.55));
+        h.assertTrue(w.hasHorse(horse.getUUID())&&horse.getLeashHolder()==w&&p.getVehicle()==w,"Seated driver's shaft click did not transfer the leash");
+        h.assertTrue(p.getMainHandItem().getCount()==2&&leads(h,w)==0,"Binding consumed or refunded a second lead");h.succeed();
+    }
+    @GameTest(template="assembly_test",timeoutTicks=35)
+    public static void seated_left_driver_can_bind_from_double_centre_pole(GameTestHelper h) {
+        var w=wagon(h,true,true);var p=driver(h,w);w.positionRider(p);var horse=lead(h,w,p,0);
+        clickShaft(h,w,p,new Vec3(0,22.0/16,-3.50));
+        h.assertTrue(w.driver()==p&&w.hasHorse(horse.getUUID())&&horse.getLeashHolder()==w,"Left driver could not bind using the central pole");h.succeed();
+    }
+    @GameTest(template="assembly_test",timeoutTicks=35)
+    public static void double_shafts_rear_crossbar_can_fill_both_hitches_once(GameTestHelper h) {
+        var w=wagon(h,false,true);var p=h.makeMockPlayer(GameType.SURVIVAL);
+        var left=lead(h,w,p,0);var right=lead(h,w,p,1);p.setPos(w.pose().point(new Vec3(2,0,-2.32)));
+        Vec3 crossbar=new Vec3(1.375,1.30,-2.32);
+        clickShaft(h,w,p,crossbar);
+        h.assertTrue(w.hasHorse(right.getUUID())&&!w.hasHorse(left.getUUID()),"Clicked side was not preferred");
+        clickShaft(h,w,p,crossbar);
+        h.assertTrue(w.readyToPull()&&w.hasHorse(left.getUUID())&&left.getLeashHolder()==w&&right.getLeashHolder()==w,"Occupied-side click did not use the other free hitch");
+        clickShaft(h,w,p,crossbar);
+        h.assertTrue(leads(h,w)==0&&w.readyToPull(),"Repeat click duplicated or detached a leash");h.succeed();
+    }
     @GameTest(template="assembly_test",timeoutTicks=40)
     public static void left_driver_only_and_no_sideways_motion(GameTestHelper h) {
         var w=wagon(h,true,false);var right=h.makeMockPlayer(GameType.SURVIVAL);var left=h.makeMockPlayer(GameType.SURVIVAL);
@@ -364,9 +403,11 @@ public class WagonDrivingGameTests {
             }
             h.assertTrue(Math.abs(start.z-w.getZ()-4*WagonPhysics.PUSH_SPEED)<.01,"Cargo rear push did not move vehicle");
         }
-        player.setPos(w.pose().point(new Vec3(0,0,-4.5)));
+        // The narrowed shaft gap is inside push contact tolerance. Use the
+        // genuinely empty gap beside the cargo box between the two axles.
+        player.setPos(w.pose().point(new Vec3(1.68,0,-.09)));
         h.assertTrue(w.getBoundingBox().intersects(player.getBoundingBox()),"Empty-space fixture is outside overall vehicle bounds");
-        h.assertTrue(w.pushDirection(player,1,0)==0&&w.pushDirection(player,-1,0)==0,"Gap between shafts enabled remote pushing");
+        h.assertTrue(w.pushDirection(player,1,0)==0&&w.pushDirection(player,-1,0)==0,"Empty gap between axles enabled remote pushing");
         player.setPos(w.pose().point(new Vec3(1.71625,0,1.25)));player.setYRot(w.getYRot()+90);
         h.assertTrue(w.pushDirection(player,1,0)==0,"Pure transverse wheel contact pushed vehicle");h.succeed();
     }

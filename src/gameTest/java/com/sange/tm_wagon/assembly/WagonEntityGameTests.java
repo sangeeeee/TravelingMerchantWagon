@@ -257,8 +257,8 @@ public class WagonEntityGameTests {
         install(helper,frame,modules);
         Vec3 origin=Vec3.atBottomCenterOf(frame.getBlockPos());
         AABB tip=new AABB(-.05,1.1,-6.1,.05,1.2,-6.0).move(origin);
-        AABB bar=new AABB(.9,1.2,-5.38,1.0,1.27,-5.3).move(origin);
-        AABB oldBar=new AABB(.9,1.2,-4.88,1.0,1.27,-4.8).move(origin);
+        AABB bar=new AABB(.9,1.2,-5.70,1.0,1.25,-5.62).move(origin);
+        AABB oldBar=new AABB(.9,1.2,-5.38,1.0,1.27,-5.3).move(origin);
         helper.assertTrue(!helper.getLevel().noCollision(null,tip)&&!helper.getLevel().noCollision(null,bar),"Extended pole or relocated yoke missing block collision");
         helper.assertTrue(helper.getLevel().noCollision(null,oldBar),"Old yoke location retained collision");
         // A saved world must refresh persisted cell shapes after the model update.
