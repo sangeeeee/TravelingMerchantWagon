@@ -30,7 +30,7 @@ import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.state.BlockState;
 
 public final class CargoEntry {
-    public enum Kind { ORDINARY, CHEST, BARREL, SHULKER, FURNACE, SMOKER, BLAST_FURNACE, CRAFTING, CARTOGRAPHY, STONECUTTER, ANVIL, SMITHING, LOOM, GRINDSTONE, ENCHANTING, BREWING, CAULDRON, COMPOSTER, ENDER_CHEST, LECTERN, BOOKSHELF, POT, STRAW_MAT }
+    public enum Kind { ORDINARY, CHEST, BARREL, SHULKER, FURNACE, SMOKER, BLAST_FURNACE, CRAFTING, CARTOGRAPHY, STONECUTTER, ANVIL, SMITHING, LOOM, GRINDSTONE, ENCHANTING, BREWING, CAULDRON, COMPOSTER, ENDER_CHEST, LECTERN, BOOKSHELF, POT, STRAW_MAT, STOOL }
     public final UUID id;
     public final ItemStack item;
     public BlockState state;
@@ -76,7 +76,7 @@ public final class CargoEntry {
         return Kind.ORDINARY;
     }
     public CargoEntry(CargoHold hold,UUID id,ItemStack stack,BlockState state) {
-        this.hold=hold;this.id=id;item=stack.copyWithCount(1);this.state=state;kind=stack.getItem() instanceof StrawMatItem?Kind.STRAW_MAT:kind(state);
+        this.hold=hold;this.id=id;item=stack.copyWithCount(1);this.state=state;kind=stack.getItem() instanceof StrawMatItem?Kind.STRAW_MAT:stack.getItem() instanceof WagonStoolItem?Kind.STOOL:kind(state);
         recipeCheck=RecipeManager.createCheck(recipeType());
         inventory=new Inventory(switch(kind) {
             case FURNACE,SMOKER,BLAST_FURNACE->3;case CHEST,BARREL,SHULKER->27;
@@ -198,7 +198,7 @@ public final class CargoEntry {
     }
     public static CargoEntry load(CargoHold hold,CompoundTag tag,HolderLookup.Provider lookup) {
         var item=ItemStack.parseOptional(lookup,tag.getCompound("Item"));
-        if(item.isEmpty()||!(item.getItem() instanceof net.minecraft.world.item.BlockItem||item.getItem() instanceof StrawMatItem))return null;
+        if(item.isEmpty()||!(item.getItem() instanceof net.minecraft.world.item.BlockItem||item.getItem() instanceof StrawMatItem||item.getItem() instanceof WagonStoolItem))return null;
         var state=NbtUtils.readBlockState(lookup.lookupOrThrow(net.minecraft.core.registries.Registries.BLOCK),tag.getCompound("State"));
         var entry=new CargoEntry(hold,tag.hasUUID("Id")?tag.getUUID("Id"):UUID.randomUUID(),item,state);entry.loading=true;
         if(tag.getBoolean("Visual")&&tag.hasUUID("Sleeper"))entry.sleeper=tag.getUUID("Sleeper");

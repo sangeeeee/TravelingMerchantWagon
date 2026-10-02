@@ -127,6 +127,16 @@ The oak assembly frame block model is in the [wagon assembly frame modeling subp
 
 `tools/export_straw_mat.py` 可重新生成物品模型与纹理。模型资源为 `src/main/resources/assets/tm_wagon/models/item/wagon_straw_mat.json`，可导入 Blockbench 的 Java 方块／物品模型；普通构建使用已生成资源，不需要运行脚本。客户端预览截图为 `run/screenshots/wagon-straw-mat.png`。
 
+### 马车木凳
+
+创造模式马车物品栏新增“马车木凳”（`tm_wagon:wagon_stool`），暂不添加配方。它是只能放置在马车上的配件物品，不注册世界方块，不受普通货物的方块黑白名单影响。手持木凳右键空货位放置，占用一个货位，占地约 0.68 × 0.68 格、高 0.5 格，使用原版橡木板贴图；模型为三块凳面、四腿与木撑，共 10 个长方体，碰撞简化为一个长方体。
+
+方块和实体形态均可右键木凳入座，Shift 离座后站到凳面上方；倾斜马车使用完整站立碰撞箱寻找安全位置。生物站到空凳面上后自动入座，玩家需主动右键；体宽超过一格、已有乘客或坐骑的实体不能入座，拴着的生物不自动捕获。多个凳子可同时使用，货厢乘客没有驾驶权限。潜行右键取下凳子，取下、损毁、装配转换和卸载前卸下对应乘客，避免保留无效坐骑或视角状态；物品及货位仍沿用原有单一归属与转换机制。
+
+实体马车直接使用原有乘客列表和座位同步，不创建木凳座位实体。方块形态只在入座时创建一个不渲染、不碰撞、不保存的临时座位实体，离座或卸载后清理。生物入座检查每十刻执行一次，仅在有空凳子时查询货位附近，不进行全世界搜索。
+
+Blockbench 工程位于 `modeling/wagon_stool/wagon_stool.bbmodel`，已内嵌原版橡木贴图；`tools/export_wagon_stool.py` 可重新导出工程和游戏物品模型。客户端预览截图为 `run/screenshots/wagon-stools.png`。
+
 ### 验证与开发
 
 - `gradlew runGameTestServer`：验证旋转、安装、失败不扣物品、共享格拆除、存档、实体阻挡、驾驶权限、车速与轮速、台阶、侧倾、悬崖、三秒悬空与重新着地、无马推动及转向、牵引卸载、方块化及损毁掉落；另验证货物朝向、制图/织布/锻造/切石配方、铁砧损耗、附魔消耗、酿造存档与带货转换、炼药锅和新增存储交互，以及货物装卸、数量守恒、多人菜单、工作台、熔炼进度/经验、带货转换成功与失败回退、存档和后门碰撞。
@@ -134,6 +144,7 @@ The oak assembly frame block model is in the [wagon assembly frame modeling subp
 - `python tools/verify_item_screenshot.py`：检查客户端截图中标准 16 × 16 格与放大格的物品边界和居中情况。
 - `gradlew runDismountSmokeTest`：在独立的 `build/dismount-client/` 目录测试 Shift 下车、视角、行走、跳跃及两端同步。运行前将用于复现的世界**副本**放入该目录的 `saves/repro/`，并复制一份 `options.txt` 到该目录以跳过首次启动引导；副本中玩家附近 12 格内需要有可乘坐的马车，前方需要有行走及落脚空间。测试会修改副本，不会打开 `run/saves/` 中的原存档。
 - `gradlew runStrawMatSleepSmokeTest`：在独立的 `build/straw-mat-client/` 目录测试真实客户端的方块草席睡眠、转为倾斜实体后的睡眠、原版离床请求、视角恢复、行走、跳跃、重生点不变及两端位置一致。先运行服务端 GameTest，再将生成的 `run/world/` **副本**复制到该目录的 `saves/repro/`，并复制 `run/options.txt` 到该目录跳过首次启动引导。测试仅在副本中搭建临时场地，不修改原存档；测试代码不打包进发布 JAR。
+- `gradlew runStoolSmokeTest`：在独立的 `build/stool-client/` 目录验证真实客户端的方块与倾斜实体木凳入座、Shift 离座、视角恢复、行走、跳跃、驾驶权限和两端位置一致。准备方式与草席测试相同，将测试世界副本放入 `saves/repro/` 并复制 `run/options.txt`，测试不会打开原存档。
 - `gradlew build`：生成 `build/libs/tm_wagon-1.0.0.jar`；测试类与测试结构不打包进发布 JAR。
 - `tools/export_wagon_parts.py`：从工作区 Blockbench 模型导出部件几何、贴图和物品显示资源，简化碰撞形状由 `tools/simplified_collision.py` 定义。生成结果已放入 `src/main/resources/`，正常构建不依赖建模子项目。
 

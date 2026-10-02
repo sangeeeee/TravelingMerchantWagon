@@ -26,12 +26,16 @@ public final class WagonContent {
     public static final DeferredRegister.Blocks BLOCKS = DeferredRegister.createBlocks(TravelingMerchantWagon.MODID);
     public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(TravelingMerchantWagon.MODID);
     public static final DeferredItem<com.sange.tm_wagon.cargo.StrawMatItem> STRAW_MAT = ITEMS.register("wagon_straw_mat",()->new com.sange.tm_wagon.cargo.StrawMatItem(new Item.Properties().stacksTo(16)));
+    public static final DeferredItem<com.sange.tm_wagon.cargo.WagonStoolItem> STOOL = ITEMS.register("wagon_stool",()->new com.sange.tm_wagon.cargo.WagonStoolItem(new Item.Properties().stacksTo(16)));
     public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = DeferredRegister.create(Registries.BLOCK_ENTITY_TYPE, TravelingMerchantWagon.MODID);
     public static final DeferredRegister<CreativeModeTab> TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, TravelingMerchantWagon.MODID);
     public static final DeferredRegister<net.minecraft.world.entity.EntityType<?>> ENTITIES = DeferredRegister.create(Registries.ENTITY_TYPE,TravelingMerchantWagon.MODID);
     public static final DeferredHolder<net.minecraft.world.entity.EntityType<?>,net.minecraft.world.entity.EntityType<com.sange.tm_wagon.entity.WagonEntity>> WAGON = ENTITIES.register("wagon",() ->
         net.minecraft.world.entity.EntityType.Builder.<com.sange.tm_wagon.entity.WagonEntity>of(com.sange.tm_wagon.entity.WagonEntity::new,net.minecraft.world.entity.MobCategory.MISC)
             .sized(3,3).clientTrackingRange(12).updateInterval(2).build("tm_wagon:wagon"));
+    public static final DeferredHolder<net.minecraft.world.entity.EntityType<?>,net.minecraft.world.entity.EntityType<com.sange.tm_wagon.entity.CargoSeatEntity>> CARGO_SEAT = ENTITIES.register("cargo_seat",()->
+        net.minecraft.world.entity.EntityType.Builder.<com.sange.tm_wagon.entity.CargoSeatEntity>of(com.sange.tm_wagon.entity.CargoSeatEntity::new,net.minecraft.world.entity.MobCategory.MISC)
+            .sized(.01F,.01F).noSave().noSummon().clientTrackingRange(12).updateInterval(20).build("tm_wagon:cargo_seat"));
     public static final DeferredBlock<AssemblyFrameBlock> FRAME = BLOCKS.register("wagon_assembly_frame", () -> new AssemblyFrameBlock(properties()));
     public static final DeferredItem<BlockItem> FRAME_ITEM = ITEMS.register("wagon_assembly_frame", () -> new AssemblyFrameItem(FRAME.get(), new Item.Properties()));
     public static final DeferredBlock<AssemblyPartBlock> PROXY = BLOCKS.register("assembly_proxy", () -> new AssemblyPartBlock(properties()));
@@ -59,6 +63,7 @@ public final class WagonContent {
             output.accept(FRAME_ITEM.get());
             for (WagonPart part : WagonPart.values()) output.accept(PART_ITEMS.get(part).get());
             output.accept(STRAW_MAT.get());
+            output.accept(STOOL.get());
         }).build());
     private static BlockBehaviour.Properties properties() {
         return BlockBehaviour.Properties.of().mapColor(MapColor.WOOD).sound(SoundType.WOOD)

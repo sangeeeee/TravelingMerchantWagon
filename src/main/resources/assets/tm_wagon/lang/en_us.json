@@ -50,12 +50,9 @@
   "message.tm_wagon.mat_dimension": "You cannot sleep on a straw mat in this dimension.",
   "message.tm_wagon.mat_unstable": "Stop and steady the wagon before sleeping.",
   "message.tm_wagon.mat_unavailable": "You cannot use the straw mat to sleep right now.",
-  "item.tm_wagon.wagon_straw_mat": "Wagon Straw Mat",
-  "tooltip.tm_wagon.wagon_straw_mat": "Place across three empty cargo slots toward the front. Sleep without setting a respawn point; sneak-use to remove.",
-  "message.tm_wagon.mat_space": "Not enough space: three consecutive empty cargo slots toward the front are required.",
-  "message.tm_wagon.mat_dimension": "You cannot sleep on a straw mat in this dimension.",
-  "message.tm_wagon.mat_unstable": "Stop and steady the wagon before sleeping.",
-  "message.tm_wagon.mat_unavailable": "You cannot use the straw mat to sleep right now.",
   "message.tm_wagon.cargo_occupied": "This cargo position is occupied",
-  "message.tm_wagon.cargo_blocked": "This cargo position is obstructed by a block or entity"
+  "message.tm_wagon.cargo_blocked": "This cargo position is obstructed by a block or entity",
+  "item.tm_wagon.wagon_stool": "Wagon Stool",
+  "tooltip.tm_wagon.wagon_stool": "Place only in wagon cargo slots; right-click to sit, sneak-right-click to remove",
+  "message.tm_wagon.stool_cannot_sit": "Cannot sit on this stool"
 }

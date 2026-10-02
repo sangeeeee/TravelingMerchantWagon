@@ -141,9 +141,9 @@ public class StrawMatGameTests {
             String error=StrawMatSleep.sleep(hold,hold.entry(8),p);h.assertTrue(error==null,"Tilted sleep failed: "+error+", falling="+w.falling()+", player="+p.position()+", wagon="+w.position());p.stopSleepInBed(true,true);
             h.assertTrue(!p.isSleeping()&&p.getPose()==Pose.STANDING&&h.getLevel().noCollision(p,p.getBoundingBox().deflate(.001)),"Tilted wake trapped player");
             h.assertTrue(StrawMatSleep.sleep(hold,hold.entry(8),p)==null,"Repeat tilted sleep failed");
-            var observer=player(h,hold);h.assertTrue(hold.take(4,observer)==null&&!p.isSleeping()&&carried(observer)==1,"Removing a mat did not wake the sleeper or dropped duplicates");
+            var observer=player(h,hold);observer.setPos(w.pose().point(new Vec3(-4,0,0)));h.assertTrue(hold.take(4,observer)==null&&!p.isSleeping()&&carried(observer)==1,"Removing a mat did not wake the sleeper or dropped duplicates");
             Vec3 outside=w.pose().point(new Vec3(-3,1.5,0));p.teleportTo(outside.x,outside.y,outside.z);
-            h.assertTrue(hold.place(8,new ItemStack(WagonContent.STRAW_MAT.get()),observer)==null,"Replacing mat failed");
+            String replacement=hold.place(8,new ItemStack(WagonContent.STRAW_MAT.get()),observer);h.assertTrue(replacement==null,"Replacing mat failed: "+replacement+", observer="+observer.position()+", outside="+outside+", player="+p.position());
             h.assertTrue(StrawMatSleep.sleep(hold,hold.entry(8),p)==null,"Third sleep failed");
             w.setPos(w.position().add(.3,0,0));
             var event=new net.neoforged.neoforge.event.entity.player.CanContinueSleepingEvent(p,Player.BedSleepingProblem.NOT_POSSIBLE_HERE);

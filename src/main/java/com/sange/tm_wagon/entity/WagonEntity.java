@@ -374,30 +374,56 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
     }
     public void unlock() { assemblyLock=null; }
     public int seatCapacity() { return parts().get(WagonSlot.SEAT)==WagonPart.DOUBLE_SEAT ? 2 : 1; }
-    @Override protected boolean canAddPassenger(Entity passenger) {
-        return passenger instanceof LivingEntity && getPassengers().size()<seatCapacity() && passenger.getBbWidth()<=1.5F;
+    public static final int CARGO_SEAT_BASE=2;
+    private boolean validSeat(int seat) {
+        if(seat>=0&&seat<seatCapacity())return true;
+        int slot=seat-CARGO_SEAT_BASE;
+        return slot>=0&&slot<com.sange.tm_wagon.cargo.CargoHold.CAPACITY&&cargo.entry(slot)!=null
+            &&cargo.entry(slot).kind==com.sange.tm_wagon.cargo.CargoEntry.Kind.STOOL;
     }
-    @Override protected boolean couldAcceptPassenger() { return getPassengers().size()<seatCapacity(); }
-    /** Seat identity is independent of vanilla's passenger list ordering. */
+    private int availableSeat(Entity passenger) {
+        if(requestedSeat>=0)return validSeat(requestedSeat)&&!seatOccupied(requestedSeat,passenger)?requestedSeat:-1;
+        var seats=entityData.get(SEATS);String key=passenger.getUUID().toString();
+        if(seats.contains(key)&&validSeat(seats.getInt(key))&&!seatOccupied(seats.getInt(key),passenger))return seats.getInt(key);
+        for(int i=0;i<seatCapacity();i++)if(!seatOccupied(i,passenger))return i;
+        return -1;
+    }
+    @Override protected boolean canAddPassenger(Entity passenger) {
+        int seat=availableSeat(passenger);
+        return passenger instanceof LivingEntity&&seat>=0&&passenger.getBbWidth()<=(seat<CARGO_SEAT_BASE?1.5F:1F);
+    }
+    @Override protected boolean couldAcceptPassenger() {
+        for(int i=0;i<CARGO_SEAT_BASE+com.sange.tm_wagon.cargo.CargoHold.CAPACITY;i++)
+            if(validSeat(i)&&!seatOccupied(i,null))return true;
+        return false;
+    }
+    /** Stable IDs 0/1 are driver seats; 2..11 are cargo stools, independent of passenger ordering. */
     public int passengerSeat(Entity passenger) {
         var seats=entityData.get(SEATS);String key=passenger.getUUID().toString();
-        if (seats.contains(key)) return Math.clamp(seats.getInt(key),0,seatCapacity()-1);
+        if(seats.contains(key))return seats.getInt(key);
         return Math.clamp(getPassengers().indexOf(passenger),0,seatCapacity()-1);
     }
     private boolean seatOccupied(int seat,Entity except) {
-        return getPassengers().stream().anyMatch(passenger -> passenger!=except && passengerSeat(passenger)==seat);
+        return getPassengers().stream().anyMatch(passenger -> passenger!=except&&passengerSeat(passenger)==seat);
+    }
+    public boolean cargoSeatOccupied(int slot) { return seatOccupied(CARGO_SEAT_BASE+slot,null); }
+    public boolean boardCargoSeat(LivingEntity rider,int slot) {
+        requestedSeat=CARGO_SEAT_BASE+slot;
+        try { return rider.startRiding(this); }finally { requestedSeat=-1; }
+    }
+    public void releaseCargoPassengers(int slot) {
+        for(Entity rider:List.copyOf(getPassengers())) {
+            int seat=passengerSeat(rider);
+            if(seat>=CARGO_SEAT_BASE&&(slot<0||seat==CARGO_SEAT_BASE+slot)) {
+                Vec3 target=safeDismount(rider);rider.stopRiding();rider.setPose(Pose.STANDING);
+                rider.teleportTo(target.x,target.y,target.z);rider.setDeltaMovement(Vec3.ZERO);rider.fallDistance=0;
+            }
+        }
     }
     @Override protected void addPassenger(Entity passenger) {
-        int seat=requestedSeat;
-        if (seat<0) {
-            String key=passenger.getUUID().toString();var seats=entityData.get(SEATS);
-            seat=seats.contains(key) ? seats.getInt(key) : -1;
-        }
-        if (seat<0 || seat>=seatCapacity() || seatOccupied(seat,passenger)) {
-            seat=0;while (seat<seatCapacity()-1 && seatOccupied(seat,passenger)) seat++;
-        }
+        int seat=availableSeat(passenger);
         super.addPassenger(passenger);
-        if (!level().isClientSide) {
+        if(!level().isClientSide) {
             var seats=entityData.get(SEATS).copy();seats.putInt(passenger.getUUID().toString(),seat);entityData.set(SEATS,seats);
             departingSeats.remove(passenger.getUUID());
         }
@@ -411,6 +437,8 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
         }
     }
     private Vec3 seatPosition(int seat) {
+        if(seat>=CARGO_SEAT_BASE&&seat<CARGO_SEAT_BASE+com.sange.tm_wagon.cargo.CargoHold.CAPACITY)
+            return pose().point(com.sange.tm_wagon.cargo.CargoHold.centre(seat-CARGO_SEAT_BASE).add(0,.5,0));
         double x=seatCapacity()==1 ? 0 : (seat==0 ? -.45 : .45);
         return pose().point(new Vec3(x,2.15625,-1.875));
     }
@@ -465,7 +493,9 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
     }
     @Override public Vec3 getDismountLocationForPassenger(LivingEntity passenger) {
         Integer previous=departingSeats.remove(passenger.getUUID());
-        Vec3 seat=seatPosition(previous==null ? passengerSeat(passenger) : previous);
+        int seatId=previous==null?passengerSeat(passenger):previous;
+        if(seatId>=CARGO_SEAT_BASE)return com.sange.tm_wagon.cargo.CargoSeats.standUp(cargo,seatId-CARGO_SEAT_BASE,passenger,false);
+        Vec3 seat=seatPosition(seatId);
         // Stand on the cushion directly above the chosen seat. Wider riders or
         // obstructions may require more vertical clearance, preserving X/Z.
         for (double offset=.001;offset<=3;offset+=.125) {

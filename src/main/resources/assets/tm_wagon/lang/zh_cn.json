@@ -50,12 +50,9 @@
   "message.tm_wagon.mat_dimension": "此维度无法在草席上睡觉。",
   "message.tm_wagon.mat_unstable": "请先将马车停稳，再使用草席睡觉。",
   "message.tm_wagon.mat_unavailable": "现在无法使用草席睡觉。",
-  "item.tm_wagon.wagon_straw_mat": "马车草席",
-  "tooltip.tm_wagon.wagon_straw_mat": "从点击位置向车头占用同列三个空货位。可睡觉，不设置重生点；潜行右键取下。",
-  "message.tm_wagon.mat_space": "空位不足：从此处向车头需要同列连续三个空货位。",
-  "message.tm_wagon.mat_dimension": "此维度无法在草席上睡觉。",
-  "message.tm_wagon.mat_unstable": "请先将马车停稳，再使用草席睡觉。",
-  "message.tm_wagon.mat_unavailable": "现在无法使用草席睡觉。",
   "message.tm_wagon.cargo_occupied": "此货位已有货物",
-  "message.tm_wagon.cargo_blocked": "此货位被方块或实体阻挡"
+  "message.tm_wagon.cargo_blocked": "此货位被方块或实体阻挡",
+  "item.tm_wagon.wagon_stool": "马车木凳",
+  "tooltip.tm_wagon.wagon_stool": "仅可放在马车货位上；右键入座，潜行右键取下",
+  "message.tm_wagon.stool_cannot_sit": "无法坐在这个木凳上"
 }

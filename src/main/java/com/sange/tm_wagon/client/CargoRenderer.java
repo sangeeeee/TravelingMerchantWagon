@@ -27,6 +27,11 @@ public final class CargoRenderer {
                 mc.getItemRenderer().renderStatic(entry.item,ItemDisplayContext.NONE,light,overlay,poses,buffers,entry.holdOwnerLevel(),0);
                 poses.popPose();continue;
             }
+            if(entry.kind==CargoEntry.Kind.STOOL) {
+                poses.pushPose();poses.translate(p.x,CargoHold.FLOOR+.5,p.z);
+                mc.getItemRenderer().renderStatic(entry.item,ItemDisplayContext.NONE,light,overlay,poses,buffers,entry.holdOwnerLevel(),0);
+                poses.popPose();continue;
+            }
             poses.pushPose();poses.translate(p.x-CargoHold.SCALE/2,p.y,p.z-CargoHold.SCALE/2);
             poses.scale((float)CargoHold.SCALE,(float)CargoHold.SCALE,(float)CargoHold.SCALE);
             try {

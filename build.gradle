@@ -93,6 +93,13 @@ neoForge {
             programArguments.addAll '--width', '1000', '--height', '700'
         }
 
+        stoolSmokeTest {
+            client()
+            gameDirectory = project.file('build/stool-client')
+            systemProperty 'tm_wagon.stoolSmokeTest', 'true'
+            programArguments.addAll '--width', '1000', '--height', '700'
+        }
+
         server {
             server()
             programArgument '--nogui'
