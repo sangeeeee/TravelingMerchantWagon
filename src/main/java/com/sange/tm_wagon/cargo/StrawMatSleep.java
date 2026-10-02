@@ -125,7 +125,7 @@ public final class StrawMatSleep {
         // Standing boxes remain world-aligned. Raise above the actual tilted collision tops,
         // then check the full standing dimensions instead of reusing the tiny sleeping box.
         for(double dx:new double[]{0,-.18,.18})for(double dz:new double[]{0,-.5,.5}) {
-            Vec3 base=pose.point(centre.add(dx,.126,dz));
+            Vec3 base=aboveCover(player,s.hold,pose,pose.point(centre.add(dx,.126,dz)));
             for(double dy=0;dy<=2.5;dy+=.125) {
                 Vec3 point=base.add(0,dy,0);AABB box=player.getDimensions(Pose.STANDING).makeBoundingBox(point).deflate(.0001);
                 if(player.level().getWorldBorder().isWithinBounds(box)&&player.level().noCollision(player,box))return point;
@@ -137,6 +137,23 @@ public final class StrawMatSleep {
             if(player.level().noCollision(player,player.getDimensions(Pose.STANDING).makeBoundingBox(point)))return point;
         }
         return s.head.add(0,3,0);
+    }
+    /** Start above cloth at the wake footprint, including a sloped wagon; rolls have no surface. */
+    private static Vec3 aboveCover(Player player,CargoHold hold,WagonPose pose,Vec3 base) {
+        if(hold==null||!hold.owner().cargoLive())return base;
+        var cloth=hold.cover().boxes(hold.owner().cargoBody());if(cloth.isEmpty())return base;
+        Vec3 normal=pose.vector(new Vec3(0,1,0));if(normal.y<.5)return base;
+        Vec3 plane=pose.point(new Vec3(0,CargoCover.TOP,0));double height=base.y;
+        double half=player.getDimensions(Pose.STANDING).width()/2;
+        // Only five surface samples on waking; the existing full-body collision search still follows.
+        for(double[] offset:new double[][]{{0,0},{-half,-half},{-half,half},{half,-half},{half,half}}) {
+            double x=base.x+offset[0],z=base.z+offset[1];
+            double y=plane.y-(normal.x*(x-plane.x)+normal.z*(z-plane.z))/normal.y;
+            Vec3 local=pose.local(new Vec3(x,y,z));var sheet=cloth.getFirst();
+            if(local.x>=sheet.minX&&local.x<=sheet.maxX&&local.z>=sheet.minZ&&local.z<=sheet.maxZ)
+                height=Math.max(height,y+.001);
+        }
+        return height>base.y?new Vec3(base.x,height,base.z):base;
     }
     private static void send(ServerPlayer player,Session s,boolean sleeping) {
         // Fake/headless players have no negotiated client payload channels.

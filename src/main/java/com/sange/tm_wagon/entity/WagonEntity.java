@@ -388,11 +388,12 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
     }
     @Override protected boolean canAddPassenger(Entity passenger) {
         int seat=availableSeat(passenger);
-        return passenger instanceof LivingEntity&&seat>=0&&passenger.getBbWidth()<=(seat<CARGO_SEAT_BASE?1.5F:1F);
+        return passenger instanceof LivingEntity&&seat>=0&&(seat<CARGO_SEAT_BASE||!cargo.cover().covered(seat-CARGO_SEAT_BASE))
+            &&passenger.getBbWidth()<=(seat<CARGO_SEAT_BASE?1.5F:1F);
     }
     @Override protected boolean couldAcceptPassenger() {
         for(int i=0;i<CARGO_SEAT_BASE+cargo.capacity();i++)
-            if(validSeat(i)&&!seatOccupied(i,null))return true;
+            if(validSeat(i)&&(i<CARGO_SEAT_BASE||!cargo.cover().covered(i-CARGO_SEAT_BASE))&&!seatOccupied(i,null))return true;
         return false;
     }
     /** Stable IDs 0/1 are driver seats; 2..11 are cargo stools, independent of passenger ordering. */
@@ -406,6 +407,7 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
     }
     public boolean cargoSeatOccupied(int slot) { return seatOccupied(CARGO_SEAT_BASE+slot,null); }
     public boolean boardCargoSeat(LivingEntity rider,int slot) {
+        if(cargo.cover().covered(slot))return false;
         requestedSeat=CARGO_SEAT_BASE+slot;
         try { return rider.startRiding(this); }finally { requestedSeat=-1; }
     }

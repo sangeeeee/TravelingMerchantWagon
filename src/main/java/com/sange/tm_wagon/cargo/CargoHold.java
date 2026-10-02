@@ -34,6 +34,8 @@ import net.minecraft.world.phys.Vec3;
 public final class CargoHold {
     public static final int CAPACITY=10,MAX_CAPACITY=12,GATE_TICKS=16;
     public static final double SCALE=.68,FLOOR=1.5;
+    /** A rejected action, deliberately silent instead of a user-facing translation key. */
+    static final String ACCESS_BLOCKED="tm_wagon:access_blocked";
     public static final TagKey<Item> DISALLOWED=TagKey.create(Registries.ITEM,ResourceLocation.fromNamespaceAndPath("tm_wagon","disallowed_cargo"));
     private final CargoOwner owner;
     public final CargoSeats seats=new CargoSeats(this);
@@ -146,7 +148,6 @@ public final class CargoHold {
         var coverResult=cover.interact(player,hand,local);if(coverResult!=InteractionResult.PASS)return coverResult;
         int slot=selected(local);var stack=player.getItemInHand(hand);
         if(slot>=0&&cover.obstructs(owner.cargoPose().local(player.getEyePosition()),local)) {
-            if(!owner.cargoLevel().isClientSide)message(player,"message.tm_wagon.cargo_covered");
             return InteractionResult.sidedSuccess(owner.cargoLevel().isClientSide);
         }
         if(slot<0) {
@@ -170,7 +171,7 @@ public final class CargoHold {
         if(!(stack.getItem() instanceof BlockItem||stack.getItem() instanceof StrawMatItem||stack.getItem() instanceof WagonStoolItem))return InteractionResult.CONSUME;
         message(player,place(slot,stack,player));return InteractionResult.CONSUME;
     }
-    static void message(Player player,String error) { if(error!=null)player.displayClientMessage(Component.translatable(error),true); }
+    static void message(Player player,String error) { if(error!=null&&!ACCESS_BLOCKED.equals(error))player.displayClientMessage(Component.translatable(error),true); }
     public static boolean allowed(ItemStack item) {
         return placementRestriction(item)==null;
     }
@@ -183,7 +184,7 @@ public final class CargoHold {
     }
     public String place(int slot,ItemStack stack,Player player) {
         if(!owner.cargoLive()||owner.cargoBusy()||slot<0||slot>=capacity())return "message.tm_wagon.assembly_busy";
-        if(coverObstructed(slot,player))return "message.tm_wagon.cargo_covered";
+        if(coverObstructed(slot,player))return ACCESS_BLOCKED;
         String restriction=placementRestriction(stack);if(restriction!=null)return restriction;
         boolean mat=stack.getItem() instanceof StrawMatItem,stool=stack.getItem() instanceof WagonStoolItem;
         if(mat) {
@@ -226,7 +227,7 @@ public final class CargoHold {
         return true;
     }
     public String take(int slot,Player player) {
-        var entry=entry(slot);if(entry!=null&&coverObstructed(slot(entry),player))return "message.tm_wagon.cargo_covered";
+        var entry=entry(slot);if(entry!=null&&coverObstructed(slot(entry),player))return ACCESS_BLOCKED;
         if(entry==null||!valid(entry,player))return "message.tm_wagon.assembly_busy";
         slot=slot(entry);StrawMatSleep.wake(this,entry);seats.release(entry);
         CargoMenus.close(this,entry);Vec3 position=position(entry);BlockState state=entry.state;entries[slot]=null;

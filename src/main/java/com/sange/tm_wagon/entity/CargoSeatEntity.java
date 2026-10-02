@@ -27,7 +27,7 @@ public final class CargoSeatEntity extends Entity {
     @Override protected void defineSynchedData(SynchedEntityData.Builder builder) {}
     @Override protected void addAdditionalSaveData(CompoundTag tag) {}
     @Override protected void readAdditionalSaveData(CompoundTag tag) {}
-    @Override protected boolean canAddPassenger(Entity passenger) { return passenger instanceof LivingEntity&&getPassengers().isEmpty(); }
+    @Override protected boolean canAddPassenger(Entity passenger) { return hold!=null&&!hold.cover().covered(slot)&&passenger instanceof LivingEntity&&getPassengers().isEmpty(); }
     @Override public Vec3 getPassengerRidingPosition(Entity passenger) { return position(); }
     @Override public Vec3 getDismountLocationForPassenger(LivingEntity passenger) {
         return hold==null?position().add(0,.01,0):CargoSeats.standUp(hold,slot,passenger,false);

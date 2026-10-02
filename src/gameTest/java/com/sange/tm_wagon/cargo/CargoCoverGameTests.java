@@ -217,6 +217,55 @@ public class CargoCoverGameTests {
         h.assertTrue(sheep.onGround()&&Math.abs(f.cargoPose().local(sheep.position()).y-CargoCover.TOP)<.002,"Block cover does not support walking");
         sheep.setDeltaMovement(Vec3.ZERO);hold.seats.tick();h.assertTrue(!sheep.isPassenger(),"Walking on cover captured mob into covered stool");h.succeed();
     }
+    @GameTest(template="assembly_test",timeoutTicks=55)
+    public static void covered_stools_reject_manual_direct_and_automatic_boarding_in_both_forms(GameTestHelper h) {
+        var f=frame(h,false);var hold=f.cargo();var p=player(h,hold);
+        h.assertTrue(hold.place(8,new ItemStack(WagonContent.STOOL.get()),p)==null,"Stool placement failed");install(h,hold,p);
+        h.assertTrue(CargoHold.ACCESS_BLOCKED.equals(hold.seats.sit(8,p))&&!p.isPassenger(),"Covered block stool allowed manual seating");
+        var anchor=WagonContent.CARGO_SEAT.get().create(h.getLevel());anchor.initialize(hold,8,hold.entry(8).id);h.getLevel().addFreshEntity(anchor);
+        h.assertTrue(!p.startRiding(anchor),"Direct boarding bypassed covered block stool restriction");anchor.discard();
+        var chicken=EntityType.CHICKEN.create(h.getLevel());chicken.setAge(-24000);chicken.setNoAi(true);chicken.setNoGravity(true);
+        chicken.setPos(f.cargoPose().point(CargoHold.centre(8).add(0,.5,0)));h.getLevel().addFreshEntity(chicken);
+        h.assertTrue(hold.toggleGate()==null,"Tailgate failed");
+        h.runAtTickTime(22,()->{
+            p.setPos(f.cargoPose().point(new Vec3(-.5,.25,3.2)));
+            h.assertTrue(hold.valid(hold.entry(8),p)&&CargoHold.ACCESS_BLOCKED.equals(hold.seats.sit(8,p)),"Visible covered stool became usable from the rear");
+            h.assertTrue(!chicken.isPassenger(),"Covered stool automatically captured a mob");chicken.discard();
+            h.assertTrue(f.toggleFrame(null)==null,"Assembly failed");
+            var w=h.getLevel().getEntitiesOfClass(WagonEntity.class,new AABB(f.getBlockPos()).inflate(6)).getFirst();
+            h.assertTrue(w.cargo().seats.sit(8,p)!=null&&!w.boardCargoSeat(p,8)&&!p.isPassenger(),"Entity stool bypassed cover restriction");
+            for(int row=0;row<5;row++)step(h,w.cargo(),p,1);
+            h.assertTrue(w.cargo().seats.sit(8,p)==null&&p.getVehicle()==w,"Uncovered stool remained disabled");h.succeed();
+        });
+    }
+    @GameTest(template="assembly_test",batch="covered_mat_sleep",timeoutTicks=55)
+    public static void covered_mat_sleep_survives_spreading_and_wakes_above_cloth_in_both_forms(GameTestHelper h) {
+        var f=frame(h,false);var hold=f.cargo();var loader=player(h,hold);
+        h.assertTrue(hold.place(8,new ItemStack(WagonContent.STRAW_MAT.get()),loader)==null,"Mat placement failed");install(h,hold,loader);
+        h.assertTrue(hold.toggleGate()==null,"Tailgate failed");
+        var p=h.makeMockServerPlayerInLevel();p.setNoGravity(true);p.getAbilities().instabuild=false;
+        h.runAtTickTime(22,()->{
+            long oldTime=h.getLevel().getDayTime();h.setNight();
+            try {
+                Vec3 rear=f.cargoPose().point(new Vec3(-.5,.25,3.2));p.teleportTo(rear.x,rear.y,rear.z);
+                h.assertTrue(StrawMatSleep.sleep(hold,hold.entry(8),p)==null&&p.isSleeping(),"Covered mat refused sleep through the open rear");
+                step(h,hold,loader,1);step(h,hold,loader,-1);
+                h.assertTrue(p.isSleeping()&&hold.cover().openRows()==0,"Spreading cloth woke a covered mat sleeper");
+                p.stopSleepInBed(true,true);
+                h.assertTrue(p.getPose()==net.minecraft.world.entity.Pose.STANDING&&!p.isSleeping()&&StrawMatSleep.sleepingPoint(p)==null,"Covered wake retained sleep/camera state");
+                h.assertTrue(Math.abs(f.cargoPose().local(p.position()).y-CargoCover.TOP)<.02&&h.getLevel().noCollision(p,p.getBoundingBox().deflate(.001)),"Block mat wake did not stand safely above cloth");
+                Vec3 outside=f.cargoPose().point(new Vec3(-3,3,0));p.teleportTo(outside.x,outside.y,outside.z);
+                h.assertTrue(f.toggleFrame(null)==null,"Assembly failed");
+                var w=h.getLevel().getEntitiesOfClass(WagonEntity.class,new AABB(f.getBlockPos()).inflate(6)).getFirst();
+                w.applyPose(new com.sange.tm_wagon.physics.WagonPose(w.position(),213,.18F,.12F));w.setDeltaMovement(Vec3.ZERO);
+                rear=w.pose().point(new Vec3(-.5,.25,3.2));p.teleportTo(rear.x,rear.y,rear.z);
+                h.assertTrue(StrawMatSleep.sleep(w.cargo(),w.cargo().entry(8),p)==null,"Covered tilted entity mat refused sleep");p.stopSleepInBed(true,true);
+                h.assertTrue(w.pose().local(p.position()).y>=CargoCover.TOP&&h.getLevel().noCollision(p,p.getBoundingBox().deflate(.001)),"Tilted wake intersected covered wagon");
+                p.setYRot(81);p.setXRot(17);h.assertTrue(p.getPose()==net.minecraft.world.entity.Pose.STANDING&&StrawMatSleep.sleepingPoint(p)==null&&p.getYRot()==81&&p.getXRot()==17,"Tilted covered wake retained locked camera");
+                h.succeed();
+            } finally { h.getLevel().setDayTime(oldTime); }
+        });
+    }
     @GameTest(template="assembly_test",timeoutTicks=40)
     public static void obstructed_install_and_spread_do_not_consume_or_change_state(GameTestHelper h) {
         var f=frame(h,false);var hold=f.cargo();var p=player(h,hold);var sheep=EntityType.SHEEP.create(h.getLevel());sheep.setNoAi(true);sheep.setNoGravity(true);sheep.setPos(f.cargoPose().point(new Vec3(0,2.2,-.9)));h.getLevel().addFreshEntity(sheep);

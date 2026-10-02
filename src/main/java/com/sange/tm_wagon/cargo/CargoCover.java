@@ -150,10 +150,6 @@ public final class CargoCover {
     }
     private void conceal() {
         CargoMenus.closeObstructed(hold);
-        for(int slot=0;slot<hold.capacity();slot++)if(hold.anchorSlot(slot)==slot&&covered(slot)) {
-            var entry=hold.entry(slot);if(entry==null)continue;
-            StrawMatSleep.wake(hold,entry);
-        }
     }
     private void sound(boolean spreading) {
         var point=hold.owner().cargoPose().point(new Vec3(0,TOP,rollZ(hold.owner().cargoBody())));

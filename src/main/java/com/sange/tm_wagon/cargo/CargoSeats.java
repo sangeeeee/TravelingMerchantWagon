@@ -31,6 +31,7 @@ public final class CargoSeats {
         var entry=hold.entry(slot);var level=hold.owner().cargoLevel();
         if(level==null||level.isClientSide||!hold.owner().cargoLive()||hold.owner().cargoBusy()
             ||entry==null||entry.kind!=CargoEntry.Kind.STOOL)return "message.tm_wagon.assembly_busy";
+        if(hold.cover().covered(slot))return CargoHold.ACCESS_BLOCKED;
         if(occupied(slot))return "message.tm_wagon.seat_occupied";
         if(!eligible(rider)||rider.level()!=level||rider.distanceToSqr(hold.position(entry))>64)return "message.tm_wagon.stool_cannot_sit";
         boolean seated;
@@ -69,7 +70,7 @@ public final class CargoSeats {
             }
         }
     }
-    private boolean stool(int slot) { return hold.entry(slot)!=null&&hold.entry(slot).kind==CargoEntry.Kind.STOOL; }
+    private boolean stool(int slot) { return !hold.cover().covered(slot)&&hold.entry(slot)!=null&&hold.entry(slot).kind==CargoEntry.Kind.STOOL; }
     public void release(CargoEntry entry) {
         if(entry!=null&&entry.kind!=CargoEntry.Kind.STOOL)return;
         if(hold.owner().cargoLevel()==null||hold.owner().cargoLevel().isClientSide)return;

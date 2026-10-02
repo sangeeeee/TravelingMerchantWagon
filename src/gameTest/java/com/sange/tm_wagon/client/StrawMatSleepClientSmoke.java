@@ -55,13 +55,14 @@ public final class StrawMatSleepClientSmoke {
         if(ticks==90)server(mc,()->{
             var p=mc.getSingleplayerServer().getPlayerList().getPlayers().getFirst();var w=(WagonEntity)p.serverLevel().getEntity(wagonId);
             w.applyPose(new WagonPose(w.position(),213,.18F,.12F));w.syncMotion();
-            require(StrawMatSleep.sleep(w.cargo(),w.cargo().entry(8),p)==null,"Could not sleep on tilted entity wagon");
+            Vec3 rear=w.pose().point(new Vec3(-.5,.25,3.2));p.teleportTo(rear.x,rear.y,rear.z);
+            require(StrawMatSleep.sleep(w.cargo(),w.cargo().entry(8),p)==null,"Could not sleep under cloth on tilted entity wagon");
         });
         if(ticks==120) { checkSleeping(mc,true);leaveBed(mc); }
         if(ticks==140) {
             checkAwake(mc);awake=mc.player.position();server(mc,()->{
                 var p=mc.getSingleplayerServer().getPlayerList().getPlayers().getFirst();var w=(WagonEntity)p.serverLevel().getEntity(wagonId);
-                require(w.cargo().toggleGate()==null,"Could not open tailgate");
+                if(!w.cargo().gateOpen())require(w.cargo().toggleGate()==null,"Could not open tailgate");
                 require(p.getRespawnPosition().equals(new BlockPos(8,81,0)),"Mat changed the existing respawn point");
             });
         }
@@ -81,7 +82,7 @@ public final class StrawMatSleepClientSmoke {
                 require(Math.abs(p.getYRot()-yaw)<.2&&Math.abs(p.getXRot()-pitch)<.2,"Server rejected view rotation after wake");verified=true;
             });
         }
-        if(ticks>=260&&verified) { LogUtils.getLogger().info("STRAW_MAT_SLEEP_CLIENT_PASS: block sleep, tilted entity sleep, leave-bed packet, view, walking, jump, unchanged respawn and server agreement");mc.stop(); }
+        if(ticks>=260&&verified) { LogUtils.getLogger().info("STRAW_MAT_SLEEP_CLIENT_PASS: covered block sleep, covered tilted entity sleep, wake above cloth, leave-bed packet, view, walking, jump, unchanged respawn and server agreement");mc.stop(); }
         if(ticks>300)throw new IllegalStateException("Straw mat sleep verification timed out");
     }
     private static void server(Minecraft mc,Runnable task) {
@@ -102,6 +103,10 @@ public final class StrawMatSleepClientSmoke {
         for(var entry:WagonEntity.defaultParts().entrySet())if(entry.getKey()!=WagonSlot.BODY)
             require(f.install(entry.getKey(),entry.getValue(),null,new ItemStack(WagonContent.PART_ITEMS.get(entry.getValue()).get()))==null,"Module init failed");
         require(f.cargo().place(8,new ItemStack(WagonContent.STRAW_MAT.get()),p)==null,"Mat placement failed");
+        require(f.cargo().cover().install(new ItemStack(WagonContent.CARGO_COVER.get()),p,new Vec3(-1.15625,1.9,.5))==null,"Cover install failed");
+        var cargo=f.cargo().save(level.registryAccess(),false);cargo.putBoolean("GateTarget",true);cargo.putBoolean("GateCollision",true);cargo.putLong("GateStart",Long.MIN_VALUE);
+        f.cargo().load(cargo,level.registryAccess());require(f.cargoGeometryChanged()==null,"Open rear fixture failed");f.cargoChanged(true);
+        Vec3 rear=f.cargoPose().point(new Vec3(-.5,.25,3.2));p.teleportTo(rear.x,rear.y,rear.z);
         p.setRespawnPosition(level.dimension(),new BlockPos(8,81,0),47,false,false);level.setDayTime(13000);level.updateSkyBrightness();
         require(StrawMatSleep.sleep(f.cargo(),f.cargo().entry(8),p)==null,"Block-form native sleep failed");
     }
@@ -114,6 +119,9 @@ public final class StrawMatSleepClientSmoke {
     }
     private static void checkAwake(Minecraft mc) {
         require(!mc.player.isSleeping()&&mc.player.getPose()!=Pose.SLEEPING&&StrawMatSleep.sleepingPoint(mc.player)==null,"Leave-bed left a stuck sleeping camera");
+        var w=mc.level.getEntity(wagonId);
+        var hold=w instanceof WagonEntity wagon?wagon.cargo():((AssemblyFrameBlockEntity)mc.level.getBlockEntity(FRAME)).cargo();
+        require(hold.cover().installed()&&hold.owner().cargoPose().local(mc.player.position()).y>=com.sange.tm_wagon.cargo.CargoCover.TOP-.04,"Covered mat woke player below the cloth surface");
     }
     private static void require(boolean condition,String message) { if(!condition)throw new IllegalStateException(message); }
 }

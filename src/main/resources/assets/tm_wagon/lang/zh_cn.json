@@ -62,6 +62,5 @@
   "message.tm_wagon.cover_block_only": "只能在方块状态的马车货厢上安装或拆卸货箱罩。",
   "message.tm_wagon.cover_installed": "货厢已经安装了货箱罩。",
   "message.tm_wagon.cover_side": "请对准货厢侧面安装或拆卸，或对准布面和布卷操作。",
-  "message.tm_wagon.cover_blocked": "布面被实体或方块挡住，无法改变货箱罩。",
-  "message.tm_wagon.cargo_covered": "操作路径被盖布或车厢挡住，请先卷起盖布或打开尾门。"
+  "message.tm_wagon.cover_blocked": "布面被实体或方块挡住，无法改变货箱罩。"
 }
