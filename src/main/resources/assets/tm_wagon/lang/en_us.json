@@ -68,5 +68,9 @@
   "message.tm_wagon.roof_conflict": "A canopy and cargo cover cannot be installed together.",
   "message.tm_wagon.canopy_block_only": "Canopies can only be installed or removed on a block-form wagon.",
   "message.tm_wagon.canopy_side": "Use a cargo wall to install or remove the canopy, or use either curtain to open or close it.",
-  "message.tm_wagon.canopy_blocked": "An entity or block obstructs the canopy or curtain. It cannot change."
+  "message.tm_wagon.canopy_blocked": "An entity or block obstructs the canopy or curtain. It cannot change.",
+  "item.tm_wagon.wagon_cabinet": "Wagon Cabinet",
+  "tooltip.tm_wagon.wagon_cabinet": "Install on the lower seat side in block form. Sneak-use to remove and spill contents in either form. Use either drawer end to open. Single seat: 27 slots; double seat: 54 slots.",
+  "message.tm_wagon.cabinet_block_only": "Install the cabinet while the wagon is in block form.",
+  "message.tm_wagon.cabinet_side": "Use the side below the driver seat or either drawer end."
 }

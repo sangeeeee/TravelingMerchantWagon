@@ -158,6 +158,7 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
     public double wheelbase() { return WagonPhysics.WHEELBASE+cargoBody().rearExtension(); }
     @Override public Level cargoLevel() { return level(); }
     @Override public WagonPose cargoPose() { return pose(); }
+    @Override public WagonPart cargoSeat() { return parts().get(WagonSlot.SEAT); }
     @Override public boolean cargoLive() { return !isRemoved()&&level()!=null; }
     @Override public boolean cargoBusy() { return assemblyLock!=null; }
     @Override public String cargoGeometryChanged() { rebuildGeometry();return null; }

@@ -75,6 +75,7 @@ public class AssemblyFrameBlockEntity extends BlockEntity implements GeoBlockEnt
     public boolean changing() { return changing; }
     public Map<WagonSlot, WagonPart> parts() { return Map.copyOf(parts); }
     @Override public com.sange.tm_wagon.cargo.CargoHold cargo() { return cargo; }
+    @Override public WagonPart cargoSeat() { return part(WagonSlot.SEAT); }
     @Override public WagonPart cargoBody() { return parts.getOrDefault(WagonSlot.BODY,WagonPart.CARGO_BODY); }
     @Override public net.minecraft.world.level.Level cargoLevel() { return level; }
     @Override public com.sange.tm_wagon.physics.WagonPose cargoPose() { return new com.sange.tm_wagon.physics.WagonPose(Vec3.atBottomCenterOf(worldPosition),facing().toYRot(),0,0); }
@@ -418,7 +419,9 @@ public class AssemblyFrameBlockEntity extends BlockEntity implements GeoBlockEnt
         if (level == null || level.isClientSide || changing) return;
         Set<WagonSlot> removing = EnumSet.noneOf(WagonSlot.class); removing.addAll(requested);
         if (removing.contains(WagonSlot.BODY)) removing.addAll(parts.keySet());
+        boolean returnCabinet=!removing.contains(WagonSlot.BODY)&&removing.contains(WagonSlot.SEAT)&&cargo.cabinet().installed();
         if(removing.contains(WagonSlot.BODY))cargo.destroy(level.getGameRules().getBoolean(GameRules.RULE_DOBLOCKDROPS));
+        else if(removing.contains(WagonSlot.SEAT))cargo.cabinet().destroy(level.getGameRules().getBoolean(GameRules.RULE_DOBLOCKDROPS));
         var next = new EnumMap<>(parts);
         var removed = new ArrayList<WagonPart>();
         for (WagonSlot slot : removing) { WagonPart part = next.remove(slot); if (part != null) removed.add(part); }
@@ -427,6 +430,7 @@ public class AssemblyFrameBlockEntity extends BlockEntity implements GeoBlockEnt
         try { apply(desired, next, false); parts.clear(); parts.putAll(next); layout = desired; }
         finally { changing = false; }
         if (drops && level.getGameRules().getBoolean(GameRules.RULE_DOBLOCKDROPS)) {
+            if(returnCabinet)Block.popResource(level,worldPosition.above(),new ItemStack(WagonContent.CABINET.get()));
             for (WagonPart part : removed) Block.popResource(level, worldPosition.above(), new ItemStack(WagonContent.PART_ITEMS.get(part).get()));
         }
         sync();

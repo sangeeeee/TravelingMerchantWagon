@@ -207,3 +207,5 @@ Additional Resources:
 ==========
 Community Documentation: https://docs.neoforged.net/  
 NeoForged Discord: https://discord.neoforged.net/
+
+马车柜：方块形态下，手持马车柜右键座位下方侧面安装；两种形态均可潜行右键拆卸，返还空柜并掉出内容。单人座 27 格、双人座 54 格，两端抽屉共用库存；方块／实体形态均可手持物品右键抽屉面使用原版箱子界面。抽屉开合为 5 tick、弹出 0.4 格，无额外碰撞；仅显示状态同步到旁观客户端，库存只在存档及使用界面中传输。形态转换先关闭菜单并移交同一个库存对象；单独破坏方块形态的座位时，分别掉落座位、空马车柜及柜内全部物品；破坏整辆马车时只掉出柜内物品，不返还柜体。建模项目位于 `modeling/wagon_cabinet/`。

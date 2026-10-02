@@ -68,5 +68,9 @@
   "message.tm_wagon.roof_conflict": "车蓬与货箱罩不能同时安装。",
   "message.tm_wagon.canopy_block_only": "只能在方块状态的马车货厢上安装或拆卸车蓬。",
   "message.tm_wagon.canopy_side": "请对准货厢侧壁安装或拆卸，或右键前后布帘开合。",
-  "message.tm_wagon.canopy_blocked": "车蓬或布帘的位置被实体或方块挡住，无法改变。"
+  "message.tm_wagon.canopy_blocked": "车蓬或布帘的位置被实体或方块挡住，无法改变。",
+  "item.tm_wagon.wagon_cabinet": "马车柜",
+  "tooltip.tm_wagon.wagon_cabinet": "方块形态：右键座位下方侧面安装。两种形态均可潜行右键拆卸并掉出物品；右键左右抽屉面打开。单人座 27 格，双人座 54 格。",
+  "message.tm_wagon.cabinet_block_only": "只能在方块形态安装马车柜。",
+  "message.tm_wagon.cabinet_side": "请右键座位下方的侧面或马车柜的抽屉面。"
 }
