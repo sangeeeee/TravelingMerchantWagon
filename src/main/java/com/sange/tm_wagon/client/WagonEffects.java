@@ -43,7 +43,7 @@ public final class WagonEffects {
         }
     }
     private static float rollingVolume(double distance) {
-        // Four times the previous gain; cap at the sound engine's maximum rather than silently clipping there.
+        // The recording has +6 dB gain; preserve the speed curve without clipping at normal driving speed.
         return (float)Math.min(1,4*Math.min(.45,.08+distance*2));
     }
     private static final class Dust extends TerrainParticle {

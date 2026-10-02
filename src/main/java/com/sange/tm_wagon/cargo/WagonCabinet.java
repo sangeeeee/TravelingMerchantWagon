@@ -67,7 +67,7 @@ public final class WagonCabinet {
     public int rows() { return rows; }
     public SimpleContainer inventory() { return store; }
     public static AABB box(WagonPart seat) {
-        double half=(seat!=null&&seat.seatCapacity()==3?23.5:seat!=null&&seat.seatCapacity()==2?15.5:8.5)/16;
+        double half=seat==null?8.5/16:seat.seatHalfWidth();
         return new AABB(-half,BOTTOM,FRONT,half,TOP,BACK);
     }
     public AABB box() { return box(hold.owner().cargoSeat()).move(0,0,hold.owner().cargoBody().frontOffset()); }

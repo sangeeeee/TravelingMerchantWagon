@@ -115,17 +115,24 @@ public class WideWagonGameTests {
     }
     @GameTest(template="assembly_test",timeoutTicks=35)
     public static void triple_driver_positions_are_independent_of_cargo_stools(GameTestHelper h) {
-        var w=wagon(h,WagonPart.TRIPLE_WOODEN_SEAT);var hold=w.cargo();
-        var riders=new ArrayList<ServerPlayer>();
-        for(int seat:new int[]{2,1,0}) {
-            var p=player(h,hold,Vec3.ZERO);double x=(seat-1)*.94;var target=new Vec3(x,31.48/16,-3.275);
-            aim(p,w,new Vec3(x,2.8,-4.3),target);
-            h.assertTrue(w.interactAt(p,w.pose().point(target).subtract(w.position()),InteractionHand.MAIN_HAND).consumesAction()&&p.getVehicle()==w&&w.passengerSeat(p)==seat,"Clicked triple position not boarded: "+seat);
-            h.assertTrue((seat==0)==(w.driver()!=null),"Middle/right seat took driving permission");riders.add(p);
+        for(var kind:new WagonPart[]{WagonPart.TRIPLE_WOODEN_SEAT,WagonPart.TRIPLE_SEAT}) {
+            var w=wagon(h,kind);var hold=w.cargo();
+            h.assertTrue(Math.abs(WagonGeometry.partBoxes(kind).getFirst().getXsize()-WagonGeometry.partBoxes(WagonPart.DOUBLE_SEAT).getFirst().getXsize()*WagonPart.WIDE_CARGO_BODY.widthScale())<2e-6,"Triple seat does not match the wider body");
+            var riders=new ArrayList<ServerPlayer>();
+            for(int seat:new int[]{2,1,0}) {
+                var p=player(h,hold,Vec3.ZERO);double x=(seat-1)*kind.seatSpacing();var target=new Vec3(x,kind.isWoodenSeat()?31.48/16:34.4/16,-3.275);
+                aim(p,w,new Vec3(x,2.8,-4.3),target);
+                h.assertTrue(w.interactAt(p,w.pose().point(target).subtract(w.position()),InteractionHand.MAIN_HAND).consumesAction()&&p.getVehicle()==w&&w.passengerSeat(p)==seat,"Clicked triple position not boarded: "+seat);
+                riders.add(p);
+                h.assertTrue(w.driver()==riders.stream().filter(r->w.passengerSeat(r)==1).findFirst().orElse(null),"Triple driver is not the middle rider");
+                var local=w.pose().local(w.getPassengerRidingPosition(p));
+                h.assertTrue(Math.abs(local.x-x)<1e-6,"Rider not centred on the selected third of the bench");
+            }
+            place(h,hold,31,new ItemStack(WagonContent.STOOL.get()));var p=player(h,hold,hold.centreAt(31).add(0,1,0));
+            h.assertTrue(hold.seats.sit(31,p)==null&&w.passengerSeat(p)==WagonEntity.CARGO_SEAT_BASE+31,"Last stool overlaps triple driver index");
+            for(var rider:riders) { w.positionRider(rider);var before=w.getPassengerRidingPosition(rider);rider.stopRiding();h.assertTrue(rider.position().distanceTo(before.add(0,.001,0))<.01,"Triple dismount did not stay on the seat"); }
+            w.discard();
         }
-        place(h,hold,31,new ItemStack(WagonContent.STOOL.get()));var p=player(h,hold,hold.centreAt(31).add(0,1,0));
-        h.assertTrue(hold.seats.sit(31,p)==null&&w.passengerSeat(p)==WagonEntity.CARGO_SEAT_BASE+31,"Last stool overlaps triple driver index");
-        for(var rider:riders) { w.positionRider(rider);var before=w.getPassengerRidingPosition(rider);rider.stopRiding();h.assertTrue(rider.position().distanceTo(before.add(0,.001,0))<.01,"Triple dismount did not stay on the seat"); }
         h.succeed();
     }
     @GameTest(template="assembly_test",timeoutTicks=35)
@@ -141,7 +148,7 @@ public class WideWagonGameTests {
         var f=frame(h,WagonPart.TRIPLE_SEAT);var hold=f.cargo();
         place(h,hold,31,new ItemStack(Items.CHEST));var chest=hold.entry(31);chest.inventory.setItem(0,new ItemStack(Items.DIAMOND,17));
         var p=player(h,hold,new Vec3(-3,0,-3.2));var c=hold.cabinet();
-        h.assertTrue(c.install(new ItemStack(WagonContent.CABINET.get()),p,new Vec3(-23.5/16,1.7,-3.2))==null&&c.inventory().getContainerSize()==54,"Triple cabinet is not a 54-slot wide cabinet");
+        h.assertTrue(c.install(new ItemStack(WagonContent.CABINET.get()),p,new Vec3(-WagonPart.TRIPLE_SEAT.seatHalfWidth(),1.7,-3.2))==null&&c.inventory().getContainerSize()==54,"Triple cabinet is not a 54-slot wide cabinet");
         var inv=c.inventory();inv.setItem(53,new ItemStack(Items.EMERALD,29));
         var styles=f.materials();h.assertTrue(f.toggleFrame(null)==null,"Wide assembly failed");
         var w=h.getLevel().getEntitiesOfClass(WagonEntity.class,new AABB(f.getBlockPos()).inflate(12)).getFirst();
@@ -190,10 +197,17 @@ public class WideWagonGameTests {
     @GameTest(template="assembly_test",timeoutTicks=40)
     public static void wide_wagon_drives_reverses_and_turns_with_distance_matched_wheels(GameTestHelper h) {
         for(int x=1;x<24;x++)for(int z=1;z<24;z++)h.setBlock(new BlockPos(x,1,z),net.minecraft.world.level.block.Blocks.STONE);
-        var w=wagon(h,WagonPart.TRIPLE_SEAT);var p=player(h,w.cargo(),Vec3.ZERO);h.assertTrue(p.startRiding(w),"Wide driver failed");
+        var w=wagon(h,WagonPart.TRIPLE_SEAT);var p=player(h,w.cargo(),Vec3.ZERO);
+        var target=new Vec3(0,34.4/16,-3.275);aim(p,w,new Vec3(0,2.8,-4.3),target);
+        h.assertTrue(w.interactAt(p,w.pose().point(target).subtract(w.position()),InteractionHand.MAIN_HAND).consumesAction()&&w.driver()==p,"Middle wide driver failed");
+        var side=player(h,w.cargo(),Vec3.ZERO);target=new Vec3(WagonPart.TRIPLE_SEAT.seatSpacing(),34.4/16,-3.275);
+        aim(side,w,target.add(0,.8,-1),target);w.interactAt(side,w.pose().point(target).subtract(w.position()),InteractionHand.MAIN_HAND);
+        h.assertTrue(side.getVehicle()==w&&w.driver()!=side,"Side rider took driving permission");
+        double initial=w.getZ();float beforeYaw=w.getYRot();w.acceptInput(side,1,1);w.tick();
+        h.assertTrue(Math.abs(w.getZ()-initial)<.001&&Math.abs(w.getYRot()-beforeYaw)<.001,"Side rider moved or steered the wagon");
         var horse=EntityType.HORSE.create(h.getLevel());horse.setNoAi(true);horse.setPos(w.horsePosition(0));h.getLevel().addFreshEntity(horse);horse.setLeashedTo(p,true);
         h.assertTrue(w.attachHorse(p,horse,0)==null,"Wide hitch rejected horse");
-        double initial=w.getZ();
+        initial=w.getZ();
         for(int i=0;i<12;i++) { w.acceptInput(p,1,0);w.tick(); }
         double forward=initial-w.getZ();
         h.assertTrue(Math.abs(forward-12*com.sange.tm_wagon.physics.WagonPhysics.FORWARD_SPEED)<.025,"Wide wagon cannot advance at normal speed: "+forward);

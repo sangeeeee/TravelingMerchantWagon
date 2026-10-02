@@ -345,7 +345,9 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
         lerpPosition=new Vec3(x,y,z);lerpYaw=yaw;lerpSteps=Math.max(1,Math.min(5,steps));
     }
     public Player driver() {
-        for(Entity passenger:getPassengers())if(passenger instanceof Player player&&passengerSeat(player)==0)return player;
+        var seat=cargoSeat();
+        if(seat==null)return null;
+        for(Entity passenger:getPassengers())if(passenger instanceof Player player&&passengerSeat(player)==seat.driverSeat())return player;
         return null;
     }
     public void acceptInput(Player player,int forward,int steer) {
@@ -447,7 +449,7 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
             if(validSeat(i)&&(i<CARGO_SEAT_BASE||!cargo.cover().covered(i-CARGO_SEAT_BASE))&&!seatOccupied(i,null))return true;
         return false;
     }
-    /** Stable IDs 0..2 are driver seats; 3..58 are cargo stools, independent of passenger ordering. */
+    /** Stable IDs 0..2 are driver seats; cargo stools start at 3, independent of passenger ordering. */
     public int passengerSeat(Entity passenger) {
         var seats=entityData.get(SEATS);String key=passenger.getUUID().toString();
         if(seats.contains(key))return seats.getInt(key);
@@ -490,7 +492,7 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
     private Vec3 seatPosition(int seat) {
         if(seat>=CARGO_SEAT_BASE&&seat<CARGO_SEAT_BASE+cargo.capacity())
             return pose().point(cargo.centreAt(seat-CARGO_SEAT_BASE).add(0,.5,0));
-        double x=(seat-(seatCapacity()-1)/2.0)*(seatCapacity()==3?.94:.9);
+        double x=(seat-(seatCapacity()-1)/2.0)*cargoSeat().seatSpacing();
         return pose().point(new Vec3(x,cargoSeat()!=null&&cargoSeat().isWoodenSeat()?31.5/16:2.15625,-1.875+cargoBody().frontOffset()));
     }
     @Override public Vec3 getPassengerRidingPosition(Entity passenger) {
@@ -502,10 +504,13 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
         if(seatCapacity()==3) {
             var result=new java.util.ArrayList<AABB>();
             for(int seat=0;seat<3;seat++) {
-                double centre=(seat-1)*.94;
+                double spacing=cargoSeat().seatSpacing(),centre=(seat-1)*spacing;
                 boolean wooden=cargoSeat().isWoodenSeat();
-                result.add(new AABB(centre-.45,wooden?30.02/16:31.5/16,wooden?-35.5/16:-35.0/16,
-                    centre+.45,wooden?31.48/16:34.4/16,wooden?-23.5/16:-24.0/16));
+                double half=wooden?spacing/2:(spacing-.3/16)/2;
+                double left=wooden&&seat==0?-cargoSeat().seatHalfWidth():centre-half;
+                double right=wooden&&seat==2?cargoSeat().seatHalfWidth():centre+half;
+                result.add(new AABB(left,wooden?30.02/16:31.5/16,wooden?-35.5/16:-35.0/16,
+                    right,wooden?31.48/16:34.4/16,wooden?-23.5/16:-24.0/16));
             }
             surfaces=result;
         } else if(cargoSeat()!=null&&cargoSeat().isWoodenSeat())surfaces=seatCapacity()==2?DOUBLE_WOODEN_SURFACES:SINGLE_WOODEN_SURFACES;

@@ -141,6 +141,36 @@ public class AssemblyGameTests {
     }
 
     @GameTest(template="assembly_test")
+    public static void shafts_can_install_from_every_front_centre_body_cell(GameTestHelper helper) {
+        var player=helper.makeMockPlayer(GameType.SURVIVAL);
+        player.getAbilities().instabuild=false;
+        for(var body:new WagonPart[]{WagonPart.CARGO_BODY,WagonPart.LONG_CARGO_BODY,WagonPart.WIDE_CARGO_BODY})
+        for(Direction facing:Direction.Plane.HORIZONTAL) {
+            var f=frame(helper,facing);install(helper,f,WagonSlot.BODY,body);
+            double front=WagonGeometry.partBoxes(body).getFirst().minZ;
+            var positions=f.layout().entrySet().stream().filter(e-> {
+                var local=f.cargoPose().local(Vec3.atCenterOf(e.getKey()));
+                return e.getValue().slots().contains(WagonSlot.BODY)&&Math.abs(local.x)<.001&&local.z<=front+.5;
+            }).map(java.util.Map.Entry::getKey).toList();
+            helper.assertTrue(positions.size()>1,"No front centre cells at different heights/distances");
+            for(var shafts:new WagonPart[]{WagonPart.SINGLE_HORSE_SHAFTS,WagonPart.DOUBLE_HORSE_SHAFTS})
+            for(var pos:positions) {
+                var stack=item(shafts);player.setItemInHand(InteractionHand.MAIN_HAND,stack);
+                var hit=new BlockHitResult(Vec3.atCenterOf(pos),facing,pos,false);
+                var result=stack.getItem().useOn(new UseOnContext(player,InteractionHand.MAIN_HAND,hit));
+                helper.assertTrue(result==InteractionResult.CONSUME&&f.part(WagonSlot.SHAFTS)==shafts&&stack.getCount()==1,"Front body cell rejected shafts: "+body+" / "+facing+" / "+pos);
+                f.remove(EnumSet.of(WagonSlot.SHAFTS),false);
+            }
+            var stack=item(WagonPart.SINGLE_SEAT);player.setItemInHand(InteractionHand.MAIN_HAND,stack);
+            var pos=positions.stream().min(java.util.Comparator.comparingInt(BlockPos::getY)).orElseThrow();
+            var hit=new BlockHitResult(Vec3.atCenterOf(pos),facing,pos,false);
+            helper.assertTrue(stack.getItem().useOn(new UseOnContext(player,InteractionHand.MAIN_HAND,hit))==InteractionResult.FAIL&&stack.getCount()==2,"Shaft allowance also broadened seat placement");
+            f.dismantle(false,true);
+        }
+        helper.succeed();
+    }
+
+    @GameTest(template="assembly_test")
     public static void unique_drops(GameTestHelper helper) {
         var frame = frame(helper,Direction.NORTH);
         install(helper,frame,WagonSlot.BODY,WagonPart.CARGO_BODY);

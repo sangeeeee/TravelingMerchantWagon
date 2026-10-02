@@ -5,7 +5,7 @@ so spokes, hubs, nails and gaps never create extra collision surfaces.
 """
 import math
 import copy
-from wide_wagon_models import WIDTH, DECK_HALF, FRONT, REAR
+from wide_wagon_models import WIDTH, DECK_HALF, FRONT, REAR, TRIPLE_HALF
 
 
 def volumes():
@@ -37,7 +37,7 @@ def volumes():
     for i in [3,5,6,7,8,9]:wide[i][2]+=FRONT;wide[i][5]+=FRONT
     for i in [4,10]:wide[i][2]+=REAR;wide[i][5]+=REAR
     result['wide_cargo_body']=wide
-    for name, half in [('single_seat',8.5),('double_seat',15.5),('triple_seat',23.5)]:
+    for name, half in [('single_seat',8.5),('double_seat',15.5),('triple_seat',TRIPLE_HALF)]:
         result[name] = [
             # The inaccessible cabinet recess is solid for gameplay collision.
             # One box covers the support, underside, seat board and cushion.
@@ -46,7 +46,7 @@ def volumes():
             [-half,34.5,-35,-half+2,40,-23.5],
             [half-2,34.5,-35,half,40,-23.5],
         ]
-    for name,half in [('single_wooden_seat',8.5),('double_wooden_seat',15.5),('triple_wooden_seat',23.5)]:
+    for name,half in [('single_wooden_seat',8.5),('double_wooden_seat',15.5),('triple_wooden_seat',TRIPLE_HALF)]:
         # The cabinet recess and plain seat board share one simple solid box.
         result[name]=[[-half,24,-35.5,half,31.5,-23.5]]
     for name, radius in [('small_wheel',10.5),('large_wheel',13.5)]:

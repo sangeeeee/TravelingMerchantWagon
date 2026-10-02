@@ -64,7 +64,13 @@ public final class WagonContent {
         .icon(() -> ICON.get().getDefaultInstance())
         .displayItems((parameters, output) -> {
             output.accept(FRAME_ITEM.get());
-            for (WagonPart part : WagonPart.values()) com.sange.tm_wagon.material.WagonMaterial.creative(output,PART_ITEMS.get(part).get());
+            for (WagonPart part : new WagonPart[]{
+                WagonPart.CARGO_BODY,WagonPart.LONG_CARGO_BODY,WagonPart.WIDE_CARGO_BODY,
+                WagonPart.SINGLE_WOODEN_SEAT,WagonPart.DOUBLE_WOODEN_SEAT,WagonPart.TRIPLE_WOODEN_SEAT,
+                WagonPart.SINGLE_SEAT,WagonPart.DOUBLE_SEAT,WagonPart.TRIPLE_SEAT,
+                WagonPart.SINGLE_HORSE_SHAFTS,WagonPart.DOUBLE_HORSE_SHAFTS,
+                WagonPart.SMALL_WHEEL,WagonPart.LARGE_WHEEL
+            }) com.sange.tm_wagon.material.WagonMaterial.creative(output,PART_ITEMS.get(part).get());
             output.accept(STRAW_MAT.get());
             com.sange.tm_wagon.material.WagonMaterial.creative(output,STOOL.get());
             com.sange.tm_wagon.material.WagonMaterial.creative(output,CARGO_COVER.get());

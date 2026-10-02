@@ -15,6 +15,8 @@ ROW_PITCH=.70
 DECK_HALF=16*((ROWS-1)*ROW_PITCH/2+.45)
 FRONT=24-DECK_HALF
 REAR=DECK_HALF-36
+TRIPLE_HALF=15.5*WIDTH
+TRIPLE_SPACING=(2*TRIPLE_HALF-1.6)/3
 
 def write(path,data):
     path.write_text(json.dumps(data,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
@@ -51,16 +53,17 @@ def generate_triple_seats():
                 if cube['name'] in ['left_wool_cushion','right_wool_cushion']:
                     if cube['name']=='left_wool_cushion':
                         for seat in range(3):
-                            c=copy.deepcopy(cube);b=copy.deepcopy(baked);centre=(seat-1)*15.04
+                            c=copy.deepcopy(cube);b=copy.deepcopy(baked);centre=(seat-1)*TRIPLE_SPACING
                             c['name']=f'triple_wool_cushion_{seat}'
                             c['uuid']=str(uuid.uuid5(uuid.NAMESPACE_URL,'tm_wagon/'+name+'/'+c['name']))
-                            c['from'][0]=centre-7.275;c['to'][0]=centre+7.275;c['origin'][0]=centre
+                            half=(TRIPLE_SPACING-.3)/2
+                            c['from'][0]=centre-half;c['to'][0]=centre+half;c['origin'][0]=centre
                             bake_position(c,b);replacements.append((c,b))
                     continue
                 # End supports translate; long boards extend between them.
                 for field in ['from','to','origin']:
                     x=cube[field][0]
-                    if abs(x)>.01:cube[field][0]=x+(8 if x>0 else -8)
+                    if abs(x)>.01:cube[field][0]=x+(TRIPLE_HALF-15.5)*(1 if x>0 else -1)
                 bake_position(cube,baked);replacements.append((cube,baked))
             old={c['uuid'] for c in members}
             model['elements']=[c for c in model['elements'] if c['uuid'] not in old]+[c for c,b in replacements]

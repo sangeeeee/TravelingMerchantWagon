@@ -109,6 +109,6 @@ for locale in ['zh_cn','en_us']:
     new_names={'wide_cargo_body':('加宽货物车厢','Wide Cargo Body'), 'triple_seat':('三人带靠背车夫座椅','Triple Backrest Driver Seat'), 'triple_wooden_seat':('三人木制车夫座椅','Triple Wooden Driver Seat')}
     for name,names in new_names.items():
         lang['block.tm_wagon.'+name]=names[0 if locale=='zh_cn' else 1]
-        lang['tooltip.tm_wagon.'+name]=('4列×8行货位；以装配架为中心放置。' if locale=='zh_cn' else 'Four columns and eight rows; centred on the assembly frame.') if name=='wide_cargo_body' else ('仅适用于加宽货物车厢；最左侧为驾驶位。' if locale=='zh_cn' else 'Wide cargo bodies only; the left seat is the driver.')
+        lang['tooltip.tm_wagon.'+name]=('4列×8行货位；以装配架为中心放置。' if locale=='zh_cn' else 'Four columns and eight rows; centred on the assembly frame.') if name=='wide_cargo_body' else ('仅适用于加宽货物车厢；中间为驾驶位。' if locale=='zh_cn' else 'Wide cargo bodies only; the middle seat is the driver.')
     write(path,lang)
 print('Packed one shared 1024x1024 atlas, tinted fabric models, 80 native wood models, 19 material-aware recipes and 6 item tags.')

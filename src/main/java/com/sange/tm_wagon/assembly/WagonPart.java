@@ -16,6 +16,13 @@ public enum WagonPart {
         case TRIPLE_SEAT,TRIPLE_WOODEN_SEAT->3;
         default->0;
     }; }
+    public int driverSeat() { return seatCapacity()==3?1:0; }
+    public double seatHalfWidth() { return switch(seatCapacity()) {
+        case 3->15.5*WIDE_CARGO_BODY.widthScale()/16;
+        case 2->15.5/16;
+        default->8.5/16;
+    }; }
+    public double seatSpacing() { return seatCapacity()==3?(seatHalfWidth()*2-.1)/3:.9; }
     public int columns() { return this==WIDE_CARGO_BODY?4:2; }
     public int rows() { return this==WIDE_CARGO_BODY?8:this==LONG_CARGO_BODY?6:5; }
     public int cargoCapacity() { return columns()*rows(); }

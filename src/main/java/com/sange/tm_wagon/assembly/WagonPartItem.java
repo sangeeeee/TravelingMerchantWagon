@@ -30,8 +30,15 @@ public class WagonPartItem extends BlockItem implements GeoItem {
             var hit = new net.minecraft.world.phys.BlockHitResult(context.getClickLocation(),context.getClickedFace(),context.getClickedPos(),false);
             if (frame.platformTop(hit)) target = WagonSlot.BODY;
         }
+        if (WagonSlot.SHAFTS.accepts(part)&&frame.has(WagonSlot.BODY)) {
+            var cell=frame.layout().get(context.getClickedPos());
+            var local=frame.cargoPose().local(net.minecraft.world.phys.Vec3.atCenterOf(context.getClickedPos()));
+            double front=WagonGeometry.partBoxes(frame.cargoBody()).getFirst().minZ;
+            if(cell!=null&&cell.slots().contains(WagonSlot.BODY)&&Math.abs(local.x)<.001&&local.z<=front+.5)
+                target=WagonSlot.SHAFTS;
+        }
         for (WagonSlot slot : WagonSlot.values()) {
-            if (part.isCargoBody()) break;
+            if (target!=null || part.isCargoBody()) break;
             if (!slot.accepts(part)) continue;
             var pos = slot.position(frame.getBlockPos(),frame.facing(),frame.cargoBody());
             if (pos.equals(context.getClickedPos()) || pos.equals(context.getClickedPos().relative(context.getClickedFace()))) { target = slot; break; }
