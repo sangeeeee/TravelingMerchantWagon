@@ -37,6 +37,8 @@ public final class CargoHold {
     public static final TagKey<Item> DISALLOWED=TagKey.create(Registries.ITEM,ResourceLocation.fromNamespaceAndPath("tm_wagon","disallowed_cargo"));
     private final CargoOwner owner;
     public final CargoSeats seats=new CargoSeats(this);
+    private final CargoCover cover=new CargoCover(this);
+    public CargoCover cover() { return cover; }
     private final CargoEntry[] entries=new CargoEntry[MAX_CAPACITY];
     private boolean gateTarget,gateCollision;
     private long gateStart=Long.MIN_VALUE;
@@ -68,12 +70,12 @@ public final class CargoHold {
     public static AABB slotBox(int slot) {
         Vec3 p=centre(slot);return new AABB(p.x-SCALE/2,p.y,p.z-SCALE/2,p.x+SCALE/2,p.y+SCALE,p.z+SCALE/2);
     }
-    public boolean empty() { for(var e:entries)if(e!=null)return false;return true; }
+    public boolean empty() { if(cover.installed())return false;for(var e:entries)if(e!=null)return false;return true; }
     public int slot(CargoEntry entry) { for(int i=0;i<MAX_CAPACITY;i++)if(entries[i]==entry)return i;return -1; }
     public Vec3 position(CargoEntry entry) { int slot=slot(entry);return owner.cargoPose().point(slot<0?new Vec3(0,FLOOR,0):centre(slot)); }
     public boolean valid(CargoEntry entry,Player player) {
         return owner.cargoLive()&&!owner.cargoBusy()&&slot(entry)>=0&&entry.hold==this&&player.isAlive()
-            &&player.level()==owner.cargoLevel()&&player.distanceToSqr(position(entry))<=64;
+            &&player.level()==owner.cargoLevel()&&player.distanceToSqr(position(entry))<=64&&!cover.covered(slot(entry));
     }
     public void changed(boolean visible) { if(!loading&&owner.cargoLevel()!=null&&!owner.cargoLevel().isClientSide)owner.cargoChanged(visible); }
     public List<AABB> boxes() { var result=new ArrayList<AABB>();for(int i=0;i<MAX_CAPACITY;i++)if(entries[i]!=null)result.add(entryBox(i));return result; }
@@ -84,7 +86,7 @@ public final class CargoHold {
     }
     public List<AABB> bodyBoxes() { return bodyBoxes(owner.cargoBody()); }
     public List<AABB> bodyBoxes(WagonPart body) {
-        var boxes=new ArrayList<>(WagonGeometry.partBoxes(body));boxes.set(4,tailBox(body));boxes.addAll(boxes());return boxes;
+        var boxes=new ArrayList<>(WagonGeometry.partBoxes(body));boxes.set(4,tailBox(body));boxes.addAll(boxes());boxes.addAll(cover.boxes(body));return boxes;
     }
     public float gateProgress(float partial) {
         if(gateStart==Long.MIN_VALUE||owner.cargoLevel()==null)return gateTarget?1:0;
@@ -120,7 +122,12 @@ public final class CargoHold {
     /** Called with the first actual cart-surface hit, so a wall cannot be clicked through. */
     public InteractionResult interact(Player player,InteractionHand hand,Vec3 local) {
         if(!owner.cargoLive())return InteractionResult.PASS;
+        var coverResult=cover.interact(player,hand,local);if(coverResult!=InteractionResult.PASS)return coverResult;
         int slot=selected(local);var stack=player.getItemInHand(hand);
+        if(slot>=0&&cover.covered(slot)) {
+            if(!owner.cargoLevel().isClientSide)message(player,"message.tm_wagon.cargo_covered");
+            return InteractionResult.sidedSuccess(owner.cargoLevel().isClientSide);
+        }
         if(slot<0) {
             if(!tailBox().inflate(.025).contains(local))return InteractionResult.PASS;
             if(!owner.cargoLevel().isClientSide)message(player,toggleGate());
@@ -142,7 +149,7 @@ public final class CargoHold {
         if(!(stack.getItem() instanceof BlockItem||stack.getItem() instanceof StrawMatItem||stack.getItem() instanceof WagonStoolItem))return InteractionResult.CONSUME;
         message(player,place(slot,stack,player));return InteractionResult.CONSUME;
     }
-    private static void message(Player player,String error) { if(error!=null)player.displayClientMessage(Component.translatable(error),true); }
+    static void message(Player player,String error) { if(error!=null)player.displayClientMessage(Component.translatable(error),true); }
     public static boolean allowed(ItemStack item) {
         return placementRestriction(item)==null;
     }
@@ -155,6 +162,7 @@ public final class CargoHold {
     }
     public String place(int slot,ItemStack stack,Player player) {
         if(!owner.cargoLive()||owner.cargoBusy()||slot<0||slot>=capacity())return "message.tm_wagon.assembly_busy";
+        if(cover.covered(slot))return "message.tm_wagon.cargo_covered";
         String restriction=placementRestriction(stack);if(restriction!=null)return restriction;
         boolean mat=stack.getItem() instanceof StrawMatItem,stool=stack.getItem() instanceof WagonStoolItem;
         if(mat) {
@@ -181,7 +189,7 @@ public final class CargoHold {
         int slot=slot(entry);if(slot<0)return;entries[slot]=null;owner.cargoGeometryChanged();changed(true);
     }
     /** Bounded to one cargo/gate volume; skip this host's proxy blocks and use actual cart geometry. */
-    private boolean freeVolume(AABB volume) {
+    boolean freeVolume(AABB volume) {
         AABB box=volume.deflate(.001);var level=owner.cargoLevel();
         var shape=net.minecraft.world.phys.shapes.Shapes.create(box);
         for(BlockPos pos:BlockPos.betweenClosed(BlockPos.containing(box.minX,box.minY,box.minZ),BlockPos.containing(box.maxX,box.maxY,box.maxZ))) {
@@ -197,7 +205,8 @@ public final class CargoHold {
         return true;
     }
     public String take(int slot,Player player) {
-        var entry=entry(slot);if(entry==null||!valid(entry,player))return "message.tm_wagon.assembly_busy";
+        var entry=entry(slot);if(entry!=null&&cover.covered(slot(entry)))return "message.tm_wagon.cargo_covered";
+        if(entry==null||!valid(entry,player))return "message.tm_wagon.assembly_busy";
         slot=slot(entry);StrawMatSleep.wake(this,entry);seats.release(entry);
         CargoMenus.close(this,entry);Vec3 position=position(entry);BlockState state=entry.state;entries[slot]=null;
         String error=owner.cargoGeometryChanged();if(error!=null) { entries[slot]=entry;return error; }
@@ -225,11 +234,12 @@ public final class CargoHold {
         }
         entry.inventory.clearContent();entry.popExperience(player);
     }
-    private void drop(Vec3 position,ItemStack stack) {
+    void drop(Vec3 position,ItemStack stack) {
         var entity=new net.minecraft.world.entity.item.ItemEntity(owner.cargoLevel(),position.x,position.y+.1,position.z,stack);
         entity.setDefaultPickUpDelay();owner.cargoLevel().addFreshEntity(entity);
     }
     public void destroy(boolean drops) {
+        cover.destroy(drops);
         StrawMatSleep.wake(this,null);
         closeMenus();
         for(int i=0;i<MAX_CAPACITY;i++) {
@@ -245,13 +255,14 @@ public final class CargoHold {
         for(int i=target.capacity();i<MAX_CAPACITY;i++)if(entries[i]!=null)throw new IllegalStateException("Cargo target is too small");
         closeMenus();
         for(int i=0;i<MAX_CAPACITY;i++) { target.entries[i]=entries[i];entries[i]=null;if(target.entries[i]!=null)target.entries[i].hold=target; }
+        cover.transferTo(target.cover);
         target.gateTarget=gateTarget;target.gateCollision=gateCollision;target.gateStart=gateStart;target.gateFrom=gateFrom;
         gateTarget=gateCollision=false;gateStart=Long.MIN_VALUE;gateFrom=0;changed(true);target.changed(true);
     }
     public CompoundTag save(HolderLookup.Provider lookup,boolean visual) {
         var tag=new CompoundTag();var list=new ListTag();
         for(int i=0;i<MAX_CAPACITY;i++)if(entries[i]!=null) { var saved=entries[i].save(lookup,visual);saved.putInt("Slot",i);list.add(saved); }
-        tag.put("Entries",list);tag.putBoolean("GateTarget",gateTarget);tag.putBoolean("GateCollision",gateCollision);tag.putLong("GateStart",gateStart);tag.putFloat("GateFrom",gateFrom);return tag;
+        tag.put("Entries",list);tag.put("Cover",cover.save());tag.putBoolean("GateTarget",gateTarget);tag.putBoolean("GateCollision",gateCollision);tag.putLong("GateStart",gateStart);tag.putFloat("GateFrom",gateFrom);return tag;
     }
     public void load(CompoundTag tag,HolderLookup.Provider lookup) {
         if(owner.cargoLevel()!=null&&!owner.cargoLevel().isClientSide)closeMenus();
@@ -262,6 +273,7 @@ public final class CargoHold {
             if(loaded.kind==CargoEntry.Kind.STRAW_MAT&&(slot<4||entry(slot-2)!=null||entry(slot-4)!=null))continue;
             entries[slot]=loaded;
         }
+        cover.load(tag.getCompound("Cover"));
         gateTarget=tag.getBoolean("GateTarget");gateCollision=tag.getBoolean("GateCollision");gateStart=tag.contains("GateStart")?tag.getLong("GateStart"):Long.MIN_VALUE;gateFrom=Math.clamp(tag.getFloat("GateFrom"),0,1);loading=false;
     }
     public static AABB worldBox(AABB box,WagonPose pose) {

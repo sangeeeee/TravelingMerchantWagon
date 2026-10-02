@@ -81,9 +81,11 @@ public class WagonCrowdGameTests {
     public static void standing_mob_and_pull_horse_are_not_cleared_as_road_obstacles(GameTestHelper h) {
         var f=wagon(h,Direction.NORTH);var w=f.wagon;
         var cargo=mob(h,w,EntityType.SHEEP,new Vec3(0,1.51,.7));cargo.move(MoverType.SELF,new Vec3(0,-.05,0));
-        var road=mob(h,w,EntityType.COW,new Vec3(.2,0,-5.8));Vec3 local=w.pose().local(cargo.position());
-        drive(f,1,1,12);
-        h.assertTrue(w.pose().local(cargo.position()).distanceTo(local)<.02,"Road clearing shoved cargo occupant");
+        var road=mob(h,w,EntityType.COW,new Vec3(.2,0,-5.8));Vec3 cargoStart=cargo.position();
+        drive(f,1,1,5);
+        h.assertTrue(cargo.position().equals(cargoStart),"Road clearing shoved or transported cargo occupant");
+        // Once the wagon passes beneath it, the unseated mob may leave the deck.
+        drive(f,1,1,7);
         h.assertTrue(w.hasHorse(f.horse.getUUID())&&f.horse.position().distanceTo(w.horsePosition(0))<.05,"Road clearing displaced pulling horse");
         h.assertTrue(Math.abs(w.pose().local(road.position()).x)>.5&&road.position().distanceTo(w.horsePosition(0))>.8,"Road mob remained directly in horse footprint: "+w.pose().local(road.position()));h.succeed();
     }

@@ -211,11 +211,10 @@ public final class WagonPhysics {
     private boolean move(WagonEntity wagon,Vec3 motion,float yaw,float pitch,float roll) {
         if(motion.lengthSqr()<1e-12&&Math.abs(Mth.wrapDegrees(yaw-wagon.getYRot()))<1e-6
             &&Math.abs(pitch-wagon.pitch())<1e-6&&Math.abs(roll-wagon.roll())<1e-6)return false;
-        wagon.platform().begin();
-        try { wagon.crowd().begin(motion);return moveWithPlatform(wagon,motion,yaw,pitch,roll); }
-        finally { wagon.crowd().end();wagon.platform().end(); }
+        try { wagon.crowd().begin(motion);return moveVehicle(wagon,motion,yaw,pitch,roll); }
+        finally { wagon.crowd().end(); }
     }
-    private boolean moveWithPlatform(WagonEntity wagon,Vec3 motion,float yaw,float pitch,float roll) {
+    private boolean moveVehicle(WagonEntity wagon,Vec3 motion,float yaw,float pitch,float roll) {
         boolean landedOnLowerGround=false;
         Ground floorBelow=falling?ground(wagon.level(),wagon.position().add(motion.x,0,motion.z),.5,16,.10):new Ground(Double.NEGATIVE_INFINITY,false);
         double landingHeight=floorBelow.present()&&floorBelow.height<fallStartHeight-1.05?floorBelow.height:Double.NEGATIVE_INFINITY;
@@ -278,7 +277,7 @@ public final class WagonPhysics {
             boxes=shift(boxes,0,y,0);
             double x=limit(Direction.Axis.X,step.x,boxes,terrain);boxes=shift(boxes,x,0,0);
             double z=limit(Direction.Axis.Z,step.z,boxes,terrain);
-            if(!wagon.platform().moveTo(new WagonPose(rotated.position().add(x,y,z),rotated.yaw(),rotated.pitch(),rotated.roll())))break;
+            wagon.applyPose(new WagonPose(rotated.position().add(x,y,z),rotated.yaw(),rotated.pitch(),rotated.roll()));
             wagon.crowd().clear(previous);
         }
         return landedOnLowerGround;

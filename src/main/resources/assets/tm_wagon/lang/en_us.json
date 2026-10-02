@@ -56,5 +56,12 @@
   "tooltip.tm_wagon.wagon_stool": "Place only in wagon cargo slots; right-click to sit, sneak-right-click to remove",
   "message.tm_wagon.stool_cannot_sit": "Cannot sit on this stool",
   "block.tm_wagon.long_cargo_body": "Extended Cargo Compartment",
-  "tooltip.tm_wagon.long_cargo_body": "Use on the frame top to place a compartment extended by one rear row. 12 cargo slots."
+  "tooltip.tm_wagon.long_cargo_body": "Use on the frame top to place a compartment extended by one rear row. 12 cargo slots.",
+  "item.tm_wagon.wagon_cargo_cover": "Cargo Cover",
+  "tooltip.tm_wagon.wagon_cargo_cover": "Use a block-form cargo wall to install. Use the fabric to roll back one row; sneak-use to spread it. Sneak-use a block-form cargo wall to remove.",
+  "message.tm_wagon.cover_block_only": "Cargo covers can only be installed or removed on a block-form wagon.",
+  "message.tm_wagon.cover_installed": "This compartment already has a cargo cover.",
+  "message.tm_wagon.cover_side": "Use a cargo wall to install or remove the cover, or use the fabric or roll to adjust it.",
+  "message.tm_wagon.cover_blocked": "An entity or block obstructs the new fabric or roll. The cover cannot change.",
+  "message.tm_wagon.cargo_covered": "This cargo slot is covered. Roll back the fabric first."
 }

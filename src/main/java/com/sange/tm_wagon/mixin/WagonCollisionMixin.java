@@ -1,7 +1,7 @@
 package com.sange.tm_wagon.mixin;
 
 import com.sange.tm_wagon.entity.WagonEntity;
-import com.sange.tm_wagon.entity.WagonPlatform;
+import com.sange.tm_wagon.entity.WagonCrowd;
 import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.world.entity.Entity;
@@ -24,9 +24,9 @@ public interface WagonCollisionMixin {
         if(area.getSize()<1e-7) { callback.setReturnValue(List.of());return; }
         var predicate=excluded==null?EntitySelector.CAN_BE_COLLIDED_WITH:EntitySelector.NO_SPECTATORS.and(excluded::canCollideWith);
         var result=new ArrayList<VoxelShape>();
-        WagonEntity carrier=WagonPlatform.excludedWagon();
+        WagonEntity clearedWagon=WagonCrowd.excludedWagon();
         for(Entity entity:world.getEntities(excluded,area.inflate(1e-7),predicate)) {
-            if(entity==carrier)continue;
+            if(entity==clearedWagon)continue;
             if(entity instanceof WagonEntity wagon) {
                 for(AABB box:wagon.collisionBoxes())if(box.intersects(area.inflate(1e-7)))result.add(Shapes.create(box));
             }else result.add(Shapes.create(entity.getBoundingBox()));

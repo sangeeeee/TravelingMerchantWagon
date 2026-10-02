@@ -6,7 +6,7 @@
     "WagonCollisionMixin",
     "WagonPickingMixin",
     "WagonQueryMixin",
-    "WagonStandingPlayerMixin",
+    "WagonSupportPlayerMixin",
     "WagonSleepLivingMixin",
     "WagonSleepServerPlayerMixin",
     "HorseTravelMixin",
@@ -14,8 +14,7 @@
     "HorseLeashMixin"
   ],
   "client": [
-    "WagonSleepRendererMixin",
-    "WagonStandingLocalPlayerMixin"
+    "WagonSleepRendererMixin"
   ],
   "injectors": {
     "defaultRequire": 1

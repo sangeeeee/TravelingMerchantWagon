@@ -56,5 +56,12 @@
   "tooltip.tm_wagon.wagon_stool": "仅可放在马车货位上；右键入座，潜行右键取下",
   "message.tm_wagon.stool_cannot_sit": "无法坐在这个木凳上",
   "block.tm_wagon.long_cargo_body": "加长货物车厢",
-  "tooltip.tm_wagon.long_cargo_body": "右键装配架顶面，放置向后加长一排的货物车厢，共 12 个货位。"
+  "tooltip.tm_wagon.long_cargo_body": "右键装配架顶面，放置向后加长一排的货物车厢，共 12 个货位。",
+  "item.tm_wagon.wagon_cargo_cover": "货箱罩",
+  "tooltip.tm_wagon.wagon_cargo_cover": "右键方块货厢侧面安装；右键布面卷起一排，潜行右键铺开一排；潜行右键方块货厢侧面拆下。",
+  "message.tm_wagon.cover_block_only": "只能在方块状态的马车货厢上安装或拆卸货箱罩。",
+  "message.tm_wagon.cover_installed": "货厢已经安装了货箱罩。",
+  "message.tm_wagon.cover_side": "请对准货厢侧面安装或拆卸，或对准布面和布卷操作。",
+  "message.tm_wagon.cover_blocked": "布面或布卷被实体或方块挡住，无法改变货箱罩。",
+  "message.tm_wagon.cargo_covered": "该货位被货箱罩遮住，请先卷起对应布面。"
 }

@@ -27,6 +27,7 @@ public final class WagonContent {
     public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(TravelingMerchantWagon.MODID);
     public static final DeferredItem<com.sange.tm_wagon.cargo.StrawMatItem> STRAW_MAT = ITEMS.register("wagon_straw_mat",()->new com.sange.tm_wagon.cargo.StrawMatItem(new Item.Properties().stacksTo(16)));
     public static final DeferredItem<com.sange.tm_wagon.cargo.WagonStoolItem> STOOL = ITEMS.register("wagon_stool",()->new com.sange.tm_wagon.cargo.WagonStoolItem(new Item.Properties().stacksTo(16)));
+    public static final DeferredItem<com.sange.tm_wagon.cargo.WagonCoverItem> CARGO_COVER = ITEMS.register("wagon_cargo_cover",()->new com.sange.tm_wagon.cargo.WagonCoverItem(new Item.Properties().stacksTo(16)));
     public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = DeferredRegister.create(Registries.BLOCK_ENTITY_TYPE, TravelingMerchantWagon.MODID);
     public static final DeferredRegister<CreativeModeTab> TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, TravelingMerchantWagon.MODID);
     public static final DeferredRegister<net.minecraft.world.entity.EntityType<?>> ENTITIES = DeferredRegister.create(Registries.ENTITY_TYPE,TravelingMerchantWagon.MODID);
@@ -64,6 +65,7 @@ public final class WagonContent {
             for (WagonPart part : WagonPart.values()) output.accept(PART_ITEMS.get(part).get());
             output.accept(STRAW_MAT.get());
             output.accept(STOOL.get());
+            output.accept(CARGO_COVER.get());
         }).build());
     private static BlockBehaviour.Properties properties() {
         return BlockBehaviour.Properties.of().mapColor(MapColor.WOOD).sound(SoundType.WOOD)

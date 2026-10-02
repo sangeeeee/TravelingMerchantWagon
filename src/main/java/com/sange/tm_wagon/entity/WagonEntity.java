@@ -42,7 +42,6 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
     private static final EntityDataAccessor<CompoundTag> CARGO=SynchedEntityData.defineId(WagonEntity.class,EntityDataSerializers.COMPOUND_TAG);
     private final com.sange.tm_wagon.cargo.CargoHold cargo=new com.sange.tm_wagon.cargo.CargoHold(this);
     private final WagonPhysics physics=new WagonPhysics();
-    private final WagonPlatform platform=new WagonPlatform(this);
     private final WagonCrowd crowd=new WagonCrowd(this);
     private float pitch,roll,steering,shaftPitch,oldPitch,oldRoll,oldSteering,oldShaftPitch;
     private final float[] wheels=new float[4],oldWheels=new float[4];
@@ -157,7 +156,6 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
     @Override public void cargoChanged(boolean visible) {
         if(visible&&!level().isClientSide)entityData.set(CARGO,cargo.save(level().registryAccess(),true));
     }
-    public WagonPlatform platform() { return platform; }
     public WagonCrowd crowd() { return crowd; }
     public float pitch() { return pitch; }
     public float roll() { return roll; }
@@ -167,12 +165,7 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
     public void setSupportMask(int mask) { supportMask=mask; }
     public void setSteering(float value) { steering=value;worldShape=null;worldBoxes=null; }
     public void applyPose(WagonPose pose) {
-        applyPose(pose,null);
-    }
-    /** Reuse geometry already calculated while validating an occupied platform step. */
-    void applyPose(WagonPose pose,List<AABB> boxes) {
-        pitch=pose.pitch();roll=pose.roll();setYRot(pose.yaw());worldShape=null;worldBoxes=boxes;
-        if(boxes!=null) { boxesPose=pose;boxesSteering=steering;boxesShaftPitch=shaftPitch; }
+        pitch=pose.pitch();roll=pose.roll();setYRot(pose.yaw());worldShape=null;worldBoxes=null;
         setPos(pose.position());
     }
     private Vec3 articulated(Vec3 point,WagonSlot slot) {
@@ -253,8 +246,6 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
         oldPitch=pitch;oldRoll=roll;oldSteering=steering;oldShaftPitch=shaftPitch;System.arraycopy(wheels,0,oldWheels,0,4);
         if(level().isClientSide) {
             WagonPose previous=pose();
-            // Only the local player is transported on the client. Other entities already
-            // receive their transported positions from the server's normal entity tracking.
             var motion=entityData.get(MOTION);
             // Vanilla tracking quantizes yaw to 1/256 of a turn. At tilted walls that
             // changes the stepped collision faces enough to disagree with the server.
@@ -273,8 +264,7 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
             supportMask=motion.contains("Support")?motion.getInt("Support"):15;worldShape=null;
             WagonPose next=new WagonPose(nextPosition,nextYaw,nextPitch,nextRoll);
             if(!previous.equals(next)) {
-                platform.begin();
-                try { platform.moveTo(next); } finally { platform.end(); }
+                applyPose(next);
             } else if(boxesSteering!=steering||boxesShaftPitch!=shaftPitch) {
                 setBoundingBox(makeBoundingBox());WagonSpatialIndex.update(this);
             }
@@ -636,7 +626,7 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
         else if(++hangingTicks[slot]>=HORSE_HANG_TIMEOUT)detachHorse(horse.getUUID(),true);
     }
     @Override public boolean canCollideWith(Entity entity) {
-        return !platform.carries(entity)&&!crowd.yields(entity)&&!(entity instanceof AbstractHorse h&&hasHorse(h.getUUID()))&&!entity.isPassengerOfSameVehicle(this)
+        return !crowd.yields(entity)&&!(entity instanceof AbstractHorse h&&hasHorse(h.getUUID()))&&!entity.isPassengerOfSameVehicle(this)
             &&(entity.canBeCollidedWith()||entity.isPushable());
     }
     @Override public boolean hurt(DamageSource source,float amount) {

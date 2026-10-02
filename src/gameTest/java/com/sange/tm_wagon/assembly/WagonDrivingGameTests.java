@@ -411,7 +411,7 @@ public class WagonDrivingGameTests {
         // The wheel's low outside shoulder used to pass the local-height check and contact check.
         p.setPos(w.pose().point(new Vec3(1.69,.86,-.31)));
         p.move(net.minecraft.world.entity.MoverType.SELF,new Vec3(0,-.08,0));p.setDeltaMovement(Vec3.ZERO);
-        h.assertTrue(p.onGround()&&w.platform().supports(p)&&w.pose().local(p.position()).y<.9,"Low wheel shoulder fixture has no entity support");
+        h.assertTrue(p.onGround()&&com.sange.tm_wagon.entity.WagonSupport.supports(w,p)&&w.pose().local(p.position()).y<.9,"Low wheel shoulder fixture has no entity support");
         h.assertTrue(!WagonEntity.hasGroundForPushing(p)&&w.pushDirection(p,1,0)==0,"Player standing on wheel entered push detection");
         for(int i=0;i<8;i++) { w.acceptPush(p,1,0);w.tick(); }
         h.assertTrue(w.position().distanceToSqr(parked)<.000001,"Wheel-edge input moved wagon");

@@ -17,6 +17,7 @@ import net.minecraft.world.phys.Vec3;
 
 /** One nearby query per moving tick; road mobs yield, rather than acting as solid walls. */
 public final class WagonCrowd {
+    private static final ThreadLocal<WagonEntity> EXCLUDED=new ThreadLocal<>();
     // Collision data starts with the main cargo floor. Also protect occupants jumping above it.
     private final WagonEntity wagon;
     private final Set<Mob> candidates=Collections.newSetFromMap(new IdentityHashMap<>());
@@ -26,6 +27,21 @@ public final class WagonCrowd {
     private double pushLimit;
     WagonCrowd(WagonEntity wagon) { this.wagon=wagon; }
 
+    /** Road clearing ignores this wagon only; terrain and other vehicles remain solid. */
+    public static WagonEntity excludedWagon() { return EXCLUDED.get(); }
+    private static <T> T ignoringWagon(WagonEntity wagon,java.util.function.Supplier<T> action) {
+        WagonEntity prior=EXCLUDED.get();EXCLUDED.set(wagon);
+        try { return action.get(); }
+        finally { if(prior==null)EXCLUDED.remove();else EXCLUDED.set(prior); }
+    }
+    private static Vec3 allowedMovement(Entity entity,WagonEntity wagon,Vec3 delta) {
+        return ignoringWagon(wagon,()->Entity.collideBoundingBox(entity,delta,entity.getBoundingBox(),wagon.level(),
+            wagon.level().getEntityCollisions(entity,entity.getBoundingBox().expandTowards(delta))));
+    }
+    private static void moveIgnoringWagon(Entity entity,WagonEntity wagon,Vec3 delta) {
+        ignoringWagon(wagon,()->{entity.move(net.minecraft.world.entity.MoverType.SELF,delta);return null;});
+    }
+
     private boolean roadMob(Mob mob) {
         AABB deck=WagonGeometry.partBoxes(wagon.cargoBody()).getFirst();
         Vec3 feet=wagon.pose().local(mob.position());
@@ -34,7 +50,7 @@ public final class WagonCrowd {
         return mob.isAlive()&&!mob.isRemoved()&&!mob.noPhysics&&!mob.isSpectator()
             &&!mob.isPassengerOfSameVehicle(wagon)&&!wagon.hasHorse(mob.getUUID())
             &&!(mob instanceof AbstractHorse horse&&HorseHarness.attached(horse))
-            &&!wagon.platform().carries(mob)&&!WagonPlatform.supportedByWagon(mob);
+            &&!WagonSupport.supportedByWagon(mob);
     }
     public void begin(Vec3 motion) {
         end();double speed=motion.horizontalDistance();
@@ -85,16 +101,16 @@ public final class WagonCrowd {
             var choice=sides.get(mob.getUUID());
             int side=choice!=null?choice.side:Math.abs(x)<.03?(mob.getId()%2==0?1:-1):x>0?1:-1;
             Vec3 requested=outward(mob,right,side,side>0?rightEdge:left,current);
-            Vec3 allowed=WagonPlatform.allowedMovement(mob,wagon,requested);
+            Vec3 allowed=allowedMovement(mob,wagon,requested);
             // Prefer the nearest side; use the other side if a wall leaves it more room.
             if(choice==null&&allowed.lengthSqr()<requested.lengthSqr()*.0625) {
-                Vec3 other=WagonPlatform.allowedMovement(mob,wagon,outward(mob,right,-side,side>0?left:rightEdge,current));
+                Vec3 other=allowedMovement(mob,wagon,outward(mob,right,-side,side>0?left:rightEdge,current));
                 if(other.lengthSqr()>allowed.lengthSqr()+.0004) { allowed=other;side=-side; }
             }
             sides.put(mob.getUUID(),new SideChoice(side,wagon.level().getGameTime()+10));
             if(allowed.lengthSqr()<1e-10||!wagon.level().hasChunkAt(BlockPos.containing(mob.position().add(allowed))))continue;
             boolean grounded=mob.onGround();
-            WagonPlatform.moveIgnoringWagon(mob,wagon,allowed);
+            moveIgnoringWagon(mob,wagon,allowed);
             if(grounded) {
                 var ground=WagonPhysics.ground(wagon.level(),mob.position(),.03,.05,mob.getBbWidth()/2);
                 if(ground.present()&&!ground.forbidden())mob.setOnGround(true);
