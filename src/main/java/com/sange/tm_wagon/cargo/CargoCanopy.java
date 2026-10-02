@@ -21,7 +21,7 @@ import net.minecraft.world.phys.Vec3;
 /** One optional roof; cached thin silhouettes and two independent curtains, no ticking entities. */
 public final class CargoCanopy {
     public static final double BASE=2.28125,FRONT=CargoCover.FRONT,THICK=1.0/64,REAR=2.203125,FRONT_CURTAIN_INSET=.0234375,REAR_CURTAIN_INSET=5.0/1024;
-    public static final double TOP=3.96875+.5*Math.tan(Math.PI/8);
+    public static final double TOP=3.96875+.3+.5*Math.tan(Math.PI/8);
     private static final Map<String,List<AABB>> GEOMETRY=loadGeometry();
     private record Key(WagonPart body,boolean installed,boolean front,boolean rear) {}
     private static final Map<Key,List<AABB>> CACHE=new java.util.concurrent.ConcurrentHashMap<>();
@@ -46,6 +46,8 @@ public final class CargoCanopy {
     public List<AABB> boxes(WagonPart body) {
         return CACHE.computeIfAbsent(new Key(body,installed,frontClosed,rearClosed),key->{
             if(!key.installed)return List.of();
+            // Movement colliders come only from canvas and curtains. The rib
+            // mesh is rendered separately and never contributes any collision.
             double back=back(body);var result=new ArrayList<AABB>();
             for(AABB b:GEOMETRY.get("shell"))result.add(new AABB(b.minX,b.minY,FRONT,b.maxX,b.maxY,back));
             result.addAll(curtainBoxes(body,true));result.addAll(curtainBoxes(body,false));return List.copyOf(result);

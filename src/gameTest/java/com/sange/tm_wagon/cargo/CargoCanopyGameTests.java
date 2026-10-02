@@ -119,14 +119,14 @@ public class CargoCanopyGameTests {
         h.runAtTickTime(22,()->{
             double rear=hold.canopy().back(f.cargoBody());
             var p=h.makeMockServerPlayerInLevel();p.setNoGravity(true);p.setPos(f.cargoPose().point(new Vec3(0,2.05,rear-.3)));
-            Vec3 rayStart=f.cargoPose().point(new Vec3(0,3.9,rear+.3)),rayEnd=f.cargoPose().point(new Vec3(0,3.9,rear-.3));
+            Vec3 rayStart=f.cargoPose().point(new Vec3(0,CargoCanopy.TOP-.25,rear+.3)),rayEnd=f.cargoPose().point(new Vec3(0,CargoCanopy.TOP-.25,rear-.3));
             var outline=h.getLevel().clip(new net.minecraft.world.level.ClipContext(rayStart,rayEnd,net.minecraft.world.level.ClipContext.Block.OUTLINE,net.minecraft.world.level.ClipContext.Fluid.NONE,p));
             var collider=h.getLevel().clip(new net.minecraft.world.level.ClipContext(rayStart,rayEnd,net.minecraft.world.level.ClipContext.Block.COLLIDER,net.minecraft.world.level.ClipContext.Fluid.NONE,p));
             h.assertTrue(outline.getType()==net.minecraft.world.phys.HitResult.Type.BLOCK&&collider.getType()==net.minecraft.world.phys.HitResult.Type.MISS,"Block canopy rim lost selection or retained a solid collider");
             Vec3 before=p.position();p.move(MoverType.SELF,new Vec3(0,0,.65));h.assertTrue(p.getZ()>before.z+.6,"Block canopy arch trapped the player's head");
             p.setPos(f.cargoPose().point(new Vec3(-3,0,0)));h.assertTrue(f.toggleFrame(null)==null,"Entity conversion failed");
             var w=h.getLevel().getEntitiesOfClass(WagonEntity.class,new AABB(f.getBlockPos()).inflate(7)).getFirst();
-            h.assertTrue(w.pick(w.pose().point(new Vec3(0,3.9,rear+.3)),w.pose().point(new Vec3(0,3.9,rear-.3))).isPresent(),"Entity decorative rim cannot be selected");
+            h.assertTrue(w.pick(w.pose().point(new Vec3(0,CargoCanopy.TOP-.25,rear+.3)),w.pose().point(new Vec3(0,CargoCanopy.TOP-.25,rear-.3))).isPresent(),"Entity decorative rim cannot be selected");
             p.setPos(w.pose().point(new Vec3(0,2.05,rear-.3)));before=p.position();p.move(MoverType.SELF,new Vec3(0,0,.65));
             h.assertTrue(p.getZ()>before.z+.6,"Entity canopy arch trapped the player's head");h.succeed();
         });

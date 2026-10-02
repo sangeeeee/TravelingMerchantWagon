@@ -112,7 +112,8 @@ public final class CargoHold {
     public boolean gateMoving() { return gateStart!=Long.MIN_VALUE; }
     public boolean gateOpen() { return gateCollision; }
     public String toggleGate() {
-        if(owner.cargoBusy()||gateMoving())return "message.tm_wagon.assembly_busy";
+        if(owner.cargoBusy())return "message.tm_wagon.assembly_busy";
+        if(gateMoving())return ACCESS_BLOCKED;
         gateFrom=gateProgress(0);gateTarget=!gateTarget;gateStart=owner.cargoLevel().getGameTime();
         Vec3 p=owner.cargoPose().point(new Vec3(0,1.53,2.35+rearExtension()));
         owner.cargoLevel().playSound(null,p.x,p.y,p.z,gateTarget?net.minecraft.sounds.SoundEvents.WOODEN_TRAPDOOR_OPEN:net.minecraft.sounds.SoundEvents.WOODEN_TRAPDOOR_CLOSE,net.minecraft.sounds.SoundSource.BLOCKS,.65F,1);

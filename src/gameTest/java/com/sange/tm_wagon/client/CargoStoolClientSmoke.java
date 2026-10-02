@@ -48,7 +48,10 @@ public final class CargoStoolClientSmoke {
         if(ticks==25)require(mc.player.getVehicle() instanceof CargoSeatEntity,"Block seat was not tracked by client");
         if(ticks==35)mc.options.keyShift.setDown(true);
         if(ticks==38)mc.options.keyShift.setDown(false);
-        if(ticks==55)require(!mc.player.isPassenger()&&mc.player.getPose()==Pose.STANDING,"Block stool Shift dismount failed");
+        if(ticks==55) {
+            require(!mc.player.isPassenger()&&mc.player.getPose()==Pose.STANDING,"Block stool Shift dismount failed");
+            require(mc.player.getY()<FRAME.getY()+2.1,"Block stool dismount teleported rider onto canopy");
+        }
         if(ticks==75)server(mc,()->{
             var p=mc.getSingleplayerServer().getPlayerList().getPlayers().getFirst();var f=(AssemblyFrameBlockEntity)p.serverLevel().getBlockEntity(FRAME);
             require(f.toggleFrame(null)==null,"Could not assemble stool wagon");
@@ -68,6 +71,8 @@ public final class CargoStoolClientSmoke {
         if(ticks==143)mc.options.keyShift.setDown(false);
         if(ticks==160) {
             require(!mc.player.isPassenger()&&mc.player.getPose()==Pose.STANDING,"Tilted stool Shift dismount failed");awake=mc.player.position();
+            var w=(WagonEntity)mc.level.getEntity(wagonId);
+            require(w.pose().local(awake).y<2.5,"Tilted stool dismount teleported rider onto canopy");
         }
         if(ticks>=160&&ticks<240) { mc.player.setYRot(33);mc.player.setXRot(15); }
         if(ticks==175) { jumpBase=mc.player.getY();mc.options.keyJump.setDown(true); }
@@ -84,7 +89,7 @@ public final class CargoStoolClientSmoke {
                 require(Math.abs(p.getYRot()-yaw)<.2&&Math.abs(p.getXRot()-pitch)<.2,"Server rejected view rotation after stool dismount");verified=true;
             });
         }
-        if(ticks>=260&&verified) { LogUtils.getLogger().info("CARGO_STOOL_CLIENT_PASS: slot="+SLOT+", block and tilted entity stools, native Shift dismount, view, walking, jump, driving permission and server agreement");mc.stop(); }
+        if(ticks>=260&&verified) { LogUtils.getLogger().info("CARGO_STOOL_CLIENT_PASS: slot="+SLOT+", canopied block and tilted entity stools, native Shift dismount, view, walking, jump, driving permission and server agreement");mc.stop(); }
         if(ticks>300)throw new IllegalStateException("Stool verification timed out");
     }
     private static void server(Minecraft mc,Runnable task) {
@@ -107,6 +112,7 @@ public final class CargoStoolClientSmoke {
         for(var entry:WagonEntity.defaultParts().entrySet())if(entry.getKey()!=WagonSlot.BODY)
             require(f.install(entry.getKey(),entry.getValue(),null,new ItemStack(WagonContent.PART_ITEMS.get(entry.getValue()).get()))==null,"Module init failed");
         require(f.cargo().place(SLOT,new ItemStack(WagonContent.STOOL.get()),p)==null,"Stool placement failed");
+        require(f.cargo().canopy().install(new ItemStack(WagonContent.CANOPY.get()),p,new Vec3(-1.15625,1.9,.5))==null,"Canopy install failed");
         require(f.cargo().seats.sit(SLOT,p)==null,"Block stool seat failed");
     }
     private static void require(boolean condition,String message) { if(!condition)throw new IllegalStateException(message); }

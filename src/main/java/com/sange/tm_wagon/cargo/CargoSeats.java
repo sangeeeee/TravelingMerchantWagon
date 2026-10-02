@@ -87,8 +87,16 @@ public final class CargoSeats {
         if(!outside&&slot>=0&&slot<hold.capacity()) {
             Vec3 centre=pose.point(CargoHold.centre(slot).add(0,.5,0));
             double top=Math.max(centre.y,CargoHold.worldBox(CargoHold.stoolBox(slot),pose).maxY);
-            for(double rise=.01;rise<=3;rise+=.125) {
-                Vec3 target=new Vec3(centre.x,top+rise,centre.z);
+            // Stay next to the seat surface. A tall vertical search could skip
+            // the entire roof and teleport the rider onto its outside.
+            // A world-upright rider can clip the tilted side wall's conservative
+            // bounds. Try small inward offsets that still lie above the stool.
+            double inward=-Math.signum(CargoHold.centre(slot).x);
+            double middleZ=(CargoCanopy.FRONT+2.21875+hold.rearExtension())/2;
+            double longitudinal=Math.signum(middleZ-CargoHold.centre(slot).z);
+            for(double rise=.001;rise<=.125;rise+=1.0/32)for(double shift=0;shift<=.25;shift+=1.0/16)for(double along=0;along<=.25;along+=1.0/16) {
+                Vec3 offset=pose.vector(new Vec3(inward*shift,0,longitudinal*along));
+                Vec3 target=new Vec3(centre.x+offset.x,top+rise,centre.z+offset.z);
                 if(clear(rider,target))return target;
             }
         }

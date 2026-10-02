@@ -5,10 +5,16 @@ import base64, copy, json, math, random, uuid
 ROOT=Path(__file__).resolve().parents[1]
 ASSETS=ROOT/'src/main/resources/assets/tm_wagon'
 PROJECT=ROOT/'modeling/wagon_canopy'
-BASE=2.28125; HALF=1.0; THICK=1/64; FRONT=-1.34375; REAR=2.203125; REAR_CURTAIN_INSET=5/1024
+BASE=2.28125; THICK=1/64; FRONT=-1.34375; REAR=2.203125; REAR_CURTAIN_INSET=5/1024
+# Align to the side-rail planks with a tiny outward offset to avoid coplanar faces.
+SIDE_PLANK_OUTER=17.75/16
+CLOTH_CLEARANCE=1/128
+HALF=SIDE_PLANK_OUTER-THICK/2+CLOTH_CLEARANCE
+FOLD_INNER=HALF-.234375; FOLD_OUTER=HALF-.109375
 SHOULDER=HALF-.3125; CROWN=SHOULDER-.5; BORDER=.375; SEAM=1/1024
-TOP=3.96875+.5*math.tan(math.pi/8)
-PROFILE=[(-HALF,BASE),(-HALF,3.65625),(-SHOULDER,3.96875),(-CROWN,TOP),(CROWN,TOP),(SHOULDER,3.96875),(HALF,3.65625),(HALF,BASE)]
+RAISE=.3
+TOP=3.96875+RAISE+.5*math.tan(math.pi/8)
+PROFILE=[(-HALF,BASE),(-HALF,3.65625+RAISE),(-SHOULDER,3.96875+RAISE),(-CROWN,TOP),(CROWN,TOP),(SHOULDER,3.96875+RAISE),(HALF,3.65625+RAISE),(HALF,BASE)]
 END_PROFILE=[(-HALF,1.5),*PROFILE[1:-1],(HALF,1.5)]
 TEX={'cloth':'tm_wagon:block/canopy_cloth','wood':'tm_wagon:block/canopy_wood','curtain':'tm_wagon:block/canopy_curtain'}
 def write(p,value):
@@ -73,9 +79,9 @@ def roof(x):
  x=abs(x)
  if x<=CROWN:return TOP
  if x<=SHOULDER:return TOP-(x-CROWN)*math.tan(math.pi/8)
- return 3.96875-(x-SHOULDER)
+ return 3.96875+RAISE-(x-SHOULDER)
 closed=[];open_parts=[];closed_boxes=[]
-HALF_CURTAIN=.703125; GAP=1/32; PANEL=HALF_CURTAIN-GAP/2
+HALF_CURTAIN=HALF-.296875; GAP=1/32; PANEL=HALF_CURTAIN-GAP/2
 for i in range(8):
  left=i<4;j=i%4
  x0=-HALF_CURTAIN+j*PANEL/4 if left else GAP/2+j*PANEL/4;x1=x0+PANEL/4
@@ -91,8 +97,8 @@ for i in range(8):
  closed_boxes.append([old_x0,1.5,0,old_x1,min(roof(old_x0),roof(old_x1))-.025,THICK])
 for side in [-1,1]:
  for pleat in range(3):
-  x0=(.765625+pleat/24)*side;x1=(.765625+(pleat+1)/24)*side
-  a=normalized(min(x0,x1),1.5);b=normalized(max(x0,x1),roof(.890625)-.04)
+  x0=(FOLD_INNER+pleat/24)*side;x1=(FOLD_INNER+(pleat+1)/24)*side
+  a=normalized(min(x0,x1),1.5);b=normalized(max(x0,x1),roof(FOLD_OUTER)-.04)
   z0=(pleat%2)*THICK/4
   open_parts.append(box(f'gathered_curtain_{side}_{pleat}',[a[0],a[1],z0*16],[b[0],b[1],(z0+THICK/2)*16],'curtain'))
 meshes={'shell':shell,'rib':ribs,'end':ends,'curtain_closed':closed,'curtain_open':open_parts}
@@ -118,9 +124,9 @@ end_boxes=[bounds_strip(a,b,BORDER,seam_depth(i),THICK+seam_depth(i),BORDER/2-TH
 def rect_box(p):
  a,b=p['from'],p['to'];return [a[0]/8-1,a[1]/8+BASE,a[2]/16,b[0]/8-1,b[1]/8+BASE,b[2]/16]
 # The open curtain is two thin bundles, rather than every decorative fold.
-open_boxes=[[a,1.5,0,b,roof(.890625)-.04,THICK*.75] for a,b in [(-.890625,-.765625),(.765625,.890625)]]
+open_boxes=[[a,1.5,0,b,roof(FOLD_OUTER)-.04,THICK*.75] for a,b in [(-FOLD_OUTER,-FOLD_INNER),(FOLD_INNER,FOLD_OUTER)]]
 # End fabric hides the folded curtains but remains their outside click handle.
-handles=[[a,1.5,0,b,roof(.890625)-.04,THICK] for a,b in [(-HALF,-HALF+BORDER),(HALF-BORDER,HALF)]]
+handles=[[a,1.5,0,b,roof(FOLD_OUTER)-.04,THICK] for a,b in [(-HALF,-HALF+BORDER),(HALF-BORDER,HALF)]]
 write(ROOT/'src/main/resources/data/tm_wagon/canopy_geometry.json',{'shell':shell_boxes,'end':end_boxes,'curtain_closed':closed_boxes,'curtain_open':open_boxes,'curtain_handles':handles})
 def textures(offset=0):
  result=[]

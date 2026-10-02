@@ -61,6 +61,7 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
     private boolean motionStarted;
     private record Component(AABB box,WagonSlot slot) {}
     private List<Component> components=List.of();
+    private List<Component> pickingComponents=List.of();
     private List<AABB> worldBoxes;
     private WagonPose boxesPose;
     private float boxesSteering,boxesShaftPitch;
@@ -116,10 +117,12 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
     private void rebuildGeometry() {
         modules=decode(entityData.get(MODULES)); localShape=WagonGeometry.entityShape(modules,facing()); worldShape=null;worldBoxes=null;
         var list=new java.util.ArrayList<Component>();
+        var picking=new java.util.ArrayList<Component>();
         modules.forEach((slot,part)->{
             for(AABB box:slot==WagonSlot.BODY&&cargo!=null?cargo.bodyBoxes():WagonGeometry.partBoxes(part)) {
                 if(slot==WagonSlot.FRONT_RIGHT||slot==WagonSlot.REAR_RIGHT)box=new AABB(-box.maxX,box.minY,box.minZ,-box.minX,box.maxY,box.maxZ);
                 box=box.move(slot.geometryOffset(cargoBody()));
+                picking.add(new Component(box,slot));
                 // Subdivide long boards so their rotated bounds preserve the open cargo interior.
                 int nx=Math.max(1,(int)Math.ceil(box.getXsize()/.65)),ny=Math.max(1,(int)Math.ceil(box.getYsize()/.65)),nz=Math.max(1,(int)Math.ceil(box.getZsize()/.65));
                 for(int x=0;x<nx;x++)for(int y=0;y<ny;y++)for(int z=0;z<nz;z++)list.add(new Component(new AABB(
@@ -127,6 +130,11 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
                     box.minX+box.getXsize()*(x+1)/nx,box.minY+box.getYsize()*(y+1)/ny,box.minZ+box.getZsize()*(z+1)/nz),slot));
             }
         });components=List.copyOf(list);
+        if(cargo!=null) {
+            for(AABB box:cargo.cover().selectionBoxes(cargoBody()))picking.add(new Component(box,WagonSlot.BODY));
+            for(AABB box:cargo.canopy().rimBoxes(cargoBody()))picking.add(new Component(box,WagonSlot.BODY));
+        }
+        pickingComponents=List.copyOf(picking);
         setBoundingBox(makeBoundingBox());if(level()!=null)WagonSpatialIndex.update(this);
     }
     @Override public void setPos(double x,double y,double z) {
@@ -213,16 +221,35 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
         }return worldBoxes;
     }
     public boolean intersects(AABB area) { return collisionBoxes().stream().anyMatch(area::intersects); }
+    /** Pick in each component's own frame, never its enlarged world-axis bounds. */
     public java.util.Optional<Vec3> pick(Vec3 start,Vec3 end) {
+        WagonPose current=pose();Vec3 a=current.local(start),b=current.local(end);
+        Vec3 wheelA=unsteered(a),wheelB=unsteered(b),shaftA=unpitched(wheelA),shaftB=unpitched(wheelB);
         Vec3 best=null;double distance=Double.POSITIVE_INFINITY;
-        var pickBoxes=new java.util.ArrayList<>(collisionBoxes());
-        for(AABB box:cargo.cover().selectionBoxes(cargoBody()))pickBoxes.add(com.sange.tm_wagon.cargo.CargoHold.worldBox(box,pose()));
-        for(AABB box:cargo.canopy().rimBoxes(cargoBody()))pickBoxes.add(com.sange.tm_wagon.cargo.CargoHold.worldBox(box,pose()));
-        for(AABB b:pickBoxes) {
-            var hit=b.clip(start,end);
-            if(b.contains(start))return java.util.Optional.of(start);
-            if(hit.isPresent()&&start.distanceToSqr(hit.get())<distance) { best=hit.get();distance=start.distanceToSqr(best); }
+        for(Component component:pickingComponents) {
+            boolean front=component.slot==WagonSlot.FRONT_LEFT||component.slot==WagonSlot.FRONT_RIGHT;
+            Vec3 localA=component.slot==WagonSlot.SHAFTS?shaftA:front?wheelA:a;
+            Vec3 localB=component.slot==WagonSlot.SHAFTS?shaftB:front?wheelB:b;
+            if(component.box.contains(localA))return java.util.Optional.of(start);
+            var hit=component.box.clip(localA,localB);
+            if(hit.isPresent()) {
+                double candidate=localA.distanceToSqr(hit.get());
+                if(candidate<distance) { best=current.point(articulated(hit.get(),component.slot));distance=candidate; }
+            }
         }return java.util.Optional.ofNullable(best);
+    }
+    public boolean containsPickPoint(Vec3 point) {
+        Vec3 local=pose().local(point),wheel=unsteered(local),shaft=unpitched(wheel);
+        for(Component component:pickingComponents) {
+            boolean front=component.slot==WagonSlot.FRONT_LEFT||component.slot==WagonSlot.FRONT_RIGHT;
+            if(component.box.contains(component.slot==WagonSlot.SHAFTS?shaft:front?wheel:local))return true;
+        }return false;
+    }
+    private Vec3 unsteered(Vec3 point) {
+        return WagonPose.rotate(point.subtract(new Vec3(0,10.5/16,-20.0/16)),0,0,-steering).add(0,10.5/16,-20.0/16);
+    }
+    private Vec3 unpitched(Vec3 point) {
+        return WagonPose.rotate(point.subtract(new Vec3(0,1.25,-26.0/16)),-shaftPitch,0,0).add(0,1.25,-26.0/16);
     }
     @Override protected AABB makeBoundingBox() {
         if(components==null||components.isEmpty())return localShape==null||localShape.isEmpty()?super.makeBoundingBox():localShape.bounds().move(position());

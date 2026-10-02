@@ -26,6 +26,6 @@ public abstract class WagonPickingMixin {
     private static boolean tm_wagon$insideSolid(boolean original,@Local(ordinal=2) Entity candidate,
             @Local(argsOnly=true,ordinal=0) Vec3 start) {
         if (!(candidate instanceof WagonEntity wagon)) return original;
-        return wagon.collisionBoxes().stream().anyMatch(box -> box.contains(start));
+        return wagon.containsPickPoint(start);
     }
 }

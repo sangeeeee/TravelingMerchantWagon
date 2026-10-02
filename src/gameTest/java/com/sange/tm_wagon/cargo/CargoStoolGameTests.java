@@ -40,6 +40,43 @@ public class CargoStoolGameTests {
     private static void place(GameTestHelper h,CargoHold hold,int slot) {
         h.assertTrue(hold.place(slot,new ItemStack(WagonContent.STOOL.get()),player(h,hold))==null,"Stool placement failed");
     }
+    @GameTest(template="assembly_test",timeoutTicks=35)
+    public static void block_canopy_stool_dismount_stays_on_seat_for_players_and_mobs(GameTestHelper h) {
+        var f=frame(h);place(h,f.cargo(),4);var p=player(h,f.cargo());
+        h.assertTrue(f.cargo().canopy().install(new ItemStack(WagonContent.CANOPY.get()),p,new Vec3(-1.15625,1.9,.5))==null,"Roof install failed");
+        assertStandOnStool(h,f.cargo(),4,p);
+        var mob=EntityType.ZOMBIE.create(h.getLevel());mob.setNoAi(true);mob.setPos(p.position());
+        assertStandOnStool(h,f.cargo(),4,mob);
+        h.succeed();
+    }
+    @GameTest(template="assembly_test",timeoutTicks=35)
+    public static void extended_canopy_stool_dismount_stays_near_seat_or_uses_safe_outside_on_slopes(GameTestHelper h) {
+        var w=wagon(h);var parts=w.parts();var modules=new java.util.EnumMap<WagonSlot,WagonPart>(WagonSlot.class);modules.putAll(parts);
+        modules.put(WagonSlot.BODY,WagonPart.LONG_CARGO_BODY);w.configure(modules,Direction.NORTH);
+        for(int slot:new int[]{4,5,10,11})place(h,w.cargo(),slot);
+        var tag=w.cargo().save(h.getLevel().registryAccess(),false);var canopy=new net.minecraft.nbt.CompoundTag();canopy.putBoolean("Installed",true);tag.put("Canopy",canopy);
+        w.cargo().load(tag,h.getLevel().registryAccess());w.cargoGeometryChanged();
+        h.assertTrue(w.collisionBoxes().stream().mapToDouble(b->b.maxY-w.getY()).max().orElseThrow()<5,"Raised roof exceeds the flat five-block height envelope");
+        for(var angles:new float[][]{{29.676F,0,0},{213,0,0},{137,0,0},{213,.14F,.09F},{137,-.10F,-.07F}}) {
+            w.applyPose(new WagonPose(w.position(),angles[0],angles[1],angles[2]));
+            for(int slot:new int[]{4,5,10,11})assertStandOnStool(h,w.cargo(),slot,player(h,w.cargo()),angles[1]!=0);
+        }
+        h.succeed();
+    }
+    private static void assertStandOnStool(GameTestHelper h,CargoHold hold,int slot,net.minecraft.world.entity.LivingEntity rider) {
+        assertStandOnStool(h,hold,slot,rider,false);
+    }
+    private static void assertStandOnStool(GameTestHelper h,CargoHold hold,int slot,net.minecraft.world.entity.LivingEntity rider,boolean allowOutside) {
+        h.assertTrue(hold.seats.sit(slot,rider)==null,"Canopied stool boarding failed");
+        rider.stopRiding();Vec3 target=rider.position();
+        h.assertTrue(rider.getPose()==Pose.STANDING,"Dismount left the rider pose active");
+        var pose=hold.owner().cargoPose();Vec3 centre=pose.point(CargoHold.centre(slot).add(0,.5,0));
+        double top=CargoHold.worldBox(CargoHold.stoolBox(slot),pose).maxY;
+        boolean aboveStool=Math.hypot(target.x-centre.x,target.z-centre.z)<=.355&&target.y>=top&&target.y-top<(allowOutside?.126:.01);
+        h.assertTrue(aboveStool||allowOutside&&Math.abs(pose.local(target).x)>1.5,"Dismount jumped off stool or onto roof: slot="+slot+", yaw="+pose.yaw()+", pitch="+pose.pitch()+", roll="+pose.roll()+", local="+pose.local(target));
+        h.assertTrue(h.getLevel().noCollision(rider,rider.getBoundingBox().deflate(.0001)),"Standing rider still intersects the canopy");
+        rider.setPos(pose.point(new Vec3(-3,1,0)));
+    }
     @GameTest(template="assembly_test",timeoutTicks=30)
     public static void stool_is_wagon_only_one_slot_and_half_block_high(GameTestHelper h) {
         var w=wagon(h);var hold=w.cargo();var p=player(h,hold);var stack=new ItemStack(WagonContent.STOOL.get(),2);
