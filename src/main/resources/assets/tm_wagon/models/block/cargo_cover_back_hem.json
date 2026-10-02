@@ -1,0 +1,72 @@
+{
+  "credit": "TravelingMerchantWagon / tools/export_cargo_cover.py",
+  "ambientocclusion": false,
+  "textures": {
+    "fabric": "tm_wagon:block/cargo_cover_fabric",
+    "rope": "tm_wagon:block/cargo_cover_rope",
+    "spiral": "tm_wagon:block/cargo_cover_spiral",
+    "particle": "tm_wagon:block/cargo_cover_fabric"
+  },
+  "elements": [
+    {
+      "name": "back_hanging_edge",
+      "from": [
+        0.105,
+        -2,
+        0
+      ],
+      "to": [
+        15.895,
+        0,
+        16
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            16,
+            2
+          ],
+          "texture": "#fabric"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            16,
+            2
+          ],
+          "texture": "#fabric"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            0.105,
+            2
+          ],
+          "texture": "#fabric"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            0.105,
+            2
+          ],
+          "texture": "#fabric"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#fabric"
+        }
+      }
+    }
+  ]
+}

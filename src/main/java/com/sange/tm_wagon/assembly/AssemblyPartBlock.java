@@ -33,9 +33,15 @@ public class AssemblyPartBlock extends BaseEntityBlock {
     @Override protected RenderShape getRenderShape(BlockState state) { return RenderShape.INVISIBLE; }
     @Override public BlockEntity newBlockEntity(BlockPos pos, BlockState state) { return new AssemblyCellBlockEntity(pos, state); }
     @Override protected VoxelShape getShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context) {
-        return world.getBlockEntity(pos) instanceof AssemblyCellBlockEntity cell ? cell.shape() : Shapes.empty();
+        if(!(world.getBlockEntity(pos) instanceof AssemblyCellBlockEntity cell))return Shapes.empty();
+        var frame=AssemblyFrameBlockEntity.find(world,pos);
+        if(frame==null)return cell.shape();
+        var extra=frame.cargo().cover().selectionCells(frame.cargoBody(),frame.facing()).get(pos.subtract(frame.getBlockPos()));
+        return extra==null?cell.shape():Shapes.or(cell.shape(),WagonGeometry.shape(extra));
     }
-    @Override protected VoxelShape getCollisionShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context) { return getShape(state,world,pos,context); }
+    @Override protected VoxelShape getCollisionShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context) {
+        return world.getBlockEntity(pos) instanceof AssemblyCellBlockEntity cell?cell.shape():Shapes.empty();
+    }
     @Override public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
         return level.isClientSide ? null : createTickerHelper(type,WagonContent.CELL_ENTITY.get(),(world,pos,s,cell) -> {
             if (world.getGameTime()%20 != 0 || !world.hasChunkAt(cell.owner())) return;

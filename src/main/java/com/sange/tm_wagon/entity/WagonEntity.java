@@ -215,7 +215,9 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
     public boolean intersects(AABB area) { return collisionBoxes().stream().anyMatch(area::intersects); }
     public java.util.Optional<Vec3> pick(Vec3 start,Vec3 end) {
         Vec3 best=null;double distance=Double.POSITIVE_INFINITY;
-        for(AABB b:collisionBoxes()) {
+        var pickBoxes=new java.util.ArrayList<>(collisionBoxes());
+        for(AABB box:cargo.cover().selectionBoxes(cargoBody()))pickBoxes.add(com.sange.tm_wagon.cargo.CargoHold.worldBox(box,pose()));
+        for(AABB b:pickBoxes) {
             var hit=b.clip(start,end);
             if(b.contains(start))return java.util.Optional.of(start);
             if(hit.isPresent()&&start.distanceToSqr(hit.get())<distance) { best=hit.get();distance=start.distanceToSqr(best); }
@@ -223,7 +225,11 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
     }
     @Override protected AABB makeBoundingBox() {
         if(components==null||components.isEmpty())return localShape==null||localShape.isEmpty()?super.makeBoundingBox():localShape.bounds().move(position());
-        var boxes=collisionBoxes();AABB bounds=boxes.getFirst();for(AABB b:boxes)bounds=bounds.minmax(b);return bounds;
+        var boxes=collisionBoxes();AABB bounds=boxes.getFirst();for(AABB b:boxes)bounds=bounds.minmax(b);
+        // Include the visual roll in broad-phase picking, but never in collisionBoxes().
+        if(cargo.cover().installed()&&cargo.cover().openRows()>0)
+            bounds=bounds.minmax(com.sange.tm_wagon.cargo.CargoHold.worldBox(cargo.cover().rollBox(cargoBody()),pose()));
+        return bounds;
     }
     public Vec3 wheelCentre(int i,WagonPose pose) {
         Vec3 point=WagonPhysics.WHEELS[i].add(0,WagonPhysics.radius(i),i>=2?cargoBody().rearExtension():0);

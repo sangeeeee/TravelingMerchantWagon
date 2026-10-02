@@ -72,10 +72,49 @@ public class CargoCoverGameTests {
             if(row>0)h.assertTrue(hold.cover().radius()>r,"Roll did not thicken");r=hold.cover().radius();
             if(row<6)step(h,hold,p,1);
         }
-        step(h,hold,p,1);h.assertTrue(hold.cover().openRows()==6&&hold.cover().boxes(hold.owner().cargoBody()).size()==5,"Fully rolled state kept a sheet or exceeded limit");
+        step(h,hold,p,1);h.assertTrue(hold.cover().openRows()==6&&hold.cover().boxes(hold.owner().cargoBody()).isEmpty(),"Fully rolled state retained decorative collision or exceeded limit");
         for(int row=6;row>0;row--)step(h,hold,p,-1);
         step(h,hold,p,-1);h.assertTrue(hold.cover().openRows()==0&&hold.cover().boxes(hold.owner().cargoBody()).size()==1,"Spreading did not restore full sheet");
         h.succeed();
+    }
+    @GameTest(template="assembly_test",timeoutTicks=40)
+    public static void thin_cloth_clears_both_seat_backrests_without_decorative_collisions(GameTestHelper h) {
+        var f=frame(h,false);var hold=f.cargo();var p=player(h,hold);install(h,hold,p);
+        for(var body:new WagonPart[]{WagonPart.CARGO_BODY,WagonPart.LONG_CARGO_BODY}) {
+            var boxes=hold.cover().boxes(body);h.assertTrue(boxes.size()==1,"Cloth needs only one flat collision box");
+            var cloth=boxes.getFirst();h.assertTrue(Math.abs(cloth.getYsize()-1.0/64)<1e-9,"Cloth thickness was not halved");
+            for(var seat:new WagonPart[]{WagonPart.SINGLE_SEAT,WagonPart.DOUBLE_SEAT})
+                for(var box:WagonGeometry.partBoxes(seat))h.assertTrue(!cloth.intersects(box),"Cloth overlaps driver seat");
+            h.assertTrue(hold.cover().selectionBoxes(body).stream().anyMatch(b->b.minY<cloth.minY),"Cosmetic hanging edges lost click outline");
+        }h.succeed();
+    }
+    @GameTest(template="assembly_test",timeoutTicks=50)
+    public static void standard_roll_remains_clickable_without_collision_when_tailgate_open(GameTestHelper h) { decorativeRoll(h,false); }
+    @GameTest(template="assembly_test",timeoutTicks=50)
+    public static void extended_roll_remains_clickable_without_collision_when_tailgate_open(GameTestHelper h) { decorativeRoll(h,true); }
+    private static void decorativeRoll(GameTestHelper h,boolean extended) {
+        var f=frame(h,extended);var hold=f.cargo();var p=player(h,hold);install(h,hold,p);
+        for(int row=0;row<hold.capacity()/2;row++)step(h,hold,p,1);
+        h.assertTrue(hold.toggleGate()==null,"Tailgate failed to open");
+        h.runAtTickTime(22,()->{
+            h.assertTrue(hold.gateOpen()&&hold.cover().boxes(f.cargoBody()).isEmpty(),"Decorative roll retained collision");
+            double z=hold.cover().rollZ(f.cargoBody());
+            Vec3 start=f.cargoPose().point(new Vec3(0,CargoCover.TOP+.8,z));
+            Vec3 end=f.cargoPose().point(new Vec3(0,CargoCover.TOP-.8,z));
+            var outline=h.getLevel().clip(new net.minecraft.world.level.ClipContext(start,end,net.minecraft.world.level.ClipContext.Block.OUTLINE,net.minecraft.world.level.ClipContext.Fluid.NONE,p));
+            var collision=h.getLevel().clip(new net.minecraft.world.level.ClipContext(start,end,net.minecraft.world.level.ClipContext.Block.COLLIDER,net.minecraft.world.level.ClipContext.Fluid.NONE,p));
+            h.assertTrue(outline.getType()==net.minecraft.world.phys.HitResult.Type.BLOCK&&f.cargoPose().local(outline.getLocation()).y>CargoCover.TOP,"Fully rolled cover lost native block picking");
+            h.assertTrue(collision.getType()==net.minecraft.world.phys.HitResult.Type.MISS||f.cargoPose().local(collision.getLocation()).y<CargoCover.TOP-.1,"Roll became a physical collider");
+            p.setShiftKeyDown(true);var event=new net.neoforged.neoforge.event.entity.player.PlayerInteractEvent.RightClickBlock(p,InteractionHand.MAIN_HAND,outline.getBlockPos(),outline);
+            CargoInteractions.block(event);h.assertTrue(event.isCanceled()&&hold.cover().openRows()==hold.capacity()/2-1,"Actual roll outline click did not spread");
+            p.setShiftKeyDown(false);step(h,hold,p,1);
+            h.assertTrue(f.toggleFrame(null)==null,"Fully rolled assembly failed");
+            var w=h.getLevel().getEntitiesOfClass(WagonEntity.class,new AABB(f.getBlockPos()).inflate(6)).getFirst();
+            Vec3 top=w.pose().point(new Vec3(0,CargoCover.TOP+2*w.cargo().cover().radius(),z));
+            h.assertTrue(w.pick(top.add(0,.3,0),top.add(0,-.2,0)).isPresent(),"Entity visual roll lost picking");
+            h.assertTrue(!w.intersects(new AABB(top,top).inflate(.015)),"Entity roll retained physical collision");
+            h.assertTrue(w.getBoundingBox().inflate(.001).contains(top),"Broad phase excludes decorative roll");h.succeed();
+        });
     }
     @GameTest(template="assembly_test",timeoutTicks=40)
     public static void covered_cargo_is_unusable_and_open_rows_allow_place_take_and_menus(GameTestHelper h) {
@@ -96,6 +135,7 @@ public class CargoCoverGameTests {
         click(h,f,p,SIDE,Direction.WEST);h.assertTrue(f.cargo().cover().installed()&&p.getMainHandItem().getCount()==1,"Proxy side install bypassed accessory");
         click(h,f,p,new Vec3(0,CargoCover.TOP,0),Direction.UP);h.assertTrue(f.cargo().cover().openRows()==1,"Fabric click did not roll a row");
         p.setShiftKeyDown(true);click(h,f,p,cloth(f.cargo().cover(),f.cargoBody()),Direction.UP);h.assertTrue(f.cargo().cover().openRows()==0,"Sneak fabric click did not spread");
+        click(h,f,p,new Vec3(0,CargoCover.Y-.06,f.cargo().cover().back(f.cargoBody())),Direction.SOUTH);h.assertTrue(f.cargo().cover().installed()&&f.cargo().cover().openRows()==0,"Sneak hanging cloth click dismantled the cover instead of spreading");
         int before=carried(p);click(h,f,p,SIDE,Direction.WEST);h.assertTrue(!f.cargo().cover().installed()&&carried(p)==before+1,"Sneak wall click did not remove cover");h.succeed();
     }
     private static void click(GameTestHelper h,AssemblyFrameBlockEntity f,Player p,Vec3 local,Direction face) {

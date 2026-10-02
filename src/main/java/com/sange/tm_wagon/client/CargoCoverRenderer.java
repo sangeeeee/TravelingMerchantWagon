@@ -13,18 +13,20 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ModelEvent;
 
-/** Two baked meshes reused across every row count, body size and wagon pose. */
+/** Shared baked meshes reused across every row count, body size and wagon pose. */
 @EventBusSubscriber(modid="tm_wagon",value=Dist.CLIENT)
 public final class CargoCoverRenderer {
-    private static final ModelResourceLocation SHEET=model("cargo_cover_sheet"),ROLL=model("cargo_cover_roll");
+    private static final ModelResourceLocation SHEET=model("cargo_cover_sheet"),BACK_HEM=model("cargo_cover_back_hem"),ROLL=model("cargo_cover_roll");
     private static ModelResourceLocation model(String name) { return ModelResourceLocation.standalone(ResourceLocation.fromNamespaceAndPath("tm_wagon","block/"+name)); }
-    @SubscribeEvent public static void models(ModelEvent.RegisterAdditional event) { event.register(SHEET);event.register(ROLL); }
+    @SubscribeEvent public static void models(ModelEvent.RegisterAdditional event) { event.register(SHEET);event.register(BACK_HEM);event.register(ROLL); }
     public static void render(CargoCover cover,WagonPart body,PoseStack poses,MultiBufferSource buffers,int light,int overlay) {
         if(!cover.installed())return;
         for(int row=cover.openRows();row<body.cargoCapacity()/2;row++) {
             double front=cover.boundary(row,body),back=cover.boundary(row+1,body);
             draw(SHEET,poses,buffers,light,overlay,-CargoCover.HALF_WIDTH,CargoCover.Y,front,CargoCover.HALF_WIDTH*2,1,back-front);
         }
+        if(cover.openRows()<body.cargoCapacity()/2)
+            draw(BACK_HEM,poses,buffers,light,overlay,-CargoCover.HALF_WIDTH,CargoCover.Y,cover.back(body)-.016,CargoCover.HALF_WIDTH*2,1,.016);
         if(cover.openRows()>0) {
             double r=cover.radius();
             draw(ROLL,poses,buffers,light,overlay,-CargoCover.HALF_WIDTH,CargoCover.TOP,cover.rollZ(body)-r,CargoCover.HALF_WIDTH*2,r*2,r*2);

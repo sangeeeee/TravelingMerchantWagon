@@ -4,6 +4,7 @@
   "textures": {
     "fabric": "tm_wagon:block/cargo_cover_fabric",
     "rope": "tm_wagon:block/cargo_cover_rope",
+    "spiral": "tm_wagon:block/cargo_cover_spiral",
     "particle": "tm_wagon:block/cargo_cover_fabric"
   },
   "elements": [
@@ -39,22 +40,22 @@
           "texture": "#fabric"
         },
         "east": {
+          "texture": "#spiral",
           "uv": [
-            0,
-            0,
-            16,
+            4.686291520000001,
+            13.656854240000001,
+            11.313708479999999,
             16
-          ],
-          "texture": "#fabric"
+          ]
         },
         "west": {
+          "texture": "#spiral",
           "uv": [
-            0,
-            0,
-            16,
+            4.68629152,
+            13.656854240000001,
+            11.313708479999999,
             16
-          ],
-          "texture": "#fabric"
+          ]
         },
         "up": {
           "uv": [
@@ -246,22 +247,22 @@
           "texture": "#fabric"
         },
         "east": {
+          "texture": "#spiral",
           "uv": [
-            0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#fabric"
+            2.3431457599999987,
+            11.313708479999999,
+            13.656854240000001,
+            13.656854240000001
+          ]
         },
         "west": {
+          "texture": "#spiral",
           "uv": [
-            0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#fabric"
+            2.3431457599999996,
+            11.313708479999999,
+            13.656854240000001,
+            13.656854240000001
+          ]
         },
         "up": {
           "uv": [
@@ -453,22 +454,22 @@
           "texture": "#fabric"
         },
         "east": {
+          "texture": "#spiral",
           "uv": [
             0,
-            0,
+            4.686291520000001,
             16,
-            16
-          ],
-          "texture": "#fabric"
+            11.313708479999999
+          ]
         },
         "west": {
+          "texture": "#spiral",
           "uv": [
             0,
-            0,
+            4.686291520000001,
             16,
-            16
-          ],
-          "texture": "#fabric"
+            11.313708479999999
+          ]
         },
         "up": {
           "uv": [
@@ -660,22 +661,22 @@
           "texture": "#fabric"
         },
         "east": {
+          "texture": "#spiral",
           "uv": [
-            0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#fabric"
+            2.3431457599999987,
+            2.3431457599999987,
+            13.656854240000001,
+            4.686291520000001
+          ]
         },
         "west": {
+          "texture": "#spiral",
           "uv": [
-            0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#fabric"
+            2.3431457599999996,
+            2.3431457599999987,
+            13.656854240000001,
+            4.686291520000001
+          ]
         },
         "up": {
           "uv": [
@@ -867,22 +868,22 @@
           "texture": "#fabric"
         },
         "east": {
+          "texture": "#spiral",
           "uv": [
+            4.686291520000001,
             0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#fabric"
+            11.313708479999999,
+            2.3431457599999987
+          ]
         },
         "west": {
+          "texture": "#spiral",
           "uv": [
+            4.68629152,
             0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#fabric"
+            11.313708479999999,
+            2.3431457599999987
+          ]
         },
         "up": {
           "uv": [

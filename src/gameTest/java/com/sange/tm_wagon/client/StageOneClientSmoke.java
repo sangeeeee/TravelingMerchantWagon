@@ -162,12 +162,12 @@ public class StageOneClientSmoke {
             var wagon=wagons.getFirst();cover=new CompoundTag();cover.putBoolean("Installed",true);cover.putInt("OpenRows",opened);
             cargo=wagon.cargo().save(registry,true);cargo.put("Cover",cover);wagon.cargo().load(cargo,registry);wagon.cargoGeometryChanged();
             var manager=Minecraft.getInstance().getModelManager();
-            for(String name:new String[]{"cargo_cover_sheet","cargo_cover_roll"}) {
+            for(String name:new String[]{"cargo_cover_sheet","cargo_cover_roll","cargo_cover_back_hem"}) {
                 var id=net.minecraft.client.resources.model.ModelResourceLocation.standalone(net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("tm_wagon","block/"+name));
                 if(manager.getModel(id)==manager.getMissingModel())throw new IllegalStateException("Missing cover mesh: "+name);
             }
             if(wagon.cargo().cover().openRows()!=opened||!frame.cargo().cover().installed())throw new IllegalStateException("Cover preview lost state");
-            LogUtils.getLogger().info("TM_WAGON_COVER_MODEL_PASS: standard={} and extended={} exposed rows, both baked meshes loaded",frame.cargo().cover().openRows(),opened);
+            LogUtils.getLogger().info("TM_WAGON_COVER_MODEL_PASS: standard={} and extended={} exposed rows, all three baked meshes loaded",frame.cargo().cover().openRows(),opened);
         }
         private void loadExtendedCargoPreview(GuiGraphics graphics) {
             var registry=net.minecraft.core.RegistryAccess.fromRegistryOfRegistries(net.minecraft.core.registries.BuiltInRegistries.REGISTRY);

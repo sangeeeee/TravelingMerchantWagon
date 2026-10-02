@@ -19,7 +19,7 @@ import net.minecraft.world.phys.Vec3;
 
 /** One optional accessory and a bounded row counter; no cargo slots or extra entities. */
 public final class CargoCover {
-    public static final double HALF_WIDTH=1.1875,Y=2.34375,TOP=2.375,FRONT=-1.59375;
+    public static final double HALF_WIDTH=1.1875,Y=2.359375,TOP=2.375,FRONT=-1.34375;
     private final CargoHold hold;
     private boolean installed;
     private int openRows;
@@ -32,24 +32,43 @@ public final class CargoCover {
     public double boundary(int row,WagonPart body) {
         return row<=0?FRONT:row>=body.cargoCapacity()/2?back(body):-1.31+row*.7;
     }
-    public double radius() { return .055+.047*Math.sqrt(openRows); }
+    public double radius() { return (.055+.047*Math.sqrt(openRows))/Math.sqrt(2); }
     public double rollZ(WagonPart body) {
         return openRows>=body.cargoCapacity()/2?back(body)-radius():boundary(openRows,body);
     }
+    /** Only the flat cloth supports weight; rolled fabric and hanging edges are decorative. */
     public List<AABB> boxes(WagonPart body) {
+        if(!installed||openRows>=body.cargoCapacity()/2)return List.of();
+        return List.of(new AABB(-HALF_WIDTH,Y,boundary(openRows,body),HALF_WIDTH,TOP,back(body)));
+    }
+    public AABB rollBox(WagonPart body) {
+        double r=radius(),z=rollZ(body);
+        return new AABB(-HALF_WIDTH,TOP,z-r,HALF_WIDTH,TOP+2*r,z+r);
+    }
+    /** Outline/click volumes deliberately do not participate in movement collisions. */
+    public List<AABB> selectionBoxes(WagonPart body) {
         if(!installed)return List.of();
-        var result=new ArrayList<AABB>(6);
-        if(openRows<body.cargoCapacity()/2)result.add(new AABB(-HALF_WIDTH,Y,boundary(openRows,body),HALF_WIDTH,TOP,back(body)));
-        if(openRows>0) {
-            double r=radius(),z=rollZ(body),cy=TOP+r;
-            // Five filled strips approximate the roll; decorative ropes have no collisions.
-            double[] levels={-1,-.70710678,-.41421356,.41421356,.70710678,1};
-            double[] widths={.41421356,.70710678,1,.70710678,.41421356};
-            for(int i=0;i<widths.length;i++)result.add(new AABB(-HALF_WIDTH,cy+r*levels[i],z-r*widths[i],HALF_WIDTH,cy+r*levels[i+1],z+r*widths[i]));
+        var result=new ArrayList<AABB>(boxes(body));
+        if(openRows<body.cargoCapacity()/2) {
+            double front=boundary(openRows,body),back=back(body);
+            result.add(new AABB(-HALF_WIDTH,Y-.125,front,-HALF_WIDTH+.016,TOP,back));
+            result.add(new AABB(HALF_WIDTH-.016,Y-.125,front,HALF_WIDTH,TOP,back));
+            result.add(new AABB(-HALF_WIDTH,Y-.125,back-.016,HALF_WIDTH,TOP,back));
         }
+        if(openRows>0)result.add(rollBox(body));
         return result;
     }
-    public boolean hit(Vec3 local) { return boxes(hold.owner().cargoBody()).stream().anyMatch(box->box.inflate(.018,.055,.018).contains(local)); }
+    private record SelectionKey(WagonPart body,net.minecraft.core.Direction facing,boolean installed,int rows) {}
+    private SelectionKey selectionKey;
+    private java.util.Map<BlockPos,List<AABB>> selectionCells=java.util.Map.of();
+    public java.util.Map<BlockPos,List<AABB>> selectionCells(WagonPart body,net.minecraft.core.Direction facing) {
+        var key=new SelectionKey(body,facing,installed,openRows);
+        if(!key.equals(selectionKey)) {
+            selectionCells=WagonGeometry.customCells(selectionBoxes(body),facing);selectionKey=key;
+        }
+        return selectionCells;
+    }
+    public boolean hit(Vec3 local) { return selectionBoxes(hold.owner().cargoBody()).stream().anyMatch(box->box.inflate(.018,.025,.018).contains(local)); }
     private boolean side(Vec3 local) {
         if(local.y<CargoHold.FLOOR+.01||local.y>2.3125-.01)return false;
         var body=WagonGeometry.partBoxes(hold.owner().cargoBody());
@@ -63,11 +82,11 @@ public final class CargoCover {
             ||player.distanceToSqr(point)>64||!owner.cargoLevel().mayInteract(player,BlockPos.containing(point)))return "message.tm_wagon.protected";
         return null;
     }
-    /** Side removal takes priority over spreading; top/roll clicks never dismantle the cover. */
+    /** Visible cloth, including hanging edges, always adjusts rows; exposed wooden walls dismantle. */
     public InteractionResult interact(Player player,InteractionHand hand,Vec3 local) {
         boolean wall=side(local),surface=installed&&hit(local);
         var stack=player.getItemInHand(hand);
-        boolean removing=installed&&wall&&player.isSecondaryUseActive();
+        boolean removing=installed&&wall&&!surface&&player.isSecondaryUseActive();
         boolean installing=wall&&!installed&&stack.getItem() instanceof WagonCoverItem;
         if(!removing&&!installing&&!surface)return InteractionResult.PASS;
         if(hold.owner().cargoLevel().isClientSide)return InteractionResult.SUCCESS;

@@ -62,6 +62,6 @@
   "message.tm_wagon.cover_block_only": "Cargo covers can only be installed or removed on a block-form wagon.",
   "message.tm_wagon.cover_installed": "This compartment already has a cargo cover.",
   "message.tm_wagon.cover_side": "Use a cargo wall to install or remove the cover, or use the fabric or roll to adjust it.",
-  "message.tm_wagon.cover_blocked": "An entity or block obstructs the new fabric or roll. The cover cannot change.",
+  "message.tm_wagon.cover_blocked": "An entity or block obstructs the new fabric. The cover cannot change.",
   "message.tm_wagon.cargo_covered": "This cargo slot is covered. Roll back the fabric first."
 }
