@@ -37,7 +37,9 @@ public class AssemblyPartBlock extends BaseEntityBlock {
         var frame=AssemblyFrameBlockEntity.find(world,pos);
         if(frame==null)return cell.shape();
         var extra=frame.cargo().cover().selectionCells(frame.cargoBody(),frame.facing()).get(pos.subtract(frame.getBlockPos()));
-        return extra==null?cell.shape():Shapes.or(cell.shape(),WagonGeometry.shape(extra));
+        var shape=extra==null?cell.shape():Shapes.or(cell.shape(),WagonGeometry.shape(extra));
+        var rim=frame.cargo().canopy().selectionCells(frame.cargoBody(),frame.facing()).get(pos.subtract(frame.getBlockPos()));
+        return rim==null?shape:Shapes.or(shape,WagonGeometry.shape(rim));
     }
     @Override protected VoxelShape getCollisionShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context) {
         return world.getBlockEntity(pos) instanceof AssemblyCellBlockEntity cell?cell.shape():Shapes.empty();

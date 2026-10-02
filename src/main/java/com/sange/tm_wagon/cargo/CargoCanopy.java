@@ -20,17 +20,25 @@ import net.minecraft.world.phys.Vec3;
 
 /** One optional roof; cached thin silhouettes and two independent curtains, no ticking entities. */
 public final class CargoCanopy {
-    public static final double BASE=2.28125,FRONT=CargoCover.FRONT,THICK=1.0/64,FRONT_CURTAIN_INSET=.0234375,REAR_CURTAIN_INSET=.125;
+    public static final double BASE=2.28125,FRONT=CargoCover.FRONT,THICK=1.0/64,REAR=2.203125,FRONT_CURTAIN_INSET=.0234375,REAR_CURTAIN_INSET=5.0/1024;
     public static final double TOP=3.96875+.5*Math.tan(Math.PI/8);
     private static final Map<String,List<AABB>> GEOMETRY=loadGeometry();
     private record Key(WagonPart body,boolean installed,boolean front,boolean rear) {}
     private static final Map<Key,List<AABB>> CACHE=new java.util.concurrent.ConcurrentHashMap<>();
+    private static final Map<WagonPart,List<AABB>> RIM_CACHE=new java.util.concurrent.ConcurrentHashMap<>();
+    private static final Map<Key,List<AABB>> OUTLINE_CACHE=new java.util.concurrent.ConcurrentHashMap<>();
+    private record SelectionKey(WagonPart body,net.minecraft.core.Direction facing,boolean installed) {}
+    private SelectionKey selectionKey;
+    private Map<net.minecraft.core.BlockPos,List<AABB>> selectionCells=Map.of();
     private final CargoHold hold;
     private boolean installed,frontClosed,rearClosed;
+    public static int geometrySignature() { return 31*GEOMETRY.hashCode()+2; }
     public CargoCanopy(CargoHold hold) { this.hold=hold; }
     public boolean installed() { return installed; }
     public boolean closed(boolean front) { return front?frontClosed:rearClosed; }
-    public double back(WagonPart body) { return 2.34375+body.rearExtension(); }
+    // The rear skirt and curtain fit between the last cargo row and the
+    // closed gate's inner plank surface (2.20625 blocks for the standard body).
+    public double back(WagonPart body) { return REAR+body.rearExtension(); }
     public double curtainZ(WagonPart body,boolean front) { return front?FRONT+FRONT_CURTAIN_INSET:back(body)-REAR_CURTAIN_INSET-THICK; }
     public List<AABB> curtainBoxes(WagonPart body,boolean front) {
         return GEOMETRY.get(closed(front)?"curtain_closed":"curtain_open").stream().map(b->b.move(0,0,curtainZ(body,front))).toList();
@@ -40,17 +48,43 @@ public final class CargoCanopy {
             if(!key.installed)return List.of();
             double back=back(body);var result=new ArrayList<AABB>();
             for(AABB b:GEOMETRY.get("shell"))result.add(new AABB(b.minX,b.minY,FRONT,b.maxX,b.maxY,back));
-            for(AABB b:GEOMETRY.get("end")) { result.add(b.move(0,0,FRONT+THICK/4));result.add(b.move(0,0,back-THICK-THICK/4)); }
             result.addAll(curtainBoxes(body,true));result.addAll(curtainBoxes(body,false));return List.copyOf(result);
         });
     }
+    /** Decorative arch trim is visible/clickable, never a movement collider. */
+    public List<AABB> rimBoxes(WagonPart body) {
+        if(!installed)return List.of();
+        return RIM_CACHE.computeIfAbsent(body,key->{
+            var result=new ArrayList<AABB>();
+            for(AABB b:GEOMETRY.get("end")) { result.add(b.move(0,0,FRONT+THICK/4));result.add(b.move(0,0,back(body)-THICK-THICK/4)); }
+            return List.copyOf(result);
+        });
+    }
+    public List<AABB> selectionBoxes(WagonPart body) {
+        return OUTLINE_CACHE.computeIfAbsent(new Key(body,installed,frontClosed,rearClosed),key->{
+            var result=new ArrayList<>(boxes(body));result.addAll(rimBoxes(body));return List.copyOf(result);
+        });
+    }
+    public Map<net.minecraft.core.BlockPos,List<AABB>> selectionCells(WagonPart body,net.minecraft.core.Direction facing) {
+        var key=new SelectionKey(body,facing,installed);
+        if(!key.equals(selectionKey)) { selectionCells=WagonGeometry.customCells(rimBoxes(body),facing);selectionKey=key; }
+        return selectionCells;
+    }
     private Boolean curtainHit(Vec3 local) {
         if(!installed)return null;
-        for(boolean front:new boolean[]{true,false})
+        for(boolean front:new boolean[]{true,false}) {
             for(AABB b:curtainBoxes(hold.owner().cargoBody(),front))if(b.inflate(.035).contains(local))return front;
+            if(!closed(front)) {
+                // Folded curtains are hidden behind the end trim; that exact
+                // projected patch of fabric remains a usable handle from outside.
+                double end=front?FRONT+THICK/4:back(hold.owner().cargoBody())-THICK-THICK/4;
+                for(AABB b:GEOMETRY.get("curtain_handles"))
+                    if(b.move(0,0,end).inflate(.035).contains(local))return front;
+            }
+        }
         return null;
     }
-    public boolean hit(Vec3 local) { return installed&&boxes(hold.owner().cargoBody()).stream().anyMatch(b->b.inflate(.035).contains(local)); }
+    public boolean hit(Vec3 local) { return installed&&selectionBoxes(hold.owner().cargoBody()).stream().anyMatch(b->b.inflate(.035).contains(local)); }
     public InteractionResult interact(Player player,InteractionHand hand,Vec3 local) {
         boolean wall=hold.cover().side(local);var stack=player.getItemInHand(hand);Boolean curtain=curtainHit(local);
         boolean removing=installed&&wall&&curtain==null&&!hit(local)&&player.isSecondaryUseActive();

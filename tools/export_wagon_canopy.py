@@ -5,9 +5,11 @@ import base64, copy, json, math, random, uuid
 ROOT=Path(__file__).resolve().parents[1]
 ASSETS=ROOT/'src/main/resources/assets/tm_wagon'
 PROJECT=ROOT/'modeling/wagon_canopy'
-BASE=2.28125; HALF=1.1875; THICK=1/64; FRONT=-1.34375
+BASE=2.28125; HALF=1.0; THICK=1/64; FRONT=-1.34375; REAR=2.203125; REAR_CURTAIN_INSET=5/1024
+SHOULDER=HALF-.3125; CROWN=SHOULDER-.5; BORDER=.375; SEAM=1/1024
 TOP=3.96875+.5*math.tan(math.pi/8)
-PROFILE=[(-HALF,BASE),(-HALF,3.65625),(-.875,3.96875),(-.375,TOP),(.375,TOP),(.875,3.96875),(HALF,3.65625),(HALF,BASE)]
+PROFILE=[(-HALF,BASE),(-HALF,3.65625),(-SHOULDER,3.96875),(-CROWN,TOP),(CROWN,TOP),(SHOULDER,3.96875),(HALF,3.65625),(HALF,BASE)]
+END_PROFILE=[(-HALF,1.5),*PROFILE[1:-1],(HALF,1.5)]
 TEX={'cloth':'tm_wagon:block/canopy_cloth','wood':'tm_wagon:block/canopy_wood','curtain':'tm_wagon:block/canopy_curtain'}
 def write(p,value):
  p.parent.mkdir(parents=True,exist_ok=True);p.write_text(json.dumps(value,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
@@ -22,9 +24,16 @@ for _ in range(14):
 wood=Image.new('RGB',(16,16),(66,47,29));d=ImageDraw.Draw(wood)
 for x in [1,4,8,13]:d.line((x,0,x,15),fill=(83,61,38),width=1)
 for rect in [(2,3,3,6),(7,9,9,10),(12,1,14,2)]:d.rectangle(rect,fill=(47,34,22))
-curtain=Image.new('RGB',(16,16));d=ImageDraw.Draw(curtain)
-for x in range(16):d.line((x,0,x,15),fill=[(234,229,215),(219,214,198),(190,183,166),(211,205,187)][x%4])
-d.line((0,14,15,14),fill=(182,175,157));d.line((0,15,15,15),fill=(218,210,191))
+# One coarse texture spans a whole half-curtain: three folds, rather than
+# repeating densely on every cuboid. U points outwards from the centre seam.
+curtain=Image.new('RGB',(16,16),(234,229,215));d=ImageDraw.Draw(curtain)
+for y in range(16):
+ t=y/15;drift=2.5*t*t;width=1+int(t*1.5)
+ shadow=(208-int(17*t),202-int(18*t),186-int(17*t))
+ for start in [2,6.5,11.5]:
+  x=round(start+drift)
+  d.line((x,y,min(15,x+width-1),y),fill=shadow)
+  if x+width<16:d.point((x+width,y),fill=(242,237,222))
 for name,im in [('cloth',cloth),('wood',wood),('curtain',curtain)]:
  p=ASSETS/f'textures/block/canopy_{name}.png';p.parent.mkdir(parents=True,exist_ok=True);im.resize((64,64),Image.Resampling.NEAREST).save(p)
 def box(name,a,b,texture='cloth',rotation=None):
@@ -46,25 +55,46 @@ def strip(name,a,b,width,z0,z1,texture='cloth',inward=0):
  # Edge faces use only the thin part of the fabric texture, avoiding squeezed stripe noise.
  for face in ['north','south']:p['faces'][face]['uv']=[0,0,16,max(.125,width*8)]
  return p
-shell=[strip(f'white_canvas_{i}',a,b,THICK,0,1) for i,(a,b) in enumerate(zip(PROFILE,PROFILE[1:]))]
-ribs=[strip(f'interior_dark_rib_{i}',a,b,.046875,-.03125,.03125,'wood',.046875) for i,(a,b) in enumerate(zip(PROFILE,PROFILE[1:]))]
-ends=[strip(f'canvas_arch_border_{i}',a,b,.25,0,THICK,'cloth',.12109375) for i,(a,b) in enumerate(zip(PROFILE,PROFILE[1:]))]
+# Unseen row/end caps were coplanar where neighbouring arched strips meet.
+# Omit those shell caps and stagger the visible arch-border seams by a tiny depth.
+def seam_depth(i):return min(i,6-i)*SEAM
+def shell_inset(a,b):return -SEAM if abs(a[0]-b[0])>1e-8 else 0
+shell=[]
+for i,(a,b) in enumerate(zip(PROFILE,PROFILE[1:])):
+ p=strip(f'white_canvas_{i}',a,b,THICK,0,1,inward=shell_inset(a,b))
+ del p['faces']['north'];del p['faces']['south'];shell.append(p)
+ribs=[strip(f'interior_dark_rib_{i}',a,b,.046875,-.03125+seam_depth(i),.03125+seam_depth(i),'wood',.046875) for i,(a,b) in enumerate(zip(PROFILE,PROFILE[1:]))]
+ends=[strip(f'canvas_arch_border_{i}',a,b,BORDER,seam_depth(i),THICK+seam_depth(i),'cloth',BORDER/2-THICK/4) for i,(a,b) in enumerate(zip(END_PROFILE,END_PROFILE[1:]))]
+# All front/back arch faces sample the same dark fabric pixel as the sides.
+for p in ends:
+ for face in ['north','south']:p['faces'][face]['uv']=[0,0,1,.125]
+
 def roof(x):
  x=abs(x)
- if x<=.375:return TOP
- if x<=.875:return TOP-(x-.375)*math.tan(math.pi/8)
- return 3.96875-(x-.875)
-closed=[];open_parts=[]
+ if x<=CROWN:return TOP
+ if x<=SHOULDER:return TOP-(x-CROWN)*math.tan(math.pi/8)
+ return 3.96875-(x-SHOULDER)
+closed=[];open_parts=[];closed_boxes=[]
+HALF_CURTAIN=.703125; GAP=1/32; PANEL=HALF_CURTAIN-GAP/2
 for i in range(8):
- x0=-.953125+i*1.90625/8;x1=x0+1.90625/8;y1=min(roof(x0),roof(x1))-.025
- a=normalized(x0,1.5);b=normalized(x1,y1)
- closed.append(box(f'curtain_{"left" if i<4 else "right"}_{i}',[a[0],a[1],0],[b[0],b[1],THICK*16],'curtain'))
+ left=i<4;j=i%4
+ x0=-HALF_CURTAIN+j*PANEL/4 if left else GAP/2+j*PANEL/4;x1=x0+PANEL/4
+ y1=min(roof(x0),roof(x1))-.025;a=normalized(x0,1.5);b=normalized(x1,y1)
+ p=box(f'curtain_{"left" if left else "right"}_{i}',[a[0],a[1],0],[b[0],b[1],THICK*16],'curtain')
+ u_at_min=(abs(x0)-GAP/2)/PANEL*16;u_at_max=(abs(x1)-GAP/2)/PANEL*16
+ v=(TOP-.025-y1)/(TOP-.025-1.5)*16
+ p['faces']['north']['uv']=[u_at_max,v,u_at_min,16]
+ p['faces']['south']['uv']=[u_at_min,v,u_at_max,16]
+ closed.append(p)
+ # Keep the existing curtain collider/occlusion intact; the tiny seam is visual.
+ old_x0=-HALF_CURTAIN+i*(HALF_CURTAIN*2)/8;old_x1=old_x0+(HALF_CURTAIN*2)/8
+ closed_boxes.append([old_x0,1.5,0,old_x1,min(roof(old_x0),roof(old_x1))-.025,THICK])
 for side in [-1,1]:
  for pleat in range(3):
-  x0=(.765625+pleat*.04166667)*side;x1=(.765625+(pleat+1)*.04166667)*side
+  x0=(.765625+pleat/24)*side;x1=(.765625+(pleat+1)/24)*side
   a=normalized(min(x0,x1),1.5);b=normalized(max(x0,x1),roof(.890625)-.04)
-  z0=(pleat%2)*THICK/2
-  open_parts.append(box(f'gathered_curtain_{side}_{pleat}',[a[0],a[1],z0*16],[b[0],b[1],(z0+THICK)*16],'curtain'))
+  z0=(pleat%2)*THICK/4
+  open_parts.append(box(f'gathered_curtain_{side}_{pleat}',[a[0],a[1],z0*16],[b[0],b[1],(z0+THICK/2)*16],'curtain'))
 meshes={'shell':shell,'rib':ribs,'end':ends,'curtain_closed':closed,'curtain_open':open_parts}
 def model(parts):return {'credit':'TravelingMerchantWagon / tools/export_wagon_canopy.py','ambientocclusion':False,'textures':{**TEX,'particle':TEX['cloth']},'elements':parts}
 for name,parts in meshes.items():write(ASSETS/f'models/block/canopy_{name}.json',model(parts))
@@ -83,13 +113,15 @@ for a,b in zip(PROFILE,PROFILE[1:]):
  n=1 if abs(a[0]-b[0])<1e-8 or abs(a[1]-b[1])<1e-8 else 2 if abs(a[0]-b[0])<.4 else 3
  for i in range(n):
   sub=lambda t:(a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t)
-  shell_boxes.append(bounds_strip(sub(i/n),sub((i+1)/n),THICK,0,1))
-end_boxes=[bounds_strip(a,b,.25,0,THICK,.12109375) for a,b in zip(PROFILE,PROFILE[1:])]
+  shell_boxes.append(bounds_strip(sub(i/n),sub((i+1)/n),THICK,0,1,shell_inset(a,b)))
+end_boxes=[bounds_strip(a,b,BORDER,seam_depth(i),THICK+seam_depth(i),BORDER/2-THICK/4) for i,(a,b) in enumerate(zip(END_PROFILE,END_PROFILE[1:]))]
 def rect_box(p):
  a,b=p['from'],p['to'];return [a[0]/8-1,a[1]/8+BASE,a[2]/16,b[0]/8-1,b[1]/8+BASE,b[2]/16]
 # The open curtain is two thin bundles, rather than every decorative fold.
-open_boxes=[[a,1.5,0,b,roof(.890625)-.04,THICK*1.5] for a,b in [(-.890625,-.765625),(.765625,.890625)]]
-write(ROOT/'src/main/resources/data/tm_wagon/canopy_geometry.json',{'shell':shell_boxes,'end':end_boxes,'curtain_closed':[rect_box(p) for p in closed],'curtain_open':open_boxes})
+open_boxes=[[a,1.5,0,b,roof(.890625)-.04,THICK*.75] for a,b in [(-.890625,-.765625),(.765625,.890625)]]
+# End fabric hides the folded curtains but remains their outside click handle.
+handles=[[a,1.5,0,b,roof(.890625)-.04,THICK] for a,b in [(-HALF,-HALF+BORDER),(HALF-BORDER,HALF)]]
+write(ROOT/'src/main/resources/data/tm_wagon/canopy_geometry.json',{'shell':shell_boxes,'end':end_boxes,'curtain_closed':closed_boxes,'curtain_open':open_boxes,'curtain_handles':handles})
 def textures(offset=0):
  result=[]
  for i,name in enumerate(TEX):
@@ -109,7 +141,7 @@ def actual(p,z0,depth=1,prefix=''):
  return q
 for extended in [False,True]:
  prefix='long_' if extended else '';source=ROOT/f'modeling/open_cargo_wagon/variants/{prefix}single_seat_single_horse/wagon.bbmodel';base=json.loads(source.read_text(encoding='utf-8'))
- rows=6 if extended else 5;back=2.34375+(.7 if extended else 0)
+ rows=6 if extended else 5;back=REAR+(.7 if extended else 0)
  def boundary(row):return FRONT if row==0 else back if row==rows else -1.31+row*.7
  for front_closed in [False,True]:
   for rear_closed in [False,True]:
@@ -120,7 +152,7 @@ for extended in [False,True]:
     z=boundary(row)+(.065 if row==0 else -.065 if row==rows else 0);parts += [actual(p,z,1,f'rib_{row}_') for p in ribs]
    for front in [True,False]:
     end=FRONT+THICK/4 if front else back-THICK-THICK/4;parts += [actual(p,end,1,f'{"front" if front else "rear"}_') for p in ends]
-    is_closed=front_closed if front else rear_closed;z=FRONT+.0234375 if front else back-.125-THICK
+    is_closed=front_closed if front else rear_closed;z=FRONT+.0234375 if front else back-REAR_CURTAIN_INSET-THICK
     parts += [actual(p,z,1,f'{"front" if front else "rear"}_') for p in (closed if is_closed else open_parts)]
    cubes=[bb_cube(p,offset) for p in parts];proj['elements']+=cubes;proj['outliner'].append({'name':'wagon_canopy','uuid':str(uuid.uuid5(uuid.NAMESPACE_URL,'tm_wagon/'+proj['name'])),'origin':[0,BASE*16,0],'children':[c['uuid'] for c in cubes]})
    write(PROJECT/('extended' if extended else 'standard')/f'front_{"closed" if front_closed else "open"}_rear_{"closed" if rear_closed else "open"}'/'wagon.bbmodel',proj)

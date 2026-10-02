@@ -274,8 +274,10 @@ public class AssemblyFrameBlockEntity extends BlockEntity implements GeoBlockEnt
             cell.boxes.addAll(boxes); cell.slots.add(slot);
         }));
         if(modules.containsKey(WagonSlot.BODY)) {
-            // Keep click-only cells for a fully rolled cover, including when the tailgate is open.
-            (layoutCargo==null?cargo:layoutCargo).cover().selectionCells(modules.get(WagonSlot.BODY),facing()).forEach((relative,boxes)->{
+            // Covers and decorative canopy rims stay clickable without solid colliders.
+            var hold=layoutCargo==null?cargo:layoutCargo;
+            for(var selection:List.of(hold.cover().selectionCells(modules.get(WagonSlot.BODY),facing()),
+                hold.canopy().selectionCells(modules.get(WagonSlot.BODY),facing())))selection.forEach((relative,boxes)->{
                 BlockPos pos=worldPosition.offset(relative);if(pos.equals(worldPosition))return;
                 result.computeIfAbsent(pos,ignored->new Cell(new ArrayList<>(),EnumSet.noneOf(WagonSlot.class),false)).slots.add(WagonSlot.BODY);
             });

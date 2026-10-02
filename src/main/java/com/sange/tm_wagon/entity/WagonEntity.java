@@ -217,6 +217,7 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
         Vec3 best=null;double distance=Double.POSITIVE_INFINITY;
         var pickBoxes=new java.util.ArrayList<>(collisionBoxes());
         for(AABB box:cargo.cover().selectionBoxes(cargoBody()))pickBoxes.add(com.sange.tm_wagon.cargo.CargoHold.worldBox(box,pose()));
+        for(AABB box:cargo.canopy().rimBoxes(cargoBody()))pickBoxes.add(com.sange.tm_wagon.cargo.CargoHold.worldBox(box,pose()));
         for(AABB b:pickBoxes) {
             var hit=b.clip(start,end);
             if(b.contains(start))return java.util.Optional.of(start);

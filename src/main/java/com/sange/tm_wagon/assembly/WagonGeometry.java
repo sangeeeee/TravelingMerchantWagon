@@ -18,8 +18,8 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 public final class WagonGeometry {
     private record Key(WagonPart part, WagonSlot slot, Direction facing,WagonPart body) {}
     private static final Map<String, List<AABB>> BOXES = load();
-    // Rebuild stored proxy collisions after separating decorative cover outlines.
-    private static final int COLLISION_SIGNATURE = 31*BOXES.hashCode()+1;
+    // Rebuild saved proxy collisions when either the wagon or canopy geometry changes.
+    private static final int COLLISION_SIGNATURE = 31*BOXES.hashCode()+1+com.sange.tm_wagon.cargo.CargoCanopy.geometrySignature();
     public static int collisionSignature() { return COLLISION_SIGNATURE; }
     private static final Map<Key, Map<BlockPos, List<AABB>>> CACHE = new HashMap<>();
     private record EntityKey(Map<WagonSlot,WagonPart> parts,Direction facing) {}

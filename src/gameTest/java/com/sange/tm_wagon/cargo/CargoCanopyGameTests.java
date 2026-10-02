@@ -68,7 +68,7 @@ public class CargoCanopyGameTests {
             p.setPos(f.cargoPose().point(new Vec3(-.5,.25,hold.canopy().back(f.cargoBody())+1)));
             h.assertTrue(hold.valid(chest,p),"Open canopy exit blocked rear cargo");CargoMenus.open(hold,chest,p);h.assertTrue(p.containerMenu!=p.inventoryMenu,"Rear chest did not open");
             nativeCurtainClick(h,f,p,false,false);
-            h.assertTrue(hold.canopy().closed(false)&&!hold.canopy().closed(true)&&!hold.valid(chest,p)&&p.containerMenu==p.inventoryMenu,"Rear curtain was not independent or left cargo usable");
+            h.assertTrue(hold.canopy().closed(false)&&!hold.canopy().closed(true)&&!hold.valid(chest,p)&&p.containerMenu==p.inventoryMenu,"Rear curtain was not independent or left cargo usable: front="+hold.canopy().closed(true)+", rear="+hold.canopy().closed(false)+", valid="+hold.valid(chest,p)+", closedMenu="+(p.containerMenu==p.inventoryMenu));
             nativeCurtainClick(h,f,p,false,true);h.assertTrue(!hold.canopy().closed(false)&&hold.valid(chest,p),"Reopened curtain left cargo inaccessible");
             p.setPos(f.cargoPose().point(new Vec3(0,1, CargoCanopy.FRONT-1)));
             nativeCurtainClick(h,f,p,true,false);h.assertTrue(hold.canopy().closed(true)&&!hold.canopy().closed(false),"Front curtain changed rear state");
@@ -112,6 +112,24 @@ public class CargoCanopyGameTests {
         h.assertTrue(copy.canopy().installed()&&copy.canopy().closed(true)&&copy.canopy().closed(false),"Save/load lost canopy state");
         var bad=tag.copy();var cover=new CompoundTag();cover.putBoolean("Installed",true);bad.put("Cover",cover);copy.load(bad,h.getLevel().registryAccess());h.assertTrue(copy.cover().installed()&&!copy.canopy().installed(),"Conflicting save created two roofs");
         hold.destroy(true);hold.destroy(true);h.assertTrue(drops(h,f.cargoPose().position())==1,"Canopy destruction duplicated/missed item");h.succeed();
+    }
+    @GameTest(template="assembly_test",timeoutTicks=60)
+    public static void decorative_canopy_rim_is_clickable_but_does_not_trap_standing_players(GameTestHelper h) {
+        var f=frame(h,false);var hold=f.cargo();var loader=player(h,hold);install(h,hold,loader);h.assertTrue(hold.toggleGate()==null,"Tailgate setup failed");
+        h.runAtTickTime(22,()->{
+            double rear=hold.canopy().back(f.cargoBody());
+            var p=h.makeMockServerPlayerInLevel();p.setNoGravity(true);p.setPos(f.cargoPose().point(new Vec3(0,2.05,rear-.3)));
+            Vec3 rayStart=f.cargoPose().point(new Vec3(0,3.9,rear+.3)),rayEnd=f.cargoPose().point(new Vec3(0,3.9,rear-.3));
+            var outline=h.getLevel().clip(new net.minecraft.world.level.ClipContext(rayStart,rayEnd,net.minecraft.world.level.ClipContext.Block.OUTLINE,net.minecraft.world.level.ClipContext.Fluid.NONE,p));
+            var collider=h.getLevel().clip(new net.minecraft.world.level.ClipContext(rayStart,rayEnd,net.minecraft.world.level.ClipContext.Block.COLLIDER,net.minecraft.world.level.ClipContext.Fluid.NONE,p));
+            h.assertTrue(outline.getType()==net.minecraft.world.phys.HitResult.Type.BLOCK&&collider.getType()==net.minecraft.world.phys.HitResult.Type.MISS,"Block canopy rim lost selection or retained a solid collider");
+            Vec3 before=p.position();p.move(MoverType.SELF,new Vec3(0,0,.65));h.assertTrue(p.getZ()>before.z+.6,"Block canopy arch trapped the player's head");
+            p.setPos(f.cargoPose().point(new Vec3(-3,0,0)));h.assertTrue(f.toggleFrame(null)==null,"Entity conversion failed");
+            var w=h.getLevel().getEntitiesOfClass(WagonEntity.class,new AABB(f.getBlockPos()).inflate(7)).getFirst();
+            h.assertTrue(w.pick(w.pose().point(new Vec3(0,3.9,rear+.3)),w.pose().point(new Vec3(0,3.9,rear-.3))).isPresent(),"Entity decorative rim cannot be selected");
+            p.setPos(w.pose().point(new Vec3(0,2.05,rear-.3)));before=p.position();p.move(MoverType.SELF,new Vec3(0,0,.65));
+            h.assertTrue(p.getZ()>before.z+.6,"Entity canopy arch trapped the player's head");h.succeed();
+        });
     }
     @GameTest(template="assembly_test",timeoutTicks=40)
     public static void driving_canopy_stops_at_low_ceiling_but_moves_when_ceiling_removed(GameTestHelper h) {

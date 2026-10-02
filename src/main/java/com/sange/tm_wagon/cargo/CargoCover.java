@@ -72,7 +72,7 @@ public final class CargoCover {
     /** A handful of local-space intersections, only during interaction/menu validation; no world scan. */
     public boolean obstructs(Vec3 eye,Vec3 target) {
         if(!installed&&!hold.canopy().installed())return false;
-        for(AABB box:hold.canopy().boxes(hold.owner().cargoBody()))if(occludes(box,eye,target))return true;
+        for(AABB box:hold.canopy().selectionBoxes(hold.owner().cargoBody()))if(occludes(box,eye,target))return true;
         for(AABB box:selectionBoxes(hold.owner().cargoBody()))if(occludes(box,eye,target))return true;
         // The lowered tailgate must expose cargo; side walls still prevent interaction through wood.
         var hull=WagonGeometry.partBoxes(hold.owner().cargoBody());
