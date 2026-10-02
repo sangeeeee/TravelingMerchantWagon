@@ -28,9 +28,9 @@ for y in range(0,16,2):
     draw.line((rng.randrange(0,7),y+1,rng.randrange(10,16),y+1),fill=(142,137,121))
 for bounds,tone in [((1,4,5,5),(103,97,80)),((10,11,14,13),(110,103,84)),((6,8,8,10),(117,110,90)),((1,14,4,15),(107,100,81))]:
     draw.rectangle(bounds,fill=tone)
-rope=Image.new("RGB", (8,8), (91,64,38))
+rope=Image.new("RGB", (8,8), (81,66,51))
 rope_draw=ImageDraw.Draw(rope)
-rope_draw.rectangle((0,0,3,2),fill=(105,75,45));rope_draw.rectangle((4,4,7,7),fill=(77,53,32))
+rope_draw.rectangle((0,0,3,2),fill=(94,77,60));rope_draw.rectangle((4,4,7,7),fill=(68,55,43))
 spiral=fabric.copy();spiral_draw=ImageDraw.Draw(spiral)
 points=[]
 for step in range(110):

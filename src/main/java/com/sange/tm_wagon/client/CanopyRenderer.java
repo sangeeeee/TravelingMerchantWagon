@@ -21,18 +21,19 @@ public final class CanopyRenderer {
     @SubscribeEvent public static void models(ModelEvent.RegisterAdditional event) { for(var id:new ModelResourceLocation[]{SHELL,RIB,END,CLOSED,OPEN})event.register(id); }
     public static void render(CargoCanopy canopy,WagonPart body,PoseStack poses,MultiBufferSource buffers,int light,int overlay) {
         if(!canopy.installed())return;
+        int colour=FabricColours.tint(canopy.material().colour());
         int rows=body.cargoCapacity()/2;
         for(int row=0;row<rows;row++) {
             double z=boundary(row,rows,canopy,body),end=boundary(row+1,rows,canopy,body);
-            draw(canopy.material().colour().getTextureDiffuseColor(),SHELL,poses,buffers,light,overlay,z,end-z);
+            draw(colour,SHELL,poses,buffers,light,overlay,z,end-z);
         }
         for(int row=0;row<=rows;row++) {
             double z=boundary(row,rows,canopy,body)+(row==0?.065:row==rows?-.065:0);
-            draw(canopy.material().colour().getTextureDiffuseColor(),RIB,poses,buffers,light,overlay,z,1);
+            draw(colour,RIB,poses,buffers,light,overlay,z,1);
         }
-        draw(canopy.material().colour().getTextureDiffuseColor(),END,poses,buffers,light,overlay,CargoCanopy.FRONT+CargoCanopy.THICK/4,1);
-        draw(canopy.material().colour().getTextureDiffuseColor(),END,poses,buffers,light,overlay,canopy.back(body)-CargoCanopy.THICK-CargoCanopy.THICK/4,1);
-        for(boolean front:new boolean[]{true,false})draw(canopy.material().colour().getTextureDiffuseColor(),canopy.closed(front)?CLOSED:OPEN,poses,buffers,light,overlay,canopy.curtainZ(body,front),1);
+        draw(colour,END,poses,buffers,light,overlay,CargoCanopy.FRONT+CargoCanopy.THICK/4,1);
+        draw(colour,END,poses,buffers,light,overlay,canopy.back(body)-CargoCanopy.THICK-CargoCanopy.THICK/4,1);
+        for(boolean front:new boolean[]{true,false})draw(colour,canopy.closed(front)?CLOSED:OPEN,poses,buffers,light,overlay,canopy.curtainZ(body,front),1);
     }
     private static double boundary(int row,int rows,CargoCanopy canopy,WagonPart body) {
         return row==0?CargoCanopy.FRONT:row==rows?canopy.back(body):-1.31+row*.7;

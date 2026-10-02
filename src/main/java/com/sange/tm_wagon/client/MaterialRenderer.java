@@ -38,7 +38,7 @@ public final class MaterialRenderer {
         int tile=index(part,material);var cache=CACHE[tile];if(cache==null)CACHE[tile]=cache=new IdentityHashMap<>();
         for(GeoCube cube:bone.getCubes()) {
             var baked=cache.get(cube);if(baked==null) { baked=bake(cube,tile,part!=null&&WagonMaterial.cushioned(part));cache.put(cube,baked); }
-            poses.pushPose();renderer.renderCube(poses,baked.cube,buffer,light,overlay,baked.wool?FastColor.ARGB32.multiply(colour,material.colour().getTextureDiffuseColor()):colour);poses.popPose();
+            poses.pushPose();renderer.renderCube(poses,baked.cube,buffer,light,overlay,baked.wool?FastColor.ARGB32.multiply(colour,FabricColours.tint(material.colour())):colour);poses.popPose();
         }
     }
     private static Baked bake(GeoCube cube,int tile,boolean dyeable) {

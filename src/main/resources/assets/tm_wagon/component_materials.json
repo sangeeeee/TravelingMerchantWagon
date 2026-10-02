@@ -461,7 +461,7 @@
         64,
         64
       ],
-      "sha256": "1fb07a5fa3ecbe3f3851f55f198cd206d408cf4a92d42c1415c6f64ecae65444"
+      "sha256": "134b8045502620a2920657926884ddf08eb05b07976d694caf20df321cf21bf1"
     },
     {
       "path": "textures/component/cargo_body/spruce.png",
@@ -469,7 +469,7 @@
         64,
         64
       ],
-      "sha256": "3c86afdc0dc7f31d9b40f786e5e6a4b4139ce5a12eba29ed0f309d7fd199ff06"
+      "sha256": "c42f70a39ff74feb1f529258c888d93d9efcd24cec1c75736ab4209cbe99d123"
     },
     {
       "path": "textures/component/cargo_body/birch.png",
@@ -477,7 +477,7 @@
         64,
         64
       ],
-      "sha256": "adc5964460200c12dfe0b3bf22a3557b80cf853b4eca8aa04200ad80f0fdd78e"
+      "sha256": "70ba105020fe64b48ca0ea1bd983182dfa79aef9303e5a370ef6c408a267d8e8"
     },
     {
       "path": "textures/component/cargo_body/jungle.png",
@@ -485,7 +485,7 @@
         64,
         64
       ],
-      "sha256": "c667ad486af50fba3542adc6e0f409c44f52b219b3217c62f7178fd0c5d3fded"
+      "sha256": "56520f8022c615bb69be109e7df90f696f8835330779126d01ac70e0bf9e68be"
     },
     {
       "path": "textures/component/cargo_body/acacia.png",
@@ -493,7 +493,7 @@
         64,
         64
       ],
-      "sha256": "c525119ec696694b6a83209c85f465fce7a90d2eafc818ce96e45511fe1333bf"
+      "sha256": "5b061e02ce077bd77d8dfc53e3b48248fb6cb060569a5e139f6448042398e499"
     },
     {
       "path": "textures/component/cargo_body/dark_oak.png",
@@ -501,7 +501,7 @@
         64,
         64
       ],
-      "sha256": "7b7aef57e135844064bef73ef3f0bb961a0bae5c81978bd023fb57153ab5bf13"
+      "sha256": "d4a01c744d8a197a83626a425ebb4e1ee4830f9949959632f8352565f7e5c06d"
     },
     {
       "path": "textures/component/cargo_body/mangrove.png",
@@ -509,7 +509,7 @@
         64,
         64
       ],
-      "sha256": "7d7bb6ee591dfd930843d9f387feb2f6092b60c380b8ae423f668191d0471979"
+      "sha256": "e637903e73c8dbf50683c181b545e4fe2746ca666e168a6bf34d8a6f98fcffb1"
     },
     {
       "path": "textures/component/cargo_body/cherry.png",
@@ -517,7 +517,7 @@
         64,
         64
       ],
-      "sha256": "f01baa3907689ff1e1120b99fd58ced0d11be42ee82f01f910351c409a262cc6"
+      "sha256": "45d1901e571216c308a0a7330359d764f0a7f3c8e13d1e5bdc8f1e581c51cea0"
     },
     {
       "path": "textures/component/cargo_body/crimson.png",
@@ -525,7 +525,7 @@
         64,
         64
       ],
-      "sha256": "a83f78ffe4f2bfbda62588c01dab1a6c4a5a8f119e3a493ff5bd3ce2b305f456"
+      "sha256": "f560c68a4c29345fb5664ddff22f1a2fc07576bc30b70f79c8d5313b33efc2e7"
     },
     {
       "path": "textures/component/cargo_body/warped.png",
@@ -533,7 +533,7 @@
         64,
         64
       ],
-      "sha256": "988395b28bf5cae1c1bfc408eb0e811ecf71c71109098dd3295ca83dacd1ec0b"
+      "sha256": "d4ca1b6fed8e931ca5330c15da47d796df67261de2f150ef7d94f49a6c8d0a5f"
     },
     {
       "path": "textures/component/long_cargo_body/oak.png",
@@ -541,7 +541,7 @@
         64,
         64
       ],
-      "sha256": "2abb2676f7ef9e635eaf57268875e210cc72e3560502e3da8519d3b3edb1ece9"
+      "sha256": "0cd540063c3cb48004775630ee375acd6ca88627dba34acd8afd0dbb08e3a9d2"
     },
     {
       "path": "textures/component/long_cargo_body/spruce.png",
@@ -549,7 +549,7 @@
         64,
         64
       ],
-      "sha256": "a8c81318047d24e6c3bb98885cf19186c7d1175ee79fd51844f9877d21caaefb"
+      "sha256": "0d4bd2900063c57c594a9682476ac8886d88104a193e6128d5ec81030ecf68a1"
     },
     {
       "path": "textures/component/long_cargo_body/birch.png",
@@ -557,7 +557,7 @@
         64,
         64
       ],
-      "sha256": "8b8dc909a27d89095e04913dbe291079d4d8b8dc55e16007f3192ee47a9f155d"
+      "sha256": "e253d1299900fc22b9a26f5d6f4fc9fcf1f81e2c01e3e2f15aa0efa691954332"
     },
     {
       "path": "textures/component/long_cargo_body/jungle.png",
@@ -565,7 +565,7 @@
         64,
         64
       ],
-      "sha256": "abef99325535f31d4965c094608a8e4444b443a80d2aaf2dfbc602f81181c3d7"
+      "sha256": "59ed2981220d919afd4b0f772021deca875cc84f9edbe2332b411d59f22d7fc3"
     },
     {
       "path": "textures/component/long_cargo_body/acacia.png",
@@ -573,7 +573,7 @@
         64,
         64
       ],
-      "sha256": "69f2472981c418a805fc57dacf4195b8fb476695a75b5a946a1e50582da63bb2"
+      "sha256": "c9d96da513e9e940f3a95cc2a33c5a90db39937b822e77414dcef73c38d35698"
     },
     {
       "path": "textures/component/long_cargo_body/dark_oak.png",
@@ -581,7 +581,7 @@
         64,
         64
       ],
-      "sha256": "1831ccd3ff38d09a66dbd3de8e150f4fc2244fe7794f3c1a5cdea0e3e987c684"
+      "sha256": "43426dd21c382df53c9a2c3b80e8ec11f97647daa74f4ecd02a01e5c09211b0a"
     },
     {
       "path": "textures/component/long_cargo_body/mangrove.png",
@@ -589,7 +589,7 @@
         64,
         64
       ],
-      "sha256": "e5add037435ce8b4bb1e3147acfa52b5f1bcad7b951966a05ea85ac21ae75b38"
+      "sha256": "071ce202262c794b71077d0439cd758fd4f5a39275834ca6bb65e4c901e1a88d"
     },
     {
       "path": "textures/component/long_cargo_body/cherry.png",
@@ -597,7 +597,7 @@
         64,
         64
       ],
-      "sha256": "25b8864ee5f0366479df54857898a12df922c6bc86b172bc481059054be28d6e"
+      "sha256": "bf7e9fbb3cdc0a5ba98b17eab8a10082f9d0ddf57708dc99be49c82784202d48"
     },
     {
       "path": "textures/component/long_cargo_body/crimson.png",
@@ -605,7 +605,7 @@
         64,
         64
       ],
-      "sha256": "4561fc556d81f5e11e74b13654a8fc48b46586347cfaa4340774ef7b94e691f0"
+      "sha256": "e86ef6ca5cd1fe74290fc2162485eabc75e1e39b6854db45c61f13048b73c76b"
     },
     {
       "path": "textures/component/long_cargo_body/warped.png",
@@ -613,7 +613,7 @@
         64,
         64
       ],
-      "sha256": "b9f52e875576e201b5943beb93a42b4435360f1951fe3cd5426cdcdce6b2a2d1"
+      "sha256": "fedbd1233ace5c180e6eaa84f0f48621788720288160660503b8c6c129621abf"
     },
     {
       "path": "textures/component/single_seat/oak.png",
@@ -621,7 +621,7 @@
         64,
         64
       ],
-      "sha256": "ff444d955859f55dfc564a875c5dc438ea5499b5fa534f636e6c4f1256378671"
+      "sha256": "5da80a695a77a08168a930f8bd571c1bbcb73a7327d7157491adf0cc8c980f73"
     },
     {
       "path": "textures/component/single_seat/spruce.png",
@@ -629,7 +629,7 @@
         64,
         64
       ],
-      "sha256": "d7e1b58f1827cda7cb49397663a2f3259eb9a7bfdfd4cc980cbcd840413d048a"
+      "sha256": "a4e04715a22f0e5acd46ac33a64323b08c02383998a36c203c945fa082b9c4f9"
     },
     {
       "path": "textures/component/single_seat/birch.png",
@@ -637,7 +637,7 @@
         64,
         64
       ],
-      "sha256": "4174d257f174a23a9b726aa4550b3979ea6c1e4d3365586e1e519610f2ae4703"
+      "sha256": "ddeca8f10c4e45cb267a7aa5d46022312f7b2b9adacd3fa58a22dacd9f9c5680"
     },
     {
       "path": "textures/component/single_seat/jungle.png",
@@ -645,7 +645,7 @@
         64,
         64
       ],
-      "sha256": "b07521451163e43252dce94dee688248cd8a5466894065d18910bc765f03b7be"
+      "sha256": "31ba34d82a9d6bb84ead653332c462e03574eb83e3c5ba51e0aea71f80a0c15c"
     },
     {
       "path": "textures/component/single_seat/acacia.png",
@@ -653,7 +653,7 @@
         64,
         64
       ],
-      "sha256": "eaf2576810183aa41b7f00cda286ee6c0b3c622d5d85f2e4d3321dabb838cd40"
+      "sha256": "ac5ec203f0e39fe02039525ecdc916b5c1e6ccde19f3502fd2af0f59ecffc836"
     },
     {
       "path": "textures/component/single_seat/dark_oak.png",
@@ -661,7 +661,7 @@
         64,
         64
       ],
-      "sha256": "aaacecf33e7efdf4d34c8affa81631564af5e37e99d57b527fbcead1e9b1e6f8"
+      "sha256": "f60473ac39c50b7adf7ade144e8c839b9100763c77f462db9753a39792fc7504"
     },
     {
       "path": "textures/component/single_seat/mangrove.png",
@@ -669,7 +669,7 @@
         64,
         64
       ],
-      "sha256": "745a3f72ce0d002f7d139076763b05117fab68dca383895532afdaf2a8088c16"
+      "sha256": "ba22216815d6068e6e649e1032ab073e84a13fb038a69332388e54ec9067ff9f"
     },
     {
       "path": "textures/component/single_seat/cherry.png",
@@ -677,7 +677,7 @@
         64,
         64
       ],
-      "sha256": "6232f83f73ed4e1713a3ac55b862b8f0439dec46315f899d43bbc257041957ba"
+      "sha256": "a49cecd776ac1a277dd2147ac51c94966e775471c66dea1663139326c173e7ff"
     },
     {
       "path": "textures/component/single_seat/crimson.png",
@@ -685,7 +685,7 @@
         64,
         64
       ],
-      "sha256": "2b0127be17685e5b692cbb27add08ae520aa78c4bd161bc421a66787d40e3d19"
+      "sha256": "e20e001b468ac0a7866ae8c9fe9ba08640100bd631595d1d54b27720f54a38f3"
     },
     {
       "path": "textures/component/single_seat/warped.png",
@@ -693,7 +693,7 @@
         64,
         64
       ],
-      "sha256": "8d01f5f88256471285afa3fe170beaba42d19067bb1db41c55798ec939b50eac"
+      "sha256": "7ec3f1cd8c1206748423525421b4a944d06a6478314d92d91dc8280e8119b919"
     },
     {
       "path": "textures/component/double_seat/oak.png",
@@ -701,7 +701,7 @@
         64,
         64
       ],
-      "sha256": "cb5fd49723453033fc9dfa32f007187496256f932d059e5ae8e5c7eca84fa121"
+      "sha256": "e6a0ce5c192abd16dfa4ff4daf5a2113c660d05145fdfc098899777ff8026015"
     },
     {
       "path": "textures/component/double_seat/spruce.png",
@@ -709,7 +709,7 @@
         64,
         64
       ],
-      "sha256": "5b11ac2672dfc1c5c1b3bda5c1e3dc340f40c9d7d7f8886ed5bd03eb7f76799f"
+      "sha256": "0520a182d3930edde673e33906891b7f0fe67a0e31fbaf65269953bdecec9045"
     },
     {
       "path": "textures/component/double_seat/birch.png",
@@ -717,7 +717,7 @@
         64,
         64
       ],
-      "sha256": "92b5b0127fe85060ec0da0a3652f518260a375676fa61fa9d5df835ca94a54cf"
+      "sha256": "536af19bb7d14d6bb21a3fdba221e03bc6c857538a7df207eb27021211f7fc48"
     },
     {
       "path": "textures/component/double_seat/jungle.png",
@@ -725,7 +725,7 @@
         64,
         64
       ],
-      "sha256": "a3aad643165ac6d515dc73ee1e719bebad7aa97ccd52cf27aad0c41941738f1f"
+      "sha256": "4c49170f707ccf466e421df6ba0c28f9b58f6dd8c02d67e267c8d0370c8d3d02"
     },
     {
       "path": "textures/component/double_seat/acacia.png",
@@ -733,7 +733,7 @@
         64,
         64
       ],
-      "sha256": "294bb0e6f43abf37e513ab144e70968c612e30846046689a5f9aba7c00564902"
+      "sha256": "10585475a7d037daa26076564a39a67ada5aecc408558ef2e5af9a0437892fc9"
     },
     {
       "path": "textures/component/double_seat/dark_oak.png",
@@ -741,7 +741,7 @@
         64,
         64
       ],
-      "sha256": "ab5cc110cb846ca5aab22ddf7d299d15cba8da7b04a6178ed46d055af144efa2"
+      "sha256": "a9052b96a2cc8030606b56295f015c54bc8261adda8fda8495aa0a6ab9d3fea1"
     },
     {
       "path": "textures/component/double_seat/mangrove.png",
@@ -749,7 +749,7 @@
         64,
         64
       ],
-      "sha256": "073a5b163e6752b5b76ac2fb2e1a372752a2b0652f5de01a494a199a2d1ce691"
+      "sha256": "bfe0797687618c226f6407dc9ce88f422cb0c7a0f0fe90989d49944ac66c3730"
     },
     {
       "path": "textures/component/double_seat/cherry.png",
@@ -757,7 +757,7 @@
         64,
         64
       ],
-      "sha256": "9a76b28a8344708df89e6d66ebd0022cac39aa137a7370bf437ce7244710654c"
+      "sha256": "b7496247478ee11ca3cad127e124bcabd9d383c3a8a01be6183853ce30428352"
     },
     {
       "path": "textures/component/double_seat/crimson.png",
@@ -765,7 +765,7 @@
         64,
         64
       ],
-      "sha256": "fdeddb921b158ebb252d62ec937f921336798465cf5aefba62bccf8b0b15ec4f"
+      "sha256": "f7b1978e38a6b5d71e4f6439ee105d99aeb889ca465b0d5ccfc445a155b3baaf"
     },
     {
       "path": "textures/component/double_seat/warped.png",
@@ -773,7 +773,7 @@
         64,
         64
       ],
-      "sha256": "db06307f4671196f6a0970f4000282a1540601fc292f927a73aa75e24e01e25b"
+      "sha256": "31bfbb09c6a9f1107960ee02798ea88461f6137116842b6f841bd21ecc8e9b2a"
     },
     {
       "path": "textures/component/small_wheel/oak.png",
@@ -781,7 +781,7 @@
         64,
         64
       ],
-      "sha256": "cd5b7f49ef5e2d31d767f758044487f3c2e6d2f2c17657b9fec7535fd9d0536d"
+      "sha256": "f481593804fa6362fafcc272bc24c99b3e6119a9d7f8c4a5c00e33562f579ef2"
     },
     {
       "path": "textures/component/small_wheel/spruce.png",
@@ -789,7 +789,7 @@
         64,
         64
       ],
-      "sha256": "74321acb58adaa423af0a9fcdd4c649bdd330918784b4d5e919008309dde3238"
+      "sha256": "ba36d1c38650ba8ae6ea8cbac5bde1490ccbdea23614f3e044beb67326099b0b"
     },
     {
       "path": "textures/component/small_wheel/birch.png",
@@ -797,7 +797,7 @@
         64,
         64
       ],
-      "sha256": "9c5315c93ce560196d62f553196f3fdda6e5c0649a1fe00e3f54617a7a1e5589"
+      "sha256": "ebccee27b134d6e53a5224668fe8475e54848accdddf8ae46157a6187c1068fc"
     },
     {
       "path": "textures/component/small_wheel/jungle.png",
@@ -805,7 +805,7 @@
         64,
         64
       ],
-      "sha256": "a86b04f171102d542641c1a070e6a456d18f30a5aff02cdccbd97ae824b1134e"
+      "sha256": "ed76c9829196ee5f6d2be72a1ce0ea1692f87eb8899b1c2aa2a2b98c61d58bd1"
     },
     {
       "path": "textures/component/small_wheel/acacia.png",
@@ -813,7 +813,7 @@
         64,
         64
       ],
-      "sha256": "71b749cad7e8054787b7e1340833ac729a5630b49911014259ad572e509d8e6a"
+      "sha256": "cc68a1149695faae2add909f7402beaaca0e36d506045bf8487412db93268383"
     },
     {
       "path": "textures/component/small_wheel/dark_oak.png",
@@ -821,7 +821,7 @@
         64,
         64
       ],
-      "sha256": "c52af3684371c6e4054dcc85874f60fda3be882e8ba7fadf25bd4b80f42bfdb1"
+      "sha256": "d130e5c200aa8406aad71290b6bd0c578e8b40410fb0258b4a2be7493063dcdf"
     },
     {
       "path": "textures/component/small_wheel/mangrove.png",
@@ -829,7 +829,7 @@
         64,
         64
       ],
-      "sha256": "8845ecf5d85e5581e5c1f93edc5db3e328d45dde1824edbd4a736295ce62fb9d"
+      "sha256": "f6ba6474e4374905bbf3a13f9a597f6a61217f1dc6a85ecd1d7134dd39ef207d"
     },
     {
       "path": "textures/component/small_wheel/cherry.png",
@@ -837,7 +837,7 @@
         64,
         64
       ],
-      "sha256": "42792031e6927f8e9e848f5596d96db0f501fb4d24b1814750d804ed2305ef15"
+      "sha256": "b0d390399b221bc70400aa350dedf2cc2b1054b68df7d6c9bee97cfff1d86aee"
     },
     {
       "path": "textures/component/small_wheel/crimson.png",
@@ -845,7 +845,7 @@
         64,
         64
       ],
-      "sha256": "d0f964d0fcb9ab492d8a8914418df23474d30d086e06e58f825155f074c3f419"
+      "sha256": "aa6c91b45f08777e7b276c798b8dc06845402648a9116a17cefddb7bad43d918"
     },
     {
       "path": "textures/component/small_wheel/warped.png",
@@ -853,7 +853,7 @@
         64,
         64
       ],
-      "sha256": "ee8bdf58d25d290208b42ce26de1d22436f52bbb4e73a5eca86478535cc7d97f"
+      "sha256": "83ce93b3a4c12e61725467b1478385365f52c69a53c7a38094df09f9a589928e"
     },
     {
       "path": "textures/component/large_wheel/oak.png",
@@ -861,7 +861,7 @@
         64,
         64
       ],
-      "sha256": "6a92efefff865b3a8c5797af61ca25fec0a8adc507f8d427c2c7daf604a4b123"
+      "sha256": "a62cf3af8ccd3b2655e26f437da11febf882c7f849a739ec1857e7d75366bdee"
     },
     {
       "path": "textures/component/large_wheel/spruce.png",
@@ -869,7 +869,7 @@
         64,
         64
       ],
-      "sha256": "0ca468198adb8e9d09b77a06a7b75c1257ae33f537df19533ce328ec25d845c1"
+      "sha256": "79c07c205827dc8034a9912102cf9c7b8ba31bbe56a7cf6c50f6d5f8d31e36d2"
     },
     {
       "path": "textures/component/large_wheel/birch.png",
@@ -877,7 +877,7 @@
         64,
         64
       ],
-      "sha256": "7ba98918db327652d1dc1dfa3c25d5e3ab28a95a7e87e73f3943d129819f449b"
+      "sha256": "84370cefc930500417ee27a61ab178b4372bfe6a4ecfa15fb871cdc6359a2aa1"
     },
     {
       "path": "textures/component/large_wheel/jungle.png",
@@ -885,7 +885,7 @@
         64,
         64
       ],
-      "sha256": "3c8a20a2b79afd94856a2a1b5994cbc874ff700224864ccc104bbfc9225e44c4"
+      "sha256": "32cdf70fea7ddac10faf920659b809aab066dd635e5ca95eb74f3a27da025ce9"
     },
     {
       "path": "textures/component/large_wheel/acacia.png",
@@ -893,7 +893,7 @@
         64,
         64
       ],
-      "sha256": "19da760aa8fb7c6944d873ddb4f8bbf0a9ba5dc4eeeb9fc5c0a9a90da0a24514"
+      "sha256": "5275065ac7b45d017d7d3a2f0a850215613cbdc9ff6acfb406a117825c6b4e45"
     },
     {
       "path": "textures/component/large_wheel/dark_oak.png",
@@ -901,7 +901,7 @@
         64,
         64
       ],
-      "sha256": "55d2244cb6f15942b4eca8adb264427f872b04a6b6532d3291ecd5ae6b1415ac"
+      "sha256": "078dc3b830a30f139eb8a84ed678b942d1b18149f65280182394530915f6eace"
     },
     {
       "path": "textures/component/large_wheel/mangrove.png",
@@ -909,7 +909,7 @@
         64,
         64
       ],
-      "sha256": "47a187cc0c7c22f51a4fc2e81b07fcc2e79b27093bb8f0efd8b37e08950e88a0"
+      "sha256": "0f58b0b0984f753649937c43db4741faec2157be1a64d3e5040097f582ca56a6"
     },
     {
       "path": "textures/component/large_wheel/cherry.png",
@@ -917,7 +917,7 @@
         64,
         64
       ],
-      "sha256": "04ff2cdf28cb854abcc3ee8c5a0119ab6319f21154a15ca5671df29de177ca2a"
+      "sha256": "7321e92ebd7969130cb2d05d434b03083d78f34a31879ebb8cce7a31898a6c88"
     },
     {
       "path": "textures/component/large_wheel/crimson.png",
@@ -925,7 +925,7 @@
         64,
         64
       ],
-      "sha256": "8810897a8bf1c56648b4910d20e3743342942ea5a2027f2695493b908dc5edf8"
+      "sha256": "c3493a278e34986438b11133078fc5e118820266196c8e95c72791357f718106"
     },
     {
       "path": "textures/component/large_wheel/warped.png",
@@ -933,7 +933,7 @@
         64,
         64
       ],
-      "sha256": "906294572300cf11ed551694f7c1a6c552b785f5bfa376e93db20a289e4e1bed"
+      "sha256": "8d96ca328b19cd1adf06a9d34576338dfb90e5c2c90d2501d7a12e46bf43e298"
     },
     {
       "path": "textures/component/single_wooden_seat/oak.png",
@@ -941,7 +941,7 @@
         64,
         64
       ],
-      "sha256": "0827c036c6f5c23ae1b0414c776b2a6ed1482bde0ac07834adc7f9e80501af25"
+      "sha256": "abf047370f29fda1a84b0d9348510dd172d51351d188a2ff3b7a2dd438f83297"
     },
     {
       "path": "textures/component/single_wooden_seat/spruce.png",
@@ -949,7 +949,7 @@
         64,
         64
       ],
-      "sha256": "4fb21d5e1298e83acee03da0b0faa7fbb051d770c7474cdb992200d4ee883ce7"
+      "sha256": "92dfceb176ba32b7b3a8c8419c3493b5a506815ddfdc618b39cb999b5fa1d74e"
     },
     {
       "path": "textures/component/single_wooden_seat/birch.png",
@@ -957,7 +957,7 @@
         64,
         64
       ],
-      "sha256": "86593b8444d55bb3d7aee5ceaa7ab76af844435a4aa284a996cc2182cbdb6f69"
+      "sha256": "21ee23cc6c47a1eaf6e447a9aa7d13c214fb55ee127698baac0b7977a440335d"
     },
     {
       "path": "textures/component/single_wooden_seat/jungle.png",
@@ -965,7 +965,7 @@
         64,
         64
       ],
-      "sha256": "8d54f2c5da48c44099c389bbe115fb8734e6e44cdb4b7f391bc91913ac88b8e0"
+      "sha256": "7e06dd8a7e71029e757d9b85412a830f9b045318ed72da6017b8731a397f1175"
     },
     {
       "path": "textures/component/single_wooden_seat/acacia.png",
@@ -973,7 +973,7 @@
         64,
         64
       ],
-      "sha256": "0ba184fdf22028a9930951c22e69684afd9d640e38e2c340cfab0ecb796bcc94"
+      "sha256": "7d77a9a12c416b6eaa6ed69f224d5f185605f2c7919cf4ec5d56e6d2798744d1"
     },
     {
       "path": "textures/component/single_wooden_seat/dark_oak.png",
@@ -981,7 +981,7 @@
         64,
         64
       ],
-      "sha256": "0392984bef2ba19791df05a593b4352bb4c6d80674cb6d1b1ad3feb00dec686f"
+      "sha256": "52df62164a2c19b060d45e725513171ac52600c96a6f487e69192dc1e7e28957"
     },
     {
       "path": "textures/component/single_wooden_seat/mangrove.png",
@@ -989,7 +989,7 @@
         64,
         64
       ],
-      "sha256": "8bb4b5f138c4172d1d72af05a438f7cccac3505902d04462564e34204ea585ba"
+      "sha256": "da655e68b9f46e42f835a1851655cdbacf418045792b18e2535e8b809d61ebd0"
     },
     {
       "path": "textures/component/single_wooden_seat/cherry.png",
@@ -997,7 +997,7 @@
         64,
         64
       ],
-      "sha256": "ecc142bce3c3abdb8b10fa3d6976774d5f01beef4944dada369bece0231d4d69"
+      "sha256": "002dce5e2afaf1f562b161f1812ae3d174c74279ba58b0e94696f01e2dbae98c"
     },
     {
       "path": "textures/component/single_wooden_seat/crimson.png",
@@ -1005,7 +1005,7 @@
         64,
         64
       ],
-      "sha256": "633a9b154b26be2037b1edb4065d61c56b39ba03e0ef996fd3d98ac10944549f"
+      "sha256": "5702e4a3e638126c42938e085852c7ac76a6354d999ef92fc73467186634d7e8"
     },
     {
       "path": "textures/component/single_wooden_seat/warped.png",
@@ -1013,7 +1013,7 @@
         64,
         64
       ],
-      "sha256": "8fbd563cd654160ff00c8081652aef6d8e3a67a68d1038099a3b0548c2618d8a"
+      "sha256": "84e8bbf388a0a95172666b5513a6fcc1df6c2dff6855ccfe94006009d5c7c3a5"
     },
     {
       "path": "textures/component/double_wooden_seat/oak.png",
@@ -1021,7 +1021,7 @@
         64,
         64
       ],
-      "sha256": "d95b56ec35a13ad99f7863c8374a8576f0344839fda2541a0f4dd9f70349018f"
+      "sha256": "4d36839f9a1130cca49be7caa06b403936cca6ad06a9a5931d3098b2e26f68c0"
     },
     {
       "path": "textures/component/double_wooden_seat/spruce.png",
@@ -1029,7 +1029,7 @@
         64,
         64
       ],
-      "sha256": "7594b4740bd7b7ce75e40edac26064457839a5266b2585808c54a0a135844561"
+      "sha256": "7ae9851968d8e79b0013e8a6a0f08a9e59d22129f97b63cc3545e58a885e5b09"
     },
     {
       "path": "textures/component/double_wooden_seat/birch.png",
@@ -1037,7 +1037,7 @@
         64,
         64
       ],
-      "sha256": "b365793081308d0b2cd92a645211423e6dc7108ea51fb8c68644771cbd26d2ec"
+      "sha256": "4d8e5ffb5cd7301b13179cbf13d3be28f592ad1ec17e82a8df01973f5cf52bee"
     },
     {
       "path": "textures/component/double_wooden_seat/jungle.png",
@@ -1045,7 +1045,7 @@
         64,
         64
       ],
-      "sha256": "d2ce18a1c46dfa63044fc273e284784df639b38239496ec0f923ba9fdaffd650"
+      "sha256": "15fa07a8f472b254f604857b53daec1e4ee5f362e78b872fa2eb17e7f1cecbb0"
     },
     {
       "path": "textures/component/double_wooden_seat/acacia.png",
@@ -1053,7 +1053,7 @@
         64,
         64
       ],
-      "sha256": "e41ec0214917ca464d8b99bdeebbdbdcf57b4c0928393707beb0528bc3b12b07"
+      "sha256": "8ccd65394ab49b048fa364e431840e108da55880f5696eb17a36765bd4fcfed8"
     },
     {
       "path": "textures/component/double_wooden_seat/dark_oak.png",
@@ -1061,7 +1061,7 @@
         64,
         64
       ],
-      "sha256": "f985c1109d6abefa0a151686828b72e9ff2ce0a925ad0846355d24b21ff1a686"
+      "sha256": "e5cbf91550ffbfeb52817eeb584ecbaa7e40dd577ab7b1314e76be539f4b387a"
     },
     {
       "path": "textures/component/double_wooden_seat/mangrove.png",
@@ -1069,7 +1069,7 @@
         64,
         64
       ],
-      "sha256": "46e53d39b86138cecc9f3207cecb68b18aad2e2f2147db020f89204394ad4990"
+      "sha256": "574d7ff381216428b095cdbea90c88d182c6ba78f92fe9ca34bcd8b5a90a2650"
     },
     {
       "path": "textures/component/double_wooden_seat/cherry.png",
@@ -1077,7 +1077,7 @@
         64,
         64
       ],
-      "sha256": "2b69c6013740eb1af8afb6915b345084e191cc6d283603adfbf1750eed6b55ac"
+      "sha256": "590f1c1f9f0594e560cef09e07fb177f156fc78f2cc6b68688b74733edd44be9"
     },
     {
       "path": "textures/component/double_wooden_seat/crimson.png",
@@ -1085,7 +1085,7 @@
         64,
         64
       ],
-      "sha256": "6cee49803840817d14f181356d3acba39c8182256750c7e4e40ea5700550feef"
+      "sha256": "c1af6bf83d27c1a168e999fe37bd7338f0e30efc2eb07a0eceeafdcbb3324d95"
     },
     {
       "path": "textures/component/double_wooden_seat/warped.png",
@@ -1093,7 +1093,7 @@
         64,
         64
       ],
-      "sha256": "707ab2c12762f2736b7a714499496de964e3718138463b6f1a8a8fdc7ff00141"
+      "sha256": "0c3bc6aabdb06f3d1f6e673394b809b3acf15fe97975d7390ad952724173a27d"
     },
     {
       "path": "textures/component/wagon_stool/oak.png",
@@ -1101,7 +1101,7 @@
         16,
         16
       ],
-      "sha256": "54ae61c0164a8994deb1cca2b72ea1dfb871798f50f280c408e4a020e554e324"
+      "sha256": "1084da4675ea3ea5b26fbdda3af8690a136131ac956489400a79e30ed764b3b9"
     },
     {
       "path": "textures/component/wagon_stool/spruce.png",
@@ -1109,7 +1109,7 @@
         16,
         16
       ],
-      "sha256": "6af45199d632c89d3b54111ce7cce3bbe0a02a98ef32bdaf8ec1d32217d8012d"
+      "sha256": "e28bf51316f52f0108f2cad42a6e501a7536d9fd57dc953dec22d94ad8faad51"
     },
     {
       "path": "textures/component/wagon_stool/birch.png",
@@ -1117,7 +1117,7 @@
         16,
         16
       ],
-      "sha256": "d6841f87a401fc1ce9a779964e94ae5a1b19cda12f68aeeab99b098a1a6248db"
+      "sha256": "11c544ed8eb75b8e9df918408d39e1a74fd6389c773a8d37d9b3e2779d3bf45a"
     },
     {
       "path": "textures/component/wagon_stool/jungle.png",
@@ -1125,7 +1125,7 @@
         16,
         16
       ],
-      "sha256": "1fe5786bb42231c1271e1a3d353df5bf0c2544f9a59d194fb486a79d378d5d01"
+      "sha256": "29da8a6f0ca1f7d75187964ad44ef12f60676e72a215e6aa7674db4ccf2b6fab"
     },
     {
       "path": "textures/component/wagon_stool/acacia.png",
@@ -1133,7 +1133,7 @@
         16,
         16
       ],
-      "sha256": "59e38b6ca04a545c763eade9dc8d80f7d5e885882f3f0817a8313d2e1b6a76f7"
+      "sha256": "f288607162f52e5ef8498a97dbae698a58d261de6eee8ffa2caf8e2085b0d2d9"
     },
     {
       "path": "textures/component/wagon_stool/dark_oak.png",
@@ -1141,7 +1141,7 @@
         16,
         16
       ],
-      "sha256": "ff3491265be2976f42f8303275811b2e83d38e19b5f74186341ec909beba9885"
+      "sha256": "c5836d08f7a6d30a889f0f753884c7e40c0b750c782b65d48314cc1afff04e67"
     },
     {
       "path": "textures/component/wagon_stool/mangrove.png",
@@ -1149,7 +1149,7 @@
         16,
         16
       ],
-      "sha256": "89c8497d6006038cf83ce64533fbd018ce5611b1859a875cf36040a580a795a1"
+      "sha256": "8fb77842825ec3a1c6fbe83c65e00ea5919f5e241c0c1612a688ece4d5e14fa3"
     },
     {
       "path": "textures/component/wagon_stool/cherry.png",
@@ -1157,7 +1157,7 @@
         16,
         16
       ],
-      "sha256": "fb412194cdd7177b59a4320493723696b0abd8305f2df44eef60e4a1e2d65825"
+      "sha256": "bae2c99bd6aee24ed7940b850831fb1bfe51e1e1393f3a0ac22327b0ebbad40b"
     },
     {
       "path": "textures/component/wagon_stool/crimson.png",
@@ -1165,7 +1165,7 @@
         16,
         16
       ],
-      "sha256": "291b5c019523c2f66ecd237dee2e876e3e85e1cbe5f460023f265e2f48cb4215"
+      "sha256": "090c64ad33700d9f4c35187179af5a8921583cae66d4707ae677ccf5d8e4ed6d"
     },
     {
       "path": "textures/component/wagon_stool/warped.png",
@@ -1173,7 +1173,7 @@
         16,
         16
       ],
-      "sha256": "82465165630761632481a0c661e50821588906024838b375d4719d4bbd54d466"
+      "sha256": "bd10866c26bf58a84749b9b38d86797283b06e45f2d4faa64808f35d5a74e3b9"
     },
     {
       "path": "textures/component/wagon_cabinet/oak.png",
@@ -1181,7 +1181,7 @@
         32,
         32
       ],
-      "sha256": "9af200f958ee1371a560715f9992ba1ed649e0b66ba38749667c05ee821a23fa"
+      "sha256": "9e7140d36a67338a98725a09b87dba03d1d72133964a951baf16ec143332657c"
     },
     {
       "path": "textures/component/wagon_cabinet/spruce.png",
@@ -1189,7 +1189,7 @@
         32,
         32
       ],
-      "sha256": "2adf61438a559065893a7ea68f98c40089bb14668e50b0aa1b63c98c39b3ffd2"
+      "sha256": "9a6243775298ac15f1e6e5f18e0b856fb18fffa1b684b9c36939f4785256ba6c"
     },
     {
       "path": "textures/component/wagon_cabinet/birch.png",
@@ -1197,7 +1197,7 @@
         32,
         32
       ],
-      "sha256": "f750ce8033869c8b7ba09ec523aab45e11d0d520b909defe4c75e4ae0d6385f7"
+      "sha256": "f6267b315afa528847b630d0c53f4599ee05f22f0f8b61b99f00b1b2c1864a06"
     },
     {
       "path": "textures/component/wagon_cabinet/jungle.png",
@@ -1205,7 +1205,7 @@
         32,
         32
       ],
-      "sha256": "4fae9a5dbef7cb2a924ac341013943135a0572219fd7406796490940bab1599f"
+      "sha256": "4c140bba93ba81b42e6a50fe2390abc835cbf6b897f24cb3880a3ba9552b10ce"
     },
     {
       "path": "textures/component/wagon_cabinet/acacia.png",
@@ -1213,7 +1213,7 @@
         32,
         32
       ],
-      "sha256": "796c9b41cac4912e385b2737c3d48ccd9b2085047b5a21d17e9c3ab5b2d4bd55"
+      "sha256": "317f568d28251780293a79f2994ac55fca9a1d2778a9b742b15b93a9467d3df1"
     },
     {
       "path": "textures/component/wagon_cabinet/dark_oak.png",
@@ -1221,7 +1221,7 @@
         32,
         32
       ],
-      "sha256": "49c2b018a37b69259431cfb40ca4910de66144d499a248c7ab78436a50c36547"
+      "sha256": "eba3bacfb0fbe65527ab81074d56b6633353efcc2616ca8801ae3b49bf3334eb"
     },
     {
       "path": "textures/component/wagon_cabinet/mangrove.png",
@@ -1229,7 +1229,7 @@
         32,
         32
       ],
-      "sha256": "9c7c618344156c72b6915ff79202bfe93456e3fecfd576503d262d852b86b270"
+      "sha256": "aacd693443e25c074df592056ba3927647afad0fc72730e66f61fd2be6ab0dcd"
     },
     {
       "path": "textures/component/wagon_cabinet/cherry.png",
@@ -1237,7 +1237,7 @@
         32,
         32
       ],
-      "sha256": "b095b661a81cd07d93388414f6a916643e8b98a6991e58d9dac04b7bf3c6ba81"
+      "sha256": "344c13dd48b1d10e5ab5c9f9385725367ff11828d0434932f0859e78895f1ea9"
     },
     {
       "path": "textures/component/wagon_cabinet/crimson.png",
@@ -1245,7 +1245,7 @@
         32,
         32
       ],
-      "sha256": "4bb6a2f09ce3af8bac2b2b8765d61b86060d21be917b12c4a7b778ace85c1b80"
+      "sha256": "b2dcf0a4554066fb7ff3a71456fb12f50f52dd26fb6913e9aa95788aaff1d30d"
     },
     {
       "path": "textures/component/wagon_cabinet/warped.png",
@@ -1253,7 +1253,7 @@
         32,
         32
       ],
-      "sha256": "d75c5e5552684433216091ed343e653efe5900b843532430998b998875d3651f"
+      "sha256": "2e01353d4562f284175f898f2227ce2d62d01b29b9a65f0ed2f8ece9d401369b"
     }
   ],
   "rendering": {

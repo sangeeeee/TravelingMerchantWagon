@@ -21,7 +21,7 @@ public final class MaterialClient {
         });
     }
     @SubscribeEvent public static void colours(RegisterColorHandlersEvent.Item event) {
-        event.register((stack,index)->WagonMaterial.of(stack).colour().getTextureDiffuseColor(),WagonContent.CARGO_COVER.get(),WagonContent.CANOPY.get());
+        event.register((stack,index)->FabricColours.tint(WagonMaterial.of(stack).colour()),WagonContent.CARGO_COVER.get(),WagonContent.CANOPY.get());
     }
     @SubscribeEvent public static void reload(RegisterClientReloadListenersEvent event) {
         event.registerReloadListener(new net.minecraft.server.packs.resources.SimplePreparableReloadListener<Void>() {
