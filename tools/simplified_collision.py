@@ -8,11 +8,12 @@ import copy
 
 
 def volumes():
+    forward_extension = 8  # Level driver platform grows by half a block.
     body = [
         [-17,22,-24,17,24,36],
         [-18.5,24,-25,-16,37,37], [16,24,-25,18.5,37,37],
         [-16,24,-25,16,37,-23], [-16,24,35.5,16,37,37],
-        [-16,22,-35,16,24,-24], [-16,22,-41.75,16,26,-35],
+        [-16,22,-35-forward_extension,16,24,-24], [-16,22,-41.75-forward_extension,16,26,-35-forward_extension],
         [-22,15.5,-38,-16,17,-32], [16,15.5,-38,22,17,-32],
         [-22,9.5,-21.5,22,11.5,-18.5], [-22,12.5,18.5,22,14.5,21.5],
     ]
@@ -30,8 +31,9 @@ def volumes():
     result['long_cargo_body'] = extended
     for name, half in [('single_seat',8.5),('double_seat',15.5)]:
         result[name] = [
-            [-half,24,-32,half,31.5,-29.5],
-            [-half,30,-35.5,half,34.5,-23.5],
+            # The inaccessible cabinet recess is solid for gameplay collision.
+            # One box covers the support, underside, seat board and cushion.
+            [-half,24,-35.5,half,34.5,-23.5],
             [-half-.5,34.5,-25,half+.5,48,-21.5],
             [-half,34.5,-35,-half+2,40,-23.5],
             [half-2,34.5,-35,half,40,-23.5],

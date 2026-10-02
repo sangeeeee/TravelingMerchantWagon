@@ -1,9 +1,9 @@
 {
   "cargo_body": {
-    "scale": 0.135848
+    "scale": 0.123511
   },
   "long_cargo_body": {
-    "scale": 0.119181
+    "scale": 0.109578
   },
   "single_horse_shafts": {
     "scale": 0.172737
@@ -12,7 +12,7 @@
     "scale": 0.146917
   },
   "single_seat": {
-    "scale": 0.453333
+    "scale": 0.453711
   },
   "double_seat": {
     "scale": 0.346497
