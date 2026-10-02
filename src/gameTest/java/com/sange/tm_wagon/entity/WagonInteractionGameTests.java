@@ -31,6 +31,53 @@ public class WagonInteractionGameTests {
         p.setPos(eye.subtract(0,p.getEyeHeight(),0));Vec3 d=target.subtract(eye).normalize();
         p.setYRot((float)Math.toDegrees(Math.atan2(-d.x,d.z)));p.setXRot((float)-Math.toDegrees(Math.asin(d.y)));
     }
+    private static void clickSeat(GameTestHelper h,WagonEntity w,Player p,Vec3 eye,Vec3 target,int seat,boolean at) {
+        aim(p,w.pose().point(eye),w.pose().point(target));
+        var result=at?w.interactAt(p,w.pose().point(target).subtract(w.position()),InteractionHand.MAIN_HAND):w.interact(p,InteractionHand.MAIN_HAND);
+        h.assertTrue(result.consumesAction()&&p.getVehicle()==w&&w.passengerSeat(p)==seat,"Visible cushion did not board chosen seat: "+target);
+        p.stopRiding();
+    }
+    private static void rejectSeat(GameTestHelper h,WagonEntity w,Player p,Vec3 eye,Vec3 target) {
+        aim(p,w.pose().point(eye),w.pose().point(target));
+        w.interactAt(p,w.pose().point(target).subtract(w.position()),InteractionHand.MAIN_HAND);
+        h.assertTrue(!p.isPassenger(),"Non-cushion or occluded supplied point allowed boarding: "+target+" from "+eye);
+        w.interact(p,InteractionHand.MAIN_HAND);
+        h.assertTrue(!p.isPassenger(),"Fallback entity interaction boarded through obstruction");
+    }
+    @GameTest(template="assembly_test",timeoutTicks=35)
+    public static void visible_wool_top_front_and_side_are_the_only_single_seat_targets(GameTestHelper h) {
+        var w=wagon(h);var p=h.makeMockServerPlayerInLevel();p.setNoGravity(true);
+        clickSeat(h,w,p,new Vec3(0,2.75,-2.85),new Vec3(0,2.15,-1.875),0,true);
+        clickSeat(h,w,p,new Vec3(0,1.62,-3.2),new Vec3(0,2.05,-35.0/16),0,false);
+        clickSeat(h,w,p,new Vec3(-1.4,2.05,-1.875),new Vec3(-7.7/16,2.05,-1.875),0,true);
+        rejectSeat(h,w,p,new Vec3(0,2.45,-.6),new Vec3(0,2.4,-1.4));
+        rejectSeat(h,w,p,new Vec3(-1.3,2.9,-1.9),new Vec3(-.47,2.5,-1.9));
+        rejectSeat(h,w,p,new Vec3(-1.7,1.8,-1.9),new Vec3(-.53125,1.8,-1.9));
+        rejectSeat(h,w,p,new Vec3(0,2.3,-.3),new Vec3(0,2.05,-1.875));
+        rejectSeat(h,w,p,new Vec3(0,6,-1.875),new Vec3(0,2.15,-1.875));
+        h.succeed();
+    }
+    @GameTest(template="assembly_test",timeoutTicks=35)
+    public static void cushion_clicks_preserve_double_seat_selection_on_rotated_tilted_wagons(GameTestHelper h) {
+        var w=wagon(h);var parts=WagonEntity.defaultParts();parts.put(WagonSlot.SEAT,WagonPart.DOUBLE_SEAT);w.configure(parts,Direction.NORTH);
+        var p=h.makeMockServerPlayerInLevel();p.setNoGravity(true);
+        for(var angles:new float[][]{{0,0,0},{90,0,0},{213,.14F,-.09F},{137,-.10F,.07F}}) {
+            w.applyPose(new WagonPose(w.position(),angles[0],angles[1],angles[2]));
+            clickSeat(h,w,p,new Vec3(-.45,2.75,-2.85),new Vec3(-.45,2.15,-1.875),0,true);
+            clickSeat(h,w,p,new Vec3(.45,2.75,-2.85),new Vec3(.45,2.15,-1.875),1,false);
+            rejectSeat(h,w,p,new Vec3(0,2.9,-2.7),new Vec3(0,2.15,-1.875));
+            rejectSeat(h,w,p,new Vec3(.45,2.3,-.3),new Vec3(.45,2.05,-1.875));
+        }
+        h.succeed();
+    }
+    @GameTest(template="assembly_test",timeoutTicks=35)
+    public static void world_block_in_front_of_visible_cushion_prevents_boarding(GameTestHelper h) {
+        var w=wagon(h);var p=h.makeMockServerPlayerInLevel();p.setNoGravity(true);
+        var obstruction=BlockPos.containing(w.position().add(0,2,-2.5));h.getLevel().setBlock(obstruction,net.minecraft.world.level.block.Blocks.STONE.defaultBlockState(),3);
+        rejectSeat(h,w,p,new Vec3(0,2.75,-2.85),new Vec3(0,2.15,-1.875));
+        h.getLevel().removeBlock(obstruction,false);
+        clickSeat(h,w,p,new Vec3(0,2.75,-2.85),new Vec3(0,2.15,-1.875),0,true);h.succeed();
+    }
     @GameTest(template="assembly_test",timeoutTicks=35)
     public static void rotated_horse_wagon_ray_hits_tailgate_and_curtains_at_their_real_surfaces(GameTestHelper h) {
         for(int x=1;x<24;x++)for(int z=1;z<24;z++)h.setBlock(new BlockPos(x,1,z),net.minecraft.world.level.block.Blocks.STONE);

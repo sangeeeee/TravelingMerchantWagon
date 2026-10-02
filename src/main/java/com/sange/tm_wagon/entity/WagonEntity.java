@@ -60,6 +60,11 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
     private float health=20;
     private boolean motionStarted;
     private record Component(AABB box,WagonSlot slot) {}
+    // Exact wool bounds in wagon-local space; independent of the solid lower-seat collider.
+    private static final List<AABB> SINGLE_CUSHIONS=List.of(new AABB(-7.7/16,31.5/16,-35.0/16,7.7/16,34.4/16,-24.0/16));
+    private static final List<AABB> DOUBLE_CUSHIONS=List.of(
+        new AABB(-14.7/16,31.5/16,-35.0/16,-.15/16,34.4/16,-24.0/16),
+        new AABB(.15/16,31.5/16,-35.0/16,14.7/16,34.4/16,-24.0/16));
     private List<Component> components=List.of();
     private List<Component> pickingComponents=List.of();
     private List<AABB> worldBoxes;
@@ -122,12 +127,20 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
             for(AABB box:slot==WagonSlot.BODY&&cargo!=null?cargo.bodyBoxes():WagonGeometry.partBoxes(part)) {
                 if(slot==WagonSlot.FRONT_RIGHT||slot==WagonSlot.REAR_RIGHT)box=new AABB(-box.maxX,box.minY,box.minZ,-box.minX,box.maxY,box.maxZ);
                 box=box.move(slot.geometryOffset(cargoBody()));
-                picking.add(new Component(box,slot));
+                if(slot!=WagonSlot.SEAT)picking.add(new Component(box,slot));
                 // Subdivide long boards so their rotated bounds preserve the open cargo interior.
                 int nx=Math.max(1,(int)Math.ceil(box.getXsize()/.65)),ny=Math.max(1,(int)Math.ceil(box.getYsize()/.65)),nz=Math.max(1,(int)Math.ceil(box.getZsize()/.65));
                 for(int x=0;x<nx;x++)for(int y=0;y<ny;y++)for(int z=0;z<nz;z++)list.add(new Component(new AABB(
                     box.minX+box.getXsize()*x/nx,box.minY+box.getYsize()*y/ny,box.minZ+box.getZsize()*z/nz,
                     box.minX+box.getXsize()*(x+1)/nx,box.minY+box.getYsize()*(y+1)/ny,box.minZ+box.getZsize()*(z+1)/nz),slot));
+            }
+            if(slot==WagonSlot.SEAT) {
+                var seat=WagonGeometry.partBoxes(part);var lower=seat.getFirst();
+                // Keep the simplified cabinet/support volume below the wool. Its wider
+                // upper portion must not hide the visible cushion sides behind an invisible box.
+                picking.add(new Component(new AABB(lower.minX,lower.minY,lower.minZ,lower.maxX,31.5/16,lower.maxZ),slot));
+                for(int i=1;i<seat.size();i++)picking.add(new Component(seat.get(i),slot));
+                for(AABB cushion:driverCushions())picking.add(new Component(cushion,slot));
             }
         });components=List.copyOf(list);
         if(cargo!=null) {
@@ -475,7 +488,22 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
         return seatPosition(passengerSeat(passenger));
     }
     private Vec3 localPosition(Vec3 relative) { return pose().local(position().add(relative)); }
-    private AABB seatBounds() { double width=seatCapacity()==1 ? .5625 : 1;return new AABB(-width,1.7,-2.25,width,3.05,-1.34375); }
+    private List<AABB> driverCushions() { return parts().get(WagonSlot.SEAT)==WagonPart.DOUBLE_SEAT?DOUBLE_CUSHIONS:SINGLE_CUSHIONS; }
+    /** Only the first visible wool surface can board, never a supplied point behind a backrest. */
+    private InteractionResult boardVisibleCushion(Player player,java.util.Optional<Vec3> actual) {
+        if(player.isSecondaryUseActive()||actual.isEmpty())return InteractionResult.PASS;
+        Vec3 world=actual.get(),local=pose().local(world),eye=player.getEyePosition(),localEye=pose().local(eye);
+        var cushions=driverCushions();
+        for(int seat=0;seat<cushions.size();seat++) {
+            AABB cushion=cushions.get(seat);
+            if(!cushion.inflate(.00001).contains(local)||cushion.contains(localEye)||local.y<=cushion.minY+.00001)continue;
+            var block=level().clip(new net.minecraft.world.level.ClipContext(eye,world,
+                net.minecraft.world.level.ClipContext.Block.OUTLINE,net.minecraft.world.level.ClipContext.Fluid.NONE,player));
+            if(block.getType()!=net.minecraft.world.phys.HitResult.Type.MISS&&block.getLocation().distanceToSqr(eye)+.0001<world.distanceToSqr(eye))return InteractionResult.PASS;
+            return boardSeat(player,seat);
+        }
+        return InteractionResult.PASS;
+    }
     @Override public boolean canRiderInteract() { return true; }
     @Override public InteractionResult interactAt(Player player,Vec3 hit,InteractionHand hand) {
         Vec3 local=localPosition(hit);
@@ -484,20 +512,16 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
         InteractionResult freight=cargo.interact(player,hand,local);if(freight!=InteractionResult.PASS)return freight;
         int hitch=hitchSlot(local);
         if(hitch>=0)return bindAt(player,hitch);
-        if (!seatBounds().inflate(.025).contains(local)) return InteractionResult.PASS;
-        return boardSeat(player,seatCapacity()==1 || local.x<0 ? 0 : 1);
+        return boardVisibleCushion(player,actual);
     }
     @Override public InteractionResult interact(Player player,InteractionHand hand) {
         Vec3 start=player.getEyePosition(),end=start.add(player.getLookAngle().scale(player.entityInteractionRange()));
         var cargoHit=pick(start,end);
         if(cargoHit.isPresent()) { var freight=cargo.interact(player,hand,pose().local(cargoHit.get()));if(freight!=InteractionResult.PASS)return freight; }
         if (player.isSecondaryUseActive()) return InteractionResult.PASS;
-        Vec3 a=pose().local(start),b=pose().local(end);
         var hitchHit=cargoHit;
         if(hitchHit.isPresent()) { int slot=hitchSlot(pose().local(hitchHit.get()));if(slot>=0)return bindAt(player,slot); }
-        var hit=seatBounds().clip(a,b);
-        if(hit.isEmpty())return InteractionResult.PASS;
-        return boardSeat(player,seatCapacity()==1||hit.get().x<0?0:1);
+        return boardVisibleCushion(player,cargoHit);
     }
     private InteractionResult boardSeat(Player player,int seat) {
         if (player.isSecondaryUseActive()) return InteractionResult.PASS;

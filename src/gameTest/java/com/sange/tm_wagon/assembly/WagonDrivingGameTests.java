@@ -42,6 +42,12 @@ public class WagonDrivingGameTests {
     private static Player driver(GameTestHelper h,WagonEntity wagon) {
         Player p=h.makeMockPlayer(GameType.SURVIVAL);h.assertTrue(p.startRiding(wagon),"Driver did not board");return p;
     }
+    private static void clickSeat(WagonEntity w,Player p,double x) {
+        Vec3 eye=w.pose().point(new Vec3(x,2.65,-2.875)),target=w.pose().point(new Vec3(x,2.15,-1.875));
+        p.setPos(eye.subtract(0,p.getEyeHeight(),0));Vec3 d=target.subtract(eye).normalize();
+        p.setYRot((float)Math.toDegrees(Math.atan2(-d.x,d.z)));p.setXRot((float)-Math.toDegrees(Math.asin(d.y)));
+        w.interactAt(p,target.subtract(w.position()),InteractionHand.MAIN_HAND);
+    }
     private static void drive(WagonEntity wagon,Player player,int forward,int steer,int ticks) {
         for(int i=0;i<ticks;i++) { wagon.acceptInput(player,forward,steer);wagon.tick(); }
     }
@@ -91,9 +97,9 @@ public class WagonDrivingGameTests {
     @GameTest(template="assembly_test",timeoutTicks=40)
     public static void left_driver_only_and_no_sideways_motion(GameTestHelper h) {
         var w=wagon(h,true,false);var right=h.makeMockPlayer(GameType.SURVIVAL);var left=h.makeMockPlayer(GameType.SURVIVAL);
-        w.interactAt(right,new Vec3(.45,2.2,-1.875),InteractionHand.MAIN_HAND);attach(h,w,right,0);
+        clickSeat(w,right,.45);attach(h,w,right,0);
         Vec3 start=w.position();drive(w,right,1,1,8);h.assertTrue(w.position().distanceToSqr(start)<.001&&w.driver()==null,"Right seat controlled wagon");
-        w.interactAt(left,new Vec3(-.45,2.2,-1.875),InteractionHand.MAIN_HAND);h.assertTrue(w.driver()==left,"Left seat is not driver");
+        clickSeat(w,left,-.45);h.assertTrue(w.driver()==left,"Left seat is not driver");
         drive(w,left,0,1,10);h.assertTrue(w.position().distanceToSqr(start)<.001&&Math.abs(w.getYRot()-180)<.001,"Steering strafed or spun stationary wagon");
         drive(w,left,1,0,10);h.assertTrue(w.getZ()<start.z-1&&w.getX()>=start.x,"Forward driving failed");
         left.stopRiding();Vec3 parked=w.position();drive(w,right,1,0,5);h.assertTrue(w.position().distanceToSqr(parked)<.001,"Right seat took over absent driver");h.succeed();
@@ -414,10 +420,10 @@ public class WagonDrivingGameTests {
     @GameTest(template="assembly_test",timeoutTicks=40)
     public static void only_driver_can_steer_a_manually_pushed_wagon(GameTestHelper h) {
         var w=wagon(h,true,false);var right=h.makeMockPlayer(GameType.SURVIVAL);var left=h.makeMockPlayer(GameType.SURVIVAL);var pushing=pusher(h,w,1);
-        w.interactAt(right,new Vec3(.45,2.2,-1.875),InteractionHand.MAIN_HAND);
+        clickSeat(w,right,.45);
         for(int i=0;i<20;i++) { w.acceptInput(right,1,1);push(w,pushing,1,1); }
         h.assertTrue(Math.abs(w.getYRot()-180)<.01,"Right passenger steered pushed wagon");
-        w.interactAt(left,new Vec3(-.45,2.2,-1.875),InteractionHand.MAIN_HAND);float yaw=w.getYRot();
+        clickSeat(w,left,-.45);float yaw=w.getYRot();
         for(int i=0;i<25;i++) { w.acceptInput(left,0,1);push(w,pushing,1,1); }
         h.assertTrue(w.getYRot()>yaw+1,"Driver could not steer externally pushed wagon");
         yaw=w.getYRot();for(int i=0;i<25;i++) { w.acceptInput(left,0,1);push(w,pushing,-1,1); }

@@ -20,6 +20,11 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 @GameTestHolder("tm_wagon")
 @PrefixGameTestTemplate(false)
 public class WagonEntityGameTests {
+    private static void aimSeat(WagonEntity w,net.minecraft.world.entity.player.Player p,double x) {
+        Vec3 eye=w.pose().point(new Vec3(x,2.65,-2.875)),target=w.pose().point(new Vec3(x,2.15,-1.875));
+        p.setPos(eye.subtract(0,p.getEyeHeight(),0));Vec3 d=target.subtract(eye).normalize();
+        p.setYRot((float)Math.toDegrees(Math.atan2(-d.x,d.z)));p.setXRot((float)-Math.toDegrees(Math.asin(d.y)));
+    }
     private static AssemblyFrameBlockEntity frame(GameTestHelper helper,Direction facing) {
         BlockPos pos=helper.absolutePos(new BlockPos(11,2,17));
         helper.getLevel().setBlock(pos,WagonContent.FRAME.get().defaultBlockState().setValue(AssemblyFrameBlock.FACING,facing),3);
@@ -179,7 +184,7 @@ public class WagonEntityGameTests {
         start=p.add(0,1.8,0);end=p.add(0,2.1,.5);
         hit=net.minecraft.world.entity.projectile.ProjectileUtil.getEntityHitResult(player,start,end,new AABB(start,end).inflate(.1),e -> e.isPickable(),100);
         helper.assertTrue(hit==null,"Viewer inside broad bounds selected empty cargo space");
-        player.setPos(p.add(-2,.73,-1.85));player.setYRot(270);player.setXRot(0);
+        aimSeat(entity,player,0);
         helper.assertTrue(entity.interact(player,net.minecraft.world.InteractionHand.MAIN_HAND).consumesAction()&&player.getVehicle()==entity,"Right-click seat did not mount player");
         player.stopRiding();
         helper.assertTrue(!player.isPassenger()&&helper.getLevel().noCollision(player,player.getBoundingBox()),"Normal dismount trapped player");
@@ -228,11 +233,14 @@ public class WagonEntityGameTests {
             install(helper,frame,modules);helper.assertTrue(frame.toggleFrame(null)==null,"Assembly failed");var entity=wagon(helper,frame);
             var right=helper.makeMockPlayer(GameType.SURVIVAL);right.setUUID(java.util.UUID.randomUUID());
             var left=helper.makeMockPlayer(GameType.SURVIVAL);left.setUUID(java.util.UUID.randomUUID());
-            Vec3 rightHit=WagonSlot.rotate(new Vec3(.45,2.2,-1.875),direction);
-            Vec3 leftHit=WagonSlot.rotate(new Vec3(-.45,2.2,-1.875),direction);
+            Vec3 rightHit=WagonSlot.rotate(new Vec3(.45,2.15,-1.875),direction);
+            Vec3 leftHit=WagonSlot.rotate(new Vec3(-.45,2.15,-1.875),direction);
+            aimSeat(entity,right,.45);
             helper.assertTrue(entity.interactAt(right,rightHit,net.minecraft.world.InteractionHand.MAIN_HAND).consumesAction(),"Right seat did not accept first passenger");
             helper.assertTrue(entity.passengerSeat(right)==1,"First passenger was forced into left seat");
+            aimSeat(entity,left,.45);
             helper.assertTrue(entity.interactAt(left,rightHit,net.minecraft.world.InteractionHand.MAIN_HAND)==net.minecraft.world.InteractionResult.FAIL&&!left.isPassenger(),"Occupied right seat redirected click into free left seat");
+            aimSeat(entity,left,-.45);
             helper.assertTrue(entity.interactAt(left,leftHit,net.minecraft.world.InteractionHand.MAIN_HAND).consumesAction()&&entity.passengerSeat(left)==0,"Left seat could not be selected independently");
             entity.positionRider(right);entity.positionRider(left);
             Vec3 rightPosition=entity.getPassengerRidingPosition(right),leftPosition=entity.getPassengerRidingPosition(left);
