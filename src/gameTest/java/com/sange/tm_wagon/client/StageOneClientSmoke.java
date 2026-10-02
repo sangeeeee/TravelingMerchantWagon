@@ -115,13 +115,13 @@ public class StageOneClientSmoke {
                     else drawWagon(graphics,wagons.getFirst(),width*3/4,190,42,1);
                     graphics.drawCenteredString(font,i==0?"Block cargo":"Entity cargo",width/4+i*width/2,290,0xff463729);
                 }
-                graphics.drawCenteredString(font,frames>=330?"Covered cargo remains visible through the open tailgate":frames>=255?"Grey cargo cover / roll toward rear / reusable cloth meshes":frames>=230?"Extended cargo compartment / 12 slots / rear axle moved":frames>=205?"Oak cargo stool / one slot / half-block height":frames>=180?"Straw mat / three cargo slots / adjacent cargo":frames>=150?"Cargo workstations / book and decorated pot renderers":frames<125?"10 scaled cargo slots / closed containers":"Open chest + shulker / lowered tailgate",width/2,height-40,0xff463729);
+                graphics.drawCenteredString(font,frames>=365?"White canopy / internal dark ribs / independent front and rear curtains":frames>=330?"Covered cargo remains visible through the open tailgate":frames>=255?"Grey cargo cover / roll toward rear / reusable cloth meshes":frames>=230?"Extended cargo compartment / 12 slots / rear axle moved":frames>=205?"Oak cargo stool / one slot / half-block height":frames>=180?"Straw mat / three cargo slots / adjacent cargo":frames>=150?"Cargo workstations / book and decorated pot renderers":frames<125?"10 scaled cargo slots / closed containers":"Open chest + shulker / lowered tailgate",width/2,height-40,0xff463729);
                 if(frames>=180) {
                     int x=width/2-24,y=40;graphics.fill(x,y,x+48,y+48,0xffd0c5af);
                     graphics.pose().pushPose();graphics.pose().translate(x,y,0);graphics.pose().scale(3,3,3);
-                    graphics.renderItem(new ItemStack(frames>=255?WagonContent.CARGO_COVER.get():frames>=230?WagonContent.PART_ITEMS.get(WagonPart.LONG_CARGO_BODY).get():frames>=205?WagonContent.STOOL.get():WagonContent.STRAW_MAT.get()),0,0);graphics.pose().popPose();
-                    graphics.renderItem(new ItemStack(frames>=255?WagonContent.CARGO_COVER.get():frames>=230?WagonContent.PART_ITEMS.get(WagonPart.LONG_CARGO_BODY).get():frames>=205?WagonContent.STOOL.get():WagonContent.STRAW_MAT.get()),width/2+30,y+16);
-                    graphics.drawCenteredString(font,Component.translatable(frames>=255?"item.tm_wagon.wagon_cargo_cover":frames>=230?"block.tm_wagon.long_cargo_body":frames>=205?"item.tm_wagon.wagon_stool":"item.tm_wagon.wagon_straw_mat"),width/2,y+54,0xff463729);
+                    graphics.renderItem(new ItemStack(frames>=365?WagonContent.CANOPY.get():frames>=255?WagonContent.CARGO_COVER.get():frames>=230?WagonContent.PART_ITEMS.get(WagonPart.LONG_CARGO_BODY).get():frames>=205?WagonContent.STOOL.get():WagonContent.STRAW_MAT.get()),0,0);graphics.pose().popPose();
+                    graphics.renderItem(new ItemStack(frames>=365?WagonContent.CANOPY.get():frames>=255?WagonContent.CARGO_COVER.get():frames>=230?WagonContent.PART_ITEMS.get(WagonPart.LONG_CARGO_BODY).get():frames>=205?WagonContent.STOOL.get():WagonContent.STRAW_MAT.get()),width/2+30,y+16);
+                    graphics.drawCenteredString(font,Component.translatable(frames>=365?"item.tm_wagon.wagon_canopy":frames>=255?"item.tm_wagon.wagon_cargo_cover":frames>=230?"block.tm_wagon.long_cargo_body":frames>=205?"item.tm_wagon.wagon_stool":"item.tm_wagon.wagon_straw_mat"),width/2,y+54,0xff463729);
                 }
             }
             if(frames==64)verifyCachedFramePose(graphics);
@@ -155,7 +155,31 @@ public class StageOneClientSmoke {
             if(frames==320)save("wagon-cover-rolled.png");
             if(frames==330)loadCoveredTailgatePreview();
             if(frames==350)save("wagon-covered-cargo-tailgate.png");
-            if(frames==365) {LogUtils.getLogger().info("TM_WAGON_CLIENT_SMOKE_PASS: cargo, work blocks, seats and standard/extended cargo covers in both forms");Minecraft.getInstance().stop();}
+            if(frames==365)loadCanopyPreview(false,false);
+            if(frames==380)save("wagon-canopy-open.png");
+            if(frames==400)save("wagon-canopy-interior.png");
+            if(frames==410)loadCanopyPreview(true,false);
+            if(frames==425)save("wagon-canopy-front-closed.png");
+            if(frames==435)loadCanopyPreview(true,true);
+            if(frames==450)save("wagon-canopy-closed.png");
+            if(frames==465) {LogUtils.getLogger().info("TM_WAGON_CLIENT_SMOKE_PASS: cargo, work blocks, seats and standard/extended cargo covers and canopies in both forms");Minecraft.getInstance().stop();}
+        }
+        private boolean lowAngle() { return frames>=330&&frames<365||frames>=390&&frames<410; }
+        private void loadCanopyPreview(boolean front,boolean rear) {
+            var registry=net.minecraft.core.RegistryAccess.fromRegistryOfRegistries(net.minecraft.core.registries.BuiltInRegistries.REGISTRY);
+            var canopy=new CompoundTag();canopy.putBoolean("Installed",true);canopy.putBoolean("FrontClosed",front);canopy.putBoolean("RearClosed",rear);
+            var frame=assemblies.getFirst();var cargo=frame.cargo().save(registry,true);cargo.put("Cover",new CompoundTag());cargo.put("Canopy",canopy);
+            var tag=new CompoundTag();tag.put("Modules",com.sange.tm_wagon.entity.WagonEntity.encode(com.sange.tm_wagon.entity.WagonEntity.defaultParts()));tag.put("Cargo",cargo);frame.loadWithComponents(tag,registry);
+            var wagon=wagons.getFirst();cargo=wagon.cargo().save(registry,true);cargo.put("Cover",new CompoundTag());cargo.put("Canopy",canopy);wagon.cargo().load(cargo,registry);wagon.cargoGeometryChanged();
+            var manager=Minecraft.getInstance().getModelManager();
+            for(String name:new String[]{"canopy_shell","canopy_rib","canopy_end","canopy_curtain_closed","canopy_curtain_open"}) {
+                var id=net.minecraft.client.resources.model.ModelResourceLocation.standalone(net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("tm_wagon","block/"+name));
+                if(manager.getModel(id)==manager.getMissingModel())throw new IllegalStateException("Missing canopy mesh: "+name);
+            }
+            var item=manager.getModel(net.minecraft.client.resources.model.ModelResourceLocation.inventory(net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("tm_wagon","wagon_canopy")));
+            if(item==manager.getMissingModel())throw new IllegalStateException("Missing canopy item");
+            if(!wagon.cargo().canopy().installed()||!frame.cargo().canopy().installed()||wagon.cargo().canopy().closed(true)!=front||wagon.cargo().canopy().closed(false)!=rear)throw new IllegalStateException("Canopy preview lost curtain state");
+            LogUtils.getLogger().info("TM_WAGON_CANOPY_RENDER_PASS: standard block and extended entity, frontClosed={}, rearClosed={}, five baked meshes and item",front,rear);
         }
         private void loadCoverPreview(int opened) {
             var registry=net.minecraft.core.RegistryAccess.fromRegistryOfRegistries(net.minecraft.core.registries.BuiltInRegistries.REGISTRY);
@@ -300,8 +324,8 @@ public class StageOneClientSmoke {
         }
         private void drawAssembly(GuiGraphics graphics,AssemblyFrameBlockEntity frame,int x,int y,float scale) {
             graphics.pose().pushPose();graphics.pose().translate(x,y,500);
-            graphics.pose().scale(scale,-scale,scale);graphics.pose().mulPose(Axis.XP.rotationDegrees(frames>=330?2:25));
-            graphics.pose().mulPose(Axis.YP.rotationDegrees(frames>=330?-8:-35));
+            graphics.pose().scale(scale,-scale,scale);graphics.pose().mulPose(Axis.XP.rotationDegrees(lowAngle()?2:25));
+            graphics.pose().mulPose(Axis.YP.rotationDegrees(lowAngle()?-8:-35));
             if(frame.has(WagonSlot.BODY))graphics.pose().translate(-.5,-1.5,.7);
             else graphics.pose().translate(-.5,-.68,-.5);
             Lighting.setupForEntityInInventory();
@@ -324,7 +348,7 @@ public class StageOneClientSmoke {
         private void drawWagon(GuiGraphics graphics,com.sange.tm_wagon.entity.WagonEntity wagon,int x,int y,float scale,float partial) {
             var entityRenderer=(WagonRenderer)Minecraft.getInstance().getEntityRenderDispatcher().getRenderer(wagon);
             graphics.pose().pushPose();graphics.pose().translate(x,y,500);graphics.pose().scale(scale,-scale,scale);
-            graphics.pose().mulPose(Axis.XP.rotationDegrees(frames>=330?2:25));graphics.pose().mulPose(Axis.YP.rotationDegrees(frames>=330?-8:-35));
+            graphics.pose().mulPose(Axis.XP.rotationDegrees(lowAngle()?2:25));graphics.pose().mulPose(Axis.YP.rotationDegrees(lowAngle()?-8:-35));
             graphics.pose().translate(0,-1.5,.7);Lighting.setupForEntityInInventory();
             entityRenderer.render(wagon,0,partial,graphics.pose(),graphics.bufferSource(),15728880);
             graphics.flush();graphics.pose().popPose();Lighting.setupFor3DItems();

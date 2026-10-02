@@ -71,7 +71,8 @@ public final class CargoCover {
     public boolean hit(Vec3 local) { return selectionBoxes(hold.owner().cargoBody()).stream().anyMatch(box->box.inflate(.018,.025,.018).contains(local)); }
     /** A handful of local-space intersections, only during interaction/menu validation; no world scan. */
     public boolean obstructs(Vec3 eye,Vec3 target) {
-        if(!installed)return false;
+        if(!installed&&!hold.canopy().installed())return false;
+        for(AABB box:hold.canopy().boxes(hold.owner().cargoBody()))if(occludes(box,eye,target))return true;
         for(AABB box:selectionBoxes(hold.owner().cargoBody()))if(occludes(box,eye,target))return true;
         // The lowered tailgate must expose cargo; side walls still prevent interaction through wood.
         var hull=WagonGeometry.partBoxes(hold.owner().cargoBody());
@@ -84,13 +85,13 @@ public final class CargoCover {
         // Touching the floor/target at the ray endpoint is not an intervening obstacle.
         return hit.isPresent()&&eye.distanceToSqr(hit.get())<eye.distanceToSqr(target)-1e-8;
     }
-    private boolean side(Vec3 local) {
+    boolean side(Vec3 local) {
         if(local.y<CargoHold.FLOOR+.01||local.y>2.3125-.01)return false;
         var body=WagonGeometry.partBoxes(hold.owner().cargoBody());
         for(int i=1;i<=4;i++)if((i==4?hold.tailBox():body.get(i)).inflate(.018).contains(local))return true;
         return false;
     }
-    private String permission(Player player,Vec3 local) {
+    String permission(Player player,Vec3 local) {
         var owner=hold.owner();Vec3 point=owner.cargoPose().point(local);
         if(!owner.cargoLive()||owner.cargoBusy())return "message.tm_wagon.assembly_busy";
         if(player==null||player.level()!=owner.cargoLevel()||!player.isAlive()||player.isSpectator()
@@ -111,6 +112,7 @@ public final class CargoCover {
     public String install(ItemStack stack,Player player,Vec3 local) {
         String error=permission(player,local);if(error!=null)return error;
         if(!(hold.owner() instanceof AssemblyFrameBlockEntity))return "message.tm_wagon.cover_block_only";
+        if(hold.canopy().installed())return "message.tm_wagon.roof_conflict";
         if(installed)return "message.tm_wagon.cover_installed";
         if(!(stack.getItem() instanceof WagonCoverItem)||stack.isEmpty()||!side(local))return "message.tm_wagon.cover_side";
         installed=true;openRows=0;

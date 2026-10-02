@@ -41,6 +41,8 @@ public final class CargoHold {
     public final CargoSeats seats=new CargoSeats(this);
     private final CargoCover cover=new CargoCover(this);
     public CargoCover cover() { return cover; }
+    private final CargoCanopy canopy=new CargoCanopy(this);
+    public CargoCanopy canopy() { return canopy; }
     private final CargoEntry[] entries=new CargoEntry[MAX_CAPACITY];
     private boolean gateTarget,gateCollision;
     private long gateStart=Long.MIN_VALUE;
@@ -72,7 +74,7 @@ public final class CargoHold {
     public static AABB slotBox(int slot) {
         Vec3 p=centre(slot);return new AABB(p.x-SCALE/2,p.y,p.z-SCALE/2,p.x+SCALE/2,p.y+SCALE,p.z+SCALE/2);
     }
-    public boolean empty() { if(cover.installed())return false;for(var e:entries)if(e!=null)return false;return true; }
+    public boolean empty() { if(cover.installed()||canopy.installed())return false;for(var e:entries)if(e!=null)return false;return true; }
     public int slot(CargoEntry entry) { for(int i=0;i<MAX_CAPACITY;i++)if(entries[i]==entry)return i;return -1; }
     public Vec3 position(CargoEntry entry) { int slot=slot(entry);return owner.cargoPose().point(slot<0?new Vec3(0,FLOOR,0):centre(slot)); }
     public boolean valid(CargoEntry entry,Player player) {
@@ -80,7 +82,7 @@ public final class CargoHold {
             &&player.level()==owner.cargoLevel()&&player.distanceToSqr(position(entry))<=64&&!coverObstructed(slot(entry),player);
     }
     private boolean coverObstructed(int slot,Player player) {
-        if(!cover.installed())return false;
+        if(!cover.installed()&&!canopy.installed())return false;
         if(player==null)return true;
         Vec3 eye=owner.cargoPose().local(player.getEyePosition());
         int anchor=anchorSlot(slot);AABB box=anchor<0?slotBox(slot):entryBox(anchor);
@@ -100,7 +102,7 @@ public final class CargoHold {
     }
     public List<AABB> bodyBoxes() { return bodyBoxes(owner.cargoBody()); }
     public List<AABB> bodyBoxes(WagonPart body) {
-        var boxes=new ArrayList<>(WagonGeometry.partBoxes(body));boxes.set(4,tailBox(body));boxes.addAll(boxes());boxes.addAll(cover.boxes(body));return boxes;
+        var boxes=new ArrayList<>(WagonGeometry.partBoxes(body));boxes.set(4,tailBox(body));boxes.addAll(boxes());boxes.addAll(cover.boxes(body));boxes.addAll(canopy.boxes(body));return boxes;
     }
     public float gateProgress(float partial) {
         if(gateStart==Long.MIN_VALUE||owner.cargoLevel()==null)return gateTarget?1:0;
@@ -145,6 +147,7 @@ public final class CargoHold {
     /** Called with the first actual cart-surface hit, so a wall cannot be clicked through. */
     public InteractionResult interact(Player player,InteractionHand hand,Vec3 local) {
         if(!owner.cargoLive())return InteractionResult.PASS;
+        var canopyResult=canopy.interact(player,hand,local);if(canopyResult!=InteractionResult.PASS)return canopyResult;
         var coverResult=cover.interact(player,hand,local);if(coverResult!=InteractionResult.PASS)return coverResult;
         int slot=selected(local);var stack=player.getItemInHand(hand);
         if(slot>=0&&cover.obstructs(owner.cargoPose().local(player.getEyePosition()),local)) {
@@ -261,7 +264,7 @@ public final class CargoHold {
         entity.setDefaultPickUpDelay();owner.cargoLevel().addFreshEntity(entity);
     }
     public void destroy(boolean drops) {
-        cover.destroy(drops);
+        cover.destroy(drops);canopy.destroy(drops);
         StrawMatSleep.wake(this,null);
         closeMenus();
         for(int i=0;i<MAX_CAPACITY;i++) {
@@ -277,14 +280,14 @@ public final class CargoHold {
         for(int i=target.capacity();i<MAX_CAPACITY;i++)if(entries[i]!=null)throw new IllegalStateException("Cargo target is too small");
         closeMenus();
         for(int i=0;i<MAX_CAPACITY;i++) { target.entries[i]=entries[i];entries[i]=null;if(target.entries[i]!=null)target.entries[i].hold=target; }
-        cover.transferTo(target.cover);
+        cover.transferTo(target.cover);canopy.transferTo(target.canopy);
         target.gateTarget=gateTarget;target.gateCollision=gateCollision;target.gateStart=gateStart;target.gateFrom=gateFrom;
         gateTarget=gateCollision=false;gateStart=Long.MIN_VALUE;gateFrom=0;changed(true);target.changed(true);
     }
     public CompoundTag save(HolderLookup.Provider lookup,boolean visual) {
         var tag=new CompoundTag();var list=new ListTag();
         for(int i=0;i<MAX_CAPACITY;i++)if(entries[i]!=null) { var saved=entries[i].save(lookup,visual);saved.putInt("Slot",i);list.add(saved); }
-        tag.put("Entries",list);tag.put("Cover",cover.save());tag.putBoolean("GateTarget",gateTarget);tag.putBoolean("GateCollision",gateCollision);tag.putLong("GateStart",gateStart);tag.putFloat("GateFrom",gateFrom);return tag;
+        tag.put("Entries",list);tag.put("Cover",cover.save());tag.put("Canopy",canopy.save());tag.putBoolean("GateTarget",gateTarget);tag.putBoolean("GateCollision",gateCollision);tag.putLong("GateStart",gateStart);tag.putFloat("GateFrom",gateFrom);return tag;
     }
     public void load(CompoundTag tag,HolderLookup.Provider lookup) {
         if(owner.cargoLevel()!=null&&!owner.cargoLevel().isClientSide)closeMenus();
@@ -295,7 +298,7 @@ public final class CargoHold {
             if(loaded.kind==CargoEntry.Kind.STRAW_MAT&&(slot<4||entry(slot-2)!=null||entry(slot-4)!=null))continue;
             entries[slot]=loaded;
         }
-        cover.load(tag.getCompound("Cover"));
+        cover.load(tag.getCompound("Cover"));canopy.load(tag.getCompound("Canopy"));
         gateTarget=tag.getBoolean("GateTarget");gateCollision=tag.getBoolean("GateCollision");gateStart=tag.contains("GateStart")?tag.getLong("GateStart"):Long.MIN_VALUE;gateFrom=Math.clamp(tag.getFloat("GateFrom"),0,1);loading=false;
     }
     public static AABB worldBox(AABB box,WagonPose pose) {

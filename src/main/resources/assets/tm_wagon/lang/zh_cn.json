@@ -62,5 +62,11 @@
   "message.tm_wagon.cover_block_only": "只能在方块状态的马车货厢上安装或拆卸货箱罩。",
   "message.tm_wagon.cover_installed": "货厢已经安装了货箱罩。",
   "message.tm_wagon.cover_side": "请对准货厢侧面安装或拆卸，或对准布面和布卷操作。",
-  "message.tm_wagon.cover_blocked": "布面被实体或方块挡住，无法改变货箱罩。"
+  "message.tm_wagon.cover_blocked": "布面被实体或方块挡住，无法改变货箱罩。",
+  "item.tm_wagon.wagon_canopy": "车蓬",
+  "tooltip.tm_wagon.wagon_canopy": "右键方块货厢侧壁安装，潜行右键侧壁拆卸；右键前后布帘分别开合；与货箱罩互斥。",
+  "message.tm_wagon.roof_conflict": "车蓬与货箱罩不能同时安装。",
+  "message.tm_wagon.canopy_block_only": "只能在方块状态的马车货厢上安装或拆卸车蓬。",
+  "message.tm_wagon.canopy_side": "请对准货厢侧壁安装或拆卸，或右键前后布帘开合。",
+  "message.tm_wagon.canopy_blocked": "车蓬或布帘的位置被实体或方块挡住，无法改变。"
 }

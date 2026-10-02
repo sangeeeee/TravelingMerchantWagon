@@ -62,5 +62,11 @@
   "message.tm_wagon.cover_block_only": "Cargo covers can only be installed or removed on a block-form wagon.",
   "message.tm_wagon.cover_installed": "This compartment already has a cargo cover.",
   "message.tm_wagon.cover_side": "Use a cargo wall to install or remove the cover, or use the fabric or roll to adjust it.",
-  "message.tm_wagon.cover_blocked": "An entity or block obstructs the new fabric. The cover cannot change."
+  "message.tm_wagon.cover_blocked": "An entity or block obstructs the new fabric. The cover cannot change.",
+  "item.tm_wagon.wagon_canopy": "Wagon Canopy",
+  "tooltip.tm_wagon.wagon_canopy": "Install on a block-form cargo wall; sneak-use the wall to remove. Use either curtain to toggle it. Mutually exclusive with the cargo cover.",
+  "message.tm_wagon.roof_conflict": "A canopy and cargo cover cannot be installed together.",
+  "message.tm_wagon.canopy_block_only": "Canopies can only be installed or removed on a block-form wagon.",
+  "message.tm_wagon.canopy_side": "Use a cargo wall to install or remove the canopy, or use either curtain to open or close it.",
+  "message.tm_wagon.canopy_blocked": "An entity or block obstructs the canopy or curtain. It cannot change."
 }
