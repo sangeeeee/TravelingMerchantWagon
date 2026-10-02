@@ -30,7 +30,7 @@ import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.state.BlockState;
 
 public final class CargoEntry {
-    public enum Kind { ORDINARY, CHEST, BARREL, SHULKER, FURNACE, SMOKER, BLAST_FURNACE, CRAFTING, CARTOGRAPHY, STONECUTTER, ANVIL, SMITHING, LOOM, GRINDSTONE, ENCHANTING, BREWING, CAULDRON, COMPOSTER, ENDER_CHEST, LECTERN, BOOKSHELF, POT }
+    public enum Kind { ORDINARY, CHEST, BARREL, SHULKER, FURNACE, SMOKER, BLAST_FURNACE, CRAFTING, CARTOGRAPHY, STONECUTTER, ANVIL, SMITHING, LOOM, GRINDSTONE, ENCHANTING, BREWING, CAULDRON, COMPOSTER, ENDER_CHEST, LECTERN, BOOKSHELF, POT, STRAW_MAT }
     public final UUID id;
     public final ItemStack item;
     public BlockState state;
@@ -40,6 +40,7 @@ public final class CargoEntry {
     public int burn,fuelDuration,cook,totalCook=200;
     public int brewTime,brewFuel,page;
     public long compostReady=Long.MIN_VALUE;
+    public UUID sleeper;
     public net.minecraft.world.item.Item brewingIngredient=Items.AIR;
     private CargoLevel interactionLevel;
     public boolean opened;
@@ -75,7 +76,7 @@ public final class CargoEntry {
         return Kind.ORDINARY;
     }
     public CargoEntry(CargoHold hold,UUID id,ItemStack stack,BlockState state) {
-        this.hold=hold;this.id=id;item=stack.copyWithCount(1);this.state=state;kind=kind(state);
+        this.hold=hold;this.id=id;item=stack.copyWithCount(1);this.state=state;kind=stack.getItem() instanceof StrawMatItem?Kind.STRAW_MAT:kind(state);
         recipeCheck=RecipeManager.createCheck(recipeType());
         inventory=new Inventory(switch(kind) {
             case FURNACE,SMOKER,BLAST_FURNACE->3;case CHEST,BARREL,SHULKER->27;
@@ -185,6 +186,7 @@ public final class CargoEntry {
         tag.put("Item",saved.save(lookup));tag.put("State",NbtUtils.writeBlockState(state));
         tag.putBoolean("Opened",opened);tag.putLong("LidStart",lidStart);tag.putFloat("LidFrom",lidFrom);
         tag.putBoolean("Visual",visual);
+        if(visual&&sleeper!=null)tag.putUUID("Sleeper",sleeper);
         if(!visual) {
             var contents=NonNullList.withSize(inventory.getContainerSize(),ItemStack.EMPTY);
             for(int i=0;i<contents.size();i++)contents.set(i,inventory.getItem(i));ContainerHelper.saveAllItems(tag,contents,lookup);
@@ -196,9 +198,10 @@ public final class CargoEntry {
     }
     public static CargoEntry load(CargoHold hold,CompoundTag tag,HolderLookup.Provider lookup) {
         var item=ItemStack.parseOptional(lookup,tag.getCompound("Item"));
-        if(item.isEmpty()||!(item.getItem() instanceof net.minecraft.world.item.BlockItem))return null;
+        if(item.isEmpty()||!(item.getItem() instanceof net.minecraft.world.item.BlockItem||item.getItem() instanceof StrawMatItem))return null;
         var state=NbtUtils.readBlockState(lookup.lookupOrThrow(net.minecraft.core.registries.Registries.BLOCK),tag.getCompound("State"));
         var entry=new CargoEntry(hold,tag.hasUUID("Id")?tag.getUUID("Id"):UUID.randomUUID(),item,state);entry.loading=true;
+        if(tag.getBoolean("Visual")&&tag.hasUUID("Sleeper"))entry.sleeper=tag.getUUID("Sleeper");
         var contents=NonNullList.withSize(entry.inventory.getContainerSize(),ItemStack.EMPTY);ContainerHelper.loadAllItems(tag,contents,lookup);
         for(int i=0;i<contents.size();i++)entry.inventory.setItem(i,contents.get(i));
         entry.brewTime=Math.max(0,tag.getInt("BrewTime"));entry.brewFuel=Math.max(0,tag.getInt("BrewFuel"));entry.page=Math.max(0,tag.getInt("Page"));

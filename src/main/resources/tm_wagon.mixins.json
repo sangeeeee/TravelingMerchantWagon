@@ -7,11 +7,14 @@
     "WagonPickingMixin",
     "WagonQueryMixin",
     "WagonStandingPlayerMixin",
+    "WagonSleepLivingMixin",
+    "WagonSleepServerPlayerMixin",
     "HorseTravelMixin",
     "HorseAnimationMixin",
     "HorseLeashMixin"
   ],
   "client": [
+    "WagonSleepRendererMixin",
     "WagonStandingLocalPlayerMixin"
   ],
   "injectors": {

@@ -115,7 +115,14 @@ public class StageOneClientSmoke {
                     else drawWagon(graphics,wagons.getFirst(),width*3/4,190,42,1);
                     graphics.drawCenteredString(font,i==0?"Block cargo":"Entity cargo",width/4+i*width/2,290,0xff463729);
                 }
-                graphics.drawCenteredString(font,frames>=150?"Cargo workstations / book and decorated pot renderers":frames<125?"10 scaled cargo slots / closed containers":"Open chest + shulker / lowered tailgate",width/2,height-40,0xff463729);
+                graphics.drawCenteredString(font,frames>=180?"Straw mat / three cargo slots / adjacent cargo":frames>=150?"Cargo workstations / book and decorated pot renderers":frames<125?"10 scaled cargo slots / closed containers":"Open chest + shulker / lowered tailgate",width/2,height-40,0xff463729);
+                if(frames>=180) {
+                    int x=width/2-24,y=40;graphics.fill(x,y,x+48,y+48,0xffd0c5af);
+                    graphics.pose().pushPose();graphics.pose().translate(x,y,0);graphics.pose().scale(3,3,3);
+                    graphics.renderItem(new ItemStack(WagonContent.STRAW_MAT.get()),0,0);graphics.pose().popPose();
+                    graphics.renderItem(new ItemStack(WagonContent.STRAW_MAT.get()),width/2+30,y+16);
+                    graphics.drawCenteredString(font,Component.translatable("item.tm_wagon.wagon_straw_mat"),width/2,y+54,0xff463729);
+                }
             }
             if(frames==64)verifyCachedFramePose(graphics);
             if(frames==80)verifyAudio();
@@ -135,7 +142,24 @@ public class StageOneClientSmoke {
             if(frames==145)save("wagon-cargo-open.png");
             if(frames==150)loadWorkBlockPreview();
             if(frames==175)save("wagon-work-blocks.png");
-            if(frames==180) {LogUtils.getLogger().info("TM_WAGON_CLIENT_SMOKE_PASS: previous render checks plus work block books, ender chest, pot, brewing and occupied shelf in both forms");Minecraft.getInstance().stop();}
+            if(frames==180)loadStrawMatPreview();
+            if(frames==195)save("wagon-straw-mat.png");
+            if(frames==205) {LogUtils.getLogger().info("TM_WAGON_CLIENT_SMOKE_PASS: work blocks and straw mat in both forms, item model and three-slot span");Minecraft.getInstance().stop();}
+        }
+        private void loadStrawMatPreview() {
+            var registry=net.minecraft.core.RegistryAccess.fromRegistryOfRegistries(net.minecraft.core.registries.BuiltInRegistries.REGISTRY);
+            var tag=new CompoundTag();var entries=new net.minecraft.nbt.ListTag();
+            for(int slot:new int[]{8,5,9,2}) {
+                var value=new CompoundTag();value.putInt("Slot",slot);value.putUUID("Id",java.util.UUID.randomUUID());
+                var block=slot==8?net.minecraft.world.level.block.Blocks.HAY_BLOCK:slot==5?net.minecraft.world.level.block.Blocks.CHEST:net.minecraft.world.level.block.Blocks.OAK_PLANKS;
+                var item=slot==8?new ItemStack(WagonContent.STRAW_MAT.get()):new ItemStack(block);
+                value.put("Item",item.save(registry));value.put("State",net.minecraft.nbt.NbtUtils.writeBlockState(block.defaultBlockState()));value.putBoolean("Visual",true);entries.add(value);
+            }
+            tag.put("Entries",entries);assemblies.getFirst().cargo().load(tag,registry);wagons.getFirst().cargo().load(tag,registry);wagons.getFirst().cargoGeometryChanged();
+            if(wagons.getFirst().cargo().entry(4)!=wagons.getFirst().cargo().entry(8)||wagons.getFirst().cargo().boxes().size()!=4)throw new IllegalStateException("Mat preview span or collision count is wrong");
+            var model=Minecraft.getInstance().getItemRenderer().getModel(new ItemStack(WagonContent.STRAW_MAT.get()),null,null,0);
+            if(model==Minecraft.getInstance().getModelManager().getMissingModel())throw new IllegalStateException("Missing straw mat model");
+            LogUtils.getLogger().info("TM_WAGON_STRAW_MAT_RENDER_PASS: model baked, one anchor reserves three slots, both host forms render");
         }
         private void loadCargoPreview(boolean open) {
             var registry=net.minecraft.core.RegistryAccess.fromRegistryOfRegistries(net.minecraft.core.registries.BuiltInRegistries.REGISTRY);

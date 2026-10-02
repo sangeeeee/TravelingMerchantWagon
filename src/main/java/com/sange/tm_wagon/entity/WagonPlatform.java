@@ -43,7 +43,7 @@ public final class WagonPlatform {
     private boolean eligibleWithoutGroundFlag(Entity entity) {
         return entity!=wagon&&!(entity instanceof WagonEntity)&&!entity.isRemoved()&&!entity.isSpectator()
             &&!entity.noPhysics&&!entity.isPassenger()&&entity.getDeltaMovement().y<=.1
-            &&(!(entity instanceof Player player)||!player.getAbilities().flying)
+            &&(!(entity instanceof Player player)||!player.getAbilities().flying&&!player.isSleeping())
             &&(!wagon.level().isClientSide||entity instanceof Player player&&player.isLocalPlayer());
     }
     /** The feet must actually touch a top face; proximity to the large overall bounds is insufficient. */

@@ -25,6 +25,7 @@ public final class WagonContent {
     public static final DeferredHolder<net.minecraft.sounds.SoundEvent,net.minecraft.sounds.SoundEvent> ROLL=SOUNDS.register("wagon_roll",()->net.minecraft.sounds.SoundEvent.createVariableRangeEvent(net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(TravelingMerchantWagon.MODID,"wagon_roll")));
     public static final DeferredRegister.Blocks BLOCKS = DeferredRegister.createBlocks(TravelingMerchantWagon.MODID);
     public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(TravelingMerchantWagon.MODID);
+    public static final DeferredItem<com.sange.tm_wagon.cargo.StrawMatItem> STRAW_MAT = ITEMS.register("wagon_straw_mat",()->new com.sange.tm_wagon.cargo.StrawMatItem(new Item.Properties().stacksTo(16)));
     public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = DeferredRegister.create(Registries.BLOCK_ENTITY_TYPE, TravelingMerchantWagon.MODID);
     public static final DeferredRegister<CreativeModeTab> TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, TravelingMerchantWagon.MODID);
     public static final DeferredRegister<net.minecraft.world.entity.EntityType<?>> ENTITIES = DeferredRegister.create(Registries.ENTITY_TYPE,TravelingMerchantWagon.MODID);
@@ -57,6 +58,7 @@ public final class WagonContent {
         .displayItems((parameters, output) -> {
             output.accept(FRAME_ITEM.get());
             for (WagonPart part : WagonPart.values()) output.accept(PART_ITEMS.get(part).get());
+            output.accept(STRAW_MAT.get());
         }).build());
     private static BlockBehaviour.Properties properties() {
         return BlockBehaviour.Properties.of().mapColor(MapColor.WOOD).sound(SoundType.WOOD)

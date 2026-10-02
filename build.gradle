@@ -86,6 +86,12 @@ neoForge {
             systemProperty 'tm_wagon.dismountSmokeTest', 'true'
             programArguments.addAll '--width', '1000', '--height', '700'
         }
+        strawMatSleepSmokeTest {
+            client()
+            gameDirectory = project.file('build/straw-mat-client')
+            systemProperty 'tm_wagon.strawMatSleepSmokeTest', 'true'
+            programArguments.addAll '--width', '1000', '--height', '700'
+        }
 
         server {
             server()

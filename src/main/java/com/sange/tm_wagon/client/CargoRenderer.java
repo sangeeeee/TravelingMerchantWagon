@@ -21,7 +21,12 @@ public final class CargoRenderer {
     public static void render(CargoHold hold,float tick,PoseStack poses,MultiBufferSource buffers,int light,int overlay) {
         var mc=Minecraft.getInstance();
         for(int slot=0;slot<CargoHold.CAPACITY;slot++) {
-            var entry=hold.entry(slot);if(entry==null)continue;var p=CargoHold.centre(slot);
+            var entry=hold.entry(slot);if(entry==null||hold.anchorSlot(slot)!=slot)continue;var p=CargoHold.centre(slot);
+            if(entry.kind==CargoEntry.Kind.STRAW_MAT) {
+                poses.pushPose();poses.translate(p.x,CargoHold.FLOOR+1,p.z-.70);poses.scale(2,2,2);
+                mc.getItemRenderer().renderStatic(entry.item,ItemDisplayContext.NONE,light,overlay,poses,buffers,entry.holdOwnerLevel(),0);
+                poses.popPose();continue;
+            }
             poses.pushPose();poses.translate(p.x-CargoHold.SCALE/2,p.y,p.z-CargoHold.SCALE/2);
             poses.scale((float)CargoHold.SCALE,(float)CargoHold.SCALE,(float)CargoHold.SCALE);
             try {

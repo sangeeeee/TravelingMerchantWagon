@@ -43,7 +43,19 @@ public final class CargoHold {
     private boolean loading;
     public CargoHold(CargoOwner owner) { this.owner=owner; }
     public CargoOwner owner() { return owner; }
-    public CargoEntry entry(int slot) { return slot>=0&&slot<CAPACITY?entries[slot]:null; }
+    public CargoEntry entry(int slot) { int anchor=anchorSlot(slot);return anchor<0?null:entries[anchor]; }
+    /** Reserved cells reference one authoritative entry; save, drops and ticking visit anchors only. */
+    public int anchorSlot(int slot) {
+        if(slot<0||slot>=CAPACITY)return -1;
+        if(entries[slot]!=null)return slot;
+        for(int anchor=slot+2;anchor<CAPACITY&&anchor<=slot+4;anchor+=2)
+            if(entries[anchor]!=null&&entries[anchor].kind==CargoEntry.Kind.STRAW_MAT)return anchor;
+        return -1;
+    }
+    public static AABB matBox(int anchor) {
+        Vec3 p=centre(anchor);return new AABB(p.x-.43,FLOOR+.002,p.z-1.4-.34,p.x+.43,FLOOR+.125,p.z+.34);
+    }
+    public AABB entryBox(int anchor) { return entries[anchor].kind==CargoEntry.Kind.STRAW_MAT?matBox(anchor):slotBox(anchor); }
     public static Vec3 centre(int slot) { return new Vec3(slot%2==0?-.5:.5,FLOOR,-.96+slot/2*.70); }
     public static AABB slotBox(int slot) {
         Vec3 p=centre(slot);return new AABB(p.x-SCALE/2,p.y,p.z-SCALE/2,p.x+SCALE/2,p.y+SCALE,p.z+SCALE/2);
@@ -56,7 +68,7 @@ public final class CargoHold {
             &&player.level()==owner.cargoLevel()&&player.distanceToSqr(position(entry))<=64;
     }
     public void changed(boolean visible) { if(!loading&&owner.cargoLevel()!=null&&!owner.cargoLevel().isClientSide)owner.cargoChanged(visible); }
-    public List<AABB> boxes() { var result=new ArrayList<AABB>();for(int i=0;i<CAPACITY;i++)if(entries[i]!=null)result.add(slotBox(i));return result; }
+    public List<AABB> boxes() { var result=new ArrayList<AABB>();for(int i=0;i<CAPACITY;i++)if(entries[i]!=null)result.add(entryBox(i));return result; }
     public AABB tailBox() {
         AABB box=WagonGeometry.partBoxes(WagonPart.CARGO_BODY).get(4);
         return gateCollision?new AABB(box.minX,3.0625-box.maxY,4.70-box.maxZ,box.maxX,3.0625-box.minY,4.70-box.minZ):box;
@@ -89,9 +101,10 @@ public final class CargoHold {
         for(var entry:entries)if(entry!=null)entry.tick();
     }
     private int selected(Vec3 point) {
-        for(int i=0;i<CAPACITY;i++)if(entries[i]!=null&&slotBox(i).inflate(.015).contains(point))return i;
+        for(int i=0;i<CAPACITY;i++)if(entries[i]!=null&&entryBox(i).inflate(.015).contains(point))return i;
         if(point.y<FLOOR-.14||point.y>FLOOR+.025||Math.abs(point.x)>1||point.z< -1.34375||point.z>2.21875)return -1;
-        int row=Math.clamp((int)Math.round((point.z+.96)/.70),0,4);return row*2+(point.x<0?0:1);
+        int row=Math.clamp((int)Math.round((point.z+.96)/.70),0,4);int selected=row*2+(point.x<0?0:1);
+        int anchor=anchorSlot(selected);return anchor<0?selected:anchor;
     }
     /** Called with the first actual cart-surface hit, so a wall cannot be clicked through. */
     public InteractionResult interact(Player player,InteractionHand hand,Vec3 local) {
@@ -109,11 +122,12 @@ public final class CargoHold {
             return InteractionResult.CONSUME;
         }
         if(entries[slot]!=null) {
-            if(entries[slot].kind!=CargoEntry.Kind.ORDINARY)CargoWorkBlocks.interact(this,entries[slot],player,hand,local);
+            if(entries[slot].kind==CargoEntry.Kind.STRAW_MAT)message(player,StrawMatSleep.sleep(this,entries[slot],player));
+            else if(entries[slot].kind!=CargoEntry.Kind.ORDINARY)CargoWorkBlocks.interact(this,entries[slot],player,hand,local);
             else if(stack.getItem() instanceof BlockItem)message(player,"message.tm_wagon.cargo_occupied");
             return InteractionResult.CONSUME;
         }
-        if(!(stack.getItem() instanceof BlockItem))return InteractionResult.CONSUME;
+        if(!(stack.getItem() instanceof BlockItem||stack.getItem() instanceof StrawMatItem))return InteractionResult.CONSUME;
         message(player,place(slot,stack,player));return InteractionResult.CONSUME;
     }
     private static void message(Player player,String error) { if(error!=null)player.displayClientMessage(Component.translatable(error),true); }
@@ -121,6 +135,7 @@ public final class CargoHold {
         return placementRestriction(item)==null;
     }
     private static String placementRestriction(ItemStack item) {
+        if(!item.isEmpty()&&item.getItem() instanceof StrawMatItem)return null;
         if(item.isEmpty()||!(item.getItem() instanceof BlockItem blockItem)||item.is(DISALLOWED))return "message.tm_wagon.cargo_unsupported";
         Block block=blockItem.getBlock();
         if(block instanceof BedBlock||block instanceof DoorBlock||block instanceof DoublePlantBlock)return "message.tm_wagon.cargo_unsupported";
@@ -129,15 +144,20 @@ public final class CargoHold {
     public String place(int slot,ItemStack stack,Player player) {
         if(!owner.cargoLive()||owner.cargoBusy()||slot<0||slot>=CAPACITY)return "message.tm_wagon.assembly_busy";
         String restriction=placementRestriction(stack);if(restriction!=null)return restriction;
-        if(entries[slot]!=null)return "message.tm_wagon.cargo_occupied";
+        boolean mat=stack.getItem() instanceof StrawMatItem;
+        if(mat) {
+            if(slot<4||entry(slot)!=null||entry(slot-2)!=null||entry(slot-4)!=null)return "message.tm_wagon.mat_space";
+        } else if(entry(slot)!=null)return "message.tm_wagon.cargo_occupied";
         Vec3 point=owner.cargoPose().point(centre(slot));
         if(player==null||player.level()!=owner.cargoLevel()||player.distanceToSqr(point)>64
             ||!owner.cargoLevel().mayInteract(player,BlockPos.containing(point)))return "message.tm_wagon.protected";
-        var state=CargoPlacement.state(this,slot,stack,player);
+        var state=mat?Blocks.HAY_BLOCK.defaultBlockState():CargoPlacement.state(this,slot,stack,player);
         var properties=stack.get(DataComponents.BLOCK_STATE);if(properties!=null)state=properties.apply(state);
         if(state.hasProperty(ChestBlock.TYPE))state=state.setValue(ChestBlock.TYPE,net.minecraft.world.level.block.state.properties.ChestType.SINGLE);
         if(state.getBlock() instanceof ShulkerBoxBlock)state=state.setValue(ShulkerBoxBlock.FACING,net.minecraft.core.Direction.UP);
-        AABB world=worldBox(slotBox(slot),owner.cargoPose());
+        if(mat)for(int cell=slot;cell>=slot-4;cell-=2)
+            if(!owner.cargoLevel().mayInteract(player,BlockPos.containing(owner.cargoPose().point(centre(cell)))))return "message.tm_wagon.protected";
+        AABB world=worldBox(mat?matBox(slot):slotBox(slot),owner.cargoPose());
         if(!freeVolume(world))return "message.tm_wagon.cargo_blocked";
         CargoEntry entry=CargoEntry.fromItem(this,stack,state);entries[slot]=entry;
         String error=owner.cargoGeometryChanged();
@@ -166,6 +186,7 @@ public final class CargoHold {
     }
     public String take(int slot,Player player) {
         var entry=entry(slot);if(entry==null||!valid(entry,player))return "message.tm_wagon.assembly_busy";
+        slot=slot(entry);StrawMatSleep.wake(this,entry);
         CargoMenus.close(this,entry);Vec3 position=position(entry);BlockState state=entry.state;entries[slot]=null;
         String error=owner.cargoGeometryChanged();if(error!=null) { entries[slot]=entry;return error; }
         ItemStack returned=entry.returnedItem();
@@ -197,6 +218,7 @@ public final class CargoHold {
         entity.setDefaultPickUpDelay();owner.cargoLevel().addFreshEntity(entity);
     }
     public void destroy(boolean drops) {
+        StrawMatSleep.wake(this,null);
         closeMenus();
         for(int i=0;i<CAPACITY;i++) {
             var entry=entries[i];if(entry==null)continue;Vec3 pos=position(entry);entries[i]=null;
@@ -204,7 +226,7 @@ public final class CargoHold {
             else entry.inventory.clearContent();
         }
     }
-    public void closeMenus() { CargoMenus.close(this,null); }
+    public void closeMenus() { StrawMatSleep.wake(this,null);CargoMenus.close(this,null); }
     /** Called only after target creation/layout has committed, on the server thread. */
     public void transferTo(CargoHold target) {
         if(target==this||!target.empty())throw new IllegalStateException("Cargo target already owns entries");
@@ -219,9 +241,13 @@ public final class CargoHold {
         tag.put("Entries",list);tag.putBoolean("GateTarget",gateTarget);tag.putBoolean("GateCollision",gateCollision);tag.putLong("GateStart",gateStart);tag.putFloat("GateFrom",gateFrom);return tag;
     }
     public void load(CompoundTag tag,HolderLookup.Provider lookup) {
+        if(owner.cargoLevel()!=null&&!owner.cargoLevel().isClientSide)StrawMatSleep.wake(this,null);
         loading=true;java.util.Arrays.fill(entries,null);
         for(var value:tag.getList("Entries",Tag.TAG_COMPOUND)) {
-            var entry=(CompoundTag)value;int slot=entry.getInt("Slot");if(slot>=0&&slot<CAPACITY&&entries[slot]==null)entries[slot]=CargoEntry.load(this,entry,lookup);
+            var entry=(CompoundTag)value;int slot=entry.getInt("Slot");if(slot<0||slot>=CAPACITY||entry(slot)!=null)continue;
+            var loaded=CargoEntry.load(this,entry,lookup);if(loaded==null)continue;
+            if(loaded.kind==CargoEntry.Kind.STRAW_MAT&&(slot<4||entry(slot-2)!=null||entry(slot-4)!=null))continue;
+            entries[slot]=loaded;
         }
         gateTarget=tag.getBoolean("GateTarget");gateCollision=tag.getBoolean("GateCollision");gateStart=tag.contains("GateStart")?tag.getLong("GateStart"):Long.MIN_VALUE;gateFrom=Math.clamp(tag.getFloat("GateFrom"),0,1);loading=false;
     }
