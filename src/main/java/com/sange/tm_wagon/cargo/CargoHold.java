@@ -1,5 +1,6 @@
 package com.sange.tm_wagon.cargo;
 
+import com.sange.tm_wagon.CargoConfig;
 import com.sange.tm_wagon.assembly.WagonGeometry;
 import com.sange.tm_wagon.assembly.WagonPart;
 import com.sange.tm_wagon.entity.WagonEntity;
@@ -16,6 +17,7 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
@@ -24,6 +26,7 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.*;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
@@ -115,12 +118,17 @@ public final class CargoHold {
     }
     private static void message(Player player,String error) { if(error!=null)player.displayClientMessage(Component.translatable(error),true); }
     public static boolean allowed(ItemStack item) {
-        if(!(item.getItem() instanceof BlockItem blockItem)||item.is(DISALLOWED))return false;
-        Block block=blockItem.getBlock();return !(block instanceof BedBlock||block instanceof DoorBlock||block instanceof DoublePlantBlock);
+        return placementRestriction(item)==null;
+    }
+    private static String placementRestriction(ItemStack item) {
+        if(item.isEmpty()||!(item.getItem() instanceof BlockItem blockItem)||item.is(DISALLOWED))return "message.tm_wagon.cargo_unsupported";
+        Block block=blockItem.getBlock();
+        if(block instanceof BedBlock||block instanceof DoorBlock||block instanceof DoublePlantBlock)return "message.tm_wagon.cargo_unsupported";
+        return CargoConfig.allows(block)?null:"message.tm_wagon.cargo_filtered";
     }
     public String place(int slot,ItemStack stack,Player player) {
         if(!owner.cargoLive()||owner.cargoBusy()||slot<0||slot>=CAPACITY)return "message.tm_wagon.assembly_busy";
-        if(!allowed(stack))return "message.tm_wagon.cargo_unsupported";
+        String restriction=placementRestriction(stack);if(restriction!=null)return restriction;
         if(entries[slot]!=null)return "message.tm_wagon.cargo_occupied";
         Vec3 point=owner.cargoPose().point(centre(slot));
         if(player==null||player.level()!=owner.cargoLevel()||player.distanceToSqr(point)>64
@@ -134,7 +142,7 @@ public final class CargoHold {
         CargoEntry entry=CargoEntry.fromItem(this,stack,state);entries[slot]=entry;
         String error=owner.cargoGeometryChanged();
         if(error!=null) { entries[slot]=null;return error; }
-        if(!player.getAbilities().instabuild)stack.shrink(1);changed(true);return null;
+        if(!player.getAbilities().instabuild)stack.shrink(1);changed(true);cargoSound(state,point,player,true);return null;
     }
     /** Vanilla anvil wear consumes the workstation, not a block at its current world position. */
     void consume(CargoEntry entry) {
@@ -158,13 +166,25 @@ public final class CargoHold {
     }
     public String take(int slot,Player player) {
         var entry=entry(slot);if(entry==null||!valid(entry,player))return "message.tm_wagon.assembly_busy";
-        CargoMenus.close(this,entry);Vec3 position=position(entry);entries[slot]=null;
+        CargoMenus.close(this,entry);Vec3 position=position(entry);BlockState state=entry.state;entries[slot]=null;
         String error=owner.cargoGeometryChanged();if(error!=null) { entries[slot]=entry;return error; }
         ItemStack returned=entry.returnedItem();
         // Clear ownership before any items enter a player inventory or spawn in the world.
         dropContents(entry,position,player);
         player.getInventory().placeItemBackInInventory(returned);
-        changed(true);return null;
+        changed(true);cargoSound(state,position,player,false);return null;
+    }
+    /** Broadcast once after committing the transaction, including to the interacting player. */
+    private void cargoSound(BlockState state,Vec3 position,Player player,boolean placing) {
+        var level=owner.cargoLevel();if(level.isClientSide)return;
+        SoundType type;
+        try { type=state.getSoundType(level,BlockPos.containing(position),player); }
+        catch(RuntimeException unsupportedContext) { type=SoundType.WOOD; }
+        if(type==null)type=SoundType.WOOD;
+        var sound=placing?type.getPlaceSound():type.getBreakSound();
+        if(sound==null) { type=SoundType.WOOD;sound=placing?type.getPlaceSound():type.getBreakSound(); }
+        level.playSound(null,position.x,position.y,position.z,sound,SoundSource.BLOCKS,
+            placing?(type.getVolume()+1)/2:type.getVolume(),placing?type.getPitch()*.8F:type.getPitch());
     }
     private void dropContents(CargoEntry entry,Vec3 position,Player player) {
         if(entry.kind!=CargoEntry.Kind.SHULKER)for(int i=0;i<entry.inventory.getContainerSize();i++) {

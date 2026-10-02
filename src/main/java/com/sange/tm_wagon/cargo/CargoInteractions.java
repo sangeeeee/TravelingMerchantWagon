@@ -11,8 +11,6 @@ import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 @EventBusSubscriber(modid=TravelingMerchantWagon.MODID)
 public final class CargoInteractions {
     @SubscribeEvent public static void block(PlayerInteractEvent.RightClickBlock event) {
-        var item=event.getItemStack().getItem();
-        if(item instanceof com.sange.tm_wagon.assembly.WagonPartItem||item instanceof com.sange.tm_wagon.assembly.AssemblyFrameItem)return;
         var frame=AssemblyFrameBlockEntity.find(event.getLevel(),event.getPos());
         if(frame==null||event.getPos().equals(frame.getBlockPos()))return;
         var result=frame.cargo().interact(event.getEntity(),event.getHand(),frame.cargoPose().local(event.getHitVec().getLocation()));

@@ -1,0 +1,13 @@
+# Cargo placement rules. Existing cargo can always be removed or transferred.
+[cargo]
+    # BLACKLIST rejects matching blocks; WHITELIST only accepts matching blocks.
+    # Only the selected list is used. Multi-block structures and the disallowed cargo item tag remain forbidden.
+    # Allowed Values: BLACKLIST, WHITELIST
+    listMode = "BLACKLIST"
+    # Blocks rejected in BLACKLIST mode.
+    # Entries accept block IDs (minecraft:stone), namespace wildcards (tm_wagon:*), or block tags (#minecraft:logs).
+    # The default excludes all blocks from this mod, including future wagon parts.
+    blacklist = ["tm_wagon:*"]
+    # Blocks accepted in WHITELIST mode. An empty list rejects all new cargo.
+    # Uses the same block ID, namespace wildcard, and block tag syntax as the blacklist.
+    whitelist = []

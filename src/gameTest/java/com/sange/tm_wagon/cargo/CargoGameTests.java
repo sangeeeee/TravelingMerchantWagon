@@ -1,5 +1,6 @@
 package com.sange.tm_wagon.cargo;
 
+import com.sange.tm_wagon.CargoConfig;
 import com.sange.tm_wagon.assembly.*;
 import com.sange.tm_wagon.entity.WagonEntity;
 import java.util.List;
@@ -35,6 +36,86 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 @GameTestHolder("tm_wagon")
 @PrefixGameTestTemplate(false)
 public class CargoGameTests {
+    @GameTest(template="assembly_test",timeoutTicks=30)
+    public static void cargo_filter_modes_ids_namespaces_tags_and_validation(GameTestHelper h) {
+        var black=CargoConfig.Policy.from(CargoConfig.ListMode.BLACKLIST,List.of("tm_wagon:*","minecraft:stone","#minecraft:logs"),List.of("minecraft:stone"));
+        h.assertTrue(!black.allows(Blocks.STONE)&&!black.allows(Blocks.OAK_LOG)&&black.allows(Blocks.OAK_PLANKS),"Blacklist ID/tag match or inactive whitelist incorrect");
+        for(var registered:WagonContent.BLOCKS.getEntries())h.assertTrue(!black.allows(registered.get()),"Own block escaped default namespace rule");
+        var white=CargoConfig.Policy.from(CargoConfig.ListMode.WHITELIST,List.of("minecraft:*"),List.of("minecraft:stone","#minecraft:logs","tm_wagon:*"));
+        h.assertTrue(white.allows(Blocks.STONE)&&white.allows(Blocks.OAK_LOG)&&white.allows(WagonContent.FRAME.get())&&!white.allows(Blocks.OAK_PLANKS),"Whitelist or inactive blacklist incorrect");
+        h.assertTrue(CargoConfig.Policy.from(CargoConfig.ListMode.BLACKLIST,List.of(),List.of()).allows(Blocks.STONE),"Empty blacklist rejected cargo");
+        h.assertTrue(!CargoConfig.Policy.from(CargoConfig.ListMode.WHITELIST,List.of(),List.of()).allows(Blocks.STONE),"Empty whitelist accepted cargo");
+        for(String value:List.of("minecraft:stone"," tm_wagon:* ","#minecraft:logs"))h.assertTrue(CargoConfig.validEntry(value),"Valid selector rejected");
+        for(String value:List.of("","stone","minecraft:","tm_wagon:wheel*","#tm_wagon:*","Bad:stone",":*"))h.assertTrue(!CargoConfig.validEntry(value),"Invalid selector accepted: "+value);
+        h.succeed();
+    }
+    @GameTest(template="assembly_test",timeoutTicks=30)
+    public static void default_filter_rejects_wagon_blocks_without_consumption(GameTestHelper h) {
+        var w=wagon(h);var hold=w.cargo();var p=player(h,hold);
+        for(var registered:WagonContent.BLOCKS.getEntries())h.assertTrue(!CargoConfig.allows(registered.get()),"Loaded default config permits own block");
+        var items=new java.util.ArrayList<net.minecraft.world.item.Item>();items.add(WagonContent.FRAME_ITEM.get());
+        for(var registered:WagonContent.PART_ITEMS.values())items.add(registered.get());
+        for(var item:items) {
+            var stack=new ItemStack(item,2);
+            h.assertTrue(!CargoHold.allowed(stack)&&"message.tm_wagon.cargo_filtered".equals(hold.place(0,stack,p)),"Own item accepted as entity cargo");
+            h.assertTrue(stack.getCount()==2&&hold.empty(),"Rejected placement changed ownership");
+        }
+        w.discard();var f=frame(h);var blockPlayer=player(h,f.cargo());
+        for(var item:items) {
+            blockPlayer.setItemInHand(InteractionHand.MAIN_HAND,new ItemStack(item,2));
+            Vec3 hit=f.cargoPose().point(CargoHold.centre(0));BlockPos pos=BlockPos.containing(hit.add(0,-.01,0));
+            var event=new net.neoforged.neoforge.event.entity.player.PlayerInteractEvent.RightClickBlock(blockPlayer,InteractionHand.MAIN_HAND,pos,
+                new net.minecraft.world.phys.BlockHitResult(hit,Direction.UP,pos,false));
+            CargoInteractions.block(event);
+            h.assertTrue(event.isCanceled()&&event.getCancellationResult().consumesAction(),"Own item bypassed block-form cargo filter");
+            h.assertTrue(f.cargo().empty()&&blockPlayer.getMainHandItem().getCount()==2,"Own item accepted as block-form cargo");
+        }
+        var mount=WagonSlot.FRONT_LEFT.position(f.getBlockPos(),f.facing());
+        var mountEvent=new net.neoforged.neoforge.event.entity.player.PlayerInteractEvent.RightClickBlock(blockPlayer,InteractionHand.MAIN_HAND,mount,
+            new net.minecraft.world.phys.BlockHitResult(Vec3.atCenterOf(mount),Direction.WEST,mount,false));
+        CargoInteractions.block(mountEvent);
+        h.assertTrue(!mountEvent.isCanceled(),"Cargo filtering intercepted a normal wheel mount position");
+        h.succeed();
+    }
+    @GameTest(template="assembly_test",timeoutTicks=30)
+    public static void filtered_existing_cargo_survives_load_transfer_and_removal(GameTestHelper h) {
+        var w=wagon(h);var hold=w.cargo();var item=WagonContent.PART_ITEMS.get(WagonPart.SMALL_WHEEL).get();
+        var legacy=CargoEntry.fromItem(hold,new ItemStack(item),WagonContent.PART_BLOCKS.get(WagonPart.SMALL_WHEEL).get().defaultBlockState());
+        var tag=hold.save(h.getLevel().registryAccess(),false);var saved=legacy.save(h.getLevel().registryAccess(),false);saved.putInt("Slot",0);
+        var list=new net.minecraft.nbt.ListTag();list.add(saved);tag.put("Entries",list);hold.load(tag,h.getLevel().registryAccess());
+        h.assertTrue(hold.entry(0)!=null&&!CargoHold.allowed(new ItemStack(item)),"Blacklisted existing cargo was deleted on load");
+        var target=new CargoHold(w);hold.transferTo(target);
+        h.assertTrue(hold.empty()&&target.entry(0)!=null,"Blacklisted cargo was lost during transfer");
+        var p=player(h,target);
+        h.assertTrue(target.take(0,p)==null&&target.take(0,p)!=null&&carried(p,item)==1,"Existing blacklisted cargo could not be removed exactly once");
+        h.succeed();
+    }
+    @GameTest(template="assembly_test",timeoutTicks=30)
+    public static void cargo_sounds_match_block_and_only_committed_transactions(GameTestHelper h) {
+        var w=wagon(h);var hold=w.cargo();var p=player(h,hold);Vec3 point=hold.owner().cargoPose().point(CargoHold.centre(0));
+        var sounds=new java.util.ArrayList<net.minecraft.sounds.SoundEvent>();
+        java.util.function.Consumer<net.neoforged.neoforge.event.PlayLevelSoundEvent.AtPosition> listener=event->{
+            if(event.getLevel()==h.getLevel()&&event.getPosition().distanceToSqr(point)<.00001&&event.getSource()==net.minecraft.sounds.SoundSource.BLOCKS&&event.getSound()!=null)sounds.add(event.getSound().value());
+        };
+        net.neoforged.neoforge.common.NeoForge.EVENT_BUS.addListener(listener);
+        try {
+            for(var block:List.of(Blocks.STONE,Blocks.GREEN_WOOL,Blocks.GLASS,Blocks.CHEST)) {
+                var stack=new ItemStack(block,2);int before=sounds.size();
+                h.assertTrue(hold.place(0,stack,p)==null,"Sound test placement failed");
+                var state=hold.entry(0).state;var type=state.getSoundType(h.getLevel(),BlockPos.containing(point),p);
+                h.assertTrue(sounds.size()==before+1&&sounds.get(before)==type.getPlaceSound(),"Missing/duplicate/wrong placement sound");
+                h.assertTrue(hold.place(0,stack,p)!=null&&sounds.size()==before+1,"Failed placement played a sound");
+                h.assertTrue(hold.take(0,p)==null&&sounds.size()==before+2&&sounds.get(before+1)==type.getBreakSound(),"Missing/duplicate/wrong removal sound");
+                h.assertTrue(hold.take(0,p)!=null&&sounds.size()==before+2&&stack.getCount()==1,"Repeated removal played a sound or duplicated goods");
+            }
+            int before=sounds.size();
+            h.assertTrue(hold.place(0,new ItemStack(WagonContent.FRAME_ITEM.get()),p)!=null&&sounds.size()==before,"Filtered cargo played a sound");
+            w.discard();var blockHold=frame(h).cargo();var blockPlayer=player(h,blockHold);int slot=0;
+            h.assertTrue(blockHold.place(slot,new ItemStack(Blocks.OAK_PLANKS),blockPlayer)==null&&blockHold.take(slot,blockPlayer)==null,"Block-form sound test failed");
+            h.assertTrue(sounds.size()==before+2,"Block-form cargo did not broadcast both sounds exactly once");
+        } finally { net.neoforged.neoforge.common.NeoForge.EVENT_BUS.unregister(listener); }
+        h.succeed();
+    }
     private static WagonEntity wagon(GameTestHelper h) {
         var w=WagonContent.WAGON.get().create(h.getLevel());w.configure(WagonEntity.defaultParts(),Direction.NORTH);
         w.setPos(Vec3.atBottomCenterOf(h.absolutePos(new BlockPos(11,2,17))));h.getLevel().addFreshEntity(w);return w;

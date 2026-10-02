@@ -43,6 +43,7 @@
   "message.tm_wagon.hitch_blocked": "牵引位置需要有可站立的地面和足够空间。",
   "subtitles.tm_wagon.wagon_roll": "马车轮子吱嘎作响",
   "message.tm_wagon.cargo_unsupported": "此类方块无法作为货物放置（不支持多格结构）",
+  "message.tm_wagon.cargo_filtered": "货物黑白名单不允许放置此方块",
   "message.tm_wagon.cargo_occupied": "此货位已有货物",
   "message.tm_wagon.cargo_blocked": "此货位被方块或实体阻挡"
 }
