@@ -63,5 +63,5 @@
   "message.tm_wagon.cover_installed": "This compartment already has a cargo cover.",
   "message.tm_wagon.cover_side": "Use a cargo wall to install or remove the cover, or use the fabric or roll to adjust it.",
   "message.tm_wagon.cover_blocked": "An entity or block obstructs the new fabric. The cover cannot change.",
-  "message.tm_wagon.cargo_covered": "This cargo slot is covered. Roll back the fabric first."
+  "message.tm_wagon.cargo_covered": "Fabric or the compartment blocks access. Roll back the cover or open the tailgate."
 }

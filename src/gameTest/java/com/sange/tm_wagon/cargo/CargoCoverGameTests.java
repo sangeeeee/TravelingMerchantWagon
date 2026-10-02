@@ -117,8 +117,8 @@ public class CargoCoverGameTests {
         });
     }
     @GameTest(template="assembly_test",timeoutTicks=40)
-    public static void covered_cargo_is_unusable_and_open_rows_allow_place_take_and_menus(GameTestHelper h) {
-        var f=frame(h,false);var hold=f.cargo();var p=h.makeMockServerPlayerInLevel();p.getAbilities().instabuild=false;p.setPos(f.cargoPose().point(new Vec3(-3,0,0)));
+    public static void cloth_obstructed_cargo_is_unusable_and_open_rows_allow_place_take_and_menus(GameTestHelper h) {
+        var f=frame(h,false);var hold=f.cargo();var p=h.makeMockServerPlayerInLevel();p.getAbilities().instabuild=false;p.setPos(f.cargoPose().point(new Vec3(-.5,2.9,-.96)));
         h.assertTrue(hold.place(0,new ItemStack(Items.CHEST),p)==null,"Chest placement failed");var chest=hold.entry(0);chest.inventory.setItem(0,new ItemStack(Items.DIAMOND,23));CargoMenus.open(hold,chest,p);
         h.assertTrue(!(p.containerMenu instanceof InventoryMenu)&&chest.opened,"Chest did not open");install(h,hold,p);
         h.assertTrue(p.containerMenu==p.inventoryMenu&&!hold.valid(chest,p)&&!chest.opened,"Cover left container usable");
@@ -128,6 +128,73 @@ public class CargoCoverGameTests {
         step(h,hold,p,1);h.assertTrue(hold.valid(chest,p)&&hold.place(1,stack,p)==null&&stack.getCount()==1,"First exposed row is not usable");
         CargoMenus.open(hold,chest,p);h.assertTrue(p.containerMenu!=p.inventoryMenu,"Exposed chest unusable");
         step(h,hold,p,-1);h.assertTrue(p.containerMenu==p.inventoryMenu&&chest.inventory.getItem(0).getCount()==23,"Spreading lost contents or left menu open");h.succeed();
+    }
+    @GameTest(template="assembly_test",timeoutTicks=85)
+    public static void standard_covered_cargo_is_usable_through_open_tailgate(GameTestHelper h) { tailgateAccess(h,false); }
+    @GameTest(template="assembly_test",timeoutTicks=85)
+    public static void extended_covered_cargo_is_usable_through_open_tailgate(GameTestHelper h) { tailgateAccess(h,true); }
+    private static void tailgateAccess(GameTestHelper h,boolean extended) {
+        var f=frame(h,extended);var hold=f.cargo();int slot=hold.capacity()-2;
+        var p=h.makeMockServerPlayerInLevel();p.setNoGravity(true);p.getAbilities().instabuild=false;
+        p.setPos(f.cargoPose().point(new Vec3(-.5,2.9,CargoHold.centre(slot).z)));
+        h.assertTrue(hold.place(slot,new ItemStack(Items.CHEST),p)==null,"Rear chest placement failed");
+        var chest=hold.entry(slot);chest.inventory.setItem(0,new ItemStack(Items.DIAMOND,27));install(h,hold,p);
+        p.setPos(f.cargoPose().point(new Vec3(-.5,.25,hold.cover().back(f.cargoBody())+.8)));
+        h.assertTrue(!hold.valid(chest,p)&&hold.take(slot,p)!=null,"Closed tailgate allowed access through wood");
+        h.assertTrue(hold.toggleGate()==null,"Tailgate open failed");
+        h.runAtTickTime(22,()->{
+            h.assertTrue(hold.cover().covered(slot)&&hold.cover().openRows()==0&&hold.valid(chest,p),"Open tailgate still blanket-blocks covered cargo");
+            p.setPos(f.cargoPose().point(new Vec3(-.5,1,hold.cover().back(f.cargoBody())+.8)));
+            h.assertTrue(hold.valid(chest,p),"Visible lower cargo face was rejected because its upper edge is covered");
+            p.setItemInHand(InteractionHand.MAIN_HAND,ItemStack.EMPTY);
+            nativeClick(h,f,p,CargoHold.centre(slot).add(0,.3,0));
+            h.assertTrue(p.containerMenu!=p.inventoryMenu&&chest.opened,"Real rear click did not open covered chest");
+            step(h,hold,p,1);step(h,hold,p,-1);
+            h.assertTrue(p.containerMenu!=p.inventoryMenu&&hold.valid(chest,p),"Spreading closed unobstructed rear menu");
+            h.assertTrue(hold.toggleGate()==null,"Tailgate close failed");
+        });
+        h.runAtTickTime(44,()->{
+            h.assertTrue(!hold.gateOpen()&&!hold.valid(chest,p)&&p.containerMenu==p.inventoryMenu,"Closed tailgate left covered cargo menu usable");
+            h.assertTrue(chest.inventory.getItem(0).getCount()==27,"Obstruction lost chest contents");
+            h.assertTrue(hold.toggleGate()==null,"Tailgate reopen failed");
+        });
+        h.runAtTickTime(66,()->{
+            p.setItemInHand(InteractionHand.MAIN_HAND,new ItemStack(Items.STONE,2));
+            nativeClick(h,f,p,CargoHold.centre(slot+1));
+            h.assertTrue(hold.entry(slot+1)!=null&&p.getMainHandItem().getCount()==1&&hold.cover().covered(slot+1),"Covered empty floor could not accept cargo from the rear");
+            p.setShiftKeyDown(true);nativeClick(h,f,p,CargoHold.centre(slot).add(0,.3,0));
+            h.assertTrue(hold.entry(slot)==null&&hold.take(slot,p)!=null,"Rear unload retained entry or allowed duplicate removal: installed="+hold.cover().installed()+", gate="+hold.gateOpen()+", entry="+(hold.entry(slot)!=null)+", valid="+(hold.entry(slot)!=null&&hold.valid(hold.entry(slot),p)));
+            int diamonds=h.getLevel().getEntitiesOfClass(ItemEntity.class,new AABB(f.getBlockPos()).inflate(6),e->e.getItem().is(Items.DIAMOND)).stream().mapToInt(e->e.getItem().getCount()).sum();
+            h.assertTrue(diamonds==27,"Rear unload duplicated or lost container contents");h.succeed();
+        });
+    }
+    private static void nativeClick(GameTestHelper h,AssemblyFrameBlockEntity f,Player p,Vec3 target) {
+        Vec3 start=p.getEyePosition(),end=f.cargoPose().point(target);
+        var hit=h.getLevel().clip(new net.minecraft.world.level.ClipContext(start,end.add(end.subtract(start).normalize().scale(.02)),net.minecraft.world.level.ClipContext.Block.OUTLINE,net.minecraft.world.level.ClipContext.Fluid.NONE,p));
+        h.assertTrue(hit.getType()==net.minecraft.world.phys.HitResult.Type.BLOCK,"Native ray did not find cargo");
+        var event=new net.neoforged.neoforge.event.entity.player.PlayerInteractEvent.RightClickBlock(p,InteractionHand.MAIN_HAND,hit.getBlockPos(),hit);
+        CargoInteractions.block(event);h.assertTrue(event.isCanceled(),"Native cargo click bypassed handler: target="+target+", hit="+f.cargoPose().local(hit.getLocation())+", state="+h.getLevel().getBlockState(hit.getBlockPos())+", eye="+f.cargoPose().local(start));
+    }
+    @GameTest(template="assembly_test",timeoutTicks=55)
+    public static void entity_cover_uses_eye_ray_and_allows_rear_cargo_without_rolling(GameTestHelper h) {
+        var f=frame(h,false);var hold=f.cargo();var p=player(h,hold);
+        h.assertTrue(hold.place(8,new ItemStack(Items.BARREL),p)==null,"Rear barrel placement failed");install(h,hold,p);
+        h.assertTrue(hold.toggleGate()==null,"Tailgate open failed");
+        h.runAtTickTime(22,()->{
+            h.assertTrue(f.toggleFrame(null)==null,"Assembly failed");
+            var w=h.getLevel().getEntitiesOfClass(WagonEntity.class,new AABB(f.getBlockPos()).inflate(6)).getFirst();
+            p.setPos(w.pose().point(new Vec3(-.5,.25,3.2)));
+            var entry=w.cargo().entry(8);h.assertTrue(w.cargo().valid(entry,p),"Covered entity cargo blocked unobstructed rear ray");
+            Vec3 target=w.pose().point(CargoHold.centre(8).add(0,.3,0));
+            var hit=w.pick(p.getEyePosition(),target);
+            h.assertTrue(hit.isPresent()&&w.pose().local(hit.get()).y<CargoCover.Y,"Entity ray picked fabric instead of rear cargo");
+            p.setShiftKeyDown(true);w.cargo().interact(p,InteractionHand.MAIN_HAND,w.pose().local(hit.get()));
+            h.assertTrue(w.cargo().entry(8)==null,"Entity rear unload failed");
+            var stack=new ItemStack(Items.STONE,2);h.assertTrue(w.cargo().place(8,stack,p)==null&&stack.getCount()==1,"Entity rear placement failed");
+            p.setPos(w.pose().point(new Vec3(-.5,2.9,CargoHold.centre(8).z)));
+            h.assertTrue(!w.cargo().valid(w.cargo().entry(8),p)&&w.cargo().take(8,p)!=null,"Entity cargo usable through cloth from above");
+            h.assertTrue(w.cargo().place(9,stack,p)!=null&&stack.getCount()==1,"Blocked entity placement consumed cargo");h.succeed();
+        });
     }
     @GameTest(template="assembly_test",timeoutTicks=40)
     public static void actual_proxy_block_clicks_install_roll_spread_and_remove_cover(GameTestHelper h) {

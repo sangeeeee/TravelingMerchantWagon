@@ -69,10 +69,25 @@ public final class CargoCover {
         return selectionCells;
     }
     public boolean hit(Vec3 local) { return selectionBoxes(hold.owner().cargoBody()).stream().anyMatch(box->box.inflate(.018,.025,.018).contains(local)); }
+    /** A handful of local-space intersections, only during interaction/menu validation; no world scan. */
+    public boolean obstructs(Vec3 eye,Vec3 target) {
+        if(!installed)return false;
+        for(AABB box:selectionBoxes(hold.owner().cargoBody()))if(occludes(box,eye,target))return true;
+        // The lowered tailgate must expose cargo; side walls still prevent interaction through wood.
+        var hull=WagonGeometry.partBoxes(hold.owner().cargoBody());
+        for(int i=0;i<4;i++)if(occludes(hull.get(i),eye,target))return true;
+        return occludes(hold.tailBox(),eye,target);
+    }
+    private static boolean occludes(AABB box,Vec3 eye,Vec3 target) {
+        if(box.contains(eye))return true;
+        var hit=box.clip(eye,target);
+        // Touching the floor/target at the ray endpoint is not an intervening obstacle.
+        return hit.isPresent()&&eye.distanceToSqr(hit.get())<eye.distanceToSqr(target)-1e-8;
+    }
     private boolean side(Vec3 local) {
         if(local.y<CargoHold.FLOOR+.01||local.y>2.3125-.01)return false;
         var body=WagonGeometry.partBoxes(hold.owner().cargoBody());
-        for(int i=1;i<=4;i++)if(body.get(i).inflate(.018).contains(local))return true;
+        for(int i=1;i<=4;i++)if((i==4?hold.tailBox():body.get(i)).inflate(.018).contains(local))return true;
         return false;
     }
     private String permission(Player player,Vec3 local) {
@@ -134,9 +149,10 @@ public final class CargoCover {
         return true;
     }
     private void conceal() {
+        CargoMenus.closeObstructed(hold);
         for(int slot=0;slot<hold.capacity();slot++)if(hold.anchorSlot(slot)==slot&&covered(slot)) {
             var entry=hold.entry(slot);if(entry==null)continue;
-            CargoMenus.close(hold,entry);StrawMatSleep.wake(hold,entry);
+            StrawMatSleep.wake(hold,entry);
         }
     }
     private void sound(boolean spreading) {

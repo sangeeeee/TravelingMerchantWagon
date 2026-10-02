@@ -22,7 +22,6 @@ public final class CargoRenderer {
         var mc=Minecraft.getInstance();
         CargoCoverRenderer.render(hold.cover(),hold.owner().cargoBody(),poses,buffers,light,overlay);
         for(int slot=0;slot<hold.capacity();slot++) {
-            if(hold.cover().covered(slot))continue;
             var entry=hold.entry(slot);if(entry==null||hold.anchorSlot(slot)!=slot)continue;var p=CargoHold.centre(slot);
             if(entry.kind==CargoEntry.Kind.STRAW_MAT) {
                 poses.pushPose();poses.translate(p.x,CargoHold.FLOOR+1,p.z-.70);poses.scale(2,2,2);

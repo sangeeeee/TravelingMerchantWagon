@@ -111,6 +111,12 @@ public final class CargoMenus {
         var view=VIEWERS.remove(player);if(view==null)return;
         if(VIEWERS.values().stream().noneMatch(other->other.entry==view.entry))view.entry.setOpened(false);
     }
+    /** Close only viewers whose own path was blocked by the new cover state. */
+    public static void closeObstructed(CargoHold hold) {
+        var players=new java.util.ArrayList<Player>();
+        VIEWERS.forEach((player,view)->{if(view.hold==hold&&!hold.valid(view.entry,player))players.add(player);});
+        for(var player:players) { player.closeContainer();closed(player); }
+    }
     public static void close(CargoHold hold,CargoEntry entry) {
         var players=new java.util.ArrayList<Player>();
         VIEWERS.forEach((player,view)->{if(view.hold==hold&&(entry==null||view.entry==entry))players.add(player);});

@@ -75,7 +75,19 @@ public final class CargoHold {
     public Vec3 position(CargoEntry entry) { int slot=slot(entry);return owner.cargoPose().point(slot<0?new Vec3(0,FLOOR,0):centre(slot)); }
     public boolean valid(CargoEntry entry,Player player) {
         return owner.cargoLive()&&!owner.cargoBusy()&&slot(entry)>=0&&entry.hold==this&&player.isAlive()
-            &&player.level()==owner.cargoLevel()&&player.distanceToSqr(position(entry))<=64&&!cover.covered(slot(entry));
+            &&player.level()==owner.cargoLevel()&&player.distanceToSqr(position(entry))<=64&&!coverObstructed(slot(entry),player);
+    }
+    private boolean coverObstructed(int slot,Player player) {
+        if(!cover.installed())return false;
+        if(player==null)return true;
+        Vec3 eye=owner.cargoPose().local(player.getEyePosition());
+        int anchor=anchorSlot(slot);AABB box=anchor<0?slotBox(slot):entryBox(anchor);
+        Vec3 target=new Vec3(net.minecraft.util.Mth.clamp(eye.x,box.minX,box.maxX),
+            net.minecraft.util.Mth.clamp(eye.y,box.minY,box.maxY),net.minecraft.util.Mth.clamp(eye.z,box.minZ,box.maxZ));
+        if(!cover.obstructs(eye,target))return false;
+        // A visible lower face still permits access when cloth obscures only the upper edge.
+        return cover.obstructs(eye,new Vec3(target.x,box.minY+.001,target.z))
+            &&cover.obstructs(eye,new Vec3(target.x,(box.minY+box.maxY)/2,target.z));
     }
     public void changed(boolean visible) { if(!loading&&owner.cargoLevel()!=null&&!owner.cargoLevel().isClientSide)owner.cargoChanged(visible); }
     public List<AABB> boxes() { var result=new ArrayList<AABB>();for(int i=0;i<MAX_CAPACITY;i++)if(entries[i]!=null)result.add(entryBox(i));return result; }
@@ -114,7 +126,16 @@ public final class CargoHold {
         seats.tick();
     }
     private int selected(Vec3 point) {
-        for(int i=0;i<MAX_CAPACITY;i++)if(entries[i]!=null&&entryBox(i).inflate(.015).contains(point))return i;
+        // Proxy shapes round out to 1/32 block; match those hits without choosing a farther neighbour.
+        int nearest=-1;double distance=Double.POSITIVE_INFINITY;
+        for(int i=0;i<capacity();i++)if(entries[i]!=null) {
+            AABB box=entryBox(i);if(!box.inflate(1.0/32+.001).contains(point))continue;
+            Vec3 surface=new Vec3(net.minecraft.util.Mth.clamp(point.x,box.minX,box.maxX),
+                net.minecraft.util.Mth.clamp(point.y,box.minY,box.maxY),net.minecraft.util.Mth.clamp(point.z,box.minZ,box.maxZ));
+            double candidate=point.distanceToSqr(surface);
+            if(candidate<distance) { nearest=i;distance=candidate; }
+        }
+        if(nearest>=0)return nearest;
         if(point.y<FLOOR-.14||point.y>FLOOR+.025||Math.abs(point.x)>1||point.z< -1.34375||point.z>2.21875+rearExtension())return -1;
         int row=Math.clamp((int)Math.round((point.z+.96)/.70),0,capacity()/2-1);int selected=row*2+(point.x<0?0:1);
         int anchor=anchorSlot(selected);return anchor<0?selected:anchor;
@@ -124,7 +145,7 @@ public final class CargoHold {
         if(!owner.cargoLive())return InteractionResult.PASS;
         var coverResult=cover.interact(player,hand,local);if(coverResult!=InteractionResult.PASS)return coverResult;
         int slot=selected(local);var stack=player.getItemInHand(hand);
-        if(slot>=0&&cover.covered(slot)) {
+        if(slot>=0&&cover.obstructs(owner.cargoPose().local(player.getEyePosition()),local)) {
             if(!owner.cargoLevel().isClientSide)message(player,"message.tm_wagon.cargo_covered");
             return InteractionResult.sidedSuccess(owner.cargoLevel().isClientSide);
         }
@@ -162,7 +183,7 @@ public final class CargoHold {
     }
     public String place(int slot,ItemStack stack,Player player) {
         if(!owner.cargoLive()||owner.cargoBusy()||slot<0||slot>=capacity())return "message.tm_wagon.assembly_busy";
-        if(cover.covered(slot))return "message.tm_wagon.cargo_covered";
+        if(coverObstructed(slot,player))return "message.tm_wagon.cargo_covered";
         String restriction=placementRestriction(stack);if(restriction!=null)return restriction;
         boolean mat=stack.getItem() instanceof StrawMatItem,stool=stack.getItem() instanceof WagonStoolItem;
         if(mat) {
@@ -205,7 +226,7 @@ public final class CargoHold {
         return true;
     }
     public String take(int slot,Player player) {
-        var entry=entry(slot);if(entry!=null&&cover.covered(slot(entry)))return "message.tm_wagon.cargo_covered";
+        var entry=entry(slot);if(entry!=null&&coverObstructed(slot(entry),player))return "message.tm_wagon.cargo_covered";
         if(entry==null||!valid(entry,player))return "message.tm_wagon.assembly_busy";
         slot=slot(entry);StrawMatSleep.wake(this,entry);seats.release(entry);
         CargoMenus.close(this,entry);Vec3 position=position(entry);BlockState state=entry.state;entries[slot]=null;
