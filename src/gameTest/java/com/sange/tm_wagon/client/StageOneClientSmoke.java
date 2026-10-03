@@ -134,7 +134,7 @@ public class StageOneClientSmoke {
             if(frames==124)loadCargoPreview(true);
             if(frames==140)verifyCargoBones(graphics);
             graphics.flush();frames++;
-            if(frames==15)save("stage-one-items.png");
+            if(frames==15) { TextureTilingClientChecks.verify();save("stage-one-items.png"); }
             if(frames==40)save("stage-one-assemblies.png");
             if(frames==65)save("folding-frame-states.png");
             if(frames==90)save("wagon-entity-variants.png");

@@ -65,7 +65,7 @@ public final class CargoStoolClientSmoke {
         if(ticks==135) {
             require(mc.player.getVehicle() instanceof WagonEntity,"Moving stool did not reuse wagon passenger tracking");
             var w=(WagonEntity)mc.player.getVehicle();
-            require(w.passengerSeat(mc.player)==2+SLOT&&w.driver()==null,"Cargo stool stole driving permission");
+            require(w.passengerSeat(mc.player)==WagonEntity.CARGO_SEAT_BASE+SLOT&&w.driver()==null,"Cargo stool stole driving permission");
         }
         if(ticks==140)mc.options.keyShift.setDown(true);
         if(ticks==143)mc.options.keyShift.setDown(false);

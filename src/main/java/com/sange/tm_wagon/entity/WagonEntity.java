@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.UUID;
 import com.sange.tm_wagon.physics.WagonPose;
 import com.sange.tm_wagon.physics.WagonPhysics;
+import com.sange.tm_wagon.physics.OrientedBox;
 import net.minecraft.util.Mth;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.animal.horse.AbstractHorse;
@@ -75,6 +76,7 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
     private List<Component> components=List.of();
     private List<Component> pickingComponents=List.of();
     private List<AABB> worldBoxes;
+    private List<OrientedBox> orientedBoxes;
     private WagonPose boxesPose;
     private float boxesSteering,boxesShaftPitch;
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
@@ -136,11 +138,7 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
                 if(slot==WagonSlot.FRONT_RIGHT||slot==WagonSlot.REAR_RIGHT)box=new AABB(-box.maxX,box.minY,box.minZ,-box.minX,box.maxY,box.maxZ);
                 box=box.move(slot.geometryOffset(cargoBody()));
                 if(slot!=WagonSlot.SEAT)picking.add(new Component(box,slot));
-                // Subdivide long boards so their rotated bounds preserve the open cargo interior.
-                int nx=Math.max(1,(int)Math.ceil(box.getXsize()/.65)),ny=Math.max(1,(int)Math.ceil(box.getYsize()/.65)),nz=Math.max(1,(int)Math.ceil(box.getZsize()/.65));
-                for(int x=0;x<nx;x++)for(int y=0;y<ny;y++)for(int z=0;z<nz;z++)list.add(new Component(new AABB(
-                    box.minX+box.getXsize()*x/nx,box.minY+box.getYsize()*y/ny,box.minZ+box.getZsize()*z/nz,
-                    box.minX+box.getXsize()*(x+1)/nx,box.minY+box.getYsize()*(y+1)/ny,box.minZ+box.getZsize()*(z+1)/nz),slot));
+                list.add(new Component(box,slot));
             }
             if(slot==WagonSlot.SEAT) {
                 var seat=WagonGeometry.partBoxes(part);var lower=seat.getFirst();
@@ -222,28 +220,38 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
         }
         return getDeltaMovement().horizontalDistanceSqr()>1e-6;
     }
-    public List<AABB> motionBoxesAt(WagonPose pose) { return boxesAt(pose,true); }
-    public List<AABB> boxesAt(WagonPose pose) { return boxesAt(pose,false); }
-    private List<AABB> boxesAt(WagonPose pose,boolean motion) {
-        if(!motion&&worldBoxes!=null&&pose.equals(boxesPose)&&boxesSteering==steering&&boxesShaftPitch==shaftPitch)return worldBoxes;
-        var boxes=new java.util.ArrayList<AABB>(components.size());
+    /** Bounds are only used for queries and diagnostics, never as solid rotated geometry. */
+    public List<AABB> motionBoxesAt(WagonPose pose) { return motionCollidersAt(pose).stream().map(OrientedBox::bounds).toList(); }
+    public List<AABB> boxesAt(WagonPose pose) { return collidersAt(pose,false).stream().map(OrientedBox::bounds).toList(); }
+    public List<OrientedBox> collidersAt(WagonPose pose) { return collidersAt(pose,false); }
+    public List<OrientedBox> motionCollidersAt(WagonPose pose) { return collidersAt(pose,true); }
+    private List<OrientedBox> collidersAt(WagonPose pose,boolean motion) {
+        var boxes=new java.util.ArrayList<OrientedBox>(components.size());
+        var frames=new EnumMap<WagonSlot,Vec3[]>(WagonSlot.class);
         for(Component part:components) {
             if(motion&&(part.slot==WagonSlot.FRONT_LEFT||part.slot==WagonSlot.FRONT_RIGHT||part.slot==WagonSlot.REAR_LEFT||part.slot==WagonSlot.REAR_RIGHT))continue;
-            AABB b=part.box;double x0=Double.POSITIVE_INFINITY,y0=x0,z0=x0,x1=-x0,y1=x1,z1=x1;
-            for(double x:new double[]{b.minX,b.maxX})for(double y:new double[]{b.minY,b.maxY})for(double z:new double[]{b.minZ,b.maxZ}) {
-                Vec3 p=pose.point(articulated(new Vec3(x,y,z),part.slot));
-                x0=Math.min(x0,p.x);y0=Math.min(y0,p.y);z0=Math.min(z0,p.z);x1=Math.max(x1,p.x);y1=Math.max(y1,p.y);z1=Math.max(z1,p.z);
-            }boxes.add(new AABB(x0,y0,z0,x1,y1,z1));
+            Vec3[] axes=frames.computeIfAbsent(part.slot,slot->{
+                Vec3 origin=articulated(Vec3.ZERO,slot);
+                return new Vec3[]{pose.vector(articulated(new Vec3(1,0,0),slot).subtract(origin)),
+                    pose.vector(articulated(new Vec3(0,1,0),slot).subtract(origin)),
+                    pose.vector(articulated(new Vec3(0,0,1),slot).subtract(origin))};
+            });
+            AABB b=part.box;
+            boxes.add(new OrientedBox(pose.point(articulated(b.getCenter(),part.slot)),
+                new Vec3(b.getXsize()/2,b.getYsize()/2,b.getZsize()/2),axes[0],axes[1],axes[2]));
         }
-        return boxes;
+        return List.copyOf(boxes);
     }
-    public List<AABB> collisionBoxes() {
+    public List<OrientedBox> colliders() {
         WagonPose current=pose();
-        if(worldBoxes==null||!current.equals(boxesPose)||boxesSteering!=steering||boxesShaftPitch!=shaftPitch) {
-            worldBoxes=boxesAt(current);boxesPose=current;boxesSteering=steering;boxesShaftPitch=shaftPitch;
-        }return worldBoxes;
+        if(worldBoxes==null||orientedBoxes==null||!current.equals(boxesPose)||boxesSteering!=steering||boxesShaftPitch!=shaftPitch) {
+            orientedBoxes=collidersAt(current,false);worldBoxes=orientedBoxes.stream().map(OrientedBox::bounds).toList();
+            boxesPose=current;boxesSteering=steering;boxesShaftPitch=shaftPitch;
+        }
+        return orientedBoxes;
     }
-    public boolean intersects(AABB area) { return collisionBoxes().stream().anyMatch(area::intersects); }
+    public List<AABB> collisionBoxes() { colliders();return worldBoxes; }
+    public boolean intersects(AABB area) { return colliders().stream().anyMatch(box->box.intersects(area)); }
     /** Pick in each component's own frame, never its enlarged world-axis bounds. */
     public java.util.Optional<Vec3> pick(Vec3 start,Vec3 end) {
         WagonPose current=pose();Vec3 a=current.local(start),b=current.local(end);
@@ -386,11 +394,12 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
         AABB contact=player.getBoundingBox().inflate(PUSH_CONTACT_MARGIN,.05,PUSH_CONTACT_MARGIN);
         // Use the surface touched, rather than fixed car-front/car-rear zones. Walking
         // alongside a contacted wheel or axle is also a useful longitudinal push.
-        for(AABB box:collisionBoxes())if(box.intersects(contact)) {
-            double dx=Mth.clamp(player.getX(),box.minX,box.maxX)-player.getX();
-            double dz=Mth.clamp(player.getZ(),box.minZ,box.maxZ)-player.getZ();
+        for(OrientedBox box:colliders())if(box.intersects(contact)) {
+            Vec3 nearest=box.closestPoint(player.getBoundingBox().getCenter());
+            double dx=nearest.x-player.getX();
+            double dz=nearest.z-player.getZ();
             // Moving away from the contact is not pulling the cart along behind the player.
-            if(intent.x*dx+intent.z*dz>=-1e-5)return along>0?1:-1;
+            if(intent.x*dx+intent.z*dz>=-1e-4)return along>0?1:-1;
         }
         return 0;
     }

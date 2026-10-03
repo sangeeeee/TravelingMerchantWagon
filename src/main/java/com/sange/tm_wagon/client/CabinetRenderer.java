@@ -26,14 +26,15 @@ public final class CabinetRenderer {
         var models=MODELS[cabinet.material().wood().ordinal()][cabinet.rows()==6?1:0];poses.pushPose();poses.translate(0,0,cabinet.frontOffset());
         double scale=cabinet.box().getXsize()/(cabinet.rows()==6?31.0/16:17.0/16);
         poses.scale((float)scale,1,1);
-        draw(models[0],poses,buffers,light,overlay,0);
-        draw(models[1],poses,buffers,light,overlay,-.4*cabinet.progress(0,tick)/scale);
-        draw(models[2],poses,buffers,light,overlay,.4*cabinet.progress(1,tick)/scale);
+        draw(models[0],poses,buffers,light,overlay,0,scale);
+        draw(models[1],poses,buffers,light,overlay,-.4*cabinet.progress(0,tick)/scale,scale);
+        draw(models[2],poses,buffers,light,overlay,.4*cabinet.progress(1,tick)/scale,scale);
         poses.popPose();
     }
-    private static void draw(ModelResourceLocation id,PoseStack poses,MultiBufferSource buffers,int light,int overlay,double x) {
+    private static void draw(ModelResourceLocation id,PoseStack poses,MultiBufferSource buffers,int light,int overlay,double x,double scale) {
         poses.pushPose();poses.translate(x-.5,1.5,-2.5);
-        var mc=Minecraft.getInstance();mc.getBlockRenderer().getModelRenderer().renderModel(poses.last(),buffers.getBuffer(RenderType.cutout()),null,mc.getModelManager().getModel(id),1,1,1,light,overlay);
+        var mc=Minecraft.getInstance();var model=TextureTiling.model(mc.getModelManager().getModel(id),new net.minecraft.world.phys.Vec3(scale,1,1),new net.minecraft.world.phys.Vec3(1,1,1));
+        mc.getBlockRenderer().getModelRenderer().renderModel(poses.last(),buffers.getBuffer(RenderType.cutout()),null,model,1,1,1,light,overlay);
         poses.popPose();
     }
     private CabinetRenderer() {}

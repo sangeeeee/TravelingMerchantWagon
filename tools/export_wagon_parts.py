@@ -135,6 +135,38 @@ def main():
                 for field in ('origin','pivot'):
                     if field in cube: cube[field] = [v-shift[i] for i,v in enumerate(cube[field])]
         definitions[name] = {'scale': round(.68/max(b-a for a,b in zip(low,high)),6)}
+        # Keep the ordinary wagon's per-face texel density when geometry grows.
+        # These references drive cached face tiling, without new texture images or cubes.
+        baseline = {'long_cargo_body':'double_seat_double_horse',
+                    'wide_cargo_body':'double_seat_double_horse',
+                    'triple_seat':'double_seat_double_horse',
+                    'triple_wooden_seat':'double_wooden_seat_double_horse'}.get(name)
+        if baseline:
+            references = grouped(read_model(baseline)); sizes = {}
+            for group in groups:
+                originals = {c['name']:c for c in references[group]}
+                sizes[group] = []
+                for cube in grouped(source)[group]:
+                    label = 'left_wool_cushion' if cube['name'].startswith('triple_wool_cushion_') else cube['name']
+                    original = originals[label]
+                    sizes[group].append([round(b-a,6) for a,b in zip(original['from'],original['to'])])
+            definitions[name]['uv_reference'] = sizes
+        # Keep the ordinary wagon's per-face texel density when geometry grows.
+        # These references drive cached face tiling, without new texture images or cubes.
+        baseline = {'long_cargo_body':'double_seat_double_horse',
+                    'wide_cargo_body':'double_seat_double_horse',
+                    'triple_seat':'double_seat_double_horse',
+                    'triple_wooden_seat':'double_wooden_seat_double_horse'}.get(name)
+        if baseline:
+            references = grouped(read_model(baseline)); sizes = {}
+            for group in groups:
+                originals = {c['name']:c for c in references[group]}
+                sizes[group] = []
+                for cube in grouped(source)[group]:
+                    label = 'left_wool_cushion' if cube['name'].startswith('triple_wool_cushion_') else cube['name']
+                    original = originals[label]
+                    sizes[group].append([round(b-a,6) for a,b in zip(original['from'],original['to'])])
+            definitions[name]['uv_reference'] = sizes
         write(ASSETS/'geo/parts'/f'{name}.geo.json', geo)
         write(ASSETS/'models/item'/f'{name}.json', {
             'parent':'minecraft:builtin/entity',

@@ -137,7 +137,7 @@ public final class CargoHold {
         if(owner.cargoLevel()==null||owner.cargoLevel().isClientSide||!owner.cargoLive())return;
         if(gateStart!=Long.MIN_VALUE&&owner.cargoLevel().getGameTime()-gateStart>=GATE_TICKS) {
             boolean old=gateCollision;gateCollision=gateTarget;
-            String error=old!=gateTarget&&!freeVolume(worldBox(tailBox(),owner.cargoPose()))?"message.tm_wagon.cargo_blocked":owner.cargoGeometryChanged();
+            String error=old!=gateTarget&&!freeLocalVolume(tailBox())?"message.tm_wagon.cargo_blocked":owner.cargoGeometryChanged();
             if(error==null) { gateStart=Long.MIN_VALUE;changed(true); }
             else { gateCollision=old;gateFrom=gateTarget?1:0;gateTarget=old;gateStart=owner.cargoLevel().getGameTime();changed(true); }
         }
@@ -221,8 +221,7 @@ public final class CargoHold {
         if(state.getBlock() instanceof ShulkerBoxBlock)state=state.setValue(ShulkerBoxBlock.FACING,net.minecraft.core.Direction.UP);
         if(mat)for(int cell=slot;cell>=slot-2*columns();cell-=columns())
             if(!owner.cargoLevel().mayInteract(player,BlockPos.containing(owner.cargoPose().point(centreAt(cell)))))return "message.tm_wagon.protected";
-        AABB world=worldBox(mat?matBounds(slot):stool?stoolBounds(slot):slotBounds(slot),owner.cargoPose());
-        if(!freeVolume(world))return "message.tm_wagon.cargo_blocked";
+        if(!freeLocalVolume(mat?matBounds(slot):stool?stoolBounds(slot):slotBounds(slot)))return "message.tm_wagon.cargo_blocked";
         CargoEntry entry=CargoEntry.fromItem(this,stack,state);entries[slot]=entry;
         String error=owner.cargoGeometryChanged();
         if(error!=null) { entries[slot]=null;return error; }
@@ -233,21 +232,24 @@ public final class CargoHold {
         int slot=slot(entry);if(slot<0)return;entries[slot]=null;owner.cargoGeometryChanged();changed(true);
     }
     /** Bounded to one cargo/gate volume; skip this host's proxy blocks and use actual cart geometry. */
-    boolean freeVolume(AABB volume) {
-        AABB box=volume.deflate(.001);var level=owner.cargoLevel();
-        var shape=net.minecraft.world.phys.shapes.Shapes.create(box);
+    boolean freeLocalVolume(AABB local) {
+        var volume=com.sange.tm_wagon.physics.OrientedBox.at(local.deflate(.001),owner.cargoPose());
+        AABB box=volume.bounds();var level=owner.cargoLevel();
         for(BlockPos pos:BlockPos.betweenClosed(BlockPos.containing(box.minX,box.minY,box.minZ),BlockPos.containing(box.maxX,box.maxY,box.maxZ))) {
             if(!level.hasChunkAt(pos)||!level.getWorldBorder().isWithinBounds(pos)||level.isOutsideBuildHeight(pos))return false;
             if(com.sange.tm_wagon.assembly.AssemblyFrameBlockEntity.find(level,pos)==owner)continue;
-            if(net.minecraft.world.phys.shapes.Shapes.joinIsNotEmpty(shape,level.getBlockState(pos).getCollisionShape(level,pos).move(pos.getX(),pos.getY(),pos.getZ()),net.minecraft.world.phys.shapes.BooleanOp.AND))return false;
+            for(AABB block:level.getBlockState(pos).getCollisionShape(level,pos).toAabbs())
+                if(volume.intersects(block.move(pos)))return false;
         }
         for(var entity:level.getEntities(null,box)) {
             if(entity==owner||entity.isRemoved())continue;
-            if(entity instanceof WagonEntity wagon) { if(wagon.intersects(box))return false; }
-            else if(entity instanceof LivingEntity||entity.canBeCollidedWith())return false;
+            if(entity instanceof WagonEntity wagon) {
+                for(var collider:wagon.colliders())if(volume.intersects(collider))return false;
+            }else if((entity instanceof LivingEntity||entity.canBeCollidedWith())&&volume.intersects(entity.getBoundingBox()))return false;
         }
         return true;
     }
+
     public String take(int slot,Player player) {
         var entry=entry(slot);if(entry!=null&&coverObstructed(slot(entry),player))return ACCESS_BLOCKED;
         if(entry==null||!valid(entry,player))return "message.tm_wagon.assembly_busy";

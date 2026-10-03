@@ -15,7 +15,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-/** Individual volumes avoid constructing a huge voxel union at every moving pose. */
+/** Wagons have a separate oriented narrow phase, never enlarged vanilla voxel colliders. */
 @Mixin(EntityGetter.class)
 public interface WagonCollisionMixin {
     @Inject(method="getEntityCollisions",at=@At("HEAD"),cancellable=true)
@@ -27,9 +27,7 @@ public interface WagonCollisionMixin {
         WagonEntity clearedWagon=WagonCrowd.excludedWagon();
         for(Entity entity:world.getEntities(excluded,area.inflate(1e-7),predicate)) {
             if(entity==clearedWagon)continue;
-            if(entity instanceof WagonEntity wagon) {
-                for(AABB box:wagon.collisionBoxes())if(box.intersects(area.inflate(1e-7)))result.add(Shapes.create(box));
-            }else result.add(Shapes.create(entity.getBoundingBox()));
+            if(!(entity instanceof WagonEntity))result.add(Shapes.create(entity.getBoundingBox()));
         }
         callback.setReturnValue(result);
     }

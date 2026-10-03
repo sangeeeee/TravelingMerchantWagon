@@ -129,7 +129,7 @@ public final class CargoCanopy {
     private void setClosed(boolean front,boolean closed) { if(front)frontClosed=closed;else rearClosed=closed; }
     private boolean clearAdded(List<AABB> before) {
         var added=net.minecraft.world.phys.shapes.Shapes.join(WagonGeometry.shape(boxes(hold.owner().cargoBody())),WagonGeometry.shape(before),net.minecraft.world.phys.shapes.BooleanOp.ONLY_FIRST);
-        for(AABB b:added.toAabbs())if(!hold.freeVolume(CargoHold.worldBox(b,hold.owner().cargoPose())))return false;
+        for(AABB b:added.toAabbs())if(!hold.freeLocalVolume(b))return false;
         return true;
     }
     private void sound(Vec3 local,boolean closing) {

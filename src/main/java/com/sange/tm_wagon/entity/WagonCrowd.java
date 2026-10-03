@@ -3,6 +3,7 @@ package com.sange.tm_wagon.entity;
 import com.sange.tm_wagon.assembly.WagonGeometry;
 import com.sange.tm_wagon.assembly.WagonPart;
 import com.sange.tm_wagon.physics.WagonPose;
+import com.sange.tm_wagon.physics.OrientedBox;
 import com.sange.tm_wagon.physics.WagonPhysics;
 import java.util.Collections;
 import java.util.IdentityHashMap;
@@ -58,6 +59,12 @@ public final class WagonCrowd {
         sides.values().removeIf(choice->choice.expires<wagon.level().getGameTime());
         pushLimit=Math.min(.35,Math.max(.08,speed*2.5));
         AABB area=wagon.getBoundingBox().expandTowards(motion).inflate(.3);
+        // Steering can put a horse outside the shafts' broad bounds. Include its
+        // current and requested footprint in the single road-mob query.
+        for(int i=0;i<wagon.horseCapacity();i++) {
+            var horse=wagon.horse(i);if(horse!=null)area=area.minmax(horse.getBoundingBox().minmax(
+                horse.getDimensions(horse.getPose()).makeBoundingBox(wagon.horsePosition(i))).expandTowards(motion).inflate(.3));
+        }
         for(Entity entity:wagon.level().getEntities(wagon,area,e->e instanceof Mob&&e.isAlive()))
             if(entity.getRootVehicle() instanceof Mob mob&&roadMob(mob))candidates.add(mob);
     }
@@ -72,8 +79,11 @@ public final class WagonCrowd {
     private static double width(AABB box,Vec3 right) {
         return (Math.abs(right.x)*box.getXsize()+Math.abs(right.z)*box.getZsize())/2;
     }
-    private static boolean touches(AABB mob,List<AABB> oldBoxes,List<AABB> boxes,List<AABB> horses) {
-        for(int i=0;i<boxes.size();i++)if(boxes.get(i).minmax(oldBoxes.get(i)).intersects(mob))return true;
+    private static boolean touches(AABB mob,List<OrientedBox> oldBoxes,List<OrientedBox> boxes,List<AABB> horses) {
+        for(int i=0;i<boxes.size();i++) {
+            var before=oldBoxes.get(i);var after=boxes.get(i);
+            if(before.intersects(mob)||after.intersects(mob)||before.sweep(mob,before.centre().subtract(after.centre()))!=null)return true;
+        }
         for(AABB horse:horses)if(horse.intersects(mob))return true;
         return false;
     }
@@ -84,7 +94,7 @@ public final class WagonCrowd {
     }
     public void clear(WagonPose previous) {
         if(candidates.isEmpty()||handled.size()==candidates.size()||wagon.position().subtract(previous.position()).horizontalDistanceSqr()<1e-12)return;
-        WagonPose current=wagon.pose();List<AABB> boxes=wagon.collisionBoxes(),oldBoxes=wagon.boxesAt(previous);
+        WagonPose current=wagon.pose();var boxes=wagon.colliders();var oldBoxes=wagon.collidersAt(previous);
         var horses=new java.util.ArrayList<AABB>(2);
         for(int i=0;i<wagon.horseCapacity();i++) {
             var horse=wagon.horse(i);if(horse!=null)
@@ -92,7 +102,7 @@ public final class WagonCrowd {
         }
         Vec3 right=new WagonPose(current.position(),current.yaw(),0,0).vector(new Vec3(1,0,0));
         double left=0,rightEdge=0;
-        for(AABB box:boxes) { left=Math.max(left,sideExtent(box,current.position(),right,-1));rightEdge=Math.max(rightEdge,sideExtent(box,current.position(),right,1)); }
+        for(var box:boxes) { left=Math.max(left,sideExtent(box.bounds(),current.position(),right,-1));rightEdge=Math.max(rightEdge,sideExtent(box.bounds(),current.position(),right,1)); }
         for(AABB horse:horses) { left=Math.max(left,sideExtent(horse,current.position(),right,-1));rightEdge=Math.max(rightEdge,sideExtent(horse,current.position(),right,1)); }
         for(Mob mob:candidates) {
             if(handled.contains(mob)||!touches(mob.getBoundingBox(),oldBoxes,boxes,horses)||!roadMob(mob))continue;

@@ -14,9 +14,11 @@ public final class WagonSupport {
             ||Math.abs(wagon.pitch())>=Math.toRadians(35)||Math.abs(wagon.roll())>=Math.toRadians(30)
             ||(entity instanceof Player player&&(player.getAbilities().flying||player.isSleeping())))return false;
         AABB feet=entity.getBoundingBox();
-        for(AABB box:wagon.collisionBoxes())if(box.maxX>feet.minX+1e-5&&box.minX<feet.maxX-1e-5
-            &&box.maxZ>feet.minZ+1e-5&&box.minZ<feet.maxZ-1e-5
-            &&Math.abs(box.maxY-feet.minY)<=CONTACT_EPSILON)return true;
+        AABB footSlice=new AABB(feet.minX,feet.minY,feet.minZ,feet.maxX,feet.minY+.002,feet.maxZ);
+        for(var box:wagon.colliders()) {
+            var hit=box.sweep(footSlice.move(0,CONTACT_EPSILON,0),new net.minecraft.world.phys.Vec3(0,-2*CONTACT_EPSILON,0));
+            if(hit!=null&&hit.normal().y>.5)return true;
+        }
         return false;
     }
 

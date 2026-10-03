@@ -193,18 +193,18 @@ public final class WagonPhysics {
             Ground ground=ground(wagon.level(),foot,.03,.18,.10);
             if(ground.present()&&!ground.forbidden())return true;
         }
-        var boxes=wagon.boxesAt(wagon.pose());
-        AABB bounds=boxes.getFirst();for(AABB box:boxes)bounds=bounds.minmax(box);
-        for(VoxelShape shape:wagon.level().getBlockCollisions(wagon,bounds.inflate(.02).expandTowards(0,-.18,0)))for(AABB block:shape.toAabbs())
-            for(AABB box:boxes)if(box.maxX>block.minX&&box.minX<block.maxX&&box.maxZ>block.minZ&&box.minZ<block.maxZ
-                &&box.minY>=block.maxY-.03&&box.minY<=block.maxY+.18)return true;
+        var boxes=wagon.colliders();AABB bounds=bounds(boxes);
+        for(VoxelShape shape:wagon.level().getBlockCollisions(wagon,bounds.inflate(.02).expandTowards(0,-.18,0)))for(AABB block:shape.toAabbs()) {
+            var terrain=OrientedBox.of(block);
+            for(var box:boxes)if(terrain.sweep(box,new Vec3(0,-.18,0))!=null)return true;
+        }
         return false;
     }
     private static boolean uprightClear(WagonEntity wagon) {
-        var boxes=wagon.motionBoxesAt(new WagonPose(wagon.position(),wagon.getYRot(),0,0));
-        AABB bounds=boxes.getFirst();for(AABB box:boxes)bounds=bounds.minmax(box);
+        var boxes=wagon.motionCollidersAt(new WagonPose(wagon.position(),wagon.getYRot(),0,0));
+        AABB bounds=bounds(boxes);
         for(VoxelShape shape:wagon.level().getBlockCollisions(wagon,bounds))for(AABB block:shape.toAabbs())
-            if(boxes.stream().anyMatch(box->box.deflate(1e-5).intersects(block)))return false;
+            if(boxes.stream().anyMatch(box->box.intersects(block)))return false;
         return true;
     }
     /** Swept translation with bounded rotation increments; decorative meshes are never queried. */
@@ -228,42 +228,44 @@ public final class WagonPhysics {
             WagonPose previous=wagon.pose();
             WagonPose rotated=new WagonPose(wagon.position(),Mth.rotLerp(t,start.yaw(),yaw),
                 Mth.lerp(t,start.pitch(),pitch),Mth.lerp(t,start.roll(),roll));
-            List<AABB> boxes=wagon.motionBoxesAt(rotated);
-            AABB bounds=boxes.getFirst();for(AABB b:boxes)bounds=bounds.minmax(b);
+            List<OrientedBox> boxes=wagon.motionCollidersAt(rotated);
+            AABB bounds=bounds(boxes);
             if(!wagon.level().getWorldBorder().isWithinBounds(bounds.expandTowards(step)))break;
             boolean loaded=true;
             for(int x=Mth.floor(bounds.minX)>>4;x<=Mth.floor(bounds.maxX)>>4;x++)for(int z=Mth.floor(bounds.minZ)>>4;z<=Mth.floor(bounds.maxZ)>>4;z++)
                 loaded&=wagon.level().hasChunk(x,z);
             if(!loaded)break;
             AABB swept=bounds.expandTowards(step).inflate(.03).expandTowards(0,driverRecovery?.25:0,0);
-            List<VoxelShape> terrain=new ArrayList<>();wagon.level().getBlockCollisions(wagon,swept).forEach(terrain::add);
-            terrain.addAll(wagon.level().getEntityCollisions(wagon,swept));
-            List<AABB> oldBoxes=wagon.motionBoxesAt(previous);
+            List<OrientedBox> terrain=new ArrayList<>();
+            for(VoxelShape shape:wagon.level().getBlockCollisions(wagon,swept))for(AABB block:shape.toAabbs())terrain.add(OrientedBox.of(block));
+            for(VoxelShape shape:wagon.level().getEntityCollisions(wagon,swept))for(AABB block:shape.toAabbs())terrain.add(OrientedBox.of(block));
+            terrain.addAll(WagonCollision.nearby(wagon.level(),wagon,swept));
+            List<OrientedBox> oldBoxes=wagon.motionCollidersAt(previous);
             boolean blockedRotation=false;
-            for(VoxelShape shape:terrain)for(AABB block:shape.toAabbs()) {
-                boolean next=boxes.stream().anyMatch(b->b.deflate(1e-5).intersects(block));
-                boolean prior=oldBoxes.stream().anyMatch(b->b.deflate(1e-5).intersects(block));
+            for(OrientedBox block:terrain) {
+                boolean next=boxes.stream().anyMatch(b->b.intersects(block));
+                boolean prior=oldBoxes.stream().anyMatch(b->b.intersects(block));
                 if(next&&!prior) { blockedRotation=true;break; }
             }
             if(driverRecovery) {
                 // Roll about the ground contact by lifting the centre only as far as the next
                 // small angular increment needs. Ceilings, walls and other vehicles still block it.
                 double lift=0;
-                for(VoxelShape shape:terrain)for(AABB block:shape.toAabbs())for(AABB box:boxes)
-                    if(box.deflate(1e-5).intersects(block))lift=Math.max(lift,block.maxY-box.minY+1e-5);
+                for(OrientedBox block:terrain)for(OrientedBox box:boxes)
+                    if(box.intersects(block))lift=Math.max(lift,block.escapeDistance(box,new Vec3(0,1,0)));
                 if(lift>0)blockedRotation=true;
                 if(lift>0&&lift<=.25&&limit(Direction.Axis.Y,lift,oldBoxes,terrain)>=lift-1e-5) {
-                    List<AABB> raised=shift(boxes,0,lift,0);boolean clear=true;
-                    for(VoxelShape shape:terrain)for(AABB block:shape.toAabbs())
-                        if(raised.stream().anyMatch(box->box.deflate(1e-5).intersects(block)))clear=false;
+                    List<OrientedBox> raised=shift(boxes,0,lift,0);boolean clear=true;
+                    for(OrientedBox block:terrain)
+                        if(raised.stream().anyMatch(box->box.intersects(block)))clear=false;
                     if(clear) { rotated=new WagonPose(rotated.position().add(0,lift,0),rotated.yaw(),rotated.pitch(),rotated.roll());boxes=raised;blockedRotation=false; }
                 }
             }
             if(blockedRotation) { rotated=previous;boxes=oldBoxes; }
             double y=limit(Direction.Axis.Y,step.y,boxes,terrain);
-            if(y>step.y+.0001&&step.y<0)for(VoxelShape shape:terrain) {
-                if(shape.bounds().maxY>landingHeight+.05)continue;
-                for(AABB box:boxes)if(shape.collide(Direction.Axis.Y,box.deflate(1e-5),step.y)>step.y+.0001)landedOnLowerGround=true;
+            if(y>step.y+.0001&&step.y<0)for(OrientedBox block:terrain) {
+                if(block.bounds().maxY>landingHeight+.05)continue;
+                for(OrientedBox box:boxes)if(block.sweep(box,new Vec3(0,step.y,0))!=null)landedOnLowerGround=true;
             }
             if(y<0)for(int i=0;i<4;i++) {
                 Vec3 centre=wagon.wheelCentre(i,rotated),oldCentre=wagon.wheelCentre(i,previous);
@@ -282,9 +284,20 @@ public final class WagonPhysics {
         }
         return landedOnLowerGround;
     }
-    private static List<AABB> shift(List<AABB> boxes,double x,double y,double z) { return boxes.stream().map(b->b.move(x,y,z)).toList(); }
-    private static double limit(Direction.Axis axis,double distance,List<AABB> boxes,List<VoxelShape> terrain) {
-        for(AABB box:boxes)for(VoxelShape shape:terrain)distance=shape.collide(axis,box.deflate(1e-5),distance);
-        return distance;
+    private static AABB bounds(List<OrientedBox> boxes) {
+        AABB bounds=boxes.getFirst().bounds();for(var box:boxes)bounds=bounds.minmax(box.bounds());return bounds;
+    }
+    private static List<OrientedBox> shift(List<OrientedBox> boxes,double x,double y,double z) {
+        Vec3 delta=new Vec3(x,y,z);return boxes.stream().map(b->b.move(delta)).toList();
+    }
+    private static double limit(Direction.Axis axis,double distance,List<OrientedBox> boxes,List<OrientedBox> terrain) {
+        if(Math.abs(distance)<1e-12)return distance;
+        Vec3 motion=switch(axis) { case X->new Vec3(distance,0,0);case Y->new Vec3(0,distance,0);case Z->new Vec3(0,0,distance); };
+        double fraction=1;
+        for(OrientedBox box:boxes)for(OrientedBox block:terrain) {
+            if(box.intersects(block))continue; // Match vanilla: an existing overlap must remain escapable.
+            var hit=block.sweep(box,motion);if(hit!=null)fraction=Math.min(fraction,hit.time());
+        }
+        return distance*fraction;
     }
 }

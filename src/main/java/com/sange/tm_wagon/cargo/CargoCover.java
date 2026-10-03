@@ -155,7 +155,7 @@ public final class CargoCover {
     private boolean clearAdded(List<AABB> before) {
         var added=net.minecraft.world.phys.shapes.Shapes.join(WagonGeometry.shape(boxes(hold.owner().cargoBody())),
             WagonGeometry.shape(before),net.minecraft.world.phys.shapes.BooleanOp.ONLY_FIRST);
-        for(AABB box:added.toAabbs())if(!hold.freeVolume(CargoHold.worldBox(box,hold.owner().cargoPose())))return false;
+        for(AABB box:added.toAabbs())if(!hold.freeLocalVolume(box))return false;
         return true;
     }
     private void conceal() {

@@ -4,6 +4,9 @@
   "compatibilityLevel": "JAVA_21",
   "mixins": [
     "WagonCollisionMixin",
+    "WagonMovementMixin",
+    "WagonClearanceMixin",
+    "WagonPlayerCollisionMixin",
     "WagonPickingMixin",
     "WagonQueryMixin",
     "WagonSupportPlayerMixin",

@@ -293,7 +293,7 @@ public class WagonDrivingGameTests {
         var w=wagon(h,false,false);var p=driver(h,w);
         w.applyPose(new WagonPose(w.position().add(0,8,0),180,0,(float)Math.PI));
         double y=w.getY();drive(w,p,1,1,5);
-        h.assertTrue(w.getY()<y&&Math.abs(w.roll()-(float)Math.PI)<.01&&Math.abs(w.getYRot()-180)<.01,"Recovery ignored gravity or allowed unpowered flight");h.succeed();
+        h.assertTrue(w.getY()<y&&Math.abs(w.roll()-(float)Math.PI)<.01&&Math.abs(w.getYRot()-180)<.01,"Recovery ignored gravity or allowed unpowered flight: dy="+(w.getY()-y)+" roll="+w.roll()+" yaw="+w.getYRot());h.succeed();
     }
     @GameTest(template="assembly_test",timeoutTicks=40)
     public static void lowering_shafts_does_not_turn_two_block_cliff_into_steps(GameTestHelper h) {

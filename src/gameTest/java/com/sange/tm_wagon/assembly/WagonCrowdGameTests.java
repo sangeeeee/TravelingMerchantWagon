@@ -87,7 +87,7 @@ public class WagonCrowdGameTests {
         // Once the wagon passes beneath it, the unseated mob may leave the deck.
         drive(f,1,1,7);
         h.assertTrue(w.hasHorse(f.horse.getUUID())&&f.horse.position().distanceTo(w.horsePosition(0))<.05,"Road clearing displaced pulling horse");
-        h.assertTrue(Math.abs(w.pose().local(road.position()).x)>.5&&road.position().distanceTo(w.horsePosition(0))>.8,"Road mob remained directly in horse footprint: "+w.pose().local(road.position()));h.succeed();
+        h.assertTrue(Math.abs(w.pose().local(road.position()).x)>.5&&road.position().distanceTo(w.horsePosition(0))>.8,"Road mob remained directly in horse footprint: "+w.pose().local(road.position())+" wagon="+w.position()+" yaw="+w.getYRot()+" road support="+com.sange.tm_wagon.entity.WagonSupport.supportedByWagon(road));h.succeed();
     }
     @GameTest(template="assembly_test",timeoutTicks=40)
     public static void mobs_outside_actual_parts_are_not_pushed(GameTestHelper h) {
