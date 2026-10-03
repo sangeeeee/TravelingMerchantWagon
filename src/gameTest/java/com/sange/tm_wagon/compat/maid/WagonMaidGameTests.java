@@ -34,6 +34,18 @@ public class WagonMaidGameTests {
     public static void block_mat_sleeps_and_removal_releases_occupancy(GameTestHelper h) { Scenarios.block_mat_sleeps_and_removal_releases_occupancy(h); }
     @GameTest(template="assembly_test",batch="maid_rest",timeoutTicks=55)
     public static void movement_wakes_maid_and_mat_cannot_have_two_sleepers(GameTestHelper h) { Scenarios.movement_wakes_maid_and_mat_cannot_have_two_sleepers(h); }
+    @GameTest(template="assembly_test",batch="maid_work",timeoutTicks=40)
+    public static void changing_task_immediately_releases_companion_seat(GameTestHelper h) { Scenarios.changing_task_immediately_releases_companion_seat(h); }
+    @GameTest(template="assembly_test",batch="maid_rest",timeoutTicks=70)
+    public static void other_tasks_sleep_on_entity_mat_and_task_change_keeps_sleep(GameTestHelper h) { Scenarios.other_tasks_sleep_on_entity_mat_and_task_change_keeps_sleep(h); }
+    @GameTest(template="assembly_test",batch="maid_rest",timeoutTicks=70)
+    public static void nearest_native_bed_wins_over_farther_mat(GameTestHelper h) { Scenarios.nearest_native_bed_wins_over_farther_mat(h); }
+    @GameTest(template="assembly_test",batch="maid_rest",timeoutTicks=70)
+    public static void nearest_mat_wins_over_farther_native_beds(GameTestHelper h) { Scenarios.nearest_mat_wins_over_farther_native_beds(h); }
+    @GameTest(template="assembly_test",batch="maid_rest",timeoutTicks=70)
+    public static void destroying_wagon_wakes_without_extra_favorability_loss(GameTestHelper h) { Scenarios.destroying_wagon_wakes_without_extra_favorability_loss(h); }
+    @GameTest(template="assembly_test",batch="maid_rest",timeoutTicks=70)
+    public static void working_task_chooses_nearest_mat_across_both_wagon_forms(GameTestHelper h) { Scenarios.working_task_chooses_nearest_mat_across_both_wagon_forms(h); }
     private static final class Scenarios {
 
     private static void time(GameTestHelper h,long time) {
@@ -59,7 +71,10 @@ public class WagonMaidGameTests {
     private static AssemblyFrameBlockEntity frame(GameTestHelper h) {
         var pos=h.absolutePos(new BlockPos(11,2,17));h.getLevel().setBlock(pos,WagonContent.FRAME.get().defaultBlockState(),3);
         var f=(AssemblyFrameBlockEntity)h.getLevel().getBlockEntity(pos);h.assertTrue(f.initializeFrame()==null,"Frame failed");
-        for(var pair:WagonEntity.defaultParts().entrySet())h.assertTrue(f.install(pair.getKey(),pair.getValue(),null,new ItemStack(WagonContent.PART_ITEMS.get(pair.getValue()).get()))==null,"Module failed");
+        for(var pair:WagonEntity.defaultParts().entrySet()) {
+            String error=f.install(pair.getKey(),pair.getValue(),null,new ItemStack(WagonContent.PART_ITEMS.get(pair.getValue()).get()));
+            h.assertTrue(error==null,"Module failed: "+pair.getKey()+", "+error);
+        }
         return f;
     }
     public static void maid_walks_to_double_seat_without_taking_driver(GameTestHelper h) {
@@ -102,11 +117,85 @@ public class WagonMaidGameTests {
     public static void block_mat_sleeps_and_removal_releases_occupancy(GameTestHelper h) {
         time(h,17000);var f=frame(h);mat(h,f.cargo());
         var m=maid(h,f.cargoPose().point(new Vec3(-2,0,.5)));
+        m.setTask(TaskManager.getIdleTask());m.setFavorability(100);
         h.runAfterDelay(30,()->{
             h.assertTrue(m.isSleeping()&&StrawMatSleep.matSleeper(m),"Maid did not use block-form mat: "+m.position()+", schedule="+m.getScheduleDetail()+", sleep="+StrawMatSleep.matSleeper(m));
+            h.assertTrue(m.getFavorability()==102,"Mat did not retain native sleep favorability reward");
             var p=h.makeMockPlayer(net.minecraft.world.level.GameType.SURVIVAL);p.setPos(m.position().add(-1,0,0));
+            int favorability=m.getFavorability();
             h.assertTrue(f.cargo().take(8,p)==null,"Mat removal failed");
-            h.assertTrue(!m.isSleeping()&&!StrawMatSleep.matSleeper(m)&&h.getLevel().noCollision(m,m.getBoundingBox().deflate(.0001)),"Removed mat left sleeping or trapped maid");h.succeed();
+            h.assertTrue(!m.isSleeping()&&!StrawMatSleep.matSleeper(m)&&h.getLevel().noCollision(m,m.getBoundingBox().deflate(.0001)),"Removed mat left sleeping or trapped maid");
+            h.assertTrue(m.getFavorability()==favorability,"Mat removal added a non-native favorability penalty");
+            h.succeed();
+        });
+    }
+    public static void changing_task_immediately_releases_companion_seat(GameTestHelper h) {
+        time(h,1000);var w=wagon(h,WagonPart.DOUBLE_SEAT);var m=maid(h,w.position().add(-2,0,0));
+        h.assertTrue(w.boardCompanion(m,1),"Fixture boarding failed");
+        m.setTask(TaskManager.getIdleTask());
+        h.assertTrue(!m.isPassenger(),"Task change left maid riding until next schedule update");
+        h.assertTrue(h.getLevel().noCollision(m,m.getBoundingBox().deflate(.0001)),"Task change dismounted into wagon");
+        h.runAfterDelay(22,()->{h.assertTrue(!m.isPassenger(),"Other task boarded the companion seat again");h.succeed();});
+    }
+    public static void other_tasks_sleep_on_entity_mat_and_task_change_keeps_sleep(GameTestHelper h) {
+        time(h,17000);var w=wagon(h,WagonPart.DOUBLE_SEAT);mat(h,w.cargo());
+        var m=maid(h,w.pose().point(new Vec3(-2,0,.5)));m.setTask(TaskManager.getIdleTask());
+        h.runAfterDelay(30,()->{
+            h.assertTrue(m.isSleeping()&&StrawMatSleep.matSleeper(m),"Idle task could not use entity mat");
+            m.setTask(TaskManager.findTask(WagonMaidExtension.TASK).orElseThrow());
+        });
+        h.runAfterDelay(50,()->{
+            h.assertTrue(m.isSleeping()&&StrawMatSleep.matSleeper(m),"Task change unnecessarily interrupted rest");
+            h.succeed();
+        });
+    }
+    private static BlockPos nativeBed(GameTestHelper h,BlockPos head) {
+        var bed=com.github.tartaricacid.touhoulittlemaid.init.InitBlocks.MAID_BED.get().defaultBlockState()
+            .setValue(com.github.tartaricacid.touhoulittlemaid.block.BlockMaidBed.FACING,Direction.NORTH);
+        h.setBlock(head,bed.setValue(com.github.tartaricacid.touhoulittlemaid.block.BlockMaidBed.PART,net.minecraft.world.level.block.state.properties.BedPart.HEAD));
+        h.setBlock(head.south(),bed.setValue(com.github.tartaricacid.touhoulittlemaid.block.BlockMaidBed.PART,net.minecraft.world.level.block.state.properties.BedPart.FOOT));
+        return h.absolutePos(head);
+    }
+    public static void nearest_native_bed_wins_over_farther_mat(GameTestHelper h) {
+        time(h,17000);var w=wagon(h,WagonPart.DOUBLE_SEAT);mat(h,w.cargo());
+        BlockPos bed=nativeBed(h,new BlockPos(3,2,17));
+        var m=maid(h,Vec3.atBottomCenterOf(bed.west()));m.setTask(TaskManager.getIdleTask());
+        h.succeedWhen(()->{
+            h.assertTrue(m.isSleeping()&&m.getSleepingPos().filter(bed::equals).isPresent(),"Nearest native bed was not selected: "+m.position()+", sleeping="+m.getSleepingPos());
+            h.assertTrue(!StrawMatSleep.matSleeper(m)&&w.cargo().entry(8).sleeper==null,"Farther mat stole native bed target");
+        });
+    }
+    public static void nearest_mat_wins_over_farther_native_beds(GameTestHelper h) {
+        time(h,17000);var w=wagon(h,WagonPart.DOUBLE_SEAT);mat(h,w.cargo());
+        nativeBed(h,new BlockPos(3,2,17));nativeBed(h,new BlockPos(21,2,17));
+        var m=maid(h,w.pose().point(new Vec3(-2,0,.5)));m.setTask(TaskManager.getIdleTask());
+        h.succeedWhen(()->{
+            h.assertTrue(m.isSleeping()&&StrawMatSleep.matSleeper(m)&&m.getUUID().equals(w.cargo().entry(8).sleeper),"Farther native bed stole nearer mat target: "+m.position()+", sleeping="+m.getSleepingPos());
+        });
+    }
+    public static void destroying_wagon_wakes_without_extra_favorability_loss(GameTestHelper h) {
+        time(h,17000);var w=wagon(h,WagonPart.DOUBLE_SEAT);mat(h,w.cargo());
+        var m=maid(h,w.pose().point(new Vec3(-2,0,.5)));m.setTask(TaskManager.getIdleTask());m.setFavorability(100);
+        h.runAfterDelay(30,()->{
+            h.assertTrue(m.isSleeping()&&StrawMatSleep.matSleeper(m),"Maid did not sleep before destruction");
+            int favorability=m.getFavorability();w.cargo().destroy(true);w.discard();
+            h.assertTrue(!m.isSleeping()&&!StrawMatSleep.matSleeper(m),"Destroyed wagon retained sleeping maid");
+            h.assertTrue(m.getFavorability()==favorability,"Wagon destruction added a non-native favorability penalty");
+            h.assertTrue(h.getLevel().noCollision(m,m.getBoundingBox().deflate(.0001)),"Destroyed wagon left maid trapped");h.succeed();
+        });
+    }
+    public static void working_task_chooses_nearest_mat_across_both_wagon_forms(GameTestHelper h) {
+        time(h,17000);var w=wagon(h,WagonPart.DOUBLE_SEAT);
+        // Install the block-form wagon before adding the second entity fixture:
+        // assembly deliberately rejects an intersecting entity's broad selection box.
+        w.discard();var f=frame(h);mat(h,f.cargo());
+        w=WagonContent.WAGON.get().create(h.getLevel());var parts=WagonEntity.defaultParts();parts.put(WagonSlot.SEAT,WagonPart.DOUBLE_SEAT);
+        w.configure(parts,Direction.NORTH);w.setPos(Vec3.atBottomCenterOf(h.absolutePos(new BlockPos(11,2,8))));h.getLevel().addFreshEntity(w);mat(h,w.cargo());
+        var farther=w;nativeBed(h,new BlockPos(3,2,17));
+        var m=maid(h,f.cargoPose().point(new Vec3(-2,0,.5)));m.setTask(TaskManager.getTaskIndex().get(1));
+        h.succeedWhen(()->{
+            h.assertTrue(m.isSleeping()&&StrawMatSleep.matSleeper(m)&&m.getUUID().equals(f.cargo().entry(8).sleeper),"Working task did not choose nearest block-form mat");
+            h.assertTrue(farther.cargo().entry(8).sleeper==null,"Farther entity mat was occupied");
         });
     }
     public static void movement_wakes_maid_and_mat_cannot_have_two_sleepers(GameTestHelper h) {

@@ -1,6 +1,8 @@
 package com.sange.tm_wagon.compat.maid;
 
 import com.github.tartaricacid.touhoulittlemaid.entity.passive.EntityMaid;
+import com.github.tartaricacid.touhoulittlemaid.init.InitEntities;
+import com.github.tartaricacid.touhoulittlemaid.init.InitPoi;
 import com.sange.tm_wagon.assembly.AssemblyFrameBlockEntity;
 import com.sange.tm_wagon.cargo.CargoEntry;
 import com.sange.tm_wagon.cargo.CargoHold;
@@ -10,11 +12,14 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Map;
 import java.util.UUID;
+import java.util.WeakHashMap;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.ai.behavior.Behavior;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.WalkTarget;
+import net.minecraft.world.entity.ai.village.poi.PoiManager;
+import net.minecraft.world.entity.ai.village.poi.PoiRecord;
 import net.minecraft.world.entity.schedule.Activity;
 import net.minecraft.world.phys.Vec3;
 
@@ -33,6 +38,9 @@ public final class WagonMaidBehavior extends Behavior<EntityMaid> {
         }
     }
     private Target target;
+    // Only server-side maids approaching a mat are present. Native bed AI must not
+    // replace that path during the brief gaps in WALK_TARGET while arriving.
+    private static final Map<EntityMaid,Target> MAT_TARGETS=new WeakHashMap<>();
     private long nextTick,nextSearch,expires,nextPath;
     private Vec3 walkingTo;
     private boolean resting;
@@ -41,8 +49,9 @@ public final class WagonMaidBehavior extends Behavior<EntityMaid> {
     @Override protected void start(ServerLevel level,EntityMaid maid,long time) {
         nextTick=time+10;
         boolean selected=WagonMaidExtension.selected(maid),rest=maid.getScheduleDetail()==Activity.REST;
-        StrawMatSleep.checkMobSleep(maid,selected&&rest);
-        if(!selected||!maid.isAlive()||maid.isMaidInSittingPose()||maid.isLeashed()||maid.getBrain().isActive(Activity.PANIC)) { clear(maid);return; }
+        StrawMatSleep.checkMobSleep(maid,rest);
+        if(!selected)leaveCompanionSeat(maid);
+        if((!selected&&!rest)||!maid.isAlive()||maid.isMaidInSittingPose()||maid.isLeashed()||maid.getBrain().isActive(Activity.PANIC)) { clear(maid);return; }
         if(maid.isSleeping()) { clear(maid);return; }
         if(rest!=resting) { clear(maid);resting=rest;nextSearch=0; }
         if(rest&&maid.getVehicle() instanceof WagonEntity) {
@@ -54,7 +63,11 @@ public final class WagonMaidBehavior extends Behavior<EntityMaid> {
         if(target!=null&&(!target.valid()||time>=expires||maid.distanceToSqr(target.point())>24*24))clear(maid);
         if(target==null) {
             if(time<nextSearch)return;
-            nextSearch=time+40;target=find(level,maid,rest);expires=time+200;
+            nextSearch=time+40;target=find(level,maid,rest);expires=time+(rest?40:200);
+            if(target!=null&&rest) {
+                stopWalking(maid);MAT_TARGETS.put(maid,target);
+                maid.getBrain().eraseMemory(InitEntities.TARGET_POS.get());
+            }
         }
         if(target==null)return;
         Vec3 point=target.point();
@@ -72,6 +85,17 @@ public final class WagonMaidBehavior extends Behavior<EntityMaid> {
         walkingTo=approach;nextPath=time+40;
         maid.getBrain().setMemory(MemoryModuleType.WALK_TARGET,new WalkTarget(approach,.6F,0));
     }
+    /** Called immediately by setTask, and by the core AI for restored passengers. */
+    public static void leaveCompanionSeat(EntityMaid maid) {
+        if(maid.getVehicle() instanceof WagonEntity wagon) {
+            int seat=wagon.passengerSeat(maid);
+            if(seat>=0&&seat<wagon.seatCapacity())maid.stopRiding();
+        }
+    }
+    public static boolean approachingMat(EntityMaid maid) {
+        Target mat=MAT_TARGETS.get(maid);
+        return mat!=null&&mat.valid()&&maid.getScheduleDetail()==Activity.REST;
+    }
     private static boolean close(EntityMaid maid,Vec3 point) {
         return Math.hypot(maid.getX()-point.x,maid.getZ()-point.z)<=3.25&&Math.abs(maid.getY()-point.y)<=3;
     }
@@ -86,7 +110,9 @@ public final class WagonMaidBehavior extends Behavior<EntityMaid> {
         return null;
     }
     private static Target find(ServerLevel level,EntityMaid maid,boolean rest) {
-        var area=maid.getBoundingBox().inflate(16,8,16);var candidates=new ArrayList<Target>();
+        BlockPos search=maid.getBrainSearchPos();int range=(int)maid.getRestrictRadius();
+        var area=rest?new net.minecraft.world.phys.AABB(search).inflate(range):maid.getBoundingBox().inflate(16,8,16);
+        var candidates=new ArrayList<Target>();
         for(var wagon:level.getEntitiesOfClass(WagonEntity.class,area,w->!w.isRemoved()&&!w.cargoBusy())) {
             if(rest)addMats(candidates,wagon.cargo());
             else for(int seat=0;seat<wagon.seatCapacity();seat++)if(wagon.companionSeatAvailable(seat))candidates.add(new Target(wagon.cargo(),seat,null));
@@ -97,9 +123,19 @@ public final class WagonMaidBehavior extends Behavior<EntityMaid> {
                 for(var be:chunk.getBlockEntities().values())if(be instanceof AssemblyFrameBlockEntity frame
                     &&area.contains(Vec3.atCenterOf(frame.getBlockPos())))addMats(candidates,frame.cargo());
             }
-        candidates.sort(Comparator.comparingDouble(t->maid.distanceToSqr(t.point())));
-        for(var candidate:candidates)if(candidate.valid()&&maid.isWithinRestriction(BlockPos.containing(candidate.point()))
-            &&(close(maid,candidate.point())||approach(maid,candidate)!=null))return candidate;
+        // Match MaidBedTask: use its search centre/radius and squared block-position
+        // distance. Native beds win ties and retain all original occupancy/AI rules.
+        double nativeDistance=rest?level.getPoiManager().getInRange(type->type.value().equals(InitPoi.MAID_BED.get()),
+            search,range,PoiManager.Occupancy.ANY).map(PoiRecord::getPos)
+            .mapToDouble(pos->pos.distSqr(maid.blockPosition())).min().orElse(Double.POSITIVE_INFINITY):Double.POSITIVE_INFINITY;
+        candidates.sort(Comparator.comparingDouble(t->rest?BlockPos.containing(t.point()).distSqr(maid.blockPosition()):maid.distanceToSqr(t.point())));
+        for(var candidate:candidates) {
+            BlockPos pos=BlockPos.containing(candidate.point());
+            if(rest&&pos.distSqr(maid.blockPosition())>=nativeDistance)return null;
+            if(rest&&pos.distSqr(search)>range*range)continue;
+            if(candidate.valid()&&maid.isWithinRestriction(pos)
+                &&(close(maid,candidate.point())||approach(maid,candidate)!=null))return candidate;
+        }
         return null;
     }
     private static void addMats(ArrayList<Target> list,CargoHold hold) {
@@ -109,7 +145,7 @@ public final class WagonMaidBehavior extends Behavior<EntityMaid> {
             if(mat!=null&&hold.slot(mat)==slot&&mat.kind==CargoEntry.Kind.STRAW_MAT&&mat.sleeper==null)list.add(new Target(hold,slot,mat.id));
         }
     }
-    private void clear(EntityMaid maid) { if(target!=null)stopWalking(maid);target=null;walkingTo=null; }
+    private void clear(EntityMaid maid) { if(target!=null)stopWalking(maid);MAT_TARGETS.remove(maid);target=null;walkingTo=null; }
     private static void stopWalking(EntityMaid maid) {
         maid.getNavigation().stop();maid.getBrain().eraseMemory(MemoryModuleType.WALK_TARGET);
         maid.getBrain().eraseMemory(MemoryModuleType.PATH);

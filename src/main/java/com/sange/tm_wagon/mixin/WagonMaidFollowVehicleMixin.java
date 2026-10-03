@@ -2,6 +2,7 @@ package com.sange.tm_wagon.mixin;
 
 import com.github.tartaricacid.touhoulittlemaid.entity.passive.EntityMaid;
 import com.sange.tm_wagon.compat.maid.WagonMaidExtension;
+import com.sange.tm_wagon.entity.WagonEntity;
 import net.minecraft.server.level.ServerLevel;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Pseudo;
@@ -15,6 +16,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public abstract class WagonMaidFollowVehicleMixin {
     @Inject(method="checkExtraStartConditions(Lnet/minecraft/server/level/ServerLevel;Lcom/github/tartaricacid/touhoulittlemaid/entity/passive/EntityMaid;)Z",at=@At("HEAD"),cancellable=true)
     private void tm_wagon$companionVehicle(ServerLevel level,EntityMaid maid,CallbackInfoReturnable<Boolean> callback) {
-        if(WagonMaidExtension.selected(maid))callback.setReturnValue(false);
+        var owner=maid.getOwner();
+        if(WagonMaidExtension.selected(maid)||maid.getVehicle() instanceof WagonEntity
+            ||owner!=null&&owner.getControlledVehicle() instanceof WagonEntity)callback.setReturnValue(false);
     }
 }

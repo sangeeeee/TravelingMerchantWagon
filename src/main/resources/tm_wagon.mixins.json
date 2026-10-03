@@ -6,6 +6,8 @@
     "WagonCollisionMixin",
     "WagonCarryOnPickupMixin",
     "WagonMaidFollowVehicleMixin",
+    "WagonMaidTaskMixin",
+    "WagonMaidBedMixin",
     "WagonMovementMixin",
     "WagonLithiumMovementMixin",
     "WagonLithiumClearanceMixin",
