@@ -41,6 +41,43 @@ public class CargoStoolGameTests {
         h.assertTrue(hold.place(slot,new ItemStack(WagonContent.STOOL.get()),player(h,hold))==null,"Stool placement failed");
     }
     @GameTest(template="assembly_test",timeoutTicks=35)
+    public static void stool_dismount_with_tall_front_cargo_stays_on_seat(GameTestHelper h) {
+        var w=wagon(h);place(h,w.cargo(),6);
+        h.assertTrue(w.cargo().place(4,new ItemStack(Items.CHEST),player(h,w.cargo()))==null,"Chest placement failed");
+        w.applyPose(new WagonPose(w.position(),225,0,0));
+        assertStandOnStool(h,w.cargo(),6,player(h,w.cargo()));
+        h.succeed();
+    }
+    @GameTest(template="assembly_test",timeoutTicks=35)
+    public static void block_stool_dismount_with_tall_front_cargo_stays_on_seat(GameTestHelper h) {
+        var f=frame(h);place(h,f.cargo(),6);
+        h.assertTrue(f.cargo().place(4,new ItemStack(Items.STONE),player(h,f.cargo()))==null,"Stone placement failed");
+        assertStandOnStool(h,f.cargo(),6,player(h,f.cargo()));
+        h.succeed();
+    }
+    @GameTest(template="assembly_test",timeoutTicks=35)
+    public static void rotated_canopied_stools_avoid_adjacent_tall_cargo_in_all_body_sizes(GameTestHelper h) {
+        var w=wagon(h);
+        for(var body:new WagonPart[]{WagonPart.CARGO_BODY,WagonPart.LONG_CARGO_BODY,WagonPart.WIDE_CARGO_BODY}) {
+            var modules=new java.util.EnumMap<WagonSlot,WagonPart>(WagonSlot.class);modules.putAll(w.parts());
+            modules.put(WagonSlot.BODY,body);w.configure(modules,Direction.NORTH);
+            // Both halves need to escape away from the centre when that side is blocked.
+            int front=body.columns(),rear=(body.rows()-2)*body.columns()+body.columns()-1;
+            place(h,w.cargo(),front);place(h,w.cargo(),rear);
+            var p=player(h,w.cargo());p.setPos(w.position().add(0,1,0));
+            h.assertTrue(w.cargo().place(front+body.columns(),new ItemStack(Items.STONE),p)==null,"Rear neighbour failed");
+            h.assertTrue(w.cargo().place(rear-body.columns(),new ItemStack(Items.CHEST),p)==null,"Front neighbour failed");
+            var tag=w.cargo().save(h.getLevel().registryAccess(),false);var canopy=new net.minecraft.nbt.CompoundTag();
+            canopy.putBoolean("Installed",true);tag.put("Canopy",canopy);w.cargo().load(tag,h.getLevel().registryAccess());w.cargoGeometryChanged();
+            for(float yaw:new float[]{180,195,210,225,240,270,315}) {
+                w.applyPose(new WagonPose(w.position(),yaw,0,0));
+                for(int slot:new int[]{front,rear})assertStandOnStool(h,w.cargo(),slot,player(h,w.cargo()));
+            }
+            w.cargo().load(new net.minecraft.nbt.CompoundTag(),h.getLevel().registryAccess());w.cargoGeometryChanged();
+        }
+        h.succeed();
+    }
+    @GameTest(template="assembly_test",timeoutTicks=35)
     public static void block_canopy_stool_dismount_stays_on_seat_for_players_and_mobs(GameTestHelper h) {
         var f=frame(h);place(h,f.cargo(),4);var p=player(h,f.cargo());
         h.assertTrue(f.cargo().canopy().install(new ItemStack(WagonContent.CANOPY.get()),p,new Vec3(-1.15625,1.9,.5))==null,"Roof install failed");
@@ -70,8 +107,8 @@ public class CargoStoolGameTests {
         h.assertTrue(hold.seats.sit(slot,rider)==null,"Canopied stool boarding failed");
         rider.stopRiding();Vec3 target=rider.position();
         h.assertTrue(rider.getPose()==Pose.STANDING,"Dismount left the rider pose active");
-        var pose=hold.owner().cargoPose();Vec3 centre=pose.point(CargoHold.centre(slot).add(0,.5,0));
-        double top=CargoHold.worldBox(CargoHold.stoolBox(slot),pose).maxY;
+        var pose=hold.owner().cargoPose();Vec3 centre=pose.point(hold.centreAt(slot).add(0,.5,0));
+        double top=CargoHold.worldBox(hold.stoolBounds(slot),pose).maxY;
         boolean aboveStool=Math.hypot(target.x-centre.x,target.z-centre.z)<=.355&&target.y>=top&&target.y-top<(allowOutside?.126:.01);
         h.assertTrue(aboveStool||allowOutside&&Math.abs(pose.local(target).x)>1.5,"Dismount jumped off stool or onto roof: slot="+slot+", yaw="+pose.yaw()+", pitch="+pose.pitch()+", roll="+pose.roll()+", local="+pose.local(target));
         h.assertTrue(h.getLevel().noCollision(rider,rider.getBoundingBox().deflate(.0001)),"Standing rider still intersects the canopy");

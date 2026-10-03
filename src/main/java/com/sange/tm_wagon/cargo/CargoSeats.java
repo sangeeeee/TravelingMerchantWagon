@@ -15,9 +15,16 @@ import net.minecraft.world.phys.Vec3;
 
 /** Empty stools have no entities. Moving wagons reuse their existing passenger list. */
 public final class CargoSeats {
+    private static final java.util.List<Vec3> STAND_OFFSETS=standOffsets();
     private final CargoHold hold;
     private final Map<UUID,CargoSeatEntity> anchors=new HashMap<>();
     public CargoSeats(CargoHold hold) { this.hold=hold; }
+    private static java.util.List<Vec3> standOffsets() {
+        var offsets=new java.util.ArrayList<Vec3>();
+        for(int x=-4;x<=4;x++)for(int z=-4;z<=4;z++)offsets.add(new Vec3(x/16.0,0,z/16.0));
+        offsets.sort(java.util.Comparator.comparingDouble(Vec3::lengthSqr));
+        return java.util.List.copyOf(offsets);
+    }
     public static boolean eligible(LivingEntity rider) {
         return rider.isAlive()&&!rider.isRemoved()&&!rider.isPassenger()&&!rider.isVehicle()
             &&!rider.isSleeping()&&rider.getBbWidth()<=1.0F&&(!(rider instanceof Player p)||!p.isSpectator());
@@ -89,13 +96,12 @@ public final class CargoSeats {
             double top=Math.max(centre.y,CargoHold.worldBox(hold.stoolBounds(slot),pose).maxY);
             // Stay next to the seat surface. A tall vertical search could skip
             // the entire roof and teleport the rider onto its outside.
-            // A world-upright rider can clip the tilted side wall's conservative
-            // bounds. Try small inward offsets that still lie above the stool.
-            double inward=-Math.signum(hold.centreAt(slot).x);
-            double middleZ=(hold.owner().cargoBody().frontOffset()+CargoCanopy.FRONT+2.21875+hold.rearExtension())/2;
-            double longitudinal=Math.signum(middleZ-hold.centreAt(slot).z);
-            for(double rise=.001;rise<=.125;rise+=1.0/32)for(double shift=0;shift<=.25;shift+=1.0/16)for(double along=0;along<=.25;along+=1.0/16) {
-                Vec3 offset=pose.vector(new Vec3(inward*shift,0,longitudinal*along));
+            // The upright, world-aligned rider can overlap adjacent cargo when
+            // the wagon is rotated. Search nearest-first in every direction:
+            // searching only toward the wagon centre misses free space behind
+            // a stool with tall cargo in front. Keep offsets above this stool.
+            for(double rise=.001;rise<=.125;rise+=1.0/32)for(Vec3 localOffset:STAND_OFFSETS) {
+                Vec3 offset=pose.vector(localOffset);
                 Vec3 target=new Vec3(centre.x+offset.x,top+rise,centre.z+offset.z);
                 if(clear(rider,target))return target;
             }
