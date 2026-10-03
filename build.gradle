@@ -151,6 +151,17 @@ neoForge {
             systemProperty 'neoforge.enabledGameTestNamespaces', 'tm_wagon_carryon'
             systemProperty 'tm_wagon.requireCarryOnTest', 'true'
         }
+        maidGameTestServer {
+            type = "gameTestServer"
+            gameDirectory = project.file('build/maid-server')
+            systemProperty 'neoforge.enabledGameTestNamespaces', 'tm_wagon_maid'
+        }
+        maidClientSmokeTest {
+            client()
+            gameDirectory = project.file('build/maid-client')
+            systemProperty 'tm_wagon.maidClientSmoke', 'true'
+            programArguments.addAll '--width', '1000', '--height', '700'
+        }
         bclibGameTestServer {
             type = "gameTestServer"
             gameDirectory = project.file('build/bclib-server')

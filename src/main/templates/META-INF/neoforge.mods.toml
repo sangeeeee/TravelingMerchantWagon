@@ -116,3 +116,11 @@ config="${mod_id}.mixins.json"
     versionRange="[2.2.4,)"
     ordering="AFTER"
     side="BOTH"
+
+# Optional maid task and mat-sleep integration; accept all versions providing the extension API.
+[[dependencies.${mod_id}]]
+    modId="touhou_little_maid"
+    type="optional"
+    versionRange="*"
+    ordering="AFTER"
+    side="BOTH"

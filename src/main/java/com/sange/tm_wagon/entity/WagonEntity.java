@@ -470,6 +470,23 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
         return getPassengers().stream().anyMatch(passenger -> passenger!=except&&passengerSeat(passenger)==seat);
     }
     public boolean cargoSeatOccupied(int slot) { return seatOccupied(CARGO_SEAT_BASE+slot,null); }
+    /** AI may board a passenger seat directly, without bypassing the driver's assignment. */
+    public int freeCompanionSeat() {
+        if(isRemoved()||cargoBusy()||seatCapacity()<2)return -1;
+        for(int seat=0;seat<seatCapacity();seat++)if(companionSeatAvailable(seat))return seat;
+        return -1;
+    }
+    public boolean companionSeatAvailable(int seat) {
+        return !isRemoved()&&!cargoBusy()&&seat>=0&&seat<seatCapacity()&&seat!=cargoSeat().driverSeat()&&!seatOccupied(seat,null);
+    }
+    public Vec3 companionSeatPosition(int seat) { return seatPosition(seat); }
+    public boolean boardCompanion(LivingEntity rider,int seat) {
+        if(level().isClientSide||!companionSeatAvailable(seat)
+            ||!com.sange.tm_wagon.cargo.CargoSeats.eligible(rider)||rider.level()!=level())return false;
+        requestedSeat=seat;
+        try { boolean boarded=rider.startRiding(this);if(boarded)positionRider(rider);return boarded; }
+        finally { requestedSeat=-1; }
+    }
     public boolean boardCargoSeat(LivingEntity rider,int slot) {
         if(cargo.cover().covered(slot))return false;
         requestedSeat=CARGO_SEAT_BASE+slot;

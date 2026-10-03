@@ -5,6 +5,7 @@
   "mixins": [
     "WagonCollisionMixin",
     "WagonCarryOnPickupMixin",
+    "WagonMaidFollowVehicleMixin",
     "WagonMovementMixin",
     "WagonLithiumMovementMixin",
     "WagonLithiumClearanceMixin",

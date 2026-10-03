@@ -59,6 +59,7 @@ public final class WagonContent {
         return BlockEntityType.Builder.of(AssemblyCellBlockEntity::new, blocks).build(null);
     });
     public static final DeferredItem<Item> ICON = ITEMS.registerSimpleItem("wagon_icon");
+    public static final DeferredItem<Item> MAID_TASK_ICON = ITEMS.registerSimpleItem("maid_wagon_companion_icon");
     public static final DeferredHolder<CreativeModeTab, CreativeModeTab> TAB = TABS.register("wagons", () -> CreativeModeTab.builder()
         .title(Component.translatable("itemGroup.tm_wagon"))
         .icon(() -> ICON.get().getDefaultInstance())

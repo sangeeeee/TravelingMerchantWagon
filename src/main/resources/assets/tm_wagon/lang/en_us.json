@@ -112,5 +112,7 @@
   "tooltip.tm_wagon.triple_seat": "Wide cargo bodies only; the middle seat is the driver.",
   "block.tm_wagon.triple_wooden_seat": "Triple Wooden Driver Seat",
   "tooltip.tm_wagon.triple_wooden_seat": "Wide cargo bodies only; the middle seat is the driver.",
-  "message.tm_wagon.cargo_container_protected": "This container has a lock or an ungenerated loot table and cannot be loaded as cargo."
+  "message.tm_wagon.cargo_container_protected": "This container has a lock or an ungenerated loot table and cannot be loaded as cargo.",
+"task.tm_wagon.wagon_companion": "Wagon Companion",
+"task.tm_wagon.wagon_companion.desc": "Boards a nearby wagon passenger seat during work and rests on a wagon straw mat during scheduled sleep."
 }
