@@ -194,6 +194,10 @@ dependencies {
     if (providers.gradleProperty('withSable').getOrElse('false').toBoolean()) {
         localRuntime("maven.modrinth:sable:${sable_neoforge_version_id}") { transitive = false }
     }
+    // Optional local optimizer JAR for compatibility regression runs only.
+    if (providers.gradleProperty('lithiumTestJar').isPresent()) {
+        localRuntime files(providers.gradleProperty('lithiumTestJar').get())
+    }
 
     // Example optional mod dependency with JEI
     // The JEI API is declared for compile time use, while the full JEI artifact is used at runtime

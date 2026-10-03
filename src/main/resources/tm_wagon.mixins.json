@@ -5,6 +5,8 @@
   "mixins": [
     "WagonCollisionMixin",
     "WagonMovementMixin",
+    "WagonLithiumMovementMixin",
+    "WagonLithiumClearanceMixin",
     "WagonClearanceMixin",
     "WagonPlayerCollisionMixin",
     "WagonPickingMixin",

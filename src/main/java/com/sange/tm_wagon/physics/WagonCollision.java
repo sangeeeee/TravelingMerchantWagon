@@ -75,8 +75,10 @@ public final class WagonCollision {
     }
     public static boolean vanillaOnly() { return VANILLA.get(); }
     public static boolean eligible(Entity entity,WagonEntity wagon) {
+        // Own the narrow-phase filter: vanilla collidability must stay false so
+        // optimized broad-phase collectors never turn the outer bounds solid.
         return entity!=wagon&&wagon!=WagonCrowd.excludedWagon()&&!wagon.isRemoved()
-            &&(entity==null||!entity.isSpectator()&&entity.canCollideWith(wagon)
+            &&(entity==null||!entity.isSpectator()&&!entity.isPassengerOfSameVehicle(wagon)
                 &&!(entity instanceof AbstractHorse&&wagon.hasHorse(entity.getUUID())));
     }
     public static List<OrientedBox> nearby(Level level,Entity entity,AABB area) {

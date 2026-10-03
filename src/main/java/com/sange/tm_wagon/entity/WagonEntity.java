@@ -301,7 +301,9 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
     public float renderSteering(float tick) { return Mth.lerp(tick,oldSteering,steering); }
     public float renderShaftPitch(float tick) { return Mth.lerp(tick,oldShaftPitch,shaftPitch); }
     public float renderWheel(int i,float tick) { return Mth.lerp(tick,oldWheels[i],wheels[i]); }
-    @Override public boolean canBeCollidedWith() { return !isRemoved(); }
+    // The large entity AABB is for discovery/picking, never a solid collider.
+    // Optimizers may collect vanilla entity collisions without EntityGetter's hooks.
+    @Override public boolean canBeCollidedWith() { return false; }
     @Override public boolean isPickable() { return !isRemoved(); }
     @Override public boolean isPushable() { return false; }
     @Override public void push(double x,double y,double z) {}
@@ -732,7 +734,7 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
     }
     @Override public boolean canCollideWith(Entity entity) {
         return !crowd.yields(entity)&&!(entity instanceof AbstractHorse h&&hasHorse(h.getUUID()))&&!entity.isPassengerOfSameVehicle(this)
-            &&(entity.canBeCollidedWith()||entity.isPushable());
+            &&(entity instanceof WagonEntity||entity.canBeCollidedWith()||entity.isPushable());
     }
     @Override public boolean hurt(DamageSource source,float amount) {
         if(level().isClientSide||isRemoved()||isInvulnerableTo(source)||amount<=0)return false;
