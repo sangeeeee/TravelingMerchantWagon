@@ -224,6 +224,9 @@ public final class CargoHold {
         if(state.getBlock() instanceof ShulkerBoxBlock)state=state.setValue(ShulkerBoxBlock.FACING,net.minecraft.core.Direction.UP);
         if(mat)for(int cell=slot;cell>=slot-2*columns();cell-=columns())
             if(!owner.cargoLevel().mayInteract(player,BlockPos.containing(owner.cargoPose().point(centreAt(cell)))))return "message.tm_wagon.protected";
+        var storageKind=CargoEntry.kind(state);
+        if((storageKind==CargoEntry.Kind.CHEST||storageKind==CargoEntry.Kind.BARREL)&&CargoContainers.protectedContents(stack))
+            return "message.tm_wagon.cargo_container_protected";
         if(!freeLocalVolume(mat?matBounds(slot):stool?stoolBounds(slot):slotBounds(slot)))return "message.tm_wagon.cargo_blocked";
         CargoEntry entry=CargoEntry.fromItem(this,stack,state);entries[slot]=entry;
         String error=owner.cargoGeometryChanged();

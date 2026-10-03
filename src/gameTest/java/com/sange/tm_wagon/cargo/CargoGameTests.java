@@ -405,4 +405,69 @@ public class CargoGameTests {
         });
     }
 
+
+    @GameTest(template="assembly_test",timeoutTicks=30)
+    public static void container_variants_use_safe_categories_and_reject_custom_storage(GameTestHelper h) {
+        h.assertTrue(CargoEntry.kind(ContainerVariantFixtures.CHEST.defaultBlockState())==CargoEntry.Kind.CHEST,"Cosmetic chest not recognized");
+        h.assertTrue(CargoEntry.kind(ContainerVariantFixtures.BARREL.defaultBlockState())==CargoEntry.Kind.BARREL,"Cosmetic barrel not recognized");
+        h.assertTrue(CargoEntry.kind(ContainerVariantFixtures.LARGE.defaultBlockState())==CargoEntry.Kind.ORDINARY,"Custom capacity was treated as 27 slots");
+        h.assertTrue(CargoEntry.kind(ContainerVariantFixtures.CUSTOM.defaultBlockState())==CargoEntry.Kind.ORDINARY,"Custom slot policy was bypassed");
+        h.assertTrue(CargoEntry.kind(Blocks.HOPPER.defaultBlockState())==CargoEntry.Kind.ORDINARY,"Arbitrary inventory capability accepted");h.succeed();
+    }
+    @GameTest(template="assembly_test",timeoutTicks=30)
+    public static void variant_contents_import_menu_reload_and_removal_have_one_owner(GameTestHelper h) {
+        var w=wagon(h);var hold=w.cargo();var p=serverPlayer(h,hold);
+        var stack=new ItemStack(ContainerVariantFixtures.CHEST);var contents=NonNullList.withSize(27,ItemStack.EMPTY);contents.set(26,new ItemStack(Items.DIAMOND,17));
+        var nbt=new CompoundTag();nbt.putString("id","cargo_fixture:chest");net.minecraft.world.ContainerHelper.saveAllItems(nbt,contents,h.getLevel().registryAccess());
+        stack.set(DataComponents.BLOCK_ENTITY_DATA,CustomData.of(nbt));
+        stack.set(DataComponents.CONTAINER,ItemContainerContents.fromItems(contents));
+        h.assertTrue(hold.place(0,stack,p)==null,"Variant placement failed");var entry=hold.entry(0);
+        h.assertTrue(entry.inventory.getItem(26).getCount()==17&&!entry.item.has(DataComponents.CONTAINER)&&!entry.item.getOrDefault(DataComponents.BLOCK_ENTITY_DATA,CustomData.EMPTY).copyTag().contains("Items"),"Imported contents have two owners");
+        CargoMenus.open(hold,entry,p);h.assertTrue(p.containerMenu instanceof net.minecraft.world.inventory.ChestMenu,"Variant did not open a chest menu");
+        p.containerMenu.getSlot(0).set(new ItemStack(Items.EMERALD,9));
+        var restored=CargoEntry.load(hold,entry.save(h.getLevel().registryAccess(),false),h.getLevel().registryAccess());
+        h.assertTrue(restored.state.getBlock()==ContainerVariantFixtures.CHEST&&restored.inventory.getItem(26).getCount()==17&&restored.inventory.getItem(0).getCount()==9,"Reload lost variant or inventory");
+        h.assertTrue(hold.take(0,p)==null&&hold.take(0,p)!=null,"Variant removal did not commit once");
+        h.assertTrue(carried(p,ContainerVariantFixtures.CHEST.asItem())==1&&dropped(h,hold,Items.DIAMOND)==17&&dropped(h,hold,Items.EMERALD)==9,"Variant or contents did not drop exactly once");
+        h.assertTrue(p.containerMenu==p.inventoryMenu,"Removed variant retained a menu");h.succeed();
+    }
+    @GameTest(template="assembly_test",timeoutTicks=80)
+    public static void chest_and_barrel_variants_survive_actual_form_conversion(GameTestHelper h) {
+        var f=frame(h);var p=player(h,f.cargo());
+        var chest=put(h,f.cargo(),4,ContainerVariantFixtures.CHEST.asItem(),p);chest.inventory.setItem(0,new ItemStack(Items.DIAMOND,11));
+        var barrel=put(h,f.cargo(),5,ContainerVariantFixtures.BARREL.asItem(),p);barrel.inventory.setItem(26,new ItemStack(Items.EMERALD,7));
+        h.assertTrue(f.toggleFrame(null)==null,"Assembly failed");
+        var w=h.getLevel().getEntitiesOfClass(WagonEntity.class,new AABB(f.getBlockPos()).inflate(6)).getFirst();
+        h.assertTrue(f.cargo().empty()&&w.cargo().entry(4)==chest&&w.cargo().entry(5)==barrel,"Assembly cloned storage");
+        h.runAtTickTime(24,()->h.assertTrue(f.toggleFrame(null)==null,"Restoration failed"));
+        h.runAtTickTime(49,()->{h.assertTrue(w.isRemoved()&&w.cargo().empty()&&f.cargo().entry(4)==chest&&f.cargo().entry(5)==barrel&&chest.inventory.getItem(0).getCount()==11&&barrel.inventory.getItem(26).getCount()==7,"Round trip changed ownership or contents");h.succeed();});
+    }
+    @GameTest(template="assembly_test",timeoutTicks=30)
+    public static void protected_variant_item_is_rejected_without_consumption(GameTestHelper h) {
+        var hold=wagon(h).cargo();var p=player(h,hold);
+        for(String key:List.of("Lock","LootTable")) {
+            var stack=new ItemStack(ContainerVariantFixtures.CHEST,2);var nbt=new CompoundTag();nbt.putString("id","cargo_fixture:chest");nbt.putString(key,"test:value");stack.set(DataComponents.BLOCK_ENTITY_DATA,CustomData.of(nbt));
+            h.assertTrue("message.tm_wagon.cargo_container_protected".equals(hold.place(0,stack,p))&&stack.getCount()==2&&hold.empty(),"Protected container was consumed or bypassed");
+        }
+        h.succeed();
+    }
+
+    @GameTest(template="assembly_test",timeoutTicks=30)
+    public static void legacy_decorative_variant_inventory_migrates_once(GameTestHelper h) {
+        var hold=wagon(h).cargo();var stack=new ItemStack(ContainerVariantFixtures.CHEST);
+        var contents=NonNullList.withSize(27,ItemStack.EMPTY);contents.set(8,new ItemStack(Items.DIAMOND,23));
+        stack.set(DataComponents.CONTAINER,ItemContainerContents.fromItems(contents));
+        var old=new CargoEntry(hold,java.util.UUID.randomUUID(),stack,ContainerVariantFixtures.CHEST.defaultBlockState());
+        var migrated=CargoEntry.load(hold,old.save(h.getLevel().registryAccess(),false),h.getLevel().registryAccess());
+        h.assertTrue(migrated.id.equals(old.id)&&migrated.inventory.getItem(8).getCount()==23&&!migrated.item.has(DataComponents.CONTAINER),"Legacy item storage was lost or retained twice");
+        var again=CargoEntry.load(hold,migrated.save(h.getLevel().registryAccess(),false),h.getLevel().registryAccess());
+        h.assertTrue(again.inventory.getItem(8).getCount()==23&&!again.item.has(DataComponents.CONTAINER),"Repeated loading duplicated inventory");
+        var detached=new AssemblyFrameBlockEntity(BlockPos.ZERO,WagonContent.FRAME.get().defaultBlockState());
+        var detachedEntry=CargoEntry.load(detached.cargo(),old.save(h.getLevel().registryAccess(),false),h.getLevel().registryAccess());
+        h.assertTrue(detached.getLevel()==null&&detachedEntry.inventory.getItem(8).getCount()==23,"Chunk load before setLevel lost imported contents");
+        var protectedTag=new CompoundTag();protectedTag.putString("id","cargo_fixture:chest");protectedTag.putString("Lock","secret");stack.set(DataComponents.BLOCK_ENTITY_DATA,CustomData.of(protectedTag));
+        var locked=new CargoEntry(hold,java.util.UUID.randomUUID(),stack,ContainerVariantFixtures.CHEST.defaultBlockState());
+        var loaded=CargoEntry.load(hold,locked.save(h.getLevel().registryAccess(),false),h.getLevel().registryAccess());
+        h.assertTrue(loaded.kind==CargoEntry.Kind.ORDINARY&&loaded.inventory.getContainerSize()==0&&loaded.item.has(DataComponents.CONTAINER),"Legacy locked item exposed or lost its contents");h.succeed();
+    }
 }

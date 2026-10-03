@@ -111,5 +111,6 @@
   "block.tm_wagon.triple_seat": "Triple Backrest Driver Seat",
   "tooltip.tm_wagon.triple_seat": "Wide cargo bodies only; the middle seat is the driver.",
   "block.tm_wagon.triple_wooden_seat": "Triple Wooden Driver Seat",
-  "tooltip.tm_wagon.triple_wooden_seat": "Wide cargo bodies only; the middle seat is the driver."
+  "tooltip.tm_wagon.triple_wooden_seat": "Wide cargo bodies only; the middle seat is the driver.",
+  "message.tm_wagon.cargo_container_protected": "This container has a lock or an ungenerated loot table and cannot be loaded as cargo."
 }

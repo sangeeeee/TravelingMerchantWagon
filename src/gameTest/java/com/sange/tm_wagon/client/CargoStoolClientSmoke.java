@@ -46,6 +46,16 @@ public final class CargoStoolClientSmoke {
         ticks++;
         if(ticks==1)server(mc,()->prepare(mc));
         if(ticks==25)require(mc.player.getVehicle() instanceof CargoSeatEntity,"Block seat was not tracked by client");
+        if(ticks==30&&Boolean.getBoolean("tm_wagon.containerVariantSmoke")) {
+            var f=(AssemblyFrameBlockEntity)mc.level.getBlockEntity(FRAME);var entry=f.cargo().entry(0);
+            var be=(net.minecraft.world.level.block.entity.ChestBlockEntity)CargoChestVisuals.create(entry);
+            require(be.getClass().getName().contains("quark"),"Native Quark BE type was replaced");
+            require(mc.getBlockEntityRenderDispatcher().getRenderer(be)!=null,"No Quark renderer");
+            entry.opened=true;entry.lidStart=Long.MIN_VALUE;
+            require(be.getOpenNess(0)==1,"Native mod chest ignored cargo lid state");entry.opened=false;
+            require(be.getOpenNess(0)==0,"Native mod chest lid did not close");
+            LogUtils.getLogger().info("CARGO_VARIANT_CLIENT_PASS: native Quark renderer and cargo lid state");
+        }
         if(ticks==35)mc.options.keyShift.setDown(true);
         if(ticks==38)mc.options.keyShift.setDown(false);
         if(ticks==55) {
@@ -111,6 +121,15 @@ public final class CargoStoolClientSmoke {
         require(f.install(WagonSlot.BODY,body,null,new ItemStack(WagonContent.PART_ITEMS.get(body).get()))==null,"Body init failed");
         for(var entry:WagonEntity.defaultParts().entrySet())if(entry.getKey()!=WagonSlot.BODY)
             require(f.install(entry.getKey(),entry.getValue(),null,new ItemStack(WagonContent.PART_ITEMS.get(entry.getValue()).get()))==null,"Module init failed");
+        if(Boolean.getBoolean("tm_wagon.containerVariantSmoke")) {
+            var registry=net.minecraft.core.registries.BuiltInRegistries.BLOCK;
+            var chests=registry.stream().filter(b->registry.getKey(b).getNamespace().equals("quark")&&b instanceof net.minecraft.world.level.block.ChestBlock).toList();
+            require(!chests.isEmpty(),"Quark chest fixtures not installed");
+            for(var block:chests)require(com.sange.tm_wagon.cargo.CargoEntry.kind(block.defaultBlockState())==com.sange.tm_wagon.cargo.CargoEntry.Kind.CHEST,"Unrecognized Quark chest: "+registry.getKey(block));
+            require(f.cargo().place(0,new ItemStack(chests.getFirst()),p)==null,"Quark chest placement failed");
+            f.cargo().entry(0).inventory.setItem(26,new ItemStack(net.minecraft.world.item.Items.DIAMOND,17));
+            LogUtils.getLogger().info("CARGO_VARIANT_QUARK_PASS: {} chest variants recognized",chests.size());
+        }
         require(f.cargo().place(SLOT,new ItemStack(WagonContent.STOOL.get()),p)==null,"Stool placement failed");
         require(f.cargo().canopy().install(new ItemStack(WagonContent.CANOPY.get()),p,new Vec3(-1.15625,1.9,.5))==null,"Canopy install failed");
         require(f.cargo().seats.sit(SLOT,p)==null,"Block stool seat failed");

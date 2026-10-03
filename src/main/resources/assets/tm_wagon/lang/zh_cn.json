@@ -111,5 +111,6 @@
   "block.tm_wagon.triple_seat": "三人带靠背车夫座椅",
   "tooltip.tm_wagon.triple_seat": "仅适用于加宽货物车厢；中间为驾驶位。",
   "block.tm_wagon.triple_wooden_seat": "三人木制车夫座椅",
-  "tooltip.tm_wagon.triple_wooden_seat": "仅适用于加宽货物车厢；中间为驾驶位。"
+  "tooltip.tm_wagon.triple_wooden_seat": "仅适用于加宽货物车厢；中间为驾驶位。",
+  "message.tm_wagon.cargo_container_protected": "此容器带有锁或尚未生成的战利品，无法作为可交互货物装载。"
 }

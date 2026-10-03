@@ -54,6 +54,7 @@ public final class CargoEntry {
         var block=state.getBlock();
         if(block==Blocks.CHEST||block==Blocks.TRAPPED_CHEST)return Kind.CHEST;
         if(block==Blocks.BARREL)return Kind.BARREL;
+        var storage=CargoContainers.kind(state);if(storage!=Kind.ORDINARY)return storage;
         if(block instanceof ShulkerBoxBlock)return Kind.SHULKER;
         if(block==Blocks.FURNACE)return Kind.FURNACE;
         if(block==Blocks.SMOKER)return Kind.SMOKER;
@@ -76,7 +77,9 @@ public final class CargoEntry {
         return Kind.ORDINARY;
     }
     public CargoEntry(CargoHold hold,UUID id,ItemStack stack,BlockState state) {
-        this.hold=hold;this.id=id;item=stack.copyWithCount(1);this.state=state;kind=stack.getItem() instanceof StrawMatItem?Kind.STRAW_MAT:stack.getItem() instanceof WagonStoolItem?Kind.STOOL:kind(state);
+        this.hold=hold;this.id=id;item=stack.copyWithCount(1);this.state=state;var detected=kind(state);
+        if((detected==Kind.CHEST||detected==Kind.BARREL)&&CargoContainers.protectedContents(stack))detected=Kind.ORDINARY;
+        kind=stack.getItem() instanceof StrawMatItem?Kind.STRAW_MAT:stack.getItem() instanceof WagonStoolItem?Kind.STOOL:detected;
         recipeCheck=RecipeManager.createCheck(recipeType());
         inventory=new Inventory(switch(kind) {
             case FURNACE,SMOKER,BLAST_FURNACE->3;case CHEST,BARREL,SHULKER->27;
@@ -84,11 +87,14 @@ public final class CargoEntry {
         });
     }
     public static CargoEntry fromItem(CargoHold hold,ItemStack stack,BlockState state) {
-        var entry=new CargoEntry(hold,UUID.randomUUID(),stack,state);entry.loading=true;
+        return fromItem(hold,stack,state,UUID.randomUUID(),hold.owner().cargoLevel().registryAccess());
+    }
+    private static CargoEntry fromItem(CargoHold hold,ItemStack stack,BlockState state,UUID id,HolderLookup.Provider lookup) {
+        var entry=new CargoEntry(hold,id,stack,state);entry.loading=true;
         if(entry.inventory.getContainerSize()>0) {
             var contents=NonNullList.withSize(entry.inventory.getContainerSize(),ItemStack.EMPTY);
             var tag=stack.getOrDefault(DataComponents.BLOCK_ENTITY_DATA,CustomData.EMPTY).copyTag();
-            ContainerHelper.loadAllItems(tag,contents,hold.owner().cargoLevel().registryAccess());
+            ContainerHelper.loadAllItems(tag,contents,lookup);
             var component=stack.get(DataComponents.CONTAINER);
             // Vanilla container items have an empty default component. It must
             // not erase inventory imported from legacy BlockEntityTag data.
@@ -102,8 +108,8 @@ public final class CargoEntry {
             if(entry.kind==Kind.BREWING) {
                 entry.brewTime=Math.max(0,tag.getInt("BrewTime"));entry.brewFuel=Math.max(0,tag.getInt("Fuel"));entry.brewingIngredient=entry.inventory.getItem(3).getItem();
             }
-            if(entry.kind==Kind.LECTERN&&tag.contains("Book"))entry.inventory.setItem(0,ItemStack.parseOptional(hold.owner().cargoLevel().registryAccess(),tag.getCompound("Book")));
-            if(entry.kind==Kind.POT&&tag.contains("item"))entry.inventory.setItem(0,ItemStack.parseOptional(hold.owner().cargoLevel().registryAccess(),tag.getCompound("item")));
+            if(entry.kind==Kind.LECTERN&&tag.contains("Book"))entry.inventory.setItem(0,ItemStack.parseOptional(lookup,tag.getCompound("Book")));
+            if(entry.kind==Kind.POT&&tag.contains("item"))entry.inventory.setItem(0,ItemStack.parseOptional(lookup,tag.getCompound("item")));
             entry.item.remove(DataComponents.CONTAINER);
             for(String key:new String[]{"Items","BurnTime","CookTime","CookTimeTotal","RecipesUsed","BrewTime","Fuel","Book","Page","item"})tag.remove(key);
             if(tag.isEmpty())entry.item.remove(DataComponents.BLOCK_ENTITY_DATA);else entry.item.set(DataComponents.BLOCK_ENTITY_DATA,CustomData.of(tag));
@@ -200,9 +206,25 @@ public final class CargoEntry {
         var item=ItemStack.parseOptional(lookup,tag.getCompound("Item"));
         if(item.isEmpty()||!(item.getItem() instanceof net.minecraft.world.item.BlockItem||item.getItem() instanceof StrawMatItem||item.getItem() instanceof WagonStoolItem))return null;
         var state=NbtUtils.readBlockState(lookup.lookupOrThrow(net.minecraft.core.registries.Registries.BLOCK),tag.getCompound("State"));
-        var entry=new CargoEntry(hold,tag.hasUUID("Id")?tag.getUUID("Id"):UUID.randomUUID(),item,state);entry.loading=true;
+        var id=tag.hasUUID("Id")?tag.getUUID("Id"):UUID.randomUUID();
+        var detected=kind(state);
+        // Previously decorative variants may still carry inventory inside their item.
+        // Import and strip it once; an existing authoritative cargo inventory takes precedence.
+        var entry=detected==Kind.CHEST||detected==Kind.BARREL?fromItem(hold,item,state,id,lookup):new CargoEntry(hold,id,item,state);
+        entry.loading=true;
+        if(entry.kind==Kind.ORDINARY&&(detected==Kind.CHEST||detected==Kind.BARREL)
+                &&!tag.getList("Items",net.minecraft.nbt.Tag.TAG_COMPOUND).isEmpty()) {
+            // Older builds allowed locked vanilla cargo to have separate storage.
+            // Preserve it in the non-interactive returned item instead of dropping it on load.
+            var preserved=entry.item.getOrDefault(DataComponents.BLOCK_ENTITY_DATA,CustomData.EMPTY).copyTag();
+            preserved.put("Items",tag.getList("Items",net.minecraft.nbt.Tag.TAG_COMPOUND).copy());
+            entry.item.remove(DataComponents.CONTAINER);entry.item.set(DataComponents.BLOCK_ENTITY_DATA,CustomData.of(preserved));
+        }
         if(tag.getBoolean("Visual")&&tag.hasUUID("Sleeper"))entry.sleeper=tag.getUUID("Sleeper");
-        var contents=NonNullList.withSize(entry.inventory.getContainerSize(),ItemStack.EMPTY);ContainerHelper.loadAllItems(tag,contents,lookup);
+        var contents=NonNullList.withSize(entry.inventory.getContainerSize(),ItemStack.EMPTY);
+        if(tag.getList("Items",net.minecraft.nbt.Tag.TAG_COMPOUND).isEmpty())
+            for(int i=0;i<contents.size();i++)contents.set(i,entry.inventory.getItem(i));
+        ContainerHelper.loadAllItems(tag,contents,lookup);
         for(int i=0;i<contents.size();i++)entry.inventory.setItem(i,contents.get(i));
         entry.brewTime=Math.max(0,tag.getInt("BrewTime"));entry.brewFuel=Math.max(0,tag.getInt("BrewFuel"));entry.page=Math.max(0,tag.getInt("Page"));
         entry.compostReady=tag.contains("CompostReady")?tag.getLong("CompostReady"):Long.MIN_VALUE;

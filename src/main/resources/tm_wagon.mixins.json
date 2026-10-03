@@ -20,7 +20,8 @@
     "HorseLeashMixin"
   ],
   "client": [
-    "WagonSleepRendererMixin"
+    "WagonSleepRendererMixin",
+    "WagonChestLidMixin"
   ],
   "injectors": {
     "defaultRequire": 1

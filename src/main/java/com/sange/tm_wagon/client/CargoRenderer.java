@@ -45,7 +45,7 @@ public final class CargoRenderer {
                     BlockEntity be=CACHE.computeIfAbsent(entry,e->{
                         var reference=new java.lang.ref.WeakReference<>(e);
                         return switch(e.kind) {
-                            case CHEST->new ChestBlockEntity(BlockPos.ZERO,e.state) { @Override public float getOpenNess(float partial) { var cargo=reference.get();return cargo==null?0:cargo.lid(partial); } };
+                            case CHEST->CargoChestVisuals.create(e);
                             case ENDER_CHEST->new EnderChestBlockEntity(BlockPos.ZERO,e.state) { @Override public float getOpenNess(float partial) { var cargo=reference.get();return cargo==null?0:cargo.lid(partial); } };
                             case SHULKER->new ShulkerBoxBlockEntity(BlockPos.ZERO,e.state) { @Override public float getProgress(float partial) { var cargo=reference.get();return cargo==null?0:cargo.lid(partial); } };
                             case ENCHANTING->new EnchantingTableBlockEntity(BlockPos.ZERO,e.state);
