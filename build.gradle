@@ -40,6 +40,17 @@ repositories {
     exclusiveContent {
         forRepository {
             maven {
+                name = 'CurseMaven'
+                url = 'https://www.cursemaven.com'
+            }
+        }
+        filter {
+            includeModule('curse.maven', 'touhou-little-maid-355044')
+        }
+    }
+    exclusiveContent {
+        forRepository {
+            maven {
                 name = 'ModrinthSable'
                 url = 'https://api.modrinth.com/maven'
             }
@@ -213,6 +224,9 @@ dependencies {
 
     // Compile against the minimum supported NeoForge version; do not bundle Carry On.
     compileOnly('maven.modrinth:carry-on:cgZi7nC7') { transitive = false }
+
+    // Touhou Little Maid 1.5.3 for NeoForge 1.21.1; compile-time access only.
+    compileOnly('curse.maven:touhou-little-maid-355044:8061852') { transitive = false }
 
     // Optional compatibility API. Pin the NeoForge release ID to avoid selecting
     // the Fabric artifact with the same version number. Never bundle or run it by default.
