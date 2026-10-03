@@ -29,6 +29,8 @@ public final class CargoContainers {
             Class<?> base;CargoEntry.Kind kind;
             if(state.getBlock() instanceof ChestBlock&&be instanceof ChestBlockEntity){base=ChestBlockEntity.class;kind=CargoEntry.Kind.CHEST;}
             else if(state.getBlock() instanceof BarrelBlock&&be instanceof BarrelBlockEntity){base=BarrelBlockEntity.class;kind=CargoEntry.Kind.BARREL;}
+            else if(state.getBlock() instanceof BarrelBlock&&be instanceof RandomizableContainerBlockEntity
+                &&(base=bclibBarrelBase(be.getClass()))!=null){kind=CargoEntry.Kind.BARREL;}
             else return CargoEntry.Kind.ORDINARY;
             if(((net.minecraft.world.Container)be).getContainerSize()!=27)return CargoEntry.Kind.ORDINARY;
             // Storage, permissions, codecs and custom menus require an explicit adapter.
@@ -39,6 +41,17 @@ public final class CargoContainers {
             }
             return kind;
         } catch(RuntimeException|LinkageError unsupported){return CargoEntry.Kind.ORDINARY;}
+    }
+    private static Class<?> bclibBarrelBase(Class<?> type) {
+        // BCLib 21.0.x duplicates vanilla barrel storage instead of extending BarrelBlockEntity.
+        // Its 27-slot Items codec and three-row menu use the existing cargo barrel adapter.
+        // Match only this audited implementation; subclasses still pass the override checks above.
+        // No class loading or mandatory dependency when BCLib is absent.
+        for(Class<?> current=type;current!=null;current=current.getSuperclass()) {
+            if(current.getName().equals("org.betterx.bclib.blockentities.BaseBarrelBlockEntity")
+                &&current.getSuperclass()==RandomizableContainerBlockEntity.class)return current;
+        }
+        return null;
     }
     public static boolean protectedContents(ItemStack stack) {
         var tag=stack.getOrDefault(DataComponents.BLOCK_ENTITY_DATA,CustomData.EMPTY).copyTag();

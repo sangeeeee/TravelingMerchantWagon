@@ -46,6 +46,7 @@ repositories {
         }
         filter {
             includeModule('maven.modrinth', 'sable')
+            includeModule('maven.modrinth', 'carry-on')
         }
     }
     maven {
@@ -127,6 +128,24 @@ neoForge {
         // This run config launches GameTestServer and runs all registered gametests, then exits.
         // By default, the server will crash when no gametests are provided.
         // The gametest system is also enabled by default for other run configs under the /test command.
+        carryOnClientSmokeTest {
+            client()
+            gameDirectory = project.file('build/carryon-client')
+            systemProperty 'tm_wagon.carryOnClientSmoke', 'true'
+            programArguments.addAll '--width', '1000', '--height', '700'
+        }
+        carryOnGameTestServer {
+            type = "gameTestServer"
+            gameDirectory = project.file('build/carryon-server')
+            systemProperty 'neoforge.enabledGameTestNamespaces', 'tm_wagon_carryon'
+            systemProperty 'tm_wagon.requireCarryOnTest', 'true'
+        }
+        bclibGameTestServer {
+            type = "gameTestServer"
+            gameDirectory = project.file('build/bclib-server')
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+            systemProperty 'tm_wagon.requireBclibTest', 'true'
+        }
         gameTestServer {
             type = "gameTestServer"
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
@@ -191,6 +210,9 @@ def extractSableCompanionApi = tasks.register('extractSableCompanionApi', Sync) 
 
 dependencies {
     implementation "software.bernie.geckolib:geckolib-neoforge-${minecraft_version}:${geckolib_version}"
+
+    // Compile against the minimum supported NeoForge version; do not bundle Carry On.
+    compileOnly('maven.modrinth:carry-on:cgZi7nC7') { transitive = false }
 
     // Optional compatibility API. Pin the NeoForge release ID to avoid selecting
     // the Fabric artifact with the same version number. Never bundle or run it by default.

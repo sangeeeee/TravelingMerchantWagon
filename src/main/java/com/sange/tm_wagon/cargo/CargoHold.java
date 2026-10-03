@@ -182,6 +182,7 @@ public final class CargoHold {
         }
         if(owner.cargoBusy()) { if(!owner.cargoLevel().isClientSide)message(player,"message.tm_wagon.assembly_busy");return InteractionResult.FAIL; }
         if(owner.cargoLevel().isClientSide)return InteractionResult.SUCCESS;
+        if(hand==InteractionHand.MAIN_HAND&&com.sange.tm_wagon.compat.CarryOnCompat.pickup(this,entries[slot],player))return InteractionResult.CONSUME;
         if(player.isSecondaryUseActive()) {
             if(entries[slot]!=null)message(player,take(slot,player));
             return InteractionResult.CONSUME;
@@ -268,6 +269,18 @@ public final class CargoHold {
         dropContents(entry,position,player);
         player.getInventory().placeItemBackInInventory(returned);
         changed(true);cargoSound(state,position,player,false);return null;
+    }
+    /** Transfer ownership without returning an item or dropping the inventory. */
+    boolean releaseForCarry(CargoEntry entry,Player player) {
+        if(!valid(entry,player))return false;
+        CargoMenus.close(this,entry);
+        int slot=slot(entry);if(slot<0)return false;
+        entries[slot]=null;
+        try {
+            String error=owner.cargoGeometryChanged();
+            if(error!=null){entries[slot]=entry;return false;}
+        } catch(RuntimeException error){entries[slot]=entry;throw error;}
+        return true;
     }
     /** Broadcast once after committing the transaction, including to the interacting player. */
     private void cargoSound(BlockState state,Vec3 position,Player player,boolean placing) {

@@ -108,3 +108,11 @@ config="${mod_id}.mixins.json"
     versionRange="[2.0.5,2.1)"
     ordering="AFTER"
     side="BOTH"
+
+# Optional cargo pickup bridge. Carry On remains a separate installation.
+[[dependencies.${mod_id}]]
+    modId="carryon"
+    type="optional"
+    versionRange="[2.2.4,)"
+    ordering="AFTER"
+    side="BOTH"

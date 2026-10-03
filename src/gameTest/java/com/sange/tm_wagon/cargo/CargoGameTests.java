@@ -116,11 +116,11 @@ public class CargoGameTests {
         } finally { net.neoforged.neoforge.common.NeoForge.EVENT_BUS.unregister(listener); }
         h.succeed();
     }
-    private static WagonEntity wagon(GameTestHelper h) {
+    static WagonEntity wagon(GameTestHelper h) {
         var w=WagonContent.WAGON.get().create(h.getLevel());w.configure(WagonEntity.defaultParts(),Direction.NORTH);
         w.setPos(Vec3.atBottomCenterOf(h.absolutePos(new BlockPos(11,2,17))));h.getLevel().addFreshEntity(w);return w;
     }
-    private static AssemblyFrameBlockEntity frame(GameTestHelper h) {
+    static AssemblyFrameBlockEntity frame(GameTestHelper h) {
         var p=h.absolutePos(new BlockPos(11,2,17));
         h.getLevel().setBlock(p,WagonContent.FRAME.get().defaultBlockState().setValue(AssemblyFrameBlock.FACING,Direction.NORTH),3);
         var f=(AssemblyFrameBlockEntity)h.getLevel().getBlockEntity(p);
@@ -135,7 +135,7 @@ public class CargoGameTests {
     private static Player player(GameTestHelper h,CargoHold hold) {
         var p=h.makeMockPlayer(GameType.SURVIVAL);p.setPos(hold.owner().cargoPose().point(new Vec3(-3,0,0)));return p;
     }
-    private static ServerPlayer serverPlayer(GameTestHelper h,CargoHold hold) {
+    static ServerPlayer serverPlayer(GameTestHelper h,CargoHold hold) {
         var p=h.makeMockServerPlayerInLevel();p.getAbilities().instabuild=false;p.getAbilities().flying=false;
         p.teleportTo(hold.owner().cargoPose().point(new Vec3(-3,0,0)).x,hold.owner().cargoPose().position().y,hold.owner().cargoPose().position().z);
         return p;
@@ -469,5 +469,54 @@ public class CargoGameTests {
         var locked=new CargoEntry(hold,java.util.UUID.randomUUID(),stack,ContainerVariantFixtures.CHEST.defaultBlockState());
         var loaded=CargoEntry.load(hold,locked.save(h.getLevel().registryAccess(),false),h.getLevel().registryAccess());
         h.assertTrue(loaded.kind==CargoEntry.Kind.ORDINARY&&loaded.inventory.getContainerSize()==0&&loaded.item.has(DataComponents.CONTAINER),"Legacy locked item exposed or lost its contents");h.succeed();
+    }
+
+    private static List<net.minecraft.world.level.block.Block> bclibBarrels(GameTestHelper h) {
+        var blocks=net.minecraft.core.registries.BuiltInRegistries.BLOCK.stream().filter(b->
+            net.minecraft.core.registries.BuiltInRegistries.BLOCK.getKey(b).getNamespace().equals("betterend")
+            &&b instanceof net.minecraft.world.level.block.BarrelBlock).toList();
+        if(Boolean.getBoolean("tm_wagon.requireBclibTest"))h.assertTrue(!blocks.isEmpty(),"Actual BetterEnd barrels missing from integration run");
+        return blocks;
+    }
+    @GameTest(template="assembly_test",timeoutTicks=80)
+    public static void bclib_barrels_import_open_save_and_remove_once(GameTestHelper h) {
+        var barrels=bclibBarrels(h);var hold=wagon(h).cargo();var p=serverPlayer(h,hold);int count=0;
+        for(var block:barrels) {
+            String name=net.minecraft.core.registries.BuiltInRegistries.BLOCK.getKey(block).toString();
+            var state=block.defaultBlockState();
+            h.assertTrue(CargoEntry.kind(state)==CargoEntry.Kind.BARREL,"Unrecognized BCLib barrel: "+name);
+            // Import the real mod's serialized inventory, not a hand-written approximation.
+            var nativeBe=((net.minecraft.world.level.block.EntityBlock)block).newBlockEntity(BlockPos.ZERO,state);
+            ((net.minecraft.world.Container)nativeBe).setItem(26,new ItemStack(Items.DIAMOND,17));
+            var stack=new ItemStack(block);stack.set(DataComponents.BLOCK_ENTITY_DATA,CustomData.of(nativeBe.saveWithFullMetadata(h.getLevel().registryAccess())));
+            h.assertTrue(hold.place(0,stack,p)==null,"Cannot place "+name);var entry=hold.entry(0);
+            h.assertTrue(entry.inventory.getItem(26).getCount()==17&&!entry.item.getOrDefault(DataComponents.BLOCK_ENTITY_DATA,CustomData.EMPTY).copyTag().contains("Items"),"Import duplicated/lost contents: "+name);
+            CargoMenus.open(hold,entry,p);
+            h.assertTrue(p.containerMenu instanceof net.minecraft.world.inventory.ChestMenu,"Cannot open "+name);
+            p.containerMenu.getSlot(0).set(new ItemStack(Items.EMERALD,9));
+            p.closeContainer();
+            var restored=CargoEntry.load(hold,entry.save(h.getLevel().registryAccess(),false),h.getLevel().registryAccess());
+            restored=CargoEntry.load(hold,restored.save(h.getLevel().registryAccess(),false),h.getLevel().registryAccess());
+            h.assertTrue(restored.state.getBlock()==block&&restored.inventory.getItem(26).getCount()==17&&restored.inventory.getItem(0).getCount()==9,"Save roundtrip failed: "+name);
+            h.assertTrue(hold.take(0,p)==null&&hold.take(0,p)!=null,"Removal repeated: "+name);count++;
+            h.assertTrue(carried(p,block.asItem())==1&&dropped(h,hold,Items.DIAMOND)==17*count&&dropped(h,hold,Items.EMERALD)==9*count,"Drops incorrect: "+name);
+            for(String key:List.of("Lock","LootTable")) {
+                var locked=new ItemStack(block,2);var tag=new CompoundTag();tag.putString(key,"test:value");locked.set(DataComponents.BLOCK_ENTITY_DATA,CustomData.of(tag));
+                h.assertTrue("message.tm_wagon.cargo_container_protected".equals(hold.place(0,locked,p))&&locked.getCount()==2&&hold.empty(),"Protected BCLib storage accepted: "+name);
+            }
+        }
+        if(!barrels.isEmpty())com.mojang.logging.LogUtils.getLogger().info("BCLIB_CARGO_PASS: {} real BetterEnd barrel variants",barrels.size());
+        h.succeed();
+    }
+    @GameTest(template="assembly_test",timeoutTicks=80)
+    public static void bclib_barrel_survives_actual_form_conversion(GameTestHelper h) {
+        var barrels=bclibBarrels(h);if(barrels.isEmpty()){h.succeed();return;}
+        var f=frame(h);var p=player(h,f.cargo());
+        var barrel=put(h,f.cargo(),4,barrels.getFirst().asItem(),p);barrel.inventory.setItem(26,new ItemStack(Items.EMERALD,7));
+        h.assertTrue(f.toggleFrame(null)==null,"BCLib assembly failed");
+        var w=h.getLevel().getEntitiesOfClass(WagonEntity.class,new AABB(f.getBlockPos()).inflate(6)).getFirst();
+        h.assertTrue(f.cargo().empty()&&w.cargo().entry(4)==barrel,"Assembly duplicated BCLib storage");
+        h.runAtTickTime(24,()->h.assertTrue(f.toggleFrame(null)==null,"BCLib restoration failed"));
+        h.runAtTickTime(49,()->{h.assertTrue(w.isRemoved()&&w.cargo().empty()&&f.cargo().entry(4)==barrel&&barrel.inventory.getItem(26).getCount()==7,"BCLib roundtrip lost contents or ownership");h.succeed();});
     }
 }

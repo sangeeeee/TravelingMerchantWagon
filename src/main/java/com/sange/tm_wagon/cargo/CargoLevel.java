@@ -31,7 +31,7 @@ import net.minecraft.world.ticks.LevelTickAccess;
 
 /** A bounded one-block view for vanilla cargo interactions, never a world/chunk to tick.
  * Mutations affect only this entry; adjacent blocks are air and neighbor/redstone updates are disabled. */
-final class CargoLevel extends Level {
+class CargoLevel extends Level {
     static final BlockPos POS=new BlockPos(0,64,0);
     private final CargoHold hold;
     private final CargoEntry entry;
