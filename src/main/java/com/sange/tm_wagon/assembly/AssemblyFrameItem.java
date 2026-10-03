@@ -52,7 +52,10 @@ public class AssemblyFrameItem extends BlockItem implements GeoItem {
             if (!level.isClientSide && context.getPlayer() != null) context.getPlayer().displayClientMessage(Component.translatable(error),true);
             return InteractionResult.FAIL;
         }
-        return super.place(context);
+        var result=super.place(context);
+        if(result.consumesAction()&&level instanceof net.minecraft.server.level.ServerLevel server)
+            com.sange.tm_wagon.compat.StructureAssemblyGuard.placed(server,origin);
+        return result;
     }
 
     @Override protected boolean placeBlock(BlockPlaceContext context, BlockState state) {

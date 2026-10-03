@@ -18,21 +18,27 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 /** Collision is stored locally so it survives an unloaded controller chunk. */
 public class AssemblyCellBlockEntity extends BlockEntity {
     private BlockPos owner = BlockPos.ZERO;
+    private BlockPos source;
     private List<AABB> boxes = List.of();
     private VoxelShape shape = Shapes.empty();
 
     public AssemblyCellBlockEntity(BlockPos pos, BlockState state) { super(WagonContent.CELL_ENTITY.get(), pos, state); }
     public BlockPos owner() { return owner; }
+    public BlockPos source() { return source==null?worldPosition:source; }
+    @Override public void onLoad() {
+        super.onLoad();com.sange.tm_wagon.compat.StructureAssemblyGuard.loaded(this);
+    }
     public VoxelShape shape() { return shape; }
     public void configure(BlockPos owner, List<AABB> boxes) {
         if (this.owner.equals(owner) && this.boxes.equals(boxes)) return;
-        this.owner = owner.immutable(); this.boxes = List.copyOf(boxes); this.shape = WagonGeometry.shape(boxes);
+        this.owner = owner.immutable(); this.source=worldPosition; this.boxes = List.copyOf(boxes); this.shape = WagonGeometry.shape(boxes);
         setChanged();
         if (level != null) level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);
     }
 
     @Override protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries); tag.putLong("Owner", owner.asLong());
+        tag.putLong("Source",source().asLong());
         ListTag list = new ListTag();
         for (AABB b : boxes) {
             ListTag values = new ListTag();
@@ -43,6 +49,7 @@ public class AssemblyCellBlockEntity extends BlockEntity {
     }
     @Override protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries); owner = BlockPos.of(tag.getLong("Owner"));
+        source=tag.contains("Source")?BlockPos.of(tag.getLong("Source")):worldPosition;
         List<AABB> loaded = new ArrayList<>();
         for (Tag entry : tag.getList("Boxes", Tag.TAG_LIST)) {
             ListTag v = (ListTag) entry;

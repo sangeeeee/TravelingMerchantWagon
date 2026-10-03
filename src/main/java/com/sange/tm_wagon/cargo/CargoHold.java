@@ -115,8 +115,11 @@ public final class CargoHold {
         return gateCollision?new AABB(box.minX,3.0625-box.maxY,hinge-box.maxZ,box.maxX,3.0625-box.minY,hinge-box.minZ):box;
     }
     public List<AABB> bodyBoxes() { return bodyBoxes(owner.cargoBody()); }
+    public List<AABB> structuralBodyBoxes(WagonPart body) {
+        var boxes=new ArrayList<>(WagonGeometry.partBoxes(body));boxes.set(4,tailBox(body));return boxes;
+    }
     public List<AABB> bodyBoxes(WagonPart body) {
-        var boxes=new ArrayList<>(WagonGeometry.partBoxes(body));boxes.set(4,tailBox(body));boxes.addAll(boxes());boxes.addAll(cover.boxes(body));boxes.addAll(canopy.boxes(body));return boxes;
+        var boxes=structuralBodyBoxes(body);boxes.addAll(boxes());boxes.addAll(cover.boxes(body));boxes.addAll(canopy.boxes(body));return boxes;
     }
     public float gateProgress(float partial) {
         if(gateStart==Long.MIN_VALUE||owner.cargoLevel()==null)return gateTarget?1:0;
@@ -294,6 +297,17 @@ public final class CargoHold {
         for(int i=0;i<MAX_CAPACITY;i++) {
             var entry=entries[i];if(entry==null)continue;Vec3 pos=position(entry);entries[i]=null;
             if(drops) { if(!remnants||entry.kind!=CargoEntry.Kind.STOOL&&entry.kind!=CargoEntry.Kind.STRAW_MAT)drop(pos,entry.returnedItem());dropContents(entry,pos,null); }
+            else entry.inventory.clearContent();
+        }
+    }
+    /** Forced removal of selected cargo anchors; the controller rebuilds the layout once. */
+    public void destroySlots(java.util.Set<Integer> anchors,boolean drops) {
+        for(int slot:anchors) {
+            if(slot<0||slot>=capacity())continue;
+            var entry=entries[slot];if(entry==null)continue;
+            StrawMatSleep.wake(this,entry);seats.release(entry);CargoMenus.close(this,entry);
+            Vec3 pos=position(entry);entries[slot]=null;
+            if(drops) { drop(pos,entry.returnedItem());dropContents(entry,pos,null); }
             else entry.inventory.clearContent();
         }
     }

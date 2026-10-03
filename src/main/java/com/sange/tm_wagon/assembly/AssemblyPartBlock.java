@@ -48,7 +48,12 @@ public class AssemblyPartBlock extends BaseEntityBlock {
         return level.isClientSide ? null : createTickerHelper(type,WagonContent.CELL_ENTITY.get(),(world,pos,s,cell) -> {
             if (world.getGameTime()%20 != 0 || !world.hasChunkAt(cell.owner())) return;
             AssemblyFrameBlockEntity frame = AssemblyFrameBlockEntity.find(world,cell.owner());
-            if (frame == null || !frame.layout().containsKey(pos)) world.setBlock(pos,Blocks.AIR.defaultBlockState(),3);
+            if (frame == null || !frame.layout().containsKey(pos)) {
+                // Imported cells can tick before the deferred load check. Consume
+                // their authoritative component before ordinary orphan cleanup.
+                com.sange.tm_wagon.compat.StructureAssemblyGuard.placed((net.minecraft.server.level.ServerLevel)world,pos);
+                if(world.getBlockEntity(pos)==cell)world.setBlock(pos,Blocks.AIR.defaultBlockState(),3);
+            }
         });
     }
     @Override protected ItemInteractionResult useItemOn(ItemStack stack,BlockState state,Level level,BlockPos pos,Player player,InteractionHand hand,BlockHitResult hit) {

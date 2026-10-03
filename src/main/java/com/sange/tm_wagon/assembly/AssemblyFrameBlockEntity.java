@@ -89,6 +89,9 @@ public class AssemblyFrameBlockEntity extends BlockEntity implements GeoBlockEnt
     @Override public String cargoGeometryChanged() { return initializeFrame(); }
     @Override public void cargoChanged(boolean visible) { if(visible)sync();else setChanged(); }
     @Override public void onChunkUnloaded() { cargo.closeMenus(); }
+    @Override public void onLoad() {
+        super.onLoad();com.sange.tm_wagon.compat.StructureAssemblyGuard.loaded(this);
+    }
     @Override public void setRemoved() { cargo.closeMenus();super.setRemoved(); }
 
     /** Requested visual state; the block state and collision commit at the end. */
