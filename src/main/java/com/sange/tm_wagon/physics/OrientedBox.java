@@ -117,6 +117,7 @@ public final class OrientedBox {
         }
         // Existing overlaps must permit escape and tangent travel, rather than freezing the entity.
         if(minimum>EPS)return motion.dot(escape)<-EPS?new Hit(0,escape):null;
+        if(enter<-EPS&&minimum>=-EPS&&minimum<=EPS&&motion.dot(escape)<-EPS)return new Hit(0,escape);
         if(contact==null||enter<-EPS||enter>1||exit<=EPS||motion.dot(contact)>=-EPS)return null;
         return new Hit(Math.max(0,enter),contact);
     }
