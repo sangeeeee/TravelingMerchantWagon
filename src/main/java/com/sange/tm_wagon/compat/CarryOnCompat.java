@@ -11,5 +11,9 @@ public final class CarryOnCompat {
         return entry!=null&&ModList.get().isLoaded("carryon")
             &&com.sange.tm_wagon.cargo.CarryOnCargo.pickup(hold,entry,player);
     }
+    public static boolean place(CargoHold hold,int slot,Player player) {
+        return ModList.get().isLoaded("carryon")
+            &&com.sange.tm_wagon.cargo.CarryOnCargo.place(hold,slot,player);
+    }
     private CarryOnCompat() {}
 }

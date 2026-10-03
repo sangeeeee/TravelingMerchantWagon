@@ -25,6 +25,7 @@ import tschipp.carryon.common.config.ListHandler;
  * The real world is never temporarily changed to stage the carried block. */
 public final class CarryOnCargo {
     public static boolean pickup(CargoHold hold,CargoEntry entry,Player player) {
+        if(entry.kind==CargoEntry.Kind.STRAW_MAT||entry.kind==CargoEntry.Kind.STOOL)return false;
         if(!(player instanceof ServerPlayer server)||!(entry.item.getItem() instanceof BlockItem)
             ||!hold.valid(entry,player))return false;
         var data=CarryOnDataManager.getCarryData(player);
@@ -56,6 +57,57 @@ public final class CarryOnCargo {
             if(!(ex instanceof Rejected))com.mojang.logging.LogUtils.getLogger().warn("Could not finish Carry On cargo pickup for {}",entry.state,ex);
             return true; // Never fall through to a second removal after a partial pickup.
         }
+    }
+    /** Import a carried block through exactly the same cargo policy as item placement. */
+    public static boolean place(CargoHold hold,int slot,Player player) {
+        if(!(player instanceof ServerPlayer server))return false;
+        var data=CarryOnDataManager.getCarryData(player);
+        if(!data.isCarrying())return false;
+        if(!data.isCarrying(tschipp.carryon.common.carry.CarryOnData.CarryType.BLOCK)) {
+            CargoHold.message(player,"message.tm_wagon.cargo_unsupported");return true;
+        }
+        if(data.getTick()==player.tickCount)return true;
+        boolean[] committed={false};
+        var script=data.getActiveScript();
+        try {
+            var state=data.getBlock();var stack=new ItemStack(state.getBlock());
+            String restriction=CargoHold.placementRestriction(stack);
+            if(restriction!=null){CargoHold.message(player,restriction);return true;}
+            var lookup=player.level().registryAccess();
+            var be=data.getBlockEntity(BlockPos.containing(hold.owner().cargoPose().point(hold.centreAt(slot))),lookup);
+            if(state.hasBlockEntity()&&be==null){CargoHold.message(player,"message.tm_wagon.cargo_unsupported");return true;}
+            if(be!=null){be.setLevel(player.level());be.saveToItem(stack,lookup);}
+            // Orient in wagon-local coordinates, retaining fill levels and other carried state.
+            var placed=CargoPlacement.state(hold,slot,stack,player);
+            for(var property:placed.getProperties())if(state.hasProperty(property)
+                &&(property instanceof net.minecraft.world.level.block.state.properties.DirectionProperty
+                ||property.getValueClass()==net.minecraft.core.Direction.Axis.class||ListHandler.isPropertyException(property)))
+                state=copyProperty(state,placed,property);
+            if(state.hasProperty(BarrelBlock.OPEN))state=state.setValue(BarrelBlock.OPEN,false);
+            var finalState=state;
+            String error=hold.placeCarried(slot,stack,player,finalState,()->{
+                data.clear();data.setTick(player.tickCount);committed[0]=true;
+            });
+            if(error!=null){CargoHold.message(player,error);return true;}
+        } catch(RuntimeException ex) {
+            com.mojang.logging.LogUtils.getLogger().warn("Could not finish placing carried cargo",ex);
+            if(!committed[0]){CargoHold.message(player,"message.tm_wagon.cargo_unsupported");return true;}
+        }
+        // Even if a cosmetic update fails after commit, clear/sync the carried source once.
+        CarryOnDataManager.setCarryData(player,data);
+        if(!player.isCreative()||tschipp.carryon.Constants.COMMON_CONFIG.settings.slownessInCreative)
+            player.removeEffect(net.minecraft.world.effect.MobEffects.MOVEMENT_SLOWDOWN);
+        server.swing(net.minecraft.world.InteractionHand.MAIN_HAND,true);
+        // Execute the normal placement script only after ownership has transferred.
+        script.ifPresent(value->{
+            String command=value.scriptEffects().commandPlace();
+            if(!command.isEmpty())server.getServer().getCommands().performPrefixedCommand(
+                server.getServer().createCommandSourceStack(),"/execute as "+server.getGameProfile().getName()+" run "+command);
+        });
+        return true;
+    }
+    private static <T extends Comparable<T>> BlockState copyProperty(BlockState target,BlockState source,net.minecraft.world.level.block.state.properties.Property<T> property) {
+        return target.setValue(property,source.getValue(property));
     }
     private static final class Rejected extends RuntimeException {}
     private static final class View extends CargoLevel {

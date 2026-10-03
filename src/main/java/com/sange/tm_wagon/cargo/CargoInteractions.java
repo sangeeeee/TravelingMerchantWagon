@@ -10,7 +10,8 @@ import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 /** Before BlockItem placement, including sneaking: cargo must never become a world block. */
 @EventBusSubscriber(modid=TravelingMerchantWagon.MODID)
 public final class CargoInteractions {
-    @SubscribeEvent public static void block(PlayerInteractEvent.RightClickBlock event) {
+    // Carry On handles world placement at HIGH; cargo must consume the selected slot first.
+    @SubscribeEvent(priority=net.neoforged.bus.api.EventPriority.HIGHEST) public static void block(PlayerInteractEvent.RightClickBlock event) {
         var frame=AssemblyFrameBlockEntity.find(event.getLevel(),event.getPos());
         if(frame==null||event.getPos().equals(frame.getBlockPos()))return;
         var result=frame.cargo().interact(event.getEntity(),event.getHand(),frame.cargoPose().local(event.getHitVec().getLocation()));

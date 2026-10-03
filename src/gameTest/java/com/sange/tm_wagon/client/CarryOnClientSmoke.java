@@ -40,6 +40,7 @@ public final class CarryOnClientSmoke {
             var initial=CarryOnDataManager.getCarryData(p);initial.clear();CarryOnDataManager.setCarryData(p,initial);
             p.stopRiding();p.setGameMode(GameType.CREATIVE);p.getInventory().clearContent();p.getAbilities().flying=true;p.onUpdateAbilities();
             for(var entity:level.getEntitiesOfClass(WagonEntity.class,new net.minecraft.world.phys.AABB(-10,75,-10,10,95,10)))entity.discard();
+            for(var drop:level.getEntitiesOfClass(net.minecraft.world.entity.item.ItemEntity.class,new net.minecraft.world.phys.AABB(-10,75,-10,10,95,10)))drop.discard();
             for(var at:BlockPos.betweenClosed(-6,80,-6,6,80,6))level.setBlock(at,Blocks.STONE.defaultBlockState(),3);
             wagon=WagonContent.WAGON.get().create(level);wagon.configure(WagonEntity.defaultParts(),Direction.NORTH);wagon.setPos(.5,81,.5);level.addFreshEntity(wagon);
             var point=wagon.pose().point(wagon.cargo().centreAt(0).add(-1.1,.1,0));p.teleportTo(point.x,point.y,point.z);
@@ -49,6 +50,7 @@ public final class CarryOnClientSmoke {
         if(ticks==26)server(mc,()->{
             var p=mc.getSingleplayerServer().getPlayerList().getPlayers().getFirst();require(CarryOnDataManager.getCarryData(p).isKeyPressed(),"Default sneak key not synced");
             var point=wagon.pose().point(wagon.cargo().centreAt(0).add(-1.1,.1,0));p.teleportTo(point.x,point.y,point.z);
+            p.getInventory().clearContent();
             wagon.cargo().interact(p,InteractionHand.MAIN_HAND,wagon.cargo().centreAt(0).add(0,.68,0));
             require(CarryOnDataManager.getCarryData(p).isCarrying(),"Server pickup rejected: remaining="+wagon.cargo().entry(0)+", hand="+p.getMainHandItem()+", tick="+p.tickCount+", carryTick="+CarryOnDataManager.getCarryData(p).getTick());
         });
@@ -63,11 +65,21 @@ public final class CarryOnClientSmoke {
         if(ticks==51)server(mc,()->{
             var p=mc.getSingleplayerServer().getPlayerList().getPlayers().getFirst();require(!p.isShiftKeyDown()&&CarryOnDataManager.getCarryData(p).isKeyPressed(),"Remapped key not independent of sneak");
             var point=wagon.pose().point(wagon.cargo().centreAt(0).add(-1.1,.1,0));p.teleportTo(point.x,point.y,point.z);
+            p.getInventory().clearContent();
             wagon.cargo().interact(p,InteractionHand.MAIN_HAND,wagon.cargo().centreAt(0).add(0,.68,0));
             require(CarryOnDataManager.getCarryData(p).isCarrying(),"Server pickup rejected: remaining="+wagon.cargo().entry(0)+", hand="+p.getMainHandItem()+", tick="+p.tickCount+", carryTick="+CarryOnDataManager.getCarryData(p).getTick());
         });
         if(ticks==65){require(CarryOnDataManager.getCarryData(mc.player).isCarrying(),"Remapped key did not pick up barrel");CarryOnKeybinds.carryKey.setDown(false);
-            com.mojang.logging.LogUtils.getLogger().info("CARRYON_CLIENT_PASS: native default/remapped keys, carried block synchronization and inventory");mc.stop();}
+            server(mc,()->{
+                var p=mc.getSingleplayerServer().getPlayerList().getPlayers().getFirst();
+                var point=wagon.pose().point(wagon.cargo().centreAt(2).add(-1.1,.1,0));p.teleportTo(point.x,point.y,point.z);
+                wagon.cargo().interact(p,InteractionHand.MAIN_HAND,wagon.cargo().centreAt(2).add(0,.01,0));
+                require(!CarryOnDataManager.getCarryData(p).isCarrying()&&wagon.cargo().entry(2)!=null,"Server placement into selected cargo slot failed");
+            });
+        }
+        if(ticks==80){require(!CarryOnDataManager.getCarryData(mc.player).isCarrying(),"Placed block remained in client hands");
+            var clientWagon=(WagonEntity)mc.level.getEntity(wagon.getId());require(clientWagon!=null&&clientWagon.cargo().entry(2)!=null,"Placed cargo not synced to client");
+            com.mojang.logging.LogUtils.getLogger().info("CARRYON_CLIENT_PASS: default/remapped keys, cargo pickup/placement synchronization and inventory");mc.stop();}
     }
     private static void require(boolean value,String message){if(!value)throw new IllegalStateException(message);}
     private static void server(Minecraft mc,Runnable action){mc.getSingleplayerServer().execute(()->{try{action.run();}catch(Throwable e){failure=e.toString();com.mojang.logging.LogUtils.getLogger().error("Carry On client test failed",e);}});}

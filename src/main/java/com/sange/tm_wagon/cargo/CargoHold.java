@@ -182,6 +182,7 @@ public final class CargoHold {
         }
         if(owner.cargoBusy()) { if(!owner.cargoLevel().isClientSide)message(player,"message.tm_wagon.assembly_busy");return InteractionResult.FAIL; }
         if(owner.cargoLevel().isClientSide)return InteractionResult.SUCCESS;
+        if(hand==InteractionHand.MAIN_HAND&&com.sange.tm_wagon.compat.CarryOnCompat.place(this,slot,player))return InteractionResult.CONSUME;
         if(hand==InteractionHand.MAIN_HAND&&com.sange.tm_wagon.compat.CarryOnCompat.pickup(this,entries[slot],player))return InteractionResult.CONSUME;
         if(player.isSecondaryUseActive()) {
             if(entries[slot]!=null)message(player,take(slot,player));
@@ -201,7 +202,7 @@ public final class CargoHold {
     public static boolean allowed(ItemStack item) {
         return placementRestriction(item)==null;
     }
-    private static String placementRestriction(ItemStack item) {
+    static String placementRestriction(ItemStack item) {
         if(!item.isEmpty()&&(item.getItem() instanceof StrawMatItem||item.getItem() instanceof WagonStoolItem))return null;
         if(item.isEmpty()||!(item.getItem() instanceof BlockItem blockItem)||item.is(DISALLOWED))return "message.tm_wagon.cargo_unsupported";
         Block block=blockItem.getBlock();
@@ -209,6 +210,13 @@ public final class CargoHold {
         return CargoConfig.allows(block)?null:"message.tm_wagon.cargo_filtered";
     }
     public String place(int slot,ItemStack stack,Player player) {
+        return place(slot,stack,player,null,null);
+    }
+    /** The carried source is cleared only after cargo geometry has committed. */
+    String placeCarried(int slot,ItemStack stack,Player player,BlockState state,Runnable commitSource) {
+        return place(slot,stack,player,state,commitSource);
+    }
+    private String place(int slot,ItemStack stack,Player player,BlockState carriedState,Runnable commitSource) {
         if(!owner.cargoLive()||owner.cargoBusy()||slot<0||slot>=capacity())return "message.tm_wagon.assembly_busy";
         if(coverObstructed(slot,player))return ACCESS_BLOCKED;
         String restriction=placementRestriction(stack);if(restriction!=null)return restriction;
@@ -219,7 +227,7 @@ public final class CargoHold {
         Vec3 point=owner.cargoPose().point(centreAt(slot));
         if(player==null||player.level()!=owner.cargoLevel()||player.distanceToSqr(point)>64
             ||!owner.cargoLevel().mayInteract(player,BlockPos.containing(point)))return "message.tm_wagon.protected";
-        var state=mat?Blocks.HAY_BLOCK.defaultBlockState():stool?Blocks.OAK_PLANKS.defaultBlockState():CargoPlacement.state(this,slot,stack,player);
+        var state=carriedState!=null?carriedState:mat?Blocks.HAY_BLOCK.defaultBlockState():stool?Blocks.OAK_PLANKS.defaultBlockState():CargoPlacement.state(this,slot,stack,player);
         var properties=stack.get(DataComponents.BLOCK_STATE);if(properties!=null)state=properties.apply(state);
         if(state.hasProperty(ChestBlock.TYPE))state=state.setValue(ChestBlock.TYPE,net.minecraft.world.level.block.state.properties.ChestType.SINGLE);
         if(state.getBlock() instanceof ShulkerBoxBlock)state=state.setValue(ShulkerBoxBlock.FACING,net.minecraft.core.Direction.UP);
@@ -230,9 +238,13 @@ public final class CargoHold {
             return "message.tm_wagon.cargo_container_protected";
         if(!freeLocalVolume(mat?matBounds(slot):stool?stoolBounds(slot):slotBounds(slot)))return "message.tm_wagon.cargo_blocked";
         CargoEntry entry=CargoEntry.fromItem(this,stack,state);entries[slot]=entry;
-        String error=owner.cargoGeometryChanged();
-        if(error!=null) { entries[slot]=null;return error; }
-        if(!player.getAbilities().instabuild)stack.shrink(1);changed(true);cargoSound(state,point,player,true);return null;
+        try {
+            String error=owner.cargoGeometryChanged();
+            if(error!=null) { entries[slot]=null;return error; }
+        } catch(RuntimeException failure){entries[slot]=null;throw failure;}
+        if(commitSource!=null)commitSource.run();
+        else if(!player.getAbilities().instabuild)stack.shrink(1);
+        changed(true);cargoSound(state,point,player,true);return null;
     }
     /** Vanilla anvil wear consumes the workstation, not a block at its current world position. */
     void consume(CargoEntry entry) {
