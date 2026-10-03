@@ -103,6 +103,9 @@ public final class WagonCollision {
             if(contacts!=null) { contacts.world(requested,vanilla);recording.remember(vanilla,contacts); }
             return vanilla;
         }
+        // Include structure surfaces in the same slide iterations. A wagon wall must
+        // never redirect an entity through a Sable wall checked earlier in Entity.move.
+        for(var surface:com.sange.tm_wagon.compat.StructureCollision.surfaces(level,start.expandTowards(requested).inflate(.26)))boxes.add(surface.box());
         Vec3 moved=Vec3.ZERO;AABB current=start;
         // A moving wall can overlap an unseated occupant. Correct only a small local overlap,
         // with terrain validation; this never transports occupants with the platform.

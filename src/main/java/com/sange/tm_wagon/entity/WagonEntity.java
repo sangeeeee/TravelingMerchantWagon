@@ -630,7 +630,8 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
             Vec3 base=horseBasePosition(i).add(delta);var g=horseGround(h,base);
             if(g.forbidden())return false;
             Vec3 target=g.present()?new Vec3(base.x,g.height(),base.z):horsePosition(i).add(delta);
-            if(!level().noBlockCollision(h,h.getDimensions(Pose.STANDING).makeBoundingBox(target).deflate(.002)))return false;
+            AABB horseSpace=h.getDimensions(Pose.STANDING).makeBoundingBox(target).deflate(.002);
+            if(!level().noBlockCollision(h,horseSpace)||!com.sange.tm_wagon.compat.StructureCollision.clear(level(),horseSpace))return false;
         }return true;
     }
     /** Each horse steps from its own last foot height, even while the rear axle is on an earlier stair. */
@@ -671,7 +672,7 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
         if(!ground.present()||ground.forbidden())return "message.tm_wagon.hitch_blocked";
         target=new Vec3(target.x,ground.height(),target.z);
         AABB space=horse.getDimensions(Pose.STANDING).makeBoundingBox(target);
-        if(!level().getWorldBorder().isWithinBounds(space)||!level().noBlockCollision(horse,space.deflate(.001)))return "message.tm_wagon.hitch_blocked";
+        if(!level().getWorldBorder().isWithinBounds(space)||!level().noBlockCollision(horse,space.deflate(.001))||!com.sange.tm_wagon.compat.StructureCollision.clear(level(),space.deflate(.001)))return "message.tm_wagon.hitch_blocked";
         for(Entity e:level().getEntities(horse,space))if(e!=this&&e!=player&&!e.isPassengerOfSameVehicle(this)&&e.isAlive())return "message.tm_wagon.hitch_blocked";
         horses[slot]=horse.getUUID();hangingTicks[slot]=0;horseContactHeights[slot]=target.y;HorseHarness.mark(horse,this);horse.setPos(target);horse.setYRot(getYRot());horse.setYBodyRot(getYRot());syncMotion();return null;
     }

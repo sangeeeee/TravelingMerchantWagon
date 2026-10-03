@@ -1,0 +1,87 @@
+package com.sange.tm_wagon.assembly;
+
+import com.sange.tm_wagon.compat.StructureCollision;
+import com.sange.tm_wagon.entity.WagonEntity;
+import com.sange.tm_wagon.physics.WagonPhysics;
+import com.sange.tm_wagon.physics.WagonPose;
+import dev.ryanhcode.sable.api.SubLevelAssemblyHelper;
+import dev.ryanhcode.sable.api.sublevel.SubLevelContainer;
+import dev.ryanhcode.sable.companion.math.BoundingBox3i;
+import dev.ryanhcode.sable.sublevel.ServerSubLevel;
+import dev.ryanhcode.sable.sublevel.storage.SubLevelRemovalReason;
+import java.util.ArrayList;
+import java.util.List;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.phys.Vec3;
+
+/** Loaded only by the optional integration run; uses real Sable structures, not stubs. */
+final class SableCompatFixtures {
+    private static ServerSubLevel assemble(GameTestHelper h,List<BlockPos> blocks) {
+        for(var p:blocks)h.getLevel().setBlock(p,Blocks.STONE.defaultBlockState(),3);
+        var sub=SubLevelAssemblyHelper.assembleBlocks(h.getLevel(),blocks.getFirst(),blocks,BoundingBox3i.from(blocks));
+        sub.updateBoundingBox();sub.forceUpdateGlobalBounds();sub.updateLastPose();return sub;
+    }
+    static void run(GameTestHelper h,int scenario) {
+        // Other assembly fixtures can leave blocks above the template's one-block height.
+        for(int x=1;x<25;x++)for(int y=2;y<20;y++)for(int z=1;z<25;z++)h.setBlock(new BlockPos(x,y,z),Blocks.AIR);
+        var blocks=new ArrayList<BlockPos>();
+        for(int x=3;x<=22;x++)for(int z=3;z<=22;z++)blocks.add(h.absolutePos(new BlockPos(x,8,z)));
+        var platform=assemble(h,blocks);ServerSubLevel wall=null;WagonEntity wagon=null;
+        try {
+            Vec3 origin=Vec3.atBottomCenterOf(h.absolutePos(new BlockPos(12,9,15)));
+            wagon=WagonContent.WAGON.get().create(h.getLevel());wagon.configure(WagonEntity.defaultParts(),Direction.NORTH);
+            wagon.setPos(origin);h.getLevel().addFreshEntity(wagon);var physics=new WagonPhysics();
+            h.assertTrue(!StructureCollision.surfaces(h.getLevel(),wagon.getBoundingBox().inflate(2)).isEmpty(),"Actual Sable plot produced no colliders: "+platform.logicalPose()+" plot="+platform.getPlot().getBoundingBox()+" bounds="+platform.boundingBox());
+            if(scenario==0) {
+                var old=new dev.ryanhcode.sable.companion.math.Pose3d(platform.logicalPose());
+                platform.logicalPose().orientation().rotateY(Math.PI/4).rotateZ(.08);platform.updateBoundingBox();platform.forceUpdateGlobalBounds();
+                Vec3 foot=platform.logicalPose().transformPosition(old.transformPositionInverse(origin));
+                var ground=WagonPhysics.ground(h.getLevel(),foot,1.1,1.1,.1);
+                h.assertTrue(ground.present()&&Math.abs(ground.height()-foot.y)<.1,"Rotated structure support used broad AABB top: "+ground+" expected="+foot.y);
+            } else if(scenario==4) {
+                physics.tick(wagon,0,0,false,0);
+                var old=new dev.ryanhcode.sable.companion.math.Pose3d(platform.logicalPose());
+                Vec3 before=wagon.position();float yaw=wagon.getYRot();
+                platform.updateLastPose();platform.logicalPose().orientation().rotateY(.10);
+                platform.updateBoundingBox();platform.forceUpdateGlobalBounds();
+                Vec3 expected=platform.logicalPose().transformPosition(old.transformPositionInverse(before));
+                physics.tick(wagon,0,0,false,0);
+                h.assertTrue(wagon.position().distanceTo(expected)<.08,"Rotating platform did not carry wagon centre: "+wagon.position()+" expected="+expected);
+                h.assertTrue(Math.abs(net.minecraft.util.Mth.wrapDegrees(wagon.getYRot()-yaw)+(float)Math.toDegrees(.10))<.1,"Rotating platform did not carry heading: "+wagon.getYRot());
+            } else if(scenario==2) {
+                physics.tick(wagon,0,0,false,0);Vec3 before=wagon.position();
+                platform.updateLastPose();platform.logicalPose().position().add(.2,.1,.15);platform.updateBoundingBox();platform.forceUpdateGlobalBounds();
+                physics.tick(wagon,0,0,false,0);
+                Vec3 travelled=wagon.position().subtract(before);
+                h.assertTrue(travelled.distanceTo(new Vec3(.2,.1,.15))<.08,"Wagon did not follow moving platform: "+travelled);
+                platform.updateLastPose();Vec3 settled=wagon.position();physics.tick(wagon,0,0,false,0);
+                h.assertTrue(wagon.position().subtract(settled).horizontalDistance()<.02,"Platform movement was applied twice");
+            } else {
+                blocks.clear();
+                for(int x=7;x<=17;x++)for(int y=9;y<=15;y++)blocks.add(h.absolutePos(new BlockPos(x,y,6)));
+                wall=assemble(h,blocks);
+                if(scenario==1) {
+                    for(int i=0;i<65;i++)physics.tick(wagon,1,0,true,0);
+                    for(var part:wagon.motionCollidersAt(wagon.pose()))h.assertTrue(StructureCollision.clear(h.getLevel(),part),"Wagon penetrated Sable wall");
+                    h.assertTrue(wagon.position().z>h.absolutePos(new BlockPos(0,0,6)).getZ()+1,"Wagon drove through Sable wall");
+                    h.assertTrue(origin.distanceTo(wagon.position())>.2,"Fixture never moved");
+                } else {
+                    wall.updateLastPose();wall.logicalPose().position().add(0,0,6);wall.updateBoundingBox();wall.forceUpdateGlobalBounds();
+                    Vec3 push=StructureCollision.push(wagon);
+                    h.assertTrue(push.z>0,"Moving structure did not push wagon: "+push);
+                    Vec3 before=wagon.position();physics.tick(wagon,0,0,false,0);
+                    h.assertTrue(wagon.position().z>before.z,"Wagon ignored moving structure");
+                    for(var part:wagon.motionCollidersAt(wagon.pose()))h.assertTrue(StructureCollision.clear(h.getLevel(),part),"Moving structure left wagon embedded: part="+part.bounds()+" position="+wagon.position()+" push="+push);
+                }
+            }
+        } finally {
+            if(wagon!=null)wagon.discard();
+            var container=SubLevelContainer.getContainer(h.getLevel());
+            if(wall!=null)container.removeSubLevel(wall,SubLevelRemovalReason.REMOVED);
+            container.removeSubLevel(platform,SubLevelRemovalReason.REMOVED);
+        }
+    }
+}

@@ -37,6 +37,17 @@ sourceSets {
 }
 
 repositories {
+    exclusiveContent {
+        forRepository {
+            maven {
+                name = 'ModrinthSable'
+                url = 'https://api.modrinth.com/maven'
+            }
+        }
+        filter {
+            includeModule('maven.modrinth', 'sable')
+        }
+    }
     maven {
         name = 'GeckoLib'
         url = 'https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/'
@@ -156,10 +167,33 @@ neoForge {
 // "optional", meaning it will not be pulled by dependents of this mod.
 configurations {
     runtimeClasspath.extendsFrom localRuntime
+    sableApi
+    compileOnly.extendsFrom sableApi
+}
+
+// The published Sable mod embeds its companion API rather than declaring it in its POM.
+def sableApiFiles = configurations.sableApi
+def extractSableCompanionApi = tasks.register('extractSableCompanionApi', Sync) {
+    from({ zipTree(sableApiFiles.singleFile) }) {
+        include 'META-INF/jarjar/sable-companion-common-*.jar'
+        eachFile { path = name }
+        includeEmptyDirs = false
+    }
+    into layout.buildDirectory.dir('sable-compile-api')
 }
 
 dependencies {
     implementation "software.bernie.geckolib:geckolib-neoforge-${minecraft_version}:${geckolib_version}"
+
+    // Optional compatibility API. Pin the NeoForge release ID to avoid selecting
+    // the Fabric artifact with the same version number. Never bundle or run it by default.
+    sableApi("maven.modrinth:sable:${sable_neoforge_version_id}") {
+        transitive = false
+    }
+    compileOnly files(extractSableCompanionApi.map { it.destinationDir.toPath().resolve('sable-companion-common-1.21.1-1.6.0.jar').toFile() })
+    if (providers.gradleProperty('withSable').getOrElse('false').toBoolean()) {
+        localRuntime("maven.modrinth:sable:${sable_neoforge_version_id}") { transitive = false }
+    }
 
     // Example optional mod dependency with JEI
     // The JEI API is declared for compile time use, while the full JEI artifact is used at runtime

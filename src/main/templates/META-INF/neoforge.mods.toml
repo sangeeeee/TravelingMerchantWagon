@@ -100,3 +100,11 @@ config="${mod_id}.mixins.json"
 # stop your mod loading on the server for example.
 #[features.${mod_id}]
 #openGLVersion="[3.2,)"
+
+# Optional collision bridge, verified against the Sable 2.0 API.
+[[dependencies.${mod_id}]]
+    modId="sable"
+    type="optional"
+    versionRange="[2.0.5,2.1)"
+    ordering="AFTER"
+    side="BOTH"

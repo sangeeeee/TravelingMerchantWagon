@@ -235,6 +235,7 @@ public final class CargoHold {
     boolean freeLocalVolume(AABB local) {
         var volume=com.sange.tm_wagon.physics.OrientedBox.at(local.deflate(.001),owner.cargoPose());
         AABB box=volume.bounds();var level=owner.cargoLevel();
+        if(!com.sange.tm_wagon.compat.StructureCollision.clear(level,volume))return false;
         for(BlockPos pos:BlockPos.betweenClosed(BlockPos.containing(box.minX,box.minY,box.minZ),BlockPos.containing(box.maxX,box.maxY,box.maxZ))) {
             if(!level.hasChunkAt(pos)||!level.getWorldBorder().isWithinBounds(pos)||level.isOutsideBuildHeight(pos))return false;
             if(com.sange.tm_wagon.assembly.AssemblyFrameBlockEntity.find(level,pos)==owner)continue;

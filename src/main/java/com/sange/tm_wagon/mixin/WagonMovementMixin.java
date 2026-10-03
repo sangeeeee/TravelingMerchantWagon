@@ -11,49 +11,53 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
+import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.sange.tm_wagon.compat.StructureCollision;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /** Both client movement and server packet validation enter these same methods. */
 @Mixin(Entity.class)
 public abstract class WagonMovementMixin {
-    @Shadow private Vec3 collide(Vec3 movement) { throw new AssertionError(); }
     @Unique private WagonCollision.Contacts tm_wagon$contacts;
     @Unique private Vec3 tm_wagon$requested;
 
     @Inject(method="move",at=@At("HEAD"))
     private void tm_wagon$reset(MoverType type,Vec3 movement,CallbackInfo callback) { tm_wagon$contacts=null; }
 
-    @Redirect(method="move",at=@At(value="INVOKE",target="Lnet/minecraft/world/entity/Entity;collide(Lnet/minecraft/world/phys/Vec3;)Lnet/minecraft/world/phys/Vec3;"))
-    private Vec3 tm_wagon$recordAcceptedContacts(Entity entity,Vec3 movement) {
+    @WrapMethod(method="collide")
+    private Vec3 tm_wagon$recordAcceptedContacts(Vec3 movement,Operation<Vec3> original) {
+        Entity entity=(Entity)(Object)this;
         var recording=WagonCollision.record(entity,movement);tm_wagon$requested=movement;
         Vec3 result=null;
-        try { result=collide(movement);return result; }
+        try { result=original.call(movement);return result; }
         finally { if(recording!=null)tm_wagon$contacts=recording.finish(result); }
     }
-    @Inject(method="move",at=@At(value="INVOKE",target="Lnet/minecraft/world/entity/Entity;setOnGroundWithMovement(ZLnet/minecraft/world/phys/Vec3;)V"))
-    private void tm_wagon$surfaceMomentum(MoverType type,Vec3 movement,CallbackInfo callback) {
+    @WrapOperation(method="move",at=@At(value="INVOKE",target="Lnet/minecraft/world/entity/Entity;setOnGroundWithMovement(ZLnet/minecraft/world/phys/Vec3;)V"))
+    private void tm_wagon$surfaceMomentum(Entity entity,boolean grounded,Vec3 movement,Operation<Void> original) {
+        original.call(entity,grounded,movement);
         if(tm_wagon$contacts==null||!tm_wagon$contacts.wagon())return;
-        Entity entity=(Entity)(Object)this;
         entity.setDeltaMovement(tm_wagon$contacts.velocity(entity.getDeltaMovement()));
         if(!tm_wagon$contacts.worldVertical()) {
-            entity.verticalCollision=tm_wagon$contacts.vertical();
-            entity.verticalCollisionBelow=tm_wagon$requested.y<0&&tm_wagon$contacts.floor();
+            boolean structureGround=StructureCollision.grounded(entity);
+            entity.verticalCollision=tm_wagon$contacts.vertical()||structureGround;
+            entity.verticalCollisionBelow=(tm_wagon$requested.y<0&&tm_wagon$contacts.floor())||structureGround;
+            entity.setOnGroundWithMovement(entity.verticalCollisionBelow,movement);
+            StructureCollision.updateGroundFlags(entity);
         }
     }
-    @Redirect(method="move",at=@At(value="INVOKE",target="Lnet/minecraft/world/entity/Entity;setDeltaMovement(DDD)V"))
-    private void tm_wagon$keepTangentVelocity(Entity entity,double x,double y,double z) {
-        if(tm_wagon$contacts==null||!tm_wagon$contacts.wagon())entity.setDeltaMovement(x,y,z);
-        // The accepted surface planes already removed the blocked velocity components.
+    @WrapOperation(method="move",at=@At(value="INVOKE",target="Lnet/minecraft/world/entity/Entity;setDeltaMovement(DDD)V"))
+    private void tm_wagon$keepTangentVelocity(Entity entity,double x,double y,double z,Operation<Void> original) {
+        if(tm_wagon$contacts==null||!tm_wagon$contacts.wagon())original.call(entity,x,y,z);
     }
-    @Redirect(method="move",at=@At(value="INVOKE",target="Lnet/minecraft/world/level/block/Block;updateEntityAfterFallOn(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/world/entity/Entity;)V"))
-    private void tm_wagon$actualVerticalContact(Block block,BlockGetter level,Entity entity) {
-        if(tm_wagon$contacts==null||!tm_wagon$contacts.wagon()||tm_wagon$contacts.worldVertical())block.updateEntityAfterFallOn(level,entity);
+    @WrapOperation(method="move",at=@At(value="INVOKE",target="Lnet/minecraft/world/level/block/Block;updateEntityAfterFallOn(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/world/entity/Entity;)V"))
+    private void tm_wagon$actualVerticalContact(Block block,BlockGetter level,Entity entity,Operation<Void> original) {
+        if(tm_wagon$contacts==null||!tm_wagon$contacts.wagon()||tm_wagon$contacts.worldVertical()||StructureCollision.grounded(entity))original.call(block,level,entity);
     }
     @Inject(method="move",at=@At("RETURN"))
     private void tm_wagon$release(MoverType type,Vec3 movement,CallbackInfo callback) { tm_wagon$contacts=null;tm_wagon$requested=null; }

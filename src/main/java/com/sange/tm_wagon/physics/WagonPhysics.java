@@ -1,6 +1,7 @@
 package com.sange.tm_wagon.physics;
 
 import com.sange.tm_wagon.entity.WagonEntity;
+import com.sange.tm_wagon.compat.StructureCollision;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.tags.BlockTags;
@@ -32,7 +33,7 @@ public final class WagonPhysics {
     private boolean falling;
     private int tipDirection,recoveringTicks;
     private double fallStartHeight;
-    private boolean driverRecovery;
+    private boolean driverRecovery,structurePush;
     private final double[] contactHeights={Double.NaN,Double.NaN,Double.NaN,Double.NaN};
     private Vec3 contactPosition;
     public boolean falling() { return falling; }
@@ -68,6 +69,13 @@ public final class WagonPhysics {
                 best=Math.max(best,b.maxY);
             }
         }
+        if(!StructureCollision.available())return new Ground(best,forbidden);
+        AABB area=new AABB(point.x-halfWidth,point.y-down-.001,point.z-halfWidth,point.x+halfWidth,point.y+up+.001,point.z+halfWidth);
+        for(var surface:StructureCollision.surfaces(level,area)) {
+            double top=StructureCollision.top(surface,point,up,down,halfWidth);
+            if(surface.forbidden()) { if(surface.box().bounds().maxY>point.y+.05)forbidden=true; }
+            else best=Math.max(best,top);
+        }
         return new Ground(best,forbidden);
     }
     public static Support support(WagonEntity wagon,WagonPose pose) { return sampleSupport(wagon,pose,0,null); }
@@ -99,6 +107,25 @@ public final class WagonPhysics {
         return s.has(a)&&s.has(b)?(s.heights[a]+s.heights[b])/2:s.has(a)?s.heights[a]:s.has(b)?s.heights[b]:fallback;
     }
     public void tick(WagonEntity wagon,int input,int steering,boolean powered,int pushing) {
+        if(!StructureCollision.available()) { tickVehicle(wagon,input,steering,powered,pushing);return; }
+        try(var scope=StructureCollision.begin(wagon)) {
+            WagonPose carried=StructureCollision.transport(wagon);
+            Vec3 transport=carried.position().subtract(wagon.position());
+            if(transport.lengthSqr()>1e-12||Math.abs(Mth.wrapDegrees(carried.yaw()-wagon.getYRot()))>1e-5) {
+                move(wagon,transport,carried.yaw(),carried.pitch(),carried.roll());
+                java.util.Arrays.fill(contactHeights,Double.NaN);contactPosition=null;
+            }
+            Vec3 push=StructureCollision.push(wagon);
+            if(push.lengthSqr()>1e-12) {
+                structurePush=true;
+                try { move(wagon,push,wagon.getYRot(),wagon.pitch(),wagon.roll()); }
+                finally { structurePush=false; }
+            }
+            tickVehicle(wagon,input,steering,powered,pushing);
+            StructureCollision.remember(wagon);
+        }
+    }
+    private void tickVehicle(WagonEntity wagon,int input,int steering,boolean powered,int pushing) {
         WagonPose old=wagon.pose();Vec3[] oldCentres=new Vec3[4];
         for(int i=0;i<4;i++)oldCentres[i]=wagon.wheelCentre(i,old);
         boolean unstable=falling||Math.abs(old.pitch())>NORMAL_PITCH+.1||Math.abs(old.roll())>NORMAL_ROLL+.1;
@@ -198,6 +225,8 @@ public final class WagonPhysics {
             var terrain=OrientedBox.of(block);
             for(var box:boxes)if(terrain.sweep(box,new Vec3(0,-.18,0))!=null)return true;
         }
+        for(var surface:StructureCollision.surfaces(wagon.level(),bounds.inflate(.02).expandTowards(0,-.18,0)))
+            for(var box:boxes)if(surface.box().sweep(box,new Vec3(0,-.18,0))!=null)return true;
         return false;
     }
     private static boolean uprightClear(WagonEntity wagon) {
@@ -205,6 +234,7 @@ public final class WagonPhysics {
         AABB bounds=bounds(boxes);
         for(VoxelShape shape:wagon.level().getBlockCollisions(wagon,bounds))for(AABB block:shape.toAabbs())
             if(boxes.stream().anyMatch(box->box.intersects(block)))return false;
+        for(var box:boxes)if(!StructureCollision.clear(wagon.level(),box))return false;
         return true;
     }
     /** Swept translation with bounded rotation increments; decorative meshes are never queried. */
@@ -240,6 +270,8 @@ public final class WagonPhysics {
             for(VoxelShape shape:wagon.level().getBlockCollisions(wagon,swept))for(AABB block:shape.toAabbs())terrain.add(OrientedBox.of(block));
             for(VoxelShape shape:wagon.level().getEntityCollisions(wagon,swept))for(AABB block:shape.toAabbs())terrain.add(OrientedBox.of(block));
             terrain.addAll(WagonCollision.nearby(wagon.level(),wagon,swept));
+            for(var surface:StructureCollision.surfaces(wagon.level(),swept))
+                if(!structurePush||surface.motion().dot(motion)<=1e-10)terrain.add(surface.box());
             List<OrientedBox> oldBoxes=wagon.motionCollidersAt(previous);
             boolean blockedRotation=false;
             for(OrientedBox block:terrain) {
