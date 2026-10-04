@@ -53,12 +53,21 @@ final class SableCollision implements StructureCollision.Backend {
     private static boolean contains(AABB outer,AABB inner) {
         return outer.minX<=inner.minX&&outer.minY<=inner.minY&&outer.minZ<=inner.minZ&&outer.maxX>=inner.maxX&&outer.maxY>=inner.maxY&&outer.maxZ>=inner.maxZ;
     }
-    private static OrientedBox box(AABB local,Pose3dc pose) {
-        Vec3 centre=pose.transformPosition(local.getCenter());
-        Vec3 x=pose.transformPosition(local.getCenter().add(1,0,0)).subtract(centre);
-        Vec3 y=pose.transformPosition(local.getCenter().add(0,1,0)).subtract(centre);
-        Vec3 z=pose.transformPosition(local.getCenter().add(0,0,1)).subtract(centre);
-        return new OrientedBox(centre,new Vec3(local.getXsize()*x.length()/2,local.getYsize()*y.length()/2,local.getZsize()*z.length()/2),x.normalize(),y.normalize(),z.normalize());
+    /** One collector-local frame, shared only when the computed axes match exactly. */
+    private static final class BoxFactory {
+        private final Pose3dc pose;
+        private OrientedBox.Frame frame;
+        private BoxFactory(Pose3dc pose) { this.pose=pose; }
+        private OrientedBox box(AABB local) {
+            Vec3 localCentre=local.getCenter(),centre=pose.transformPosition(localCentre);
+            Vec3 x=pose.transformPosition(localCentre.add(1,0,0)).subtract(centre);
+            Vec3 y=pose.transformPosition(localCentre.add(0,1,0)).subtract(centre);
+            Vec3 z=pose.transformPosition(localCentre.add(0,0,1)).subtract(centre);
+            Vec3 half=new Vec3(local.getXsize()*x.length()/2,local.getYsize()*y.length()/2,local.getZsize()*z.length()/2);
+            x=x.normalize();y=y.normalize();z=z.normalize();
+            if(frame==null||!frame.matches(x,y,z))frame=new OrientedBox.Frame(x,y,z);
+            return new OrientedBox(centre,half,frame);
+        }
     }
     private static List<SurfaceBounds> collect(Level level,AABB area) {
         var result=new ArrayList<SurfaceBounds>();
@@ -68,6 +77,7 @@ final class SableCollision implements StructureCollision.Backend {
             var pose=sub.logicalPose();var scale=pose.scale();
             if(Math.min(Math.abs(scale.x()),Math.min(Math.abs(scale.y()),Math.abs(scale.z())))<1e-6)continue;
             var local=new BoundingBox3d(search).transformInverse(pose);
+            var boxes=new BoxFactory(pose);
             var plot=sub.getPlot().getBoundingBox();
             int x0=Math.max(Mth.floor(local.minX)-1,plot.minX()),x1=Math.min(Mth.floor(local.maxX)+1,plot.maxX());
             int y0=Math.max(Mth.floor(local.minY)-1,plot.minY()),y1=Math.min(Mth.floor(local.maxY)+1,plot.maxY());
@@ -80,7 +90,7 @@ final class SableCollision implements StructureCollision.Backend {
                     if(state.isAir())continue;
                     boolean forbidden=state.is(BlockTags.FENCES)||state.is(BlockTags.WALLS);
                     for(AABB shape:state.getCollisionShape(level,pos,CollisionContext.empty()).toAabbs()) {
-                        AABB localBox=shape.move(pos);OrientedBox world=box(localBox,pose);
+                        AABB localBox=shape.move(pos);OrientedBox world=boxes.box(localBox);
                         Vec3 motion=world.centre().subtract(sub.lastPose().transformPosition(localBox.getCenter()));
                         AABB swept=world.bounds().minmax(world.bounds().move(motion.scale(-1)));
                         if(swept.intersects(area))

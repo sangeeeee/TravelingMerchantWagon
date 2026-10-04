@@ -161,7 +161,16 @@ public class StrawMatGameTests {
             h.assertTrue(StrawMatSleep.sleep(hold,hold.entry(8),p)==null,"Repeat tilted sleep failed");
             var observer=player(h,hold);observer.setPos(w.pose().point(new Vec3(-4,0,0)));h.assertTrue(hold.take(4,observer)==null&&!p.isSleeping()&&carried(observer)==1,"Removing a mat did not wake the sleeper or dropped duplicates");
             Vec3 outside=w.pose().point(new Vec3(-3,1.5,0));p.teleportTo(outside.x,outside.y,outside.z);
-            String replacement=hold.place(8,new ItemStack(WagonContent.STRAW_MAT.get()),observer);h.assertTrue(replacement==null,"Replacing mat failed: "+replacement+", observer="+observer.position()+", outside="+outside+", player="+p.position());
+            String replacement=hold.place(8,new ItemStack(WagonContent.STRAW_MAT.get()),observer);
+            if(replacement!=null) {
+                var volume=com.sange.tm_wagon.physics.OrientedBox.at(hold.matBounds(8).deflate(.001),w.pose());
+                StringBuilder blockers=new StringBuilder();
+                for(var shape:h.getLevel().getBlockCollisions(w,volume.bounds()))for(var box:shape.toAabbs())
+                    if(volume.intersects(box))blockers.append(" block ").append(box);
+                for(var entity:h.getLevel().getEntities(null,volume.bounds()))if(entity!=w)
+                    blockers.append(" entity ").append(entity.getType()).append(' ').append(entity.getBoundingBox()).append(" hit=").append(volume.intersects(entity.getBoundingBox()));
+                h.fail("Replacing mat failed: "+replacement+", wagon="+w.position()+", observer="+observer.position()+", outside="+outside+", player="+p.position()+blockers);
+            }
             h.assertTrue(StrawMatSleep.sleep(hold,hold.entry(8),p)==null,"Third sleep failed");
             Vec3 local=w.pose().local(StrawMatSleep.sleepingPoint(p));int timer=p.getSleepTimer();
             w.applyPose(new WagonPose(w.position().add(2,1,-3),267,1.2F,1.4F));w.setDeltaMovement(new Vec3(.4,-1,.2));

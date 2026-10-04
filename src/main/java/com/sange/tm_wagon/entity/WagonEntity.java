@@ -234,18 +234,18 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
     }
     private List<OrientedBox> collidersAt(WagonPose pose,boolean motion) {
         var boxes=new java.util.ArrayList<OrientedBox>(components.size());
-        var frames=new EnumMap<WagonSlot,Vec3[]>(WagonSlot.class);
+        var frames=new EnumMap<WagonSlot,OrientedBox.Frame>(WagonSlot.class);
         for(Component part:components) {
             if(motion&&(part.slot==WagonSlot.FRONT_LEFT||part.slot==WagonSlot.FRONT_RIGHT||part.slot==WagonSlot.REAR_LEFT||part.slot==WagonSlot.REAR_RIGHT))continue;
-            Vec3[] axes=frames.computeIfAbsent(part.slot,slot->{
+            OrientedBox.Frame frame=frames.computeIfAbsent(part.slot,slot->{
                 Vec3 origin=articulated(Vec3.ZERO,slot);
-                return new Vec3[]{pose.vector(articulated(new Vec3(1,0,0),slot).subtract(origin)),
+                return new OrientedBox.Frame(pose.vector(articulated(new Vec3(1,0,0),slot).subtract(origin)),
                     pose.vector(articulated(new Vec3(0,1,0),slot).subtract(origin)),
-                    pose.vector(articulated(new Vec3(0,0,1),slot).subtract(origin))};
+                    pose.vector(articulated(new Vec3(0,0,1),slot).subtract(origin)));
             });
             AABB b=part.box;
             boxes.add(new OrientedBox(pose.point(articulated(b.getCenter(),part.slot)),
-                new Vec3(b.getXsize()/2,b.getYsize()/2,b.getZsize()/2),axes[0],axes[1],axes[2]));
+                new Vec3(b.getXsize()/2,b.getYsize()/2,b.getZsize()/2),frame));
         }
         return List.copyOf(boxes);
     }
