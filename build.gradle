@@ -38,9 +38,12 @@ sourceSets {
 
 repositories {
     maven {
-        name = 'JEI'
+        name = 'BlameJared'
         url = 'https://maven.blamejared.com'
-        content { includeGroup('mezz.jei') }
+        content {
+            includeGroup('mezz.jei')
+            includeGroup('vazkii.patchouli')
+        }
     }
     exclusiveContent {
         forRepository {
@@ -300,6 +303,9 @@ dependencies {
 
     // Touhou Little Maid 1.5.3 for NeoForge 1.21.1; compile-time access only.
     compileOnly('curse.maven:touhou-little-maid-355044:8061852') { transitive = false }
+
+    // Official Patchouli API only; do not bundle the mod or add it to development runtime.
+    compileOnly("vazkii.patchouli:Patchouli:${patchouli_version}:api") { transitive = false }
 
     // Optional compatibility API. Pin the NeoForge release ID to avoid selecting
     // the Fabric artifact with the same version number. Never bundle or run it by default.
