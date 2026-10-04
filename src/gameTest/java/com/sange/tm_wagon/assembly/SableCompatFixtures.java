@@ -19,6 +19,61 @@ import net.minecraft.world.phys.Vec3;
 
 /** Loaded only by the optional integration run; uses real Sable structures, not stubs. */
 final class SableCompatFixtures {
+    private static final class CountingWagon extends WagonEntity {
+        int builds;
+        CountingWagon(net.minecraft.server.level.ServerLevel level) { super(WagonContent.WAGON.get(),level); }
+        @Override public List<com.sange.tm_wagon.physics.OrientedBox> motionCollidersAt(WagonPose pose) {
+            builds++;return super.motionCollidersAt(pose);
+        }
+    }
+    private static List<net.minecraft.world.phys.AABB> bounds(List<StructureCollision.Surface> surfaces) {
+        return surfaces.stream().map(s->s.box().bounds()).toList();
+    }
+    static void cachedSurfaces(GameTestHelper h) {
+        var blocks=new ArrayList<BlockPos>();
+        for(int x=5;x<21;x++)for(int z=5;z<21;z++)blocks.add(h.absolutePos(new BlockPos(x,8,z)));
+        var platform=assemble(h,blocks);
+        var wagon=new CountingWagon(h.getLevel());
+        wagon.configure(WagonEntity.defaultParts(),Direction.NORTH);
+        wagon.setPos(Vec3.atBottomCenterOf(h.absolutePos(new BlockPos(12,9,15))));
+        try {
+            wagon.builds=0;StructureCollision.push(wagon);
+            h.assertTrue(wagon.builds==0,"Stationary structures should not rebuild wagon motion colliders");
+            platform.updateLastPose();platform.logicalPose().orientation().rotateY(.25).rotateZ(.04);
+            platform.logicalPose().position().add(.35,.07,-.25);
+            platform.updateBoundingBox();platform.forceUpdateGlobalBounds();
+            var outer=wagon.getBoundingBox().inflate(4).expandTowards(0,-2,0);
+            var surfaces=StructureCollision.surfaces(h.getLevel(),outer);
+            h.assertTrue(surfaces.size()>20,"Missing many-surface structure fixture");
+            var queries=new ArrayList<net.minecraft.world.phys.AABB>();
+            for(var surface:surfaces) {
+                queries.add(surface.box().bounds().move(surface.motion().scale(-1)).inflate(.01));
+                queries.add(surface.box().bounds().inflate(.01));
+            }
+            // Exercise both cached narrow probes and queries outside the scope bounds.
+            queries.add(outer.inflate(2));
+            var expected=queries.stream().map(q->bounds(StructureCollision.surfaces(h.getLevel(),q))).toList();
+            wagon.builds=0;
+            try(var scope=StructureCollision.begin(wagon)) {
+                StructureCollision.push(wagon);
+                h.assertTrue(wagon.builds==1,"Moving surfaces rebuilt the whole wagon more than once");
+                for(int i=0;i<queries.size();i++)
+                    h.assertTrue(bounds(StructureCollision.surfaces(h.getLevel(),queries.get(i))).equals(expected.get(i)),"Cached sweep query omitted or reordered a surface: "+i);
+                try(var nested=StructureCollision.begin(wagon)) { StructureCollision.push(wagon); }
+                h.assertTrue(bounds(StructureCollision.surfaces(h.getLevel(),queries.getFirst())).equals(expected.getFirst()),"Nested scope lost the enclosing snapshot");
+            }
+            var before=bounds(StructureCollision.surfaces(h.getLevel(),outer));
+            platform.updateLastPose();platform.logicalPose().position().add(0,.4,0);
+            platform.updateBoundingBox();platform.forceUpdateGlobalBounds();
+            var after=bounds(StructureCollision.surfaces(h.getLevel(),outer));
+            h.assertTrue(!before.equals(after),"Structure movement did not change the fixture");
+            try(var scope=StructureCollision.begin(wagon)) {
+                h.assertTrue(bounds(StructureCollision.surfaces(h.getLevel(),outer)).equals(after),"Previous scope's geometry leaked into the next tick");
+            }
+        } finally {
+            wagon.discard();SubLevelContainer.getContainer(h.getLevel()).removeSubLevel(platform,SubLevelRemovalReason.REMOVED);
+        }
+    }
     private static ServerSubLevel assemble(GameTestHelper h,List<BlockPos> blocks) {
         for(var p:blocks)h.getLevel().setBlock(p,Blocks.STONE.defaultBlockState(),3);
         var sub=SubLevelAssemblyHelper.assembleBlocks(h.getLevel(),blocks.getFirst(),blocks,BoundingBox3i.from(blocks));

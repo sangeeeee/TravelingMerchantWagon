@@ -55,14 +55,20 @@ public final class StructureCollision {
     }
     public static Vec3 push(WagonEntity wagon) {
         Vec3 push=Vec3.ZERO;
+        // The wagon pose does not change during this solve. Build its complete
+        // colliders once, lazily: stationary structures need none of this work.
+        List<OrientedBox> parts=null;
         for(Surface s:surfaces(wagon.level(),wagon.getBoundingBox().inflate(2))) {
             if(s.motion.lengthSqr()<1e-12)continue;
-            Vec3 direction=s.motion.normalize();double distance=0;
-            for(var part:wagon.motionCollidersAt(wagon.pose())) {
+            if(parts==null)parts=wagon.motionCollidersAt(wagon.pose());
+            double travel=s.motion.length();
+            Vec3 direction=s.motion.normalize(),reverse=s.motion.scale(-1);double distance=0;
+            OrientedBox previous=s.box.move(reverse);
+            for(var part:parts) {
                 if(s.box.intersects(part))distance=Math.max(distance,s.box.escapeDistance(part,direction));
                 else {
-                    var hit=s.box.move(s.motion.scale(-1)).sweep(part,s.motion.scale(-1));
-                    if(hit!=null)distance=Math.max(distance,s.motion.length()*(1-hit.time()));
+                    var hit=previous.sweep(part,reverse);
+                    if(hit!=null)distance=Math.max(distance,travel*(1-hit.time()));
                 }
             }
             double missing=distance-push.dot(direction);

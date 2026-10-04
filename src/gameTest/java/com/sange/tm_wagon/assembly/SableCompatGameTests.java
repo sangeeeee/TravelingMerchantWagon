@@ -10,6 +10,10 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 @PrefixGameTestTemplate(false)
 public class SableCompatGameTests {
     @GameTest(template="assembly_test",timeoutTicks=100)
+    public static void sable_cached_surfaces_keep_sweeps_and_refresh_between_scopes(GameTestHelper h) {
+        if(StructureCollision.available())SableCompatFixtures.cachedSurfaces(h);h.succeed();
+    }
+    @GameTest(template="assembly_test",timeoutTicks=100)
     public static void sable_passenger_clearance_blocks_boarding_and_driving(GameTestHelper h) {
         if(StructureCollision.available())SableCompatFixtures.riderClearance(h);h.succeed();
     }

@@ -26,7 +26,9 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 
 /** Reads nearby plot blocks through Sable; the wagon remains an ordinary world entity. */
 final class SableCollision implements StructureCollision.Backend {
-    private record Snapshot(Level level,AABB bounds,List<StructureCollision.Surface> surfaces) {}
+    /** Immutable broad-phase data, reused by all wheel and movement queries in this scope. */
+    private record SurfaceBounds(StructureCollision.Surface surface,AABB swept) {}
+    private record Snapshot(Level level,AABB bounds,List<SurfaceBounds> surfaces) {}
     private record Tracking(java.lang.ref.WeakReference<SubLevel> level,Pose3d pose) {}
     private final ThreadLocal<Snapshot> snapshot=new ThreadLocal<>();
     private final Map<WagonEntity,Tracking> tracking=new WeakHashMap<>();
@@ -38,8 +40,15 @@ final class SableCollision implements StructureCollision.Backend {
     }
     @Override public List<StructureCollision.Surface> surfaces(Level level,AABB area) {
         Snapshot cached=snapshot.get();
-        List<StructureCollision.Surface> all=cached!=null&&cached.level==level&&contains(cached.bounds,area)?cached.surfaces:collect(level,area);
-        return all.stream().filter(s->s.box().bounds().minmax(s.box().bounds().move(s.motion().scale(-1))).intersects(area.inflate(1e-6))).toList();
+        List<SurfaceBounds> all=cached!=null&&cached.level==level&&contains(cached.bounds,area)?cached.surfaces:collect(level,area);
+        if(all.isEmpty())return List.of();
+        AABB query=area.inflate(1e-6);
+        List<StructureCollision.Surface> result=null;
+        for(var entry:all)if(entry.swept.intersects(query)) {
+            if(result==null)result=new ArrayList<>();
+            result.add(entry.surface);
+        }
+        return result==null?List.of():result;
     }
     private static boolean contains(AABB outer,AABB inner) {
         return outer.minX<=inner.minX&&outer.minY<=inner.minY&&outer.minZ<=inner.minZ&&outer.maxX>=inner.maxX&&outer.maxY>=inner.maxY&&outer.maxZ>=inner.maxZ;
@@ -51,13 +60,14 @@ final class SableCollision implements StructureCollision.Backend {
         Vec3 z=pose.transformPosition(local.getCenter().add(0,0,1)).subtract(centre);
         return new OrientedBox(centre,new Vec3(local.getXsize()*x.length()/2,local.getYsize()*y.length()/2,local.getZsize()*z.length()/2),x.normalize(),y.normalize(),z.normalize());
     }
-    private static List<StructureCollision.Surface> collect(Level level,AABB area) {
-        var result=new ArrayList<StructureCollision.Surface>();
-        for(SubLevel sub:Sable.HELPER.getAllIntersecting(level,new BoundingBox3d(area.inflate(2)))) {
+    private static List<SurfaceBounds> collect(Level level,AABB area) {
+        var result=new ArrayList<SurfaceBounds>();
+        AABB search=area.inflate(2);
+        for(SubLevel sub:Sable.HELPER.getAllIntersecting(level,new BoundingBox3d(search))) {
             if(sub.isRemoved()||sub.getPlot().contains(area.getCenter()))continue;
             var pose=sub.logicalPose();var scale=pose.scale();
             if(Math.min(Math.abs(scale.x()),Math.min(Math.abs(scale.y()),Math.abs(scale.z())))<1e-6)continue;
-            var local=new BoundingBox3d(area.inflate(2)).transformInverse(pose);
+            var local=new BoundingBox3d(search).transformInverse(pose);
             var plot=sub.getPlot().getBoundingBox();
             int x0=Math.max(Mth.floor(local.minX)-1,plot.minX()),x1=Math.min(Mth.floor(local.maxX)+1,plot.maxX());
             int y0=Math.max(Mth.floor(local.minY)-1,plot.minY()),y1=Math.min(Mth.floor(local.maxY)+1,plot.maxY());
@@ -72,8 +82,9 @@ final class SableCollision implements StructureCollision.Backend {
                     for(AABB shape:state.getCollisionShape(level,pos,CollisionContext.empty()).toAabbs()) {
                         AABB localBox=shape.move(pos);OrientedBox world=box(localBox,pose);
                         Vec3 motion=world.centre().subtract(sub.lastPose().transformPosition(localBox.getCenter()));
-                        if(world.bounds().minmax(world.bounds().move(motion.scale(-1))).intersects(area))
-                            result.add(new StructureCollision.Surface(world,forbidden,sub,motion));
+                        AABB swept=world.bounds().minmax(world.bounds().move(motion.scale(-1)));
+                        if(swept.intersects(area))
+                            result.add(new SurfaceBounds(new StructureCollision.Surface(world,forbidden,sub,motion),swept));
                     }
                 }
             }

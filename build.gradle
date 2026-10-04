@@ -93,7 +93,8 @@ neoForge {
     runs {
         performanceServer {
             type = "gameTestServer"
-            gameDirectory = project.file('build/performance-server')
+            // Separate fresh worlds for before/after measurements without changing normal game runs.
+            gameDirectory = project.file(providers.gradleProperty('performanceDirectory').getOrElse('build/performance-server'))
             systemProperty 'neoforge.enabledGameTestNamespaces', 'tm_wagon_perf'
             systemProperty 'tm_wagon.performance', 'true'
             systemProperty 'tm_wagon.performanceCases', providers.gradleProperty('performanceCases').getOrElse('')
