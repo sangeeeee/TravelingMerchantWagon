@@ -17,7 +17,7 @@ public abstract class WagonMaidTaskMixin {
     @Inject(method="setTask",at=@At("HEAD"))
     private void tm_wagon$leaveSeat(IMaidTask task,CallbackInfo callback) {
         var maid=(EntityMaid)(Object)this;
-        if(!maid.level().isClientSide&&WagonMaidExtension.selected(maid)&&!WagonMaidExtension.TASK.equals(task.getUid()))
+        if(!maid.level().isClientSide&&WagonMaidExtension.selected(maid)&&!maid.getTask().getUid().equals(task.getUid()))
             WagonMaidBehavior.leaveCompanionSeat(maid);
     }
 }

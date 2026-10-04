@@ -34,13 +34,18 @@ public final class CargoSeats {
         var entry=hold.entry(slot);var anchor=entry==null?null:anchors.get(entry.id);
         return anchor!=null&&!anchor.isRemoved()&&!anchor.getPassengers().isEmpty();
     }
+    public boolean available(int slot,LivingEntity rider) {
+        if(!hold.owner().cargoLive()||hold.owner().cargoBusy()||!stool(slot)||occupied(slot))return false;
+        if(hold.owner() instanceof WagonEntity wagon)return wagon.seatClear(rider,WagonEntity.CARGO_SEAT_BASE+slot);
+        return SeatClearance.clear(hold,rider,null,hold.owner().cargoPose().point(hold.centreAt(slot).add(0,.5,0)));
+    }
     public String sit(int slot,LivingEntity rider) {
         var entry=hold.entry(slot);var level=hold.owner().cargoLevel();
         if(level==null||level.isClientSide||!hold.owner().cargoLive()||hold.owner().cargoBusy()
             ||entry==null||entry.kind!=CargoEntry.Kind.STOOL)return "message.tm_wagon.assembly_busy";
         if(hold.cover().covered(slot))return CargoHold.ACCESS_BLOCKED;
         if(occupied(slot))return "message.tm_wagon.seat_occupied";
-        if(!eligible(rider)||rider.level()!=level||rider.distanceToSqr(hold.position(entry))>64)return "message.tm_wagon.stool_cannot_sit";
+        if(!eligible(rider)||rider.level()!=level||rider.distanceToSqr(hold.position(entry))>64||!available(slot,rider))return "message.tm_wagon.stool_cannot_sit";
         boolean seated;
         if(hold.owner() instanceof WagonEntity w)seated=w.boardCargoSeat(rider,slot);
         else {

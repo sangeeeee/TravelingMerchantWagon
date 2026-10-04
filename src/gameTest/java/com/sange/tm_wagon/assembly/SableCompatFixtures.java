@@ -24,6 +24,29 @@ final class SableCompatFixtures {
         var sub=SubLevelAssemblyHelper.assembleBlocks(h.getLevel(),blocks.getFirst(),blocks,BoundingBox3i.from(blocks));
         sub.updateBoundingBox();sub.forceUpdateGlobalBounds();sub.updateLastPose();return sub;
     }
+    static void riderClearance(GameTestHelper h) {
+        var w=com.sange.tm_wagon.cargo.SeatClearanceGameTests.wagon(h);
+        var rider=com.sange.tm_wagon.cargo.SeatClearanceGameTests.rider(h,w,false);
+        var head=rider.getBoundingBox();
+        BlockPos obstacle=BlockPos.containing(head.getCenter().add(2,head.getYsize()/2-.1,0));
+        var beam=assemble(h,List.of(obstacle));
+        try {
+            Vec3 start=w.position();
+            com.sange.tm_wagon.cargo.SeatClearanceGameTests.move(w,new Vec3(3,0,0),w.getYRot(),0);w.positionRider(rider);
+            h.assertTrue(w.getX()-start.x<2.6,"Passenger passed through Sable low beam");
+            h.assertTrue(StructureCollision.clear(h.getLevel(),rider.getBoundingBox().deflate(.0001)),"Passenger clipped Sable beam");
+            rider.stopRiding();rider.discard();w.setPos(start);
+            // Move the same physical beam directly over the stool: boarding must fail.
+            beam.updateLastPose();beam.logicalPose().position().add(-2,0,0);beam.updateBoundingBox();beam.forceUpdateGlobalBounds();
+            var next=net.minecraft.world.entity.EntityType.ENDERMAN.create(h.getLevel());next.setPos(w.position());
+            h.assertTrue(!w.cargo().seats.available(4,next)&&!w.boardCargoSeat(next,4),"Sable ceiling allowed boarding");
+            beam.logicalPose().position().add(2,0,0);beam.updateBoundingBox();beam.forceUpdateGlobalBounds();
+            com.sange.tm_wagon.cargo.SeatClearanceGameTests.move(w,new Vec3(3,0,0),w.getYRot(),0);
+            h.assertTrue(w.getX()-start.x>2.99,"Empty wagon cannot pass Sable beam");
+        } finally {
+            w.discard();SubLevelContainer.getContainer(h.getLevel()).removeSubLevel(beam,SubLevelRemovalReason.REMOVED);
+        }
+    }
     static void run(GameTestHelper h,int scenario) {
         // Other assembly fixtures can leave blocks above the template's one-block height.
         for(int x=1;x<25;x++)for(int y=2;y<20;y++)for(int z=1;z<25;z++)h.setBlock(new BlockPos(x,y,z),Blocks.AIR);

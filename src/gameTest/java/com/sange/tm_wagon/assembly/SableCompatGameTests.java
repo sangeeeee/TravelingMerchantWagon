@@ -9,6 +9,10 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 @GameTestHolder("tm_wagon")
 @PrefixGameTestTemplate(false)
 public class SableCompatGameTests {
+    @GameTest(template="assembly_test",timeoutTicks=100)
+    public static void sable_passenger_clearance_blocks_boarding_and_driving(GameTestHelper h) {
+        if(StructureCollision.available())SableCompatFixtures.riderClearance(h);h.succeed();
+    }
     private static void run(GameTestHelper h,int scenario) {
         if(StructureCollision.available())SableCompatFixtures.run(h,scenario);
         h.succeed();

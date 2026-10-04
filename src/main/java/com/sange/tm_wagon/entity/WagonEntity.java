@@ -224,7 +224,12 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
     public List<AABB> motionBoxesAt(WagonPose pose) { return motionCollidersAt(pose).stream().map(OrientedBox::bounds).toList(); }
     public List<AABB> boxesAt(WagonPose pose) { return collidersAt(pose,false).stream().map(OrientedBox::bounds).toList(); }
     public List<OrientedBox> collidersAt(WagonPose pose) { return collidersAt(pose,false); }
-    public List<OrientedBox> motionCollidersAt(WagonPose pose) { return collidersAt(pose,true); }
+    public List<OrientedBox> motionCollidersAt(WagonPose pose) {
+        var boxes=new java.util.ArrayList<>(collidersAt(pose,true));
+        for(Entity rider:getPassengers())if(rider instanceof LivingEntity)
+            boxes.add(OrientedBox.of(com.sange.tm_wagon.cargo.SeatClearance.body(rider,this,seatPosition(passengerSeat(rider),pose))));
+        return boxes;
+    }
     private List<OrientedBox> collidersAt(WagonPose pose,boolean motion) {
         var boxes=new java.util.ArrayList<OrientedBox>(components.size());
         var frames=new EnumMap<WagonSlot,Vec3[]>(WagonSlot.class);
@@ -453,7 +458,7 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
     @Override protected boolean canAddPassenger(Entity passenger) {
         int seat=availableSeat(passenger);
         return passenger instanceof LivingEntity&&seat>=0&&(seat<CARGO_SEAT_BASE||!cargo.cover().covered(seat-CARGO_SEAT_BASE))
-            &&passenger.getBbWidth()<=(seat<CARGO_SEAT_BASE?1.5F:1F);
+            &&passenger.getBbWidth()<=(seat<CARGO_SEAT_BASE?1.5F:1F)&&seatClear(passenger,seat);
     }
     @Override protected boolean couldAcceptPassenger() {
         for(int i=0;i<CARGO_SEAT_BASE+cargo.capacity();i++)
@@ -478,6 +483,9 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
     }
     public boolean companionSeatAvailable(int seat) {
         return !isRemoved()&&!cargoBusy()&&seat>=0&&seat<seatCapacity()&&seat!=cargoSeat().driverSeat()&&!seatOccupied(seat,null);
+    }
+    public boolean seatClear(Entity rider,int seat) {
+        return validSeat(seat)&&com.sange.tm_wagon.cargo.SeatClearance.clear(cargo,rider,this,seatPosition(seat));
     }
     public Vec3 companionSeatPosition(int seat) { return seatPosition(seat); }
     public boolean boardCompanion(LivingEntity rider,int seat) {
@@ -517,11 +525,12 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
             var seats=entityData.get(SEATS).copy();seats.remove(passenger.getUUID().toString());entityData.set(SEATS,seats);
         }
     }
-    private Vec3 seatPosition(int seat) {
+    private Vec3 seatPosition(int seat) { return seatPosition(seat,pose()); }
+    private Vec3 seatPosition(int seat,WagonPose pose) {
         if(seat>=CARGO_SEAT_BASE&&seat<CARGO_SEAT_BASE+cargo.capacity())
-            return pose().point(cargo.centreAt(seat-CARGO_SEAT_BASE).add(0,.5,0));
+            return pose.point(cargo.centreAt(seat-CARGO_SEAT_BASE).add(0,.5,0));
         double x=(seat-(seatCapacity()-1)/2.0)*cargoSeat().seatSpacing();
-        return pose().point(new Vec3(x,cargoSeat()!=null&&cargoSeat().isWoodenSeat()?31.5/16:2.15625,-1.875+cargoBody().frontOffset()));
+        return pose.point(new Vec3(x,cargoSeat()!=null&&cargoSeat().isWoodenSeat()?31.5/16:2.15625,-1.875+cargoBody().frontOffset()));
     }
     @Override public Vec3 getPassengerRidingPosition(Entity passenger) {
         return seatPosition(passengerSeat(passenger));

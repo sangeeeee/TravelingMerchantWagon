@@ -104,7 +104,20 @@ public class CargoStoolGameTests {
         assertStandOnStool(h,hold,slot,rider,false);
     }
     private static void assertStandOnStool(GameTestHelper h,CargoHold hold,int slot,net.minecraft.world.entity.LivingEntity rider,boolean allowOutside) {
-        h.assertTrue(hold.seats.sit(slot,rider)==null,"Canopied stool boarding failed");
+        if(hold.seats.available(slot,rider))h.assertTrue(hold.seats.sit(slot,rider)==null,"Canopied stool boarding failed");
+        else {
+            h.assertTrue(hold.seats.sit(slot,rider)!=null,"Overlapping cargo must prevent new boarding");
+            // Preserve the dismount regression for an already seated rider whose
+            // surroundings changed (rotation or newly placed adjacent cargo).
+            h.assertTrue(hold.owner() instanceof WagonEntity,"Unexpected blocked block-form stool");
+            var wagon=(WagonEntity)hold.owner();
+            try {
+                var requested=WagonEntity.class.getDeclaredField("requestedSeat");requested.setAccessible(true);
+                requested.setInt(wagon,WagonEntity.CARGO_SEAT_BASE+slot);
+                try { h.assertTrue(rider.startRiding(wagon,true),"Legacy rider setup failed");wagon.positionRider(rider); }
+                finally { requested.setInt(wagon,-1); }
+            } catch(ReflectiveOperationException e) { throw new AssertionError(e); }
+        }
         rider.stopRiding();Vec3 target=rider.position();
         h.assertTrue(rider.getPose()==Pose.STANDING,"Dismount left the rider pose active");
         var pose=hold.owner().cargoPose();Vec3 centre=pose.point(hold.centreAt(slot).add(0,.5,0));

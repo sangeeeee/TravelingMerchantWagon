@@ -20,7 +20,8 @@ import net.minecraft.world.item.ItemStack;
 @LittleMaidExtension
 public final class WagonMaidExtension implements ILittleMaid {
     public static final ResourceLocation TASK=ResourceLocation.fromNamespaceAndPath("tm_wagon","wagon_companion");
-    @Override public void addMaidTask(TaskManager manager) { manager.add(new CompanionTask()); }
+    public static final ResourceLocation RIDE_TASK=ResourceLocation.fromNamespaceAndPath("tm_wagon","wagon_passenger");
+    @Override public void addMaidTask(TaskManager manager) { manager.add(new CompanionTask(false));manager.add(new CompanionTask(true)); }
     @Override public void addExtraMaidBrain(ExtraMaidBrainManager manager) {
         manager.addExtraMaidBrain(new IExtraMaidBrain() {
             @Override public List<Pair<Integer,BehaviorControl<? super EntityMaid>>> getCoreBehaviors() {
@@ -28,10 +29,13 @@ public final class WagonMaidExtension implements ILittleMaid {
             }
         });
     }
-    public static boolean selected(EntityMaid maid) { return TASK.equals(maid.getTask().getUid()); }
+    public static boolean selected(EntityMaid maid) { return TASK.equals(maid.getTask().getUid())||ridingTask(maid); }
+    public static boolean ridingTask(EntityMaid maid) { return RIDE_TASK.equals(maid.getTask().getUid()); }
     private static final class CompanionTask implements IMaidTask {
-        @Override public ResourceLocation getUid() { return TASK; }
-        @Override public ItemStack getIcon() { return WagonContent.MAID_TASK_ICON.get().getDefaultInstance(); }
+        private final boolean stools;
+        CompanionTask(boolean stools) { this.stools=stools; }
+        @Override public ResourceLocation getUid() { return stools?RIDE_TASK:TASK; }
+        @Override public ItemStack getIcon() { return (stools?WagonContent.STOOL.get():WagonContent.MAID_TASK_ICON.get()).getDefaultInstance(); }
         @Override public SoundEvent getAmbientSound(EntityMaid maid) { return TaskManager.getIdleTask().getAmbientSound(maid); }
         @Override public List<Pair<Integer,BehaviorControl<? super EntityMaid>>> createBrainTasks(EntityMaid maid) { return new ArrayList<>(); }
         @Override public boolean enableLookAndRandomWalk(EntityMaid maid) { return false; }

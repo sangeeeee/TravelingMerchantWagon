@@ -114,5 +114,7 @@
   "tooltip.tm_wagon.triple_wooden_seat": "仅适用于加宽货物车厢；中间为驾驶位。",
   "message.tm_wagon.cargo_container_protected": "此容器带有锁或尚未生成的战利品，无法作为可交互货物装载。",
 "task.tm_wagon.wagon_companion": "马车副驾驶",
-"task.tm_wagon.wagon_companion.desc": "工作时寻找附近马车的非驾驶座位入座，休息时寻找马车草席睡觉。"
+"task.tm_wagon.wagon_companion.desc": "工作时寻找附近马车的非驾驶座位入座，休息时寻找马车草席睡觉。",
+  "task.tm_wagon.wagon_passenger": "乘坐马车",
+  "task.tm_wagon.wagon_passenger.desc": "工作时寻找附近实体马车中未被占用且空间充足的木凳入座。"
 }

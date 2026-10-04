@@ -50,8 +50,26 @@ public class WagonMaidGameTests {
     public static void working_task_chooses_nearest_mat_across_both_wagon_forms(GameTestHelper h) { Scenarios.working_task_chooses_nearest_mat_across_both_wagon_forms(h); }
     @GameTest(template="assembly_test",batch="maid_rest",timeoutTicks=55)
     public static void sleeper_does_not_snap_to_block_centres_or_block_tilting(GameTestHelper h) { Scenarios.sleeper_does_not_snap_to_block_centres_or_block_tilting(h); }
+    @GameTest(template="assembly_test",batch="maid_work",timeoutTicks=100)
+    public static void riding_task_skips_occupied_and_obstructed_stools_and_leaves_on_task_change(GameTestHelper h) { Scenarios.riding_task_stools(h); }
     private static final class Scenarios {
 
+    static void riding_task_stools(GameTestHelper h) {
+        time(h,1000);var w=wagon(h,WagonPart.DOUBLE_SEAT);
+        var p=h.makeMockPlayer(net.minecraft.world.level.GameType.CREATIVE);p.setPos(w.position().add(0,1,0));
+        for(int slot:new int[]{2,4,6})h.assertTrue(w.cargo().place(slot,new ItemStack(WagonContent.STOOL.get()),p)==null,"Stool fixture failed");
+        var occupant=net.minecraft.world.entity.EntityType.ZOMBIE.create(h.getLevel());occupant.setNoAi(true);occupant.setPos(w.position());
+        h.getLevel().addFreshEntity(occupant);h.assertTrue(w.cargo().seats.sit(2,occupant)==null,"Occupant failed");
+        Vec3 blocked=w.pose().point(w.cargo().centreAt(4).add(0,1.6,0));
+        h.getLevel().setBlock(BlockPos.containing(blocked),Blocks.STONE.defaultBlockState(),3);
+        var m=maid(h,w.pose().point(new Vec3(-5,0,1)));
+        m.setTask(TaskManager.findTask(WagonMaidExtension.RIDE_TASK).orElseThrow());
+        h.succeedWhen(()->{
+            h.assertTrue(m.getVehicle()==w,"Passenger task did not approach a stool");
+            h.assertTrue(w.passengerSeat(m)==WagonEntity.CARGO_SEAT_BASE+6,"Maid chose occupied/blocked stool or driver seat");
+            m.setTask(TaskManager.getIdleTask());h.assertTrue(!m.isPassenger(),"Passenger task change did not dismount immediately");
+        });
+    }
     private static void time(GameTestHelper h,long time) {
         h.getLevel().getGameRules().getRule(GameRules.RULE_DAYLIGHT).set(false,h.getLevel().getServer());h.getLevel().setDayTime(time);
     }

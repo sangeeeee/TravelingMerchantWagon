@@ -114,5 +114,7 @@
   "tooltip.tm_wagon.triple_wooden_seat": "Wide cargo bodies only; the middle seat is the driver.",
   "message.tm_wagon.cargo_container_protected": "This container has a lock or an ungenerated loot table and cannot be loaded as cargo.",
 "task.tm_wagon.wagon_companion": "Wagon Companion",
-"task.tm_wagon.wagon_companion.desc": "Boards a nearby wagon passenger seat during work and rests on a wagon straw mat during scheduled sleep."
+"task.tm_wagon.wagon_companion.desc": "Boards a nearby wagon passenger seat during work and rests on a wagon straw mat during scheduled sleep.",
+  "task.tm_wagon.wagon_passenger": "Ride Wagon",
+  "task.tm_wagon.wagon_passenger.desc": "Finds a free cargo stool with enough headroom on a nearby assembled wagon during work."
 }
