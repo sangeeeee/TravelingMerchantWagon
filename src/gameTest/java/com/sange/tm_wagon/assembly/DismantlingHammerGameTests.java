@@ -35,9 +35,12 @@ public class DismantlingHammerGameTests {
     @GameTest(template="assembly_test")
     public static void ordinary_damage_is_ignored_and_hammer_commits_once(GameTestHelper h) {
         var w=wagon(h);var p=h.makeMockPlayer(GameType.SURVIVAL);
+        h.assertTrue(!w.isAttackable()&&w.isInvulnerable()&&w.isInvulnerableTo(w.damageSources().playerAttack(p)),"Wagon still exposes ordinary combat targeting");
+        for(int i=0;i<25;i++)p.tick();double cooldown=p.getAttackStrengthScale(0);
         for(var item:new Item[]{Items.AIR,Items.IRON_AXE,Items.DIAMOND_SWORD}) {
             p.setItemInHand(InteractionHand.MAIN_HAND,new ItemStack(item));p.attack(w);
             h.assertTrue(!w.isRemoved(),"Ordinary attack dismantled wagon");
+            h.assertTrue(p.getAttackStrengthScale(0)==cooldown,"Ordinary wagon attack consumed attack cooldown");
         }
         h.assertTrue(!w.hurt(w.damageSources().generic(),10000)&&!w.hurt(w.damageSources().inFire(),10000)&&!w.isRemoved(),"Wagon accepted damage");
         var hammer=strike(h,w);h.assertTrue(hammer.getDamageValue()==1,"Dismantling should consume one durability");

@@ -25,6 +25,7 @@
     "HorseLeashMixin"
   ],
   "client": [
+    "WagonWorldBlockPickingMixin",
     "WagonSleepCameraMixin",
     "WagonSleepRendererMixin",
     "WagonChestLidMixin",

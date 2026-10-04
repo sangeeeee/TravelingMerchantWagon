@@ -769,6 +769,11 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
             &&!crowd.yields(entity)&&!(entity instanceof AbstractHorse h&&hasHorse(h.getUUID()))&&!entity.isPassengerOfSameVehicle(this)
             &&(entity instanceof WagonEntity||entity.canBeCollidedWith()||entity.isPushable());
     }
+    // Keep right-click picking/collision, but never enter normal combat (cooldown, sounds or knockback).
+    // NeoForge calls the hammer's onLeftClickEntity before checking isAttackable.
+    @Override public boolean isAttackable() { return false; }
+    @Override public boolean isInvulnerable() { return true; }
+    @Override public boolean isInvulnerableTo(DamageSource source) { return true; }
     @Override public boolean hurt(DamageSource source,float amount) {
         return false;
     }
