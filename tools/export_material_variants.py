@@ -100,15 +100,5 @@ tags={'cargo_bodies':['cargo_body','long_cargo_body','wide_cargo_body'],
       'cargo_accessories':['wagon_stool','wagon_straw_mat','wagon_cabinet','wagon_cargo_cover','wagon_canopy']}
 for name,values in tags.items():write(DATA/f'tags/item/{name}.json',{'values':[v if v.startswith('#') else 'tm_wagon:'+v for v in values]})
 
-colours_zh=['白色','橙色','品红色','淡蓝色','黄色','黄绿色','粉红色','灰色','淡灰色','青色','紫色','蓝色','棕色','绿色','红色','黑色']
-for locale in ['zh_cn','en_us']:
-    path=ASSETS/f'lang/{locale}.json';lang=json.loads(path.read_text(encoding='utf-8'))
-    for wood,spec in manifest['wood_sources'].items():lang['material.tm_wagon.wood.'+wood]=spec['zh_name' if locale=='zh_cn' else 'en_name']
-    for colour,zh in zip(manifest['dyes']['colours'],colours_zh):lang['material.tm_wagon.colour.'+colour]=zh if locale=='zh_cn' else colour.replace('_',' ').title()
-    for name,n in [('wood_name',2),('colour_name',2),('wood_colour_name',3)]:lang['item.tm_wagon.'+name]=('' if locale=='zh_cn' else ' ').join(['%s']*n)
-    new_names={'wide_cargo_body':('加宽货物车厢','Wide Cargo Body'), 'triple_seat':('三人带靠背车夫座椅','Triple Backrest Driver Seat'), 'triple_wooden_seat':('三人木制车夫座椅','Triple Wooden Driver Seat')}
-    for name,names in new_names.items():
-        lang['block.tm_wagon.'+name]=names[0 if locale=='zh_cn' else 1]
-        lang['tooltip.tm_wagon.'+name]=('4列×8行货位；以装配架为中心放置。' if locale=='zh_cn' else 'Four columns and eight rows; centred on the assembly frame.') if name=='wide_cargo_body' else ('仅适用于加宽货物车厢；中间为驾驶位。' if locale=='zh_cn' else 'Wide cargo bodies only; the middle seat is the driver.')
-    write(path,lang)
+# Localizations are maintained in assets/tm_wagon/lang. Asset exports must not overwrite them.
 print('Packed one shared 1024x1024 atlas, tinted fabric models, 80 native wood models, 19 material-aware recipes and 6 item tags.')
