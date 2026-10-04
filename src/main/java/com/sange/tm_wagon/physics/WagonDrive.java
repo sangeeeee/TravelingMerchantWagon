@@ -1,25 +1,26 @@
 package com.sange.tm_wagon.physics;
 
+import com.sange.tm_wagon.DrivingConfig;
+
 /** Signed longitudinal speed, in blocks/tick. No extra collision queries or packets. */
 public final class WagonDrive {
-    public static final double ACCELERATION=WagonPhysics.FORWARD_SPEED/30;
-    public static final double REVERSE_ACCELERATION=WagonPhysics.REVERSE_SPEED/15;
-    public static final double COAST_DECELERATION=WagonPhysics.FORWARD_SPEED/28;
-    public static final double BRAKE_DECELERATION=WagonPhysics.FORWARD_SPEED/7;
     private double speed;
 
     public double speed() { return speed; }
     public void reset() { speed=0; }
     public void load(double value) {
-        speed=Double.isFinite(value)?Math.clamp(value,-WagonPhysics.REVERSE_SPEED,WagonPhysics.FORWARD_SPEED*1.5):0;
+        speed=Double.isFinite(value)?Math.clamp(value,-WagonSpeed.maxReverse(),WagonSpeed.maxForward()):0;
     }
-    public double tick(int input,double limit) {
-        if(input==0||limit==0) speed=approach(speed,0,COAST_DECELERATION);
+    public double tick(int input,double limit) { return tick(input,limit,0,1); }
+    public double tick(int input,double limit,int occupied,int capacity) {
+        var config=DrivingConfig.get();
+        if(input==0||limit==0) speed=approach(speed,0,config.coast());
         // Always spend one tick stopped before applying power in the opposite direction.
-        else if(speed*input<0) speed=approach(speed,0,BRAKE_DECELERATION);
+        else if(speed*input<0) speed=approach(speed,0,config.brake());
         else {
             double target=input>0?limit:-limit;
-            double rate=Math.abs(speed)>limit?COAST_DECELERATION:input>0?ACCELERATION:REVERSE_ACCELERATION;
+            double rate=Math.abs(speed)>limit?config.coast():(input>0?config.forwardAcceleration():config.reverseAcceleration())
+                *config.accelerationMultiplier(occupied,capacity);
             speed=approach(speed,target,rate);
         }
         return speed;

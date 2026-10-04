@@ -18,5 +18,9 @@ public class TravelingMerchantWagon {
         bus.addListener((ModConfigEvent.Loading event)->CargoConfig.refresh(event));
         bus.addListener((ModConfigEvent.Reloading event)->CargoConfig.refresh(event));
         bus.addListener(CargoConfig::unload);
+        container.registerConfig(ModConfig.Type.SERVER,DrivingConfig.SPEC,"tm_wagon-driving-server.toml");
+        bus.addListener((ModConfigEvent.Loading event)->DrivingConfig.refresh(event));
+        bus.addListener((ModConfigEvent.Reloading event)->DrivingConfig.refresh(event));
+        bus.addListener(DrivingConfig::unload);
     }
 }

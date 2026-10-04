@@ -26,6 +26,7 @@ public final class WagonCrowd {
     private record SideChoice(int side,long expires) {}
     private final java.util.Map<java.util.UUID,SideChoice> sides=new java.util.HashMap<>();
     private double pushLimit;
+    private OrientedBox underside;
     WagonCrowd(WagonEntity wagon) { this.wagon=wagon; }
 
     /** Road clearing ignores this wagon only; terrain and other vehicles remain solid. */
@@ -52,11 +53,22 @@ public final class WagonCrowd {
         return mob.isAlive()&&!mob.isRemoved()&&!mob.noPhysics&&!mob.isSpectator()
             &&!mob.isPassengerOfSameVehicle(wagon)&&!wagon.hasHorse(mob.getUUID())
             &&!(mob instanceof AbstractHorse horse&&HorseHarness.attached(horse))
-            &&!WagonSupport.supportedByWagon(mob);
+            &&(underneath(mob)||!WagonSupport.supportedByWagon(mob));
+    }
+    private boolean underneath(Mob mob) {
+        if(underside==null)return false;
+        var deck=WagonGeometry.partBoxes(wagon.cargoBody()).getFirst();
+        return wagon.pose().local(mob.position()).y<deck.minY-.05&&underside.intersects(mob.getBoundingBox());
     }
     public void begin(Vec3 motion) {
         end();double speed=motion.horizontalDistance();
         if(speed<1e-6||wagon.level().isClientSide)return;
+        var deck=WagonGeometry.partBoxes(wagon.cargoBody()).getFirst();
+        AABB chassis=deck;
+        for(var box:WagonGeometry.partBoxes(wagon.cargoBody()))if(box.minY<deck.minY)chassis=chassis.minmax(box);
+        double halfWidth=wagon.cargoBody().wheelHalfTrack()+.35;
+        underside=OrientedBox.at(new AABB(-halfWidth,-.2,chassis.minZ,
+            halfWidth,deck.minY-.05,chassis.maxZ),wagon.pose());
         sides.values().removeIf(choice->choice.expires<wagon.level().getGameTime());
         pushLimit=Math.min(.35,Math.max(.08,speed*2.5));
         AABB area=wagon.getBoundingBox().expandTowards(motion).inflate(.3);
@@ -69,7 +81,7 @@ public final class WagonCrowd {
         for(Entity entity:wagon.level().getEntities(wagon,area,e->e instanceof Mob&&e.isAlive()))
             if(entity.getRootVehicle() instanceof Mob mob&&roadMob(mob))candidates.add(mob);
     }
-    public void end() { candidates.clear();handled.clear(); }
+    public void end() { candidates.clear();handled.clear();underside=null; }
     /** Mounted mobs are moved with their root; boats and other wagons remain solid obstacles. */
     public boolean yields(Entity entity) { return candidates.contains(entity.getRootVehicle()); }
 
@@ -106,7 +118,7 @@ public final class WagonCrowd {
         for(var box:boxes) { left=Math.max(left,sideExtent(box.bounds(),current.position(),right,-1));rightEdge=Math.max(rightEdge,sideExtent(box.bounds(),current.position(),right,1)); }
         for(AABB horse:horses) { left=Math.max(left,sideExtent(horse,current.position(),right,-1));rightEdge=Math.max(rightEdge,sideExtent(horse,current.position(),right,1)); }
         for(Mob mob:candidates) {
-            if(handled.contains(mob)||!touches(mob.getBoundingBox(),oldBoxes,boxes,horses)||!roadMob(mob))continue;
+            if(handled.contains(mob)||(!underneath(mob)&&!touches(mob.getBoundingBox(),oldBoxes,boxes,horses))||!roadMob(mob))continue;
             handled.add(mob);
             double x=mob.getBoundingBox().getCenter().subtract(current.position()).dot(right);
             var choice=sides.get(mob.getUUID());

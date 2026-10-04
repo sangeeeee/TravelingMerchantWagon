@@ -135,10 +135,12 @@ public final class WagonPhysics {
         driverRecovery=input!=0&&unstable&&touchingGround(wagon);
         float steer=Mth.lerp(.28F,wagon.steering(),steering*(float)Math.toRadians(25));
         wagon.setSteering(steer);
-        double limit=input<0?REVERSE_SPEED:FORWARD_SPEED*(wagon.boostedDrive()?1.5:1);
+        int occupied=wagon.cargo().occupiedSlots();
+        double limit=input<0?WagonSpeed.reverse(wagon.cargoBody()):WagonSpeed.forward(wagon.cargoBody(),
+            occupied,wagon.boostedDrive());
         // A stranded driver can still rock a tipped wagon after its horses detach.
         if(driverRecovery&&!powered)limit*=.35;
-        double speed=drive.tick(powered||driverRecovery?input:0,limit);
+        double speed=drive.tick(powered||driverRecovery?input:0,limit,occupied,wagon.cargo().capacity());
         if(!powered&&!driverRecovery&&!falling&&pushing!=0) { speed=PUSH_SPEED*pushing;drive.reset(); }
         float yaw=old.yaw()+(float)Math.toDegrees(speed*Math.tan(steer)/wagon.wheelbase());
         Vec3 direction=new WagonPose(old.position(),yaw,0,0).forward();
@@ -148,7 +150,8 @@ public final class WagonPhysics {
             Vec3 momentum=wagon.getDeltaMovement();horizontal=new Vec3(momentum.x,0,momentum.z);
             if(input!=0&&(powered||driverRecovery))horizontal=horizontal.lerp(direction.scale(speed),.4);
             else if(tipDirection!=0)horizontal=horizontal.add(direction.scale(.018*tipDirection));
-            if(horizontal.horizontalDistance()>FORWARD_SPEED*1.6)horizontal=horizontal.normalize().scale(FORWARD_SPEED*1.6);
+            double fallLimit=WagonSpeed.maxForward()*(16.0/15);
+            if(horizontal.horizontalDistance()>fallLimit)horizontal=horizontal.normalize().scale(fallLimit);
         }
         WagonPose ahead=new WagonPose(old.position().add(horizontal),yaw,old.pitch(),old.roll());
         if(contactPosition!=null&&contactPosition.distanceToSqr(old.position())>1)java.util.Arrays.fill(contactHeights,Double.NaN);

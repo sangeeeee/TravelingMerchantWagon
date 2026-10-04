@@ -35,9 +35,9 @@ public final class DrivingClientSmoke {
             if(++loading>1600)throw new IllegalStateException("Driving fixture loading timed out");return;
         }
         mc.setWindowActive(true);ticks++;
-        mc.options.keyUp.setDown(ticks>=40&&ticks<120||ticks>=200&&ticks<220);
+        mc.options.keyUp.setDown(ticks>=40&&ticks<120||ticks>=215&&ticks<235);
         mc.options.keySprint.setDown(ticks==80);
-        mc.options.keyDown.setDown(ticks>=180&&ticks<220);
+        mc.options.keyDown.setDown(ticks>=195&&ticks<235);
         if(ticks==1)server(mc,()->{
             var p=mc.getSingleplayerServer().getPlayerList().getPlayers().getFirst();var level=p.serverLevel();p.stopRiding();
             if(p.isSleeping())p.stopSleepInBed(true,true);
@@ -53,10 +53,10 @@ public final class DrivingClientSmoke {
             require(w.attachHorse(p,horse,0)==null,"Horse fixture failed");
         });
         if(ticks==39)require(mc.player.getVehicle() instanceof WagonEntity w&&w.driver()==mc.player,"Driver did not synchronize");
-        if(ticks==60)checkSpeed(mc,.10,.20,false);
-        if(ticks==78)checkSpeed(mc,.23,.24,false);
+        if(ticks==60)checkSpeed(mc,.23,.28,false);
+        if(ticks==78)checkSpeed(mc,.28,.29,false);
         if(ticks==115) {
-            checkSpeed(mc,.345,.355,true);
+            checkSpeed(mc,.50,.51,true);
             sound=rollingSound();require(sound!=null,"Rolling loop was never created");
             require(mc.getSoundManager().isActive((net.minecraft.client.resources.sounds.SoundInstance)sound),"Rolling loop is not audible/decoded");
         }
@@ -65,18 +65,18 @@ public final class DrivingClientSmoke {
             require(Math.abs(WagonEffects.sway(w,.5F))<Math.toRadians(.66),"Visual sway exceeded its bound");
         }
         if(ticks==119)require(sound==rollingSound(),"Rolling loop restarted during continuous motion");
-        if(ticks==130)checkSpeed(mc,.20,.31,false);
-        if(ticks==175) {
+        if(ticks==130)checkSpeed(mc,.40,.45,false);
+        if(ticks==190) {
             checkSpeed(mc,0,.0001,false);
             require(maximumSway>.001,"Moving wagon never swayed");
         }
-        if(ticks==210)server(mc,()->{
+        if(ticks==225)server(mc,()->{
             var w=(WagonEntity)mc.getSingleplayerServer().overworld().getEntity(id);
-            require(w.getDeltaMovement().z>.058&&w.getDeltaMovement().z<.059,"Reverse speed/sign incorrect");
+            require(w.getDeltaMovement().z>.070&&w.getDeltaMovement().z<.071,"Reverse speed/sign incorrect");
         });
-        if(ticks==265) {
+        if(ticks==285) {
             require(!mc.getSoundManager().isActive((net.minecraft.client.resources.sounds.SoundInstance)rollingSound()),"Parked wagon kept playing audio");
-            LogUtils.getLogger().info("DRIVING_CLIENT_PASS: native sprint tap, 1.5x latch, acceleration/coast/reverse, bounded cosmetic sway, decoded stable rolling loop and stop");mc.stop();
+            LogUtils.getLogger().info("DRIVING_CLIENT_PASS: native sprint tap, size-based 1.8x latch, acceleration/coast/reverse, bounded cosmetic sway, decoded stable rolling loop and stop");mc.stop();
         }
     }
     private static Object rollingSound() {

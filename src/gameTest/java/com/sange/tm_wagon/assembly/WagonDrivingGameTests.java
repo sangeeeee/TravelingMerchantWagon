@@ -109,13 +109,13 @@ public class WagonDrivingGameTests {
         h.assertTrue(Math.abs(WagonPhysics.FORWARD_SPEED-.234)<1e-9&&Math.abs(WagonPhysics.REVERSE_SPEED-.0585)<1e-9,"Speeds were not increased by 1.3");
         var w=wagon(h,false,false);var p=driver(h,w);attach(h,w,p,0);Vec3 start=w.position();
         drive(w,p,1,0,12);double forward=start.z-w.getZ();
-        h.assertTrue(Math.abs(forward-.6084)<.025,"Wrong forward speed: "+forward);
+        h.assertTrue(Math.abs(forward-.98865)<.025,"Wrong forward speed: "+forward);
         h.assertTrue(Math.abs(w.renderWheel(0,1)+forward/WagonPhysics.radius(0))<.025,"Front wheel slides");
         h.assertTrue(Math.abs(w.renderWheel(2,1)+forward/WagonPhysics.radius(2))<.025,"Rear wheel slides");
-        for(int i=0;i<3;i++)drive(w,p,-1,0,1);
+        for(int i=0;i<5;i++)drive(w,p,-1,0,1);
         h.assertTrue(w.getDeltaMovement().horizontalDistance()<1e-6,"Direction change did not stop first");
         double previous=w.getZ();drive(w,p,-1,0,12);double reverse=w.getZ()-previous;
-        h.assertTrue(Math.abs(reverse-.3042)<.025&&reverse<forward,"Reverse speed incorrect");
+        h.assertTrue(Math.abs(reverse-.488475)<.025&&reverse<forward,"Reverse speed incorrect");
         float yaw=w.getYRot();drive(w,p,1,1,16);h.assertTrue(w.getYRot()>yaw+2,"Moving steering did not turn");
         drive(w,p,-1,1,8);h.assertTrue(w.getYRot()<yaw+15,"Reverse steering direction incorrect");h.succeed();
     }
@@ -144,17 +144,18 @@ public class WagonDrivingGameTests {
         for(int i=0;i<40;i++)motion.tick(0,WagonPhysics.FORWARD_SPEED);
         h.assertTrue(motion.speed()==0,"Coasting never stopped");
         motion.tick(-1,WagonPhysics.REVERSE_SPEED);
-        h.assertTrue(Math.abs(motion.speed())<WagonPhysics.REVERSE_SPEED/10,"Reverse launch was instantaneous");
+        h.assertTrue(Math.abs(motion.speed()+.0063375)<1e-10,"Reverse launch acceleration incorrect");
         motion.acceptMovement(0);h.assertTrue(motion.speed()==0,"Obstacle retained banked speed");h.succeed();
     }
     @GameTest(template="assembly_test",timeoutTicks=40)
     public static void boost_latches_only_for_driver_and_ends_on_forward_release(GameTestHelper h) {
-        var w=wagon(h,true,false);var p=driver(h,w);attach(h,w,p,0);
+        var w=wagon(h,true,false);var modules=new EnumMap<WagonSlot,WagonPart>(w.parts());modules.put(WagonSlot.BODY,WagonPart.LONG_CARGO_BODY);w.configure(modules,Direction.NORTH);
+        var p=driver(h,w);attach(h,w,p,0);
         var other=h.makeMockPlayer(GameType.SURVIVAL);h.assertTrue(other.startRiding(w),"Passenger fixture failed");
         w.acceptInput(other,1,0,true);h.assertTrue(!w.boostedDrive(),"Passenger enabled boost");
         w.acceptInput(p,1,0,true);w.tick();
-        for(int i=0;i<44;i++) { w.acceptInput(p,1,0,false);w.tick(); }
-        h.assertTrue(w.boostedDrive()&&Math.abs(w.getDeltaMovement().horizontalDistance()-WagonPhysics.FORWARD_SPEED*1.5)<1e-5,"Releasing sprint lost boost or maximum speed");
+        for(int i=0;i<33;i++) { w.acceptInput(p,1,0,false);w.tick(); }
+        h.assertTrue(w.boostedDrive()&&Math.abs(w.getDeltaMovement().horizontalDistance()-WagonPhysics.FORWARD_SPEED*1.8)<1e-5,"Releasing sprint lost boost or maximum speed");
         double before=w.getDeltaMovement().horizontalDistance();
         w.acceptInput(p,0,0,false);w.tick();
         h.assertTrue(!w.boostedDrive()&&w.getDeltaMovement().horizontalDistance()<before&&w.getDeltaMovement().horizontalDistance()>WagonPhysics.FORWARD_SPEED,"Release snapped speed instead of coasting");
@@ -171,6 +172,23 @@ public class WagonDrivingGameTests {
         for(int x=8;x<15;x++)for(int y=2;y<7;y++)h.setBlock(new BlockPos(x,y,11),Blocks.AIR);
         w.acceptInput(p,1,0,false);w.tick();
         h.assertTrue(w.getDeltaMovement().horizontalDistance()>0&&w.getDeltaMovement().horizontalDistance()<.02,"Blocked wagon relaunched instantly");h.succeed();
+    }
+    @GameTest(template="assembly_test",timeoutTicks=40)
+    public static void live_loading_lowers_boost_smoothly_and_unloading_restores_it(GameTestHelper h) {
+        var w=wagon(h,false,false);var modules=new EnumMap<WagonSlot,WagonPart>(w.parts());modules.put(WagonSlot.BODY,WagonPart.LONG_CARGO_BODY);
+        w.configure(modules,Direction.NORTH);w.setPos(w.position().add(0,0,4.4));var p=driver(h,w);attach(h,w,p,0);
+        w.acceptInput(p,1,0,true);w.tick();drive(w,p,1,0,33);
+        double empty=w.getDeltaMovement().horizontalDistance();
+        h.assertTrue(Math.abs(empty-.4212)<1e-5,"Empty long wagon did not reach boost cap");
+        var loader=h.makeMockPlayer(GameType.SURVIVAL);loader.setPos(w.position().add(-4,1,0));
+        for(int slot=0;slot<w.cargo().capacity();slot++)h.assertTrue(w.cargo().place(slot,Items.STONE.getDefaultInstance(),loader)==null,"Live cargo placement failed");
+        drive(w,p,1,0,1);double first=w.getDeltaMovement().horizontalDistance();
+        h.assertTrue(first<empty&&first>.2808&&w.boostedDrive(),"Loading snapped speed or cleared sprint latch");
+        drive(w,p,1,0,16);
+        h.assertTrue(Math.abs(w.getDeltaMovement().horizontalDistance()-.2808)<1e-5,"Full long wagon failed to settle at 1.2x");
+        loader.setPos(w.position().add(-4,1,0));h.assertTrue(w.cargo().take(0,loader)==null,"Live unloading failed");
+        drive(w,p,1,0,1);
+        h.assertTrue(w.getDeltaMovement().horizontalDistance()>.2808&&w.getDeltaMovement().horizontalDistance()<=.2925+1e-5,"Unloading did not restore acceleration while sprint stayed latched");h.succeed();
     }
     @GameTest(template="assembly_test",timeoutTicks=40)
     public static void adults_only_double_hitches_scissors_and_single_refunds(GameTestHelper h) {
@@ -393,7 +411,7 @@ public class WagonDrivingGameTests {
             h.assertTrue(animal.walkAnimation.speed()>0,"Pulling horse has no vanilla leg animation");
         }
         drive(w,p,-1,0,3);horse.setEating(true);h.assertTrue(!horse.isEating(),"Reverse driving allowed grazing");
-        drive(w,p,0,0,1);horse.setEating(true);horse.tick();
+        drive(w,p,0,0,3);horse.setEating(true);horse.tick();
         h.assertTrue(horse.isEating()&&horse.getEatAnim(1)>0,"Stopping did not restore idle animations");
         w.detachAllHorses();horse.setEating(true);horse.setStanding(true);
         h.assertTrue(horse.isStanding(),"Detached horse retained animation restrictions");h.succeed();

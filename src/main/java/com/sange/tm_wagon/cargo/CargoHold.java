@@ -54,6 +54,12 @@ public final class CargoHold {
     public CargoHold(CargoOwner owner) { this.owner=owner; }
     public CargoOwner owner() { return owner; }
     public int capacity() { return owner.cargoBody().cargoCapacity(); }
+    /** At most 32 references, no inventory/NBT inspection. Mats reserve three cells. */
+    public int occupiedSlots() {
+        int count=0;
+        for(int i=0;i<capacity();i++)if(entries[i]!=null)count+=entries[i].kind==CargoEntry.Kind.STRAW_MAT?3:1;
+        return count;
+    }
     public int columns() { return owner.cargoBody().columns(); }
     public int rows() { return owner.cargoBody().rows(); }
     public double rearExtension() { return owner.cargoBody().rearExtension(); }

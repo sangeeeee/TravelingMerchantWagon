@@ -36,9 +36,10 @@ public class WagonCrowdGameTests {
         T e=type.create(h.getLevel());e.setNoAi(true);e.setPos(w.pose().point(local));e.setOnGround(true);h.getLevel().addFreshEntity(e);return e;
     }
     private static double travel(int ticks,int direction) {
-        int ramp=direction>0?30:15,n=Math.min(ticks,ramp);
-        double maximum=direction>0?WagonPhysics.FORWARD_SPEED:-WagonPhysics.REVERSE_SPEED;
-        return maximum*(n*(n+1.0)/(2*ramp)+Math.max(0,ticks-ramp));
+        double maximum=(direction>0?WagonPhysics.FORWARD_SPEED:-WagonPhysics.REVERSE_SPEED)*1.2;
+        double step=1.3*(direction>0?.00975:-.004875);
+        int ramp=(int)Math.ceil(maximum/step),n=Math.min(ticks,ramp-1);
+        return step*n*(n+1)/2+maximum*Math.max(0,ticks-n);
     }
     private static void drive(Fixture f,int direction,int steering,int ticks) {
         for(int i=0;i<ticks;i++) { f.wagon.acceptInput(f.driver,direction,steering);f.wagon.tick(); }
@@ -116,6 +117,32 @@ public class WagonCrowdGameTests {
         h.assertTrue(Math.abs(start.z-w.getZ()-travel(24,1))<.01,"Double horse road crowd slowed wagon");
         h.assertTrue(w.pose().local(left.position()).x<-1.65&&w.pose().local(right.position()).x>1.65,"Double horse lanes did not clear small mobs");
         h.assertTrue(w.hasHorse(f.horse.getUUID())&&w.hasHorse(donkey.getUUID()),"Crowd clearing detached a pulling animal");h.succeed();
+    }
+    @GameTest(template="assembly_test",timeoutTicks=40)
+    public static void underside_gaps_clear_mobs_without_touching_parts_or_deck_occupants(GameTestHelper h) {
+        for(int direction:new int[]{1,-1}) {
+            var f=wagon(h,Direction.NORTH);var w=f.wagon;
+            var under=mob(h,w,EntityType.RABBIT,new Vec3(.1,0,.3));
+            var deck=mob(h,w,EntityType.SHEEP,new Vec3(0,1.5,.5));
+            Vec3 deckStart=deck.position(),underStart=under.position(),start=w.position();
+            drive(f,direction,0,12);
+            h.assertTrue(under.position().distanceTo(underStart)>.5,"Wheel gap did not clear its occupant");
+            h.assertTrue(Math.abs(w.position().subtract(start).dot(w.pose().forward())-travel(12,direction))<.01,"Underside occupant blocked movement");
+            h.assertTrue(deck.position().equals(deckStart),"Clearing underneath also pushed deck occupant");
+            under.discard();deck.discard();w.detachHorse(f.horse.getUUID(),false);f.remove();
+        }h.succeed();
+    }
+    @GameTest(template="assembly_test",timeoutTicks=40)
+    public static void low_axle_support_does_not_protect_trapped_mob_from_clearing(GameTestHelper h) {
+        var f=wagon(h,Direction.NORTH);var w=f.wagon;
+        double deckBottom=WagonGeometry.partBoxes(w.cargoBody()).getFirst().minY+w.getY();
+        var support=w.collisionBoxes().stream().filter(b->b.maxY<deckBottom-.05&&b.maxY>w.getY()+.2
+            &&Math.abs(b.getCenter().z-w.getZ())<1.5).findFirst().orElseThrow();
+        var mob=mob(h,w,EntityType.RABBIT,Vec3.ZERO);
+        mob.setPos(support.getCenter().x,support.maxY,support.getCenter().z);
+        h.assertTrue(com.sange.tm_wagon.entity.WagonSupport.supportedByWagon(mob),"Fixture did not stand on low axle geometry");
+        Vec3 start=mob.position();drive(f,1,0,12);
+        h.assertTrue(mob.position().distanceTo(start)>.3,"Axle contact incorrectly protected trapped mob");h.succeed();
     }
     @GameTest(template="assembly_test",timeoutTicks=40)
     public static void mounted_mob_moves_with_its_root_without_blocking_vehicle(GameTestHelper h) {

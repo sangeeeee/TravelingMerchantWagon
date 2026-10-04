@@ -88,11 +88,12 @@ public class AssemblyFrameBlockEntity extends BlockEntity implements GeoBlockEnt
     @Override public boolean cargoBusy() { return changing||switching(); }
     @Override public String cargoGeometryChanged() { return initializeFrame(); }
     @Override public void cargoChanged(boolean visible) { if(visible)sync();else setChanged(); }
-    @Override public void onChunkUnloaded() { cargo.closeMenus(); }
+    @Override public void onChunkUnloaded() { cargo.closeMenus();com.sange.tm_wagon.compat.WagonShadowCasters.removed(this); }
     @Override public void onLoad() {
         super.onLoad();com.sange.tm_wagon.compat.StructureAssemblyGuard.loaded(this);
+        com.sange.tm_wagon.compat.WagonShadowCasters.loaded(this);
     }
-    @Override public void setRemoved() { cargo.closeMenus();super.setRemoved(); }
+    @Override public void setRemoved() { cargo.closeMenus();com.sange.tm_wagon.compat.WagonShadowCasters.removed(this);super.setRemoved(); }
 
     /** Requested visual state; the block state and collision commit at the end. */
     public boolean extended() { return motionStart == Long.MIN_VALUE ? collisionExtended : motionTargetExtended; }

@@ -27,7 +27,8 @@
   "client": [
     "WagonSleepCameraMixin",
     "WagonSleepRendererMixin",
-    "WagonChestLidMixin"
+    "WagonChestLidMixin",
+    "WagonIrisShadowMixin"
   ],
   "injectors": {
     "defaultRequire": 1

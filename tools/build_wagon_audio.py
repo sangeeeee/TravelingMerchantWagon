@@ -26,7 +26,8 @@ def build(source):
     weight = np.linspace(0, 1, overlap)
     loop = np.concatenate((samples[length:]*(1-weight)+samples[:overlap]*weight,
                            samples[overlap:length]))
-    # Preserve source loudness unless headroom is required for Vorbis encoding.
+    # Apply the requested 1.3x base gain, with encoding headroom.
+    loop *= 1.3
     peak = max(abs(loop))
     if peak > .85:
         loop *= .85/peak

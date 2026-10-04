@@ -1,0 +1,115 @@
+#Server-authoritative speed limits in blocks per second (20 game ticks per second).
+#Ordinary forward and reverse limits are not reduced by cargo. Cargo reduces only the sprint bonus.
+[speed]
+
+	[speed.small]
+		#Ordinary maximum forward speed, in blocks per second.
+		# Default: 5.616
+		# Range: 0.2 ~ 10.0
+		forward = 5.616
+		#Maximum reverse speed, in blocks per second. Sprint never increases reverse speed.
+		# Default: 1.404
+		# Range: 0.05 ~ 4.0
+		reverse = 1.404
+
+	[speed.long]
+		#Ordinary maximum forward speed, in blocks per second.
+		# Default: 4.68
+		# Range: 0.2 ~ 10.0
+		forward = 4.68
+		#Maximum reverse speed, in blocks per second. Sprint never increases reverse speed.
+		# Default: 1.17
+		# Range: 0.05 ~ 4.0
+		reverse = 1.17
+
+	[speed.wide]
+		#Ordinary maximum forward speed, in blocks per second.
+		# Default: 3.744
+		# Range: 0.2 ~ 10.0
+		forward = 3.744
+		#Maximum reverse speed, in blocks per second. Sprint never increases reverse speed.
+		# Default: 0.936
+		# Range: 0.05 ~ 4.0
+		reverse = 0.936
+
+#Sprint limit = max(base * minimumMultiplier, base * multiplier - occupiedSlots * penaltyPerOccupiedSlot).
+#A straw mat occupies three slots; a stool or cargo block occupies one. Container contents and passengers add no slots.
+[boost]
+	#Empty-wagon sprint multiplier relative to this body's ordinary forward limit.
+	# Default: 1.8
+	# Range: 1.0 ~ 2.5
+	multiplier = 1.8
+	#Absolute sprint speed penalty per occupied slot, in blocks per second; equal for every body size.
+	#Default 0.234 gives a full 12-slot long wagon a 1.2x sprint limit. Zero disables this penalty.
+	# Default: 0.234
+	# Range: 0.0 ~ 2.5
+	penaltyPerOccupiedSlot = 0.234
+	#Minimum sprint multiplier; cannot reduce speed below ordinary speed.
+	#Values above multiplier are effectively clamped to multiplier.
+	# Default: 1.0
+	# Range: 1.0 ~ 2.5
+	minimumMultiplier = 1.0
+
+#Propulsion reference acceleration in blocks per second squared; shared by all body sizes.
+#Each occupancy tier multiplies this reference directly, not the unloaded acceleration.
+#Cargo does not weaken coasting deceleration or the reverse-key brake.
+[acceleration]
+	#Forward reference acceleration before applying the occupancy multiplier.
+	# Default: 3.9
+	# Range: 0.1 ~ 20.0
+	forwardReference = 3.9
+	#Reverse reference acceleration before applying the same occupancy multiplier.
+	# Default: 1.95
+	# Range: 0.1 ~ 10.0
+	reverseReference = 1.95
+	#Reference multiplier below the first occupancy threshold. Default is 1.3x the previous acceleration.
+	# Default: 1.3
+	# Range: 0.05 ~ 3.0
+	unloadedMultiplier = 1.3
+	#Deceleration when coasting or exceeding a reduced speed limit, in blocks per second squared.
+	# Default: 3.3428571428571434
+	# Range: 0.2 ~ 40.0
+	coastingDeceleration = 3.3428571428571434
+	#Deceleration when pressing the opposite direction, in blocks per second squared; stop before reversing.
+	# Default: 13.371428571428574
+	# Range: 0.5 ~ 80.0
+	brakingDeceleration = 13.371428571428574
+
+	#Tier starts at or above this occupied percentage, using this body's actual slot capacity.
+	#Thresholds are effectively clamped to nondecreasing order; the highest matching tier wins.
+	#Multipliers are effectively clamped to the previous tier so loading cannot increase acceleration.
+	[acceleration.lightLoad]
+		#Occupied percentage required for this tier, inclusive.
+		# Default: 30
+		# Range: 1 ~ 100
+		thresholdPercent = 30
+		#Multiplier of forwardReference and reverseReference, not of unloaded acceleration.
+		# Default: 1.1
+		# Range: 0.05 ~ 3.0
+		multiplier = 1.1
+
+	#Tier starts at or above this occupied percentage, using this body's actual slot capacity.
+	#Thresholds are effectively clamped to nondecreasing order; the highest matching tier wins.
+	#Multipliers are effectively clamped to the previous tier so loading cannot increase acceleration.
+	[acceleration.mediumLoad]
+		#Occupied percentage required for this tier, inclusive.
+		# Default: 60
+		# Range: 1 ~ 100
+		thresholdPercent = 60
+		#Multiplier of forwardReference and reverseReference, not of unloaded acceleration.
+		# Default: 0.9
+		# Range: 0.05 ~ 3.0
+		multiplier = 0.9
+
+	#Tier starts at or above this occupied percentage, using this body's actual slot capacity.
+	#Thresholds are effectively clamped to nondecreasing order; the highest matching tier wins.
+	#Multipliers are effectively clamped to the previous tier so loading cannot increase acceleration.
+	[acceleration.fullLoad]
+		#Occupied percentage required for this tier, inclusive.
+		# Default: 100
+		# Range: 1 ~ 100
+		thresholdPercent = 100
+		#Multiplier of forwardReference and reverseReference, not of unloaded acceleration.
+		# Default: 0.6
+		# Range: 0.05 ~ 3.0
+		multiplier = 0.6

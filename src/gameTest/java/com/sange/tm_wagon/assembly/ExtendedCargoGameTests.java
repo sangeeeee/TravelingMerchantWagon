@@ -141,7 +141,7 @@ public class ExtendedCargoGameTests {
         h.assertTrue(Math.abs(rear.z-front.z-3.2)<.0001&&Math.abs(w.wheelbase()-3.2)<.0001,"Physics used old rear axle or wheelbase");
         Vec3 start=w.position();for(int i=0;i<12;i++){w.acceptInput(p,1,0);w.tick();}
         double distance=start.z-w.getZ();
-        h.assertTrue(Math.abs(distance-.6084)<.025&&w.supportMask()==15&&!w.falling(),"Extended wagon did not move on four supported wheels");
+        h.assertTrue(Math.abs(distance-.98865)<.025&&w.supportMask()==15&&!w.falling(),"Extended wagon did not move on four supported wheels");
         h.assertTrue(Math.abs(w.renderWheel(2,1)+distance/WagonPhysics.radius(2))<.025,"Extended rear wheels slide");h.succeed();
     }
 }
