@@ -40,3 +40,4 @@ repo/
 !**/src/**/repo/
 /modeling/
 /docs/
+/reports/

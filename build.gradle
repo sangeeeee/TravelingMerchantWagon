@@ -91,6 +91,20 @@ neoForge {
     // Default run configurations.
     // These can be tweaked, removed, or duplicated as needed.
     runs {
+        performanceServer {
+            type = "gameTestServer"
+            gameDirectory = project.file('build/performance-server')
+            systemProperty 'neoforge.enabledGameTestNamespaces', 'tm_wagon_perf'
+            systemProperty 'tm_wagon.performance', 'true'
+            systemProperty 'tm_wagon.performanceCases', providers.gradleProperty('performanceCases').getOrElse('')
+        }
+        performanceClient {
+            client()
+            gameDirectory = project.file('build/performance-client')
+            systemProperty 'tm_wagon.performanceClient', 'true'
+            systemProperty 'tm_wagon.performanceClientCases', providers.gradleProperty('performanceClientCases').getOrElse('')
+            programArguments.addAll '--width', '1200', '--height', '800'
+        }
         client {
             client()
             // Comma-separated list of namespaces to load gametests from. Empty = all namespaces.
@@ -204,6 +218,9 @@ neoForge {
 
         // applies to all the run configs above
         configureEach {
+            if (providers.gradleProperty('performanceRecording').isPresent()) {
+                jvmArgument "-XX:StartFlightRecording=filename=${file(providers.gradleProperty('performanceRecording').get()).absolutePath},settings=profile,dumponexit=true,maxsize=256m"
+            }
             // Recommended logging data for a userdev environment
             // The markers can be added/remove as needed separated by commas.
             // "SCAN": For mods scan.
