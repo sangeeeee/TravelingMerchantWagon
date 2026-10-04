@@ -653,10 +653,94 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
         return pose().point(articulated(new Vec3(x,0,(horseCapacity()==1?-4.35:-4.45)+cargoBody().frontOffset()),WagonSlot.SHAFTS));
     }
     private Vec3 horseBasePosition(int slot) {
+        return horseBasePosition(slot,pose());
+    }
+    private Vec3 horseBasePosition(int slot,WagonPose pose) {
         double x=horseCapacity()==1?0:slot==0?-1.05:1.05;
         Vec3 p=new Vec3(x,0,(horseCapacity()==1?-4.35:-4.45)+cargoBody().frontOffset());
         p=WagonPose.rotate(p.subtract(new Vec3(0,10.5/16,cargoBody().frontWheelZ())),0,0,steering).add(0,10.5/16,cargoBody().frontWheelZ());
-        return pose().point(p);
+        return pose.point(p);
+    }
+    /** Solve uphill articulation before moving: the collision poles must not lag behind
+     * the horses' next legal foothold. Downhill suspension keeps its existing damping. */
+    public void prepareUphillShafts(WagonPose ahead) {
+        double desired=0;int count=0;
+        for(int i=0;i<horseCapacity();i++) {
+            var horse=horse(i);if(horse==null)continue;
+            Vec3 base=horseBasePosition(i,ahead);var ground=horseGround(horse,base);
+            if(!ground.present()||ground.forbidden())return;
+            desired+=Math.atan2(ground.height()-base.y,horseCapacity()==1?2.725:2.825);count++;
+        }
+        if(count>0) {
+            float maximum=(float)Math.toRadians(55);
+            float target=Math.max(shaftPitch,(float)Math.min(maximum,desired/count));
+            // The double pole extends beyond the horses' feet. Anticipate the ground
+            // under that overhang too; this changes articulation, never horse step height.
+            for(var part:components)if(part.slot==WagonSlot.SHAFTS&&part.box.getZsize()>1) {
+                var b=part.box;
+                // A tip can already be outside a ledge while the wood just behind it
+                // still crosses the raised ground, especially during diagonal climbs.
+                for(int sample=0;sample<3;sample++) {
+                    Vec3 tip=new Vec3((b.minX+b.maxX)/2,b.minY,b.minZ+sample*.4);
+                    Vec3 world=ahead.point(articulated(tip,WagonSlot.SHAFTS,steering,target));
+                    var ground=WagonPhysics.ground(level(),world,1.001,1.001,Math.max(.15,b.getXsize()/2+.02));
+                    if(!ground.present()||ground.forbidden()||ground.height()+.025<=world.y)continue;
+                    float low=target,high=maximum;
+                    for(int j=0;j<10;j++) {
+                        float mid=(low+high)/2;
+                        if(ahead.point(articulated(tip,WagonSlot.SHAFTS,steering,mid)).y<ground.height()+.025)low=mid;else high=mid;
+                    }
+                    target=high;
+                }
+            }
+            if(target>shaftPitch)setShaftPitchClear(target);
+        }
+    }
+    private List<OrientedBox> shaftBoxes(float angle) {
+        var pose=pose();var boxes=new java.util.ArrayList<OrientedBox>();
+        Vec3 origin=articulated(Vec3.ZERO,WagonSlot.SHAFTS,steering,angle);
+        var frame=new OrientedBox.Frame(pose.vector(articulated(new Vec3(1,0,0),WagonSlot.SHAFTS,steering,angle).subtract(origin)),
+            pose.vector(articulated(new Vec3(0,1,0),WagonSlot.SHAFTS,steering,angle).subtract(origin)),
+            pose.vector(articulated(new Vec3(0,0,1),WagonSlot.SHAFTS,steering,angle).subtract(origin)));
+        for(var part:components)if(part.slot==WagonSlot.SHAFTS) {
+            var box=part.box;
+            boxes.add(new OrientedBox(pose.point(articulated(box.getCenter(),WagonSlot.SHAFTS,steering,angle)),
+                new Vec3(box.getXsize()/2,box.getYsize()/2,box.getZsize()/2),frame));
+        }
+        return boxes;
+    }
+    /** Articulation remains solid at low roofs too; never teleport raised poles through
+     * a beam. Only query the small shaft volume, once for the whole angular sweep. */
+    private void setShaftPitchClear(float target) {
+        float start=shaftPitch;if(Math.abs(target-start)<1e-5F)return;
+        var before=shaftBoxes(start);if(before.isEmpty())return;
+        AABB area=before.getFirst().bounds();
+        for(var box:before)area=area.minmax(box.bounds());
+        for(var box:shaftBoxes(target))area=area.minmax(box.bounds());
+        double radius=0,pivotZ=-26.0/16+cargoBody().frontOffset();
+        for(var part:components)if(part.slot==WagonSlot.SHAFTS) {
+            var b=part.box;double y=Math.max(Math.abs(b.minY-1.25),Math.abs(b.maxY-1.25));
+            double z=Math.max(Math.abs(b.minZ-pivotZ),Math.abs(b.maxZ-pivotZ));radius=Math.max(radius,Math.hypot(y,z));
+        }
+        area=area.inflate(.001+radius*(1-Math.cos((target-start)/2)));
+        var terrain=new java.util.ArrayList<OrientedBox>();
+        for(var shape:level().getBlockCollisions(this,area))for(var box:shape.toAabbs())terrain.add(OrientedBox.of(box));
+        for(var surface:com.sange.tm_wagon.compat.StructureCollision.surfaces(level(),area))terrain.add(surface.box());
+        if(terrain.isEmpty()) { shaftPitch=target;worldBoxes=null;worldShape=null;return; }
+        int steps=Math.max(1,(int)Math.ceil(Math.abs(target-start)/.025));
+        for(int i=1;i<=steps;i++) {
+            float angle=Mth.lerp((float)i/steps,start,target);var next=shaftBoxes(angle);
+            boolean blocked=false;
+            for(var block:terrain) {
+                boolean wasInside=false;for(var box:before)if(box.intersects(block)) { wasInside=true;break; }
+                if(wasInside)continue;
+                for(var box:next)if(box.intersects(block)) { blocked=true;break; }
+                if(blocked)break;
+            }
+            if(blocked)break;
+            shaftPitch=angle;before=next;
+        }
+        if(shaftPitch!=start) { worldBoxes=null;worldShape=null; }
     }
     public boolean horsesCanAdvance(Vec3 delta) {
         for(int i=0;i<horseCapacity();i++) {
@@ -740,7 +824,7 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
         float max=(float)Math.atan2(1,horseCapacity()==1?2.725:2.825);
         // Several individually legal steps may put the horse more than one block above
         // the rear axle. Upward articulation follows that grade; downward reach stays limited.
-        shaftPitch=Mth.lerp(.4F,shaftPitch,Mth.clamp(count==0?0:(float)(desired/count),-max,(float)Math.toRadians(55)));
+        setShaftPitchClear(Mth.lerp(.4F,shaftPitch,Mth.clamp(count==0?0:(float)(desired/count),-max,(float)Math.toRadians(55))));
         worldBoxes=null;worldShape=null;
         for(int i=0;i<horseCapacity();i++) {
             AbstractHorse h=horse(i);if(h==null)continue;

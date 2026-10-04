@@ -82,6 +82,7 @@ public final class WagonCrowd {
             if(entity.getRootVehicle() instanceof Mob mob&&roadMob(mob))candidates.add(mob);
     }
     public void end() { candidates.clear();handled.clear();underside=null; }
+    public boolean hasCandidates() { return !candidates.isEmpty(); }
     /** Mounted mobs are moved with their root; boats and other wagons remain solid obstacles. */
     public boolean yields(Entity entity) { return candidates.contains(entity.getRootVehicle()); }
 

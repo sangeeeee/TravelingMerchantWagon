@@ -318,6 +318,51 @@ public class WagonDrivingGameTests {
     public static void continuous_one_block_stairs(GameTestHelper h) { continuousStairs(h,1); }
     @GameTest(template="assembly_test",timeoutTicks=40)
     public static void continuous_spaced_one_block_stairs(GameTestHelper h) { continuousStairs(h,2); }
+    @GameTest(template="assembly_test",timeoutTicks=40)
+    public static void boosted_head_on_stairs_do_not_reset_drive_speed(GameTestHelper h) { smoothStairs(h,0,false); }
+    @GameTest(template="assembly_test",timeoutTicks=40)
+    public static void boosted_diagonal_stairs_do_not_reset_drive_speed(GameTestHelper h) { smoothStairs(h,15,false); }
+    @GameTest(template="assembly_test",timeoutTicks=40)
+    public static void full_wide_diagonal_stairs_clear_front_crossbeam(GameTestHelper h) { smoothStairs(h,45,true); }
+    private static void smoothStairs(GameTestHelper h,int angle,boolean wide) {
+        // The diagonal shaft overhang reaches the test structure's invisible side wall.
+        // It is not part of the open hillside being tested.
+        net.minecraft.gametest.framework.StructureUtils.removeBarriers(h.getBounds(),h.getLevel());
+        var originPos=h.absolutePos(BlockPos.ZERO);
+        for(int x=(originPos.getX()>>4)-1;x<=(originPos.getX()>>4)+2;x++)for(int z=(originPos.getZ()>>4)-1;z<=(originPos.getZ()>>4)+2;z++) {
+            h.getLevel().getChunk(x,z);h.getLevel().setChunkForced(x,z,true);
+        }
+        var w=wagon(h,false,false);
+        if(wide) { var parts=new EnumMap<WagonSlot,WagonPart>(w.parts());parts.put(WagonSlot.BODY,WagonPart.WIDE_CARGO_BODY);w.configure(parts,Direction.NORTH); }
+        // Keep both rear wheels on the fixture floor at spawn, including the wide cart.
+        w.applyPose(new WagonPose(Vec3.atBottomCenterOf(h.absolutePos(new BlockPos(angle==45?5:10,2,19))),180+angle,0,0));
+        var p=driver(h,w);attach(h,w,p,0);
+        if(wide) {
+            var loader=h.makeMockPlayer(GameType.CREATIVE);loader.setPos(w.position().add(4,0,0));
+            for(int slot=0;slot<w.cargo().capacity();slot++) {
+                String error=w.cargo().place(slot,new ItemStack(Items.STONE),loader);h.assertTrue(error==null,"Cargo fixture "+slot+": "+error);
+            }
+        }
+        for(int x=1;x<24;x++)for(int z=1;z<=8;z++)for(int y=2;y<2+Math.min(3,9-z);y++)h.setBlock(new BlockPos(x,y,z),Blocks.STONE);
+        var expected=new WagonDrive();int tick=0;double goal=h.absolutePos(new BlockPos(0,0,6)).getZ();
+        while(w.getZ()>goal&&tick++<180) {
+            double speed=expected.tick(1,WagonSpeed.forward(w.cargoBody(),w.cargo().occupiedSlots(),!wide),w.cargo().occupiedSlots(),w.cargo().capacity());
+            w.acceptInput(p,1,0,!wide);w.tick();
+            h.assertTrue(Math.abs(w.getDeltaMovement().horizontalDistance()-speed)<.0001,"Legal stairs clipped drive speed at "+tick+": "+w.getDeltaMovement().horizontalDistance()+" expected "+speed);
+            h.assertTrue(!w.falling(),"Legal staircase lost wheel support");
+        }
+        h.assertTrue(w.getZ()<=goal&&w.getY()>h.absolutePos(new BlockPos(0,3,0)).getY(),"Wagon did not ascend");h.succeed();
+    }
+    @GameTest(template="assembly_test",timeoutTicks=40)
+    public static void predictive_shafts_do_not_rotate_through_overhead_beam(GameTestHelper h) {
+        var w=wagon(h,false,false);var p=driver(h,w);attach(h,w,p,0);
+        for(int x=9;x<=13;x++)for(int z=10;z<=13;z++)h.setBlock(new BlockPos(x,2,z),Blocks.STONE);
+        var beam=new BlockPos(11,4,13);h.setBlock(beam,Blocks.STONE);
+        w.prepareUphillShafts(w.pose());
+        h.assertTrue(w.shaftPitch()<Math.atan2(1,2.725)-.001,"Pole ignored overhead beam");
+        var obstacle=new AABB(h.absolutePos(beam));
+        for(var box:w.motionCollidersAt(w.pose()))h.assertTrue(!box.intersects(obstacle),"Raised shaft penetrated beam");h.succeed();
+    }
     private static void continuousStairs(GameTestHelper h,int spacing) {
         var w=wagon(h,false,false);var p=driver(h,w);var horse=attach(h,w,p,0);
         for(int x=1;x<24;x++)for(int z=1;z<=11;z++) {

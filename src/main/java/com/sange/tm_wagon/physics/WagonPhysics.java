@@ -35,6 +35,7 @@ public final class WagonPhysics {
     private int tipDirection,recoveringTicks;
     private double fallStartHeight;
     private boolean driverRecovery,structurePush;
+    private double stepLiftCeiling=Double.NEGATIVE_INFINITY;
     private final double[] contactHeights={Double.NaN,Double.NaN,Double.NaN,Double.NaN};
     private Vec3 contactPosition;
     public boolean falling() { return falling; }
@@ -59,17 +60,18 @@ public final class WagonPhysics {
         double best=Double.NEGATIVE_INFINITY;boolean forbidden=false;
         int minX=Mth.floor(point.x-halfWidth),maxX=Mth.floor(point.x+halfWidth);
         int minZ=Mth.floor(point.z-halfWidth),maxZ=Mth.floor(point.z+halfWidth);
+        BlockPos.MutableBlockPos pos=new BlockPos.MutableBlockPos();
         for(int x=minX;x<=maxX;x++)for(int z=minZ;z<=maxZ;z++)for(int y=Mth.floor(point.y+up);y>=Mth.floor(point.y-down)-1;y--) {
-            BlockPos pos=new BlockPos(x,y,z);
+            pos.set(x,y,z);
             if(!level.hasChunkAt(pos))continue;
             var state=level.getBlockState(pos);
             for(AABB b:state.getCollisionShape(level,pos).toAabbs()) {
-                b=b.move(x,y,z);
-                if(b.maxX<=point.x-halfWidth || b.minX>=point.x+halfWidth || b.maxZ<=point.z-halfWidth || b.minZ>=point.z+halfWidth)continue;
-                if(b.maxY<point.y-down-1e-5 || b.minY>point.y+up+1e-5)continue;
-                if(state.is(BlockTags.FENCES)||state.is(BlockTags.WALLS)) { if(b.maxY>point.y+.05)forbidden=true;continue; }
-                if(b.maxY>point.y+up+1e-5)continue;
-                best=Math.max(best,b.maxY);
+                if(b.maxX+x<=point.x-halfWidth || b.minX+x>=point.x+halfWidth || b.maxZ+z<=point.z-halfWidth || b.minZ+z>=point.z+halfWidth)continue;
+                double top=b.maxY+y;
+                if(top<point.y-down-1e-5 || b.minY+y>point.y+up+1e-5)continue;
+                if(state.is(BlockTags.FENCES)||state.is(BlockTags.WALLS)) { if(top>point.y+.05)forbidden=true;continue; }
+                if(top>point.y+up+1e-5)continue;
+                best=Math.max(best,top);
             }
         }
         if(!StructureCollision.available())return new Ground(best,forbidden);
@@ -110,6 +112,7 @@ public final class WagonPhysics {
         return s.has(a)&&s.has(b)?(s.heights[a]+s.heights[b])/2:s.has(a)?s.heights[a]:s.has(b)?s.heights[b]:fallback;
     }
     public void tick(WagonEntity wagon,int input,int steering,boolean powered,int pushing) {
+        stepLiftCeiling=Double.NEGATIVE_INFINITY;
         if(!StructureCollision.available()) { tickVehicle(wagon,input,steering,powered,pushing);return; }
         try(var scope=StructureCollision.begin(wagon)) {
             WagonPose carried=StructureCollision.transport(wagon);
@@ -172,6 +175,9 @@ public final class WagonPhysics {
             double required=Double.NEGATIVE_INFINITY;
             for(int i=0;i<4;i++)if(supports.has(i))required=Math.max(required,supports.heights[i]-(wagon.wheelCentre(i,tilted).y-radius(i)-old.position().y));
             dy=Mth.clamp(required-old.position().y,-.16,.30);
+            // Small chassis clearance may bridge a diagonal stair corner, but cannot
+            // accumulate into climbing walls: the ceiling is tied to wheel support.
+            if(supports.count()>=2)stepLiftCeiling=Math.min(required+.25,old.position().y+.30);
             verticalSpeed=0;pitchVelocity=rollVelocity=0;
         } else {
             verticalSpeed=Math.max(-1.8,verticalSpeed-.08);
@@ -190,6 +196,8 @@ public final class WagonPhysics {
             dy=verticalSpeed;
         }
         Vec3 requested=new Vec3(horizontal.x,dy,horizontal.z);
+        if(!falling&&horizontal.lengthSqr()>1e-12)
+            wagon.prepareUphillShafts(new WagonPose(old.position().add(requested),yaw,pitch,roll));
         Vec3 before=wagon.position();
         boolean landedOnLowerGround=move(wagon,requested,yaw,pitch,roll);
         Vec3 actual=wagon.position().subtract(before);wagon.setDeltaMovement(actual);
@@ -261,32 +269,41 @@ public final class WagonPhysics {
             Math.max(Math.abs(pitch-start.pitch()),Math.abs(roll-start.roll()))/.035)));
         steps=Math.min(32,steps);
         Vec3 step=motion.scale(1.0/steps);
+        List<OrientedBox> oldBoxes=wagon.motionCollidersAt(start);
+        WagonTerrain terrainQuery=new WagonTerrain(wagon,Math.abs(motion.y)>1e-5||Math.abs(pitch)>1e-5||Math.abs(roll)>1e-5);
         for(int n=1;n<=steps;n++) {
             float t=(float)n/steps;
             WagonPose previous=wagon.pose();
+            WagonPose movementStart=previous;
             WagonPose rotated=new WagonPose(wagon.position(),Mth.rotLerp(t,start.yaw(),yaw),
                 Mth.lerp(t,start.pitch(),pitch),Mth.lerp(t,start.roll(),roll));
-            List<OrientedBox> boxes=wagon.motionCollidersAt(rotated);
+            boolean turning=rotated.yaw()!=previous.yaw()||rotated.pitch()!=previous.pitch()||rotated.roll()!=previous.roll();
+            List<OrientedBox> boxes=turning?wagon.motionCollidersAt(rotated):oldBoxes;
             AABB bounds=bounds(boxes);
             if(!wagon.level().getWorldBorder().isWithinBounds(bounds.expandTowards(step)))break;
             boolean loaded=true;
             for(int x=Mth.floor(bounds.minX)>>4;x<=Mth.floor(bounds.maxX)>>4;x++)for(int z=Mth.floor(bounds.minZ)>>4;z<=Mth.floor(bounds.maxZ)>>4;z++)
                 loaded&=wagon.level().hasChunk(x,z);
             if(!loaded)break;
-            AABB swept=bounds.expandTowards(step).inflate(.03).expandTowards(0,driverRecovery?.25:0,0);
-            List<OrientedBox> terrain=new ArrayList<>();
-            for(VoxelShape shape:wagon.level().getBlockCollisions(wagon,swept))for(AABB block:shape.toAabbs())terrain.add(OrientedBox.of(block));
+            double extraLift=Math.max(driverRecovery?.25:0,Math.max(0,stepLiftCeiling-rotated.position().y));
+            AABB swept=bounds.minmax(bounds(oldBoxes)).expandTowards(step).inflate(.03).expandTowards(0,extraLift,0);
+            List<OrientedBox> terrain=terrainQuery.blocks(swept);
             for(VoxelShape shape:wagon.level().getEntityCollisions(wagon,swept))for(AABB block:shape.toAabbs())terrain.add(OrientedBox.of(block));
             terrain.addAll(WagonCollision.nearby(wagon.level(),wagon,swept));
             for(var surface:StructureCollision.surfaces(wagon.level(),swept))
                 if(!structurePush||surface.motion().dot(motion)<=1e-10)terrain.add(surface.box());
-            List<OrientedBox> oldBoxes=wagon.motionCollidersAt(previous);
-            boolean blockedRotation=false;
-            for(OrientedBox block:terrain) {
-                boolean next=boxes.stream().anyMatch(b->b.intersects(block));
-                boolean prior=oldBoxes.stream().anyMatch(b->b.intersects(block));
-                if(next&&!prior) { blockedRotation=true;break; }
+            double preLift=0;
+            if(!falling&&step.y>0) {
+                // Lift the old pose safely before trying the new pitch/roll. Testing
+                // rotation at the old height would reject legal slope-following turns.
+                preLift=limit(Direction.Axis.Y,step.y,oldBoxes,terrain);
+                if(preLift>0) {
+                    oldBoxes=shift(oldBoxes,0,preLift,0);boxes=turning?shift(boxes,0,preLift,0):oldBoxes;
+                    previous=new WagonPose(previous.position().add(0,preLift,0),previous.yaw(),previous.pitch(),previous.roll());
+                    rotated=new WagonPose(rotated.position().add(0,preLift,0),rotated.yaw(),rotated.pitch(),rotated.roll());
+                }
             }
+            boolean blockedRotation=turning&&newOverlap(boxes,oldBoxes,terrain);
             if(driverRecovery) {
                 // Roll about the ground contact by lifting the centre only as far as the next
                 // small angular increment needs. Ceilings, walls and other vehicles still block it.
@@ -302,7 +319,7 @@ public final class WagonPhysics {
                 }
             }
             if(blockedRotation) { rotated=previous;boxes=oldBoxes; }
-            double y=limit(Direction.Axis.Y,step.y,boxes,terrain);
+            double y=limit(Direction.Axis.Y,step.y-preLift,boxes,terrain);
             if(y>step.y+.0001&&step.y<0)for(OrientedBox block:terrain) {
                 if(block.bounds().maxY>landingHeight+.05)continue;
                 for(OrientedBox box:boxes)if(block.sweep(box,new Vec3(0,step.y,0))!=null)landedOnLowerGround=true;
@@ -317,26 +334,55 @@ public final class WagonPhysics {
                 }
             }
             boxes=shift(boxes,0,y,0);
+            List<OrientedBox> horizontalBoxes=boxes;
             double x=limit(Direction.Axis.X,step.x,boxes,terrain);boxes=shift(boxes,x,0,0);
             double z=limit(Direction.Axis.Z,step.z,boxes,terrain);
+            double allowance=stepLiftCeiling-(rotated.position().y+y);
+            if(!falling&&!structurePush&&allowance>1e-6&&(Math.abs(x-step.x)>1e-6||Math.abs(z-step.z)>1e-6)) {
+                // Retry only the minimum lift needed for a low stair corner. Every
+                // phase is swept; ceilings, passengers and structures remain solid.
+                List<OrientedBox> target=shift(horizontalBoxes,step.x,0,step.z);
+                double lift=0;Vec3 up=new Vec3(0,1,0);
+                for(var block:terrain)for(var box:target)if(box.intersects(block))lift=Math.max(lift,block.escapeDistance(box,up));
+                if(lift>0&&lift<=allowance&&limit(Direction.Axis.Y,lift,horizontalBoxes,terrain)>=lift-1e-7) {
+                    var raised=shift(horizontalBoxes,0,lift,0);
+                    double rx=limit(Direction.Axis.X,step.x,raised,terrain);
+                    var across=shift(raised,rx,0,0);double rz=limit(Direction.Axis.Z,step.z,across,terrain);
+                    if(rx*step.x+rz*step.z>x*step.x+z*step.z+1e-9) { x=rx;z=rz;y+=lift;boxes=across; }
+                }
+            }
+            oldBoxes=shift(boxes,0,0,z);
             wagon.applyPose(new WagonPose(rotated.position().add(x,y,z),rotated.yaw(),rotated.pitch(),rotated.roll()));
-            wagon.crowd().clear(previous);
+            wagon.crowd().clear(movementStart);
         }
         return landedOnLowerGround;
     }
     private static AABB bounds(List<OrientedBox> boxes) {
         AABB bounds=boxes.getFirst().bounds();for(var box:boxes)bounds=bounds.minmax(box.bounds());return bounds;
     }
+    private static boolean newOverlap(List<OrientedBox> boxes,List<OrientedBox> previous,List<OrientedBox> terrain) {
+        for(var block:terrain)if(overlaps(boxes,block)&&!overlaps(previous,block))return true;
+        return false;
+    }
+    private static boolean overlaps(List<OrientedBox> boxes,OrientedBox block) {
+        for(var box:boxes)if(box.intersects(block))return true;return false;
+    }
     private static List<OrientedBox> shift(List<OrientedBox> boxes,double x,double y,double z) {
-        Vec3 delta=new Vec3(x,y,z);return boxes.stream().map(b->b.move(delta)).toList();
+        if(x==0&&y==0&&z==0)return boxes;
+        Vec3 delta=new Vec3(x,y,z);var shifted=new ArrayList<OrientedBox>(boxes.size());
+        for(var box:boxes)shifted.add(box.move(delta));return shifted;
     }
     private static double limit(Direction.Axis axis,double distance,List<OrientedBox> boxes,List<OrientedBox> terrain) {
         if(Math.abs(distance)<1e-12)return distance;
         Vec3 motion=switch(axis) { case X->new Vec3(distance,0,0);case Y->new Vec3(0,distance,0);case Z->new Vec3(0,0,distance); };
         double fraction=1;
-        for(OrientedBox box:boxes)for(OrientedBox block:terrain) {
-            if(box.intersects(block))continue; // Match vanilla: an existing overlap must remain escapable.
-            var hit=block.sweep(box,motion);if(hit!=null)fraction=Math.min(fraction,hit.time());
+        for(OrientedBox box:boxes) {
+            AABB sweep=box.bounds().expandTowards(motion).inflate(1e-7);
+            for(OrientedBox block:terrain) {
+                if(!sweep.intersects(block.bounds())||box.intersects(block))continue;
+                var hit=block.sweep(box,motion);if(hit!=null)fraction=Math.min(fraction,hit.time());
+                if(fraction==0)return 0;
+            }
         }
         return distance*fraction;
     }

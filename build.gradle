@@ -91,6 +91,14 @@ neoForge {
     // Default run configurations.
     // These can be tweaked, removed, or duplicated as needed.
     runs {
+        uphillPerformanceServer {
+            type = "gameTestServer"
+            gameDirectory = project.file(providers.gradleProperty('performanceDirectory').getOrElse('build/uphill-performance'))
+            systemProperty 'neoforge.enabledGameTestNamespaces', 'tm_wagon_uphill'
+            systemProperty 'tm_wagon.uphill', 'true'
+            systemProperty 'tm_wagon.uphillCases', providers.gradleProperty('performanceCases').getOrElse('')
+            systemProperty 'tm_wagon.uphillDiagnostics', providers.gradleProperty('uphillDiagnostics').getOrElse('false')
+        }
         performanceServer {
             type = "gameTestServer"
             // Separate fresh worlds for before/after measurements without changing normal game runs.
