@@ -35,6 +35,11 @@ public class WagonCrowdGameTests {
     private static <T extends Mob> T mob(GameTestHelper h,WagonEntity w,EntityType<T> type,Vec3 local) {
         T e=type.create(h.getLevel());e.setNoAi(true);e.setPos(w.pose().point(local));e.setOnGround(true);h.getLevel().addFreshEntity(e);return e;
     }
+    private static double travel(int ticks,int direction) {
+        int ramp=direction>0?30:15,n=Math.min(ticks,ramp);
+        double maximum=direction>0?WagonPhysics.FORWARD_SPEED:-WagonPhysics.REVERSE_SPEED;
+        return maximum*(n*(n+1.0)/(2*ramp)+Math.max(0,ticks-ramp));
+    }
     private static void drive(Fixture f,int direction,int steering,int ticks) {
         for(int i=0;i<ticks;i++) { f.wagon.acceptInput(f.driver,direction,steering);f.wagon.tick(); }
     }
@@ -47,14 +52,14 @@ public class WagonCrowdGameTests {
             var f=wagon(h,facing);var w=f.wagon;
             var left=mob(h,w,EntityType.COW,new Vec3(-.2,0,direction>0?-5.8:2.9));
             var right=mob(h,w,EntityType.ZOMBIE,new Vec3(.2,0,direction>0?-5.8:2.9));
-            Vec3 start=w.position(),heading=w.pose().forward();int ticks=direction>0?8:12;
+            Vec3 start=w.position(),heading=w.pose().forward();int ticks=direction>0?22:19;
             drive(f,direction,0,ticks);
-            double expected=ticks*(direction>0?WagonPhysics.FORWARD_SPEED:-WagonPhysics.REVERSE_SPEED);
+            double expected=travel(ticks,direction);
             h.assertTrue(Math.abs(w.position().subtract(start).dot(heading)-expected)<.01,"Road mob slowed wagon: "+facing+" "+direction+" "+w.position());
             h.assertTrue(w.pose().local(left.position()).x<-.5&&w.pose().local(right.position()).x>.5,"Mobs were not pushed to their respective sides: "+facing);
             h.assertTrue(left.getHealth()==left.getMaxHealth()&&right.getHealth()==right.getMaxHealth(),"Clearing road damaged mobs");
             h.assertTrue(h.getLevel().noBlockCollision(left,left.getBoundingBox().deflate(.001))&&h.getLevel().noBlockCollision(right,right.getBoundingBox().deflate(.001)),"Road clearing pushed mobs into blocks");
-            Vec3 stopped=left.position();drive(f,0,0,3);h.assertTrue(left.position().equals(stopped),"Parked wagon kept pushing road mob");
+            drive(f,0,0,30);Vec3 stopped=left.position();drive(f,0,0,3);h.assertTrue(left.position().equals(stopped),"Parked wagon kept pushing road mob");
             left.discard();right.discard();f.remove();
         }h.succeed();
     }
@@ -63,8 +68,8 @@ public class WagonCrowdGameTests {
         var f=wagon(h,Direction.NORTH);var w=f.wagon;
         for(int z=7;z<22;z++)for(int y=2;y<5;y++)h.setBlock(new BlockPos(13,y,z),Blocks.STONE);
         var cow=mob(h,w,EntityType.COW,new Vec3(1,0,-1.25));Vec3 start=w.position();
-        drive(f,1,0,8);
-        h.assertTrue(Math.abs(start.z-w.getZ()-8*WagonPhysics.FORWARD_SPEED)<.01,"Roadside wall or cow slowed clear lane");
+        drive(f,1,0,22);
+        h.assertTrue(Math.abs(start.z-w.getZ()-travel(22,1))<.01,"Roadside wall or cow slowed clear lane");
         h.assertTrue(w.pose().local(cow.position()).x<.2,"Cow did not use open side");
         h.assertTrue(h.getLevel().noBlockCollision(cow,cow.getBoundingBox().deflate(.001)),"Cow entered roadside wall");h.succeed();
     }
@@ -73,8 +78,8 @@ public class WagonCrowdGameTests {
         var f=wagon(h,Direction.NORTH);var w=f.wagon;
         for(int x:new int[]{9,13})for(int z=7;z<22;z++)for(int y=2;y<5;y++)h.setBlock(new BlockPos(x,y,z),Blocks.STONE);
         var cow=mob(h,w,EntityType.COW,new Vec3(.2,0,-2.7));Vec3 start=w.position();
-        drive(f,1,0,12);
-        h.assertTrue(Math.abs(start.z-w.getZ()-12*WagonPhysics.FORWARD_SPEED)<.01,"Trapped biological entity slowed wagon");
+        drive(f,1,0,26);
+        h.assertTrue(Math.abs(start.z-w.getZ()-travel(26,1))<.01,"Trapped biological entity slowed wagon");
         h.assertTrue(h.getLevel().noBlockCollision(cow,cow.getBoundingBox().deflate(.001))&&Math.abs(w.pose().local(cow.position()).x)<1.1,"Trapped cow passed through corridor wall");h.succeed();
     }
     @GameTest(template="assembly_test",timeoutTicks=40)
@@ -107,8 +112,8 @@ public class WagonCrowdGameTests {
         donkey.setPos(w.horsePosition(1));h.getLevel().addFreshEntity(donkey);donkey.setLeashedTo(f.driver,true);
         h.assertTrue(w.attachHorse(f.driver,donkey,1)==null,"Double horse fixture failed");
         var left=mob(h,w,EntityType.PIG,new Vec3(-1.05,0,-5.8));var right=mob(h,w,EntityType.WOLF,new Vec3(1.05,0,-5.8));
-        Vec3 start=w.position();drive(f,1,0,10);
-        h.assertTrue(Math.abs(start.z-w.getZ()-10*WagonPhysics.FORWARD_SPEED)<.01,"Double horse road crowd slowed wagon");
+        Vec3 start=w.position();drive(f,1,0,24);
+        h.assertTrue(Math.abs(start.z-w.getZ()-travel(24,1))<.01,"Double horse road crowd slowed wagon");
         h.assertTrue(w.pose().local(left.position()).x<-1.65&&w.pose().local(right.position()).x>1.65,"Double horse lanes did not clear small mobs");
         h.assertTrue(w.hasHorse(f.horse.getUUID())&&w.hasHorse(donkey.getUUID()),"Crowd clearing detached a pulling animal");h.succeed();
     }
@@ -116,8 +121,8 @@ public class WagonCrowdGameTests {
     public static void mounted_mob_moves_with_its_root_without_blocking_vehicle(GameTestHelper h) {
         var f=wagon(h,Direction.NORTH);var w=f.wagon;var spider=mob(h,w,EntityType.SPIDER,new Vec3(.2,0,-5.8));
         var zombie=EntityType.ZOMBIE.create(h.getLevel());zombie.setNoAi(true);h.getLevel().addFreshEntity(zombie);zombie.startRiding(spider,true);spider.positionRider(zombie);
-        Vec3 start=w.position();drive(f,1,0,8);
-        h.assertTrue(Math.abs(start.z-w.getZ()-8*WagonPhysics.FORWARD_SPEED)<.01,"Mounted mob blocked vehicle");
+        Vec3 start=w.position();drive(f,1,0,22);
+        h.assertTrue(Math.abs(start.z-w.getZ()-travel(22,1))<.01,"Mounted mob blocked vehicle");
         h.assertTrue(w.pose().local(spider.position()).x>.5&&zombie.getVehicle()==spider
             &&zombie.position().distanceTo(spider.getPassengerRidingPosition(zombie).subtract(zombie.getVehicleAttachmentPoint(spider)))<.05,"Crowd clearing split mounted mobs");h.succeed();
     }

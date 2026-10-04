@@ -47,7 +47,7 @@ public class WagonSupportGameTests {
         var item=new ItemEntity(h.getLevel(),0,0,0,new ItemStack(Items.DIAMOND));h.getLevel().addFreshEntity(item);
         settle(player,w,new Vec3(0,1.5,.5));settle(sheep,w,new Vec3(.3,1.5,.3));settle(item,w,new Vec3(-.35,1.5,1.1));
         Vec3 playerStart=player.position(),sheepStart=sheep.position(),itemStart=item.position(),wagonStart=w.position();
-        for(int i=0;i<8;i++) { w.acceptInput(p,i<4?1:-1,i%2==0?1:0);w.tick(); }
+        for(int i=0;i<22;i++) { w.acceptInput(p,i<18?1:-1,i%2==0?1:0);w.tick(); }
         h.assertTrue(w.position().distanceTo(wagonStart)>.5,"Fixture did not move");
         h.assertTrue(player.position().equals(playerStart)&&sheep.position().equals(sheepStart)&&item.position().equals(itemStart),"Wagon still transported an unseated entity");
         h.assertTrue(!player.isPassenger()&&!sheep.isPassenger()&&!item.isPassenger(),"Standing entities became passengers");h.succeed();

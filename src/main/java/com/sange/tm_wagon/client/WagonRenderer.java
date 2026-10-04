@@ -22,7 +22,7 @@ public class WagonRenderer extends GeoEntityRenderer<WagonEntity> {
             float age,float yaw,float tick,float scale) {
         poses.mulPose(com.mojang.math.Axis.YP.rotationDegrees(180-net.minecraft.util.Mth.rotLerp(tick,wagon.yRotO,wagon.getYRot())));
         poses.translate(0,1.5,0);
-        poses.mulPose(com.mojang.math.Axis.ZP.rotation(wagon.renderRoll(tick)));
+        poses.mulPose(com.mojang.math.Axis.ZP.rotation(wagon.renderRoll(tick)+WagonEffects.sway(wagon,tick)));
         poses.mulPose(com.mojang.math.Axis.XP.rotation(wagon.renderPitch(tick)));
         poses.translate(0,-1.5,0);
     }

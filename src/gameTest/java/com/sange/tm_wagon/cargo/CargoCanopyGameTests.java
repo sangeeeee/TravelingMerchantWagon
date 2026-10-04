@@ -142,7 +142,7 @@ public class CargoCanopyGameTests {
         double start=w.getZ();for(int i=0;i<12;i++) { w.acceptInput(p,1,0);w.tick(); }
         h.assertTrue(w.getZ()>=start-.25,"Canopy passed through low ceiling: "+(start-w.getZ()));
         for(int x=9;x<=14;x++)for(int z=10;z<=15;z++)h.setBlock(new BlockPos(x,6,z),Blocks.AIR);
-        for(int i=0;i<12;i++) { w.acceptInput(p,1,0);w.tick(); }h.assertTrue(w.getZ()<start-1,"Canopy remained stuck after ceiling removed");h.succeed();
+        for(int i=0;i<20;i++) { w.acceptInput(p,1,0);w.tick(); }h.assertTrue(w.getZ()<start-1,"Canopy remained stuck after ceiling removed");h.succeed();
     }
     @GameTest(template="assembly_test",batch="canopy_mat_sleep",timeoutTicks=35)
     public static void canopy_mat_sleep_wakes_inside_with_normal_standing_clearance(GameTestHelper h) {

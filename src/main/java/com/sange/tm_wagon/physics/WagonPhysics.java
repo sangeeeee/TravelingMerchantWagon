@@ -28,6 +28,7 @@ public final class WagonPhysics {
         public boolean has(int wheel) { return (mask&(1<<wheel))!=0; }
         public int count() { return Integer.bitCount(mask); }
     }
+    private final WagonDrive drive=new WagonDrive();
     private double verticalSpeed;
     private float pitchVelocity,rollVelocity;
     private boolean falling;
@@ -38,18 +39,20 @@ public final class WagonPhysics {
     private Vec3 contactPosition;
     public boolean falling() { return falling; }
     public void save(net.minecraft.nbt.CompoundTag tag) {
+        tag.putDouble("DriveSpeed",drive.speed());
         tag.putBoolean("Falling",falling);tag.putDouble("VerticalSpeed",verticalSpeed);tag.putFloat("PitchVelocity",pitchVelocity);
         tag.putFloat("RollVelocity",rollVelocity);tag.putInt("TipDirection",tipDirection);tag.putDouble("FallStartHeight",fallStartHeight);tag.putInt("Recovering",recoveringTicks);
         for(int i=0;i<4;i++)if(Double.isFinite(contactHeights[i]))tag.putDouble("Contact"+i,contactHeights[i]);
     }
     public void load(net.minecraft.nbt.CompoundTag tag) {
+        drive.load(tag.getDouble("DriveSpeed"));
         falling=tag.getBoolean("Falling");verticalSpeed=Mth.clamp(tag.getDouble("VerticalSpeed"),-1.8,0);
         pitchVelocity=Mth.clamp(tag.getFloat("PitchVelocity"),-.09F,.09F);rollVelocity=Mth.clamp(tag.getFloat("RollVelocity"),-.09F,.09F);
         tipDirection=Mth.clamp(tag.getInt("TipDirection"),-1,1);fallStartHeight=tag.getDouble("FallStartHeight");recoveringTicks=Mth.clamp(tag.getInt("Recovering"),0,20);
         for(int i=0;i<4;i++)contactHeights[i]=tag.contains("Contact"+i)?tag.getDouble("Contact"+i):Double.NaN;
         contactPosition=null;driverRecovery=false;
     }
-    public void reset() { verticalSpeed=0;pitchVelocity=rollVelocity=0;falling=false;tipDirection=0;recoveringTicks=0;driverRecovery=false;java.util.Arrays.fill(contactHeights,Double.NaN);contactPosition=null; }
+    public void reset() { drive.reset();verticalSpeed=0;pitchVelocity=rollVelocity=0;falling=false;tipDirection=0;recoveringTicks=0;driverRecovery=false;java.util.Arrays.fill(contactHeights,Double.NaN);contactPosition=null; }
 
     /** Only nearby collision tops count. Distant canyon floors never provide support. */
     public static Ground ground(Level level,Vec3 point,double up,double down,double halfWidth) {
@@ -132,10 +135,11 @@ public final class WagonPhysics {
         driverRecovery=input!=0&&unstable&&touchingGround(wagon);
         float steer=Mth.lerp(.28F,wagon.steering(),steering*(float)Math.toRadians(25));
         wagon.setSteering(steer);
-        double speed=powered||driverRecovery?(input>0?FORWARD_SPEED:input<0?-REVERSE_SPEED:0):0;
-        // A stranded driver can rock a tipped wagon even after its horses have detached.
-        if(driverRecovery&&!powered)speed*=.35;
-        if(!powered&&!driverRecovery&&!falling&&pushing!=0)speed=PUSH_SPEED*pushing;
+        double limit=input<0?REVERSE_SPEED:FORWARD_SPEED*(wagon.boostedDrive()?1.5:1);
+        // A stranded driver can still rock a tipped wagon after its horses detach.
+        if(driverRecovery&&!powered)limit*=.35;
+        double speed=drive.tick(powered||driverRecovery?input:0,limit);
+        if(!powered&&!driverRecovery&&!falling&&pushing!=0) { speed=PUSH_SPEED*pushing;drive.reset(); }
         float yaw=old.yaw()+(float)Math.toDegrees(speed*Math.tan(steer)/wagon.wheelbase());
         Vec3 direction=new WagonPose(old.position(),yaw,0,0).forward();
         Vec3 horizontal=direction.scale(speed);
@@ -186,6 +190,7 @@ public final class WagonPhysics {
         Vec3 before=wagon.position();
         boolean landedOnLowerGround=move(wagon,requested,yaw,pitch,roll);
         Vec3 actual=wagon.position().subtract(before);wagon.setDeltaMovement(actual);
+        if(!falling)drive.acceptMovement(actual.x*direction.x+actual.z*direction.z);
         // Re-sample the accepted location: a wall can reject the predicted horizontal step.
         if(!falling)sampleSupport(wagon,wagon.pose(),0,contactHeights);
         else java.util.Arrays.fill(contactHeights,Double.NaN);

@@ -113,8 +113,9 @@ public final class WagonCrowd {
             int side=choice!=null?choice.side:Math.abs(x)<.03?(mob.getId()%2==0?1:-1):x>0?1:-1;
             Vec3 requested=outward(mob,right,side,side>0?rightEdge:left,current);
             Vec3 allowed=allowedMovement(mob,wagon,requested);
-            // Prefer the nearest side; use the other side if a wall leaves it more room.
-            if(choice==null&&allowed.lengthSqr()<requested.lengthSqr()*.0625) {
+            // Keep the chosen side until it is blocked. Slow acceleration may reach a wall
+            // in several short pushes, so even an existing choice must be reconsidered.
+            if(allowed.lengthSqr()<requested.lengthSqr()*.0625) {
                 Vec3 other=allowedMovement(mob,wagon,outward(mob,right,-side,side>0?left:rightEdge,current));
                 if(other.lengthSqr()>allowed.lengthSqr()+.0004) { allowed=other;side=-side; }
             }

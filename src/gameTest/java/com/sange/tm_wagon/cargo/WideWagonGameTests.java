@@ -210,10 +210,12 @@ public class WideWagonGameTests {
         initial=w.getZ();
         for(int i=0;i<12;i++) { w.acceptInput(p,1,0);w.tick(); }
         double forward=initial-w.getZ();
-        h.assertTrue(Math.abs(forward-12*com.sange.tm_wagon.physics.WagonPhysics.FORWARD_SPEED)<.025,"Wide wagon cannot advance at normal speed: "+forward);
+        h.assertTrue(Math.abs(forward-.6084)<.025,"Wide wagon cannot advance at normal speed: "+forward);
         for(int i=0;i<4;i++)h.assertTrue(Math.abs(w.renderWheel(i,1)+forward/com.sange.tm_wagon.physics.WagonPhysics.radius(i))<.025,"Wide wheel phase does not match travel");
+        for(int i=0;i<3;i++) { w.acceptInput(p,-1,0);w.tick(); }
+        h.assertTrue(w.getDeltaMovement().horizontalDistance()<1e-6,"Wide wagon did not brake before reversing");
         double before=w.getZ();for(int i=0;i<12;i++) { w.acceptInput(p,-1,0);w.tick(); }
-        h.assertTrue(Math.abs(w.getZ()-before-12*com.sange.tm_wagon.physics.WagonPhysics.REVERSE_SPEED)<.025,"Wide reverse failed");
+        h.assertTrue(Math.abs(w.getZ()-before-.3042)<.025,"Wide reverse failed");
         float yaw=w.getYRot();for(int i=0;i<12;i++) { w.acceptInput(p,1,1);w.tick(); }
         h.assertTrue(w.getYRot()>yaw+1&&w.hasHorse(horse.getUUID())&&!w.falling(),"Wide turning lost horse/support");h.succeed();
     }

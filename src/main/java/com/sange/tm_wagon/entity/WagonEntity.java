@@ -55,6 +55,8 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
     private final int[] hangingTicks=new int[2];
     private final double[] horseContactHeights={Double.NaN,Double.NaN};
     private int supportMask=15,forwardInput,steeringInput;
+    private boolean boostedDrive;
+    public boolean boostedDrive() { return boostedDrive; }
     private long lastInput=Long.MIN_VALUE;
     private UUID inputDriver;
     private record PushRequest(Player player,int forward,int sideways,int expires) {}
@@ -345,7 +347,7 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
         if(assemblyLock!=null&&level().hasChunkAt(assemblyLock)
             && (!(level().getBlockEntity(assemblyLock) instanceof AssemblyFrameBlockEntity frame)||!frame.restoring(getUUID())))assemblyLock=null;
         Player driver=driver();
-        if(driver==null||inputDriver==null||!driver.getUUID().equals(inputDriver)||level().getGameTime()-lastInput>10)forwardInput=steeringInput=0;
+        if(driver==null||inputDriver==null||!driver.getUUID().equals(inputDriver)||level().getGameTime()-lastInput>10) { forwardInput=steeringInput=0;boostedDrive=false; }
         pushTick++;int pushing=manualPushInput();
         if(assemblyLock==null) {
             boolean staged=!motionStarted && level().getBlockEntity(blockPosition()) instanceof AssemblyFrameBlockEntity;
@@ -365,8 +367,12 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
         for(Entity passenger:getPassengers())if(passenger instanceof Player player&&passengerSeat(player)==seat.driverSeat())return player;
         return null;
     }
-    public void acceptInput(Player player,int forward,int steer) {
+    public void acceptInput(Player player,int forward,int steer) { acceptInput(player,forward,steer,false); }
+    public void acceptInput(Player player,int forward,int steer,boolean sprint) {
         if(level().isClientSide||driver()!=player||assemblyLock!=null)return;
+        if(!player.getUUID().equals(inputDriver))boostedDrive=false;
+        if(forward<=0)boostedDrive=false;
+        else if(sprint)boostedDrive=true;
         forwardInput=Mth.clamp(forward,-1,1);steeringInput=Mth.clamp(steer,-1,1);lastInput=level().getGameTime();inputDriver=player.getUUID();
     }
     public boolean hasAttachedHorses() {
@@ -437,7 +443,7 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
     public boolean lock(net.minecraft.core.BlockPos frame) {
         if (assemblyLock != null && !assemblyLock.equals(frame)) return false;
         if(cargo.gateMoving())return false;
-        cargo.closeMenus();assemblyLock=frame.immutable();forwardInput=steeringInput=0;pushRequests.clear();physics.reset();return true;
+        cargo.closeMenus();assemblyLock=frame.immutable();forwardInput=steeringInput=0;boostedDrive=false;pushRequests.clear();physics.reset();return true;
     }
     public void unlock() { assemblyLock=null; }
     public int seatCapacity() { var seat=parts().get(WagonSlot.SEAT);return seat==null?0:seat.seatCapacity(); }
@@ -520,6 +526,7 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
         int seat=passengerSeat(passenger);
         super.removePassenger(passenger);
         if (!level().isClientSide) {
+            if(passenger.getUUID().equals(inputDriver)) { forwardInput=steeringInput=0;boostedDrive=false;inputDriver=null; }
             if (!passenger.isRemoved()) departingSeats.put(passenger.getUUID(),seat);
             var seats=entityData.get(SEATS).copy();seats.remove(passenger.getUUID().toString());entityData.set(SEATS,seats);
         }
@@ -801,7 +808,7 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
         if (assemblyLock != null) tag.putLong("AssemblyLock",assemblyLock.asLong());
     }
     @Override protected void readAdditionalSaveData(CompoundTag tag) {
-        pushRequests.clear();pushTick=0;
+        pushRequests.clear();pushTick=0;forwardInput=steeringInput=0;boostedDrive=false;inputDriver=null;lastInput=Long.MIN_VALUE;
         configure(tag.contains("Modules") ? decode(tag.getCompound("Modules")) : defaultParts(),
             Direction.from2DDataValue(tag.getInt("WagonFacing")));
         setMaterials(com.sange.tm_wagon.material.WagonMaterial.loadSlots(tag.getCompound("Materials")));

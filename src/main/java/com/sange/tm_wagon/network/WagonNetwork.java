@@ -21,11 +21,11 @@ public final class WagonNetwork {
             buf->new MatSleep(buf.readVarInt(),buf.readVarInt(),buf.readBlockPos(),buf.readUUID(),buf.readVarInt(),new Vec3(buf.readDouble(),buf.readDouble(),buf.readDouble()),buf.readFloat(),buf.readFloat(),buf.readFloat(),new Vec3(buf.readDouble(),buf.readDouble(),buf.readDouble()),buf.readBoolean()));
         @Override public Type<? extends CustomPacketPayload> type() { return TYPE; }
     }
-    public record Input(int wagonId,byte forward,byte steering) implements CustomPacketPayload {
+    public record Input(int wagonId,byte forward,byte steering,boolean sprint) implements CustomPacketPayload {
         public static final Type<Input> TYPE=new Type<>(ResourceLocation.fromNamespaceAndPath(TravelingMerchantWagon.MODID,"drive"));
         public static final StreamCodec<RegistryFriendlyByteBuf,Input> CODEC=StreamCodec.of(
-            (buf,p)->{buf.writeVarInt(p.wagonId);buf.writeByte(p.forward);buf.writeByte(p.steering);},
-            buf->new Input(buf.readVarInt(),buf.readByte(),buf.readByte()));
+            (buf,p)->{buf.writeVarInt(p.wagonId);buf.writeByte(p.forward);buf.writeByte(p.steering);buf.writeBoolean(p.sprint);},
+            buf->new Input(buf.readVarInt(),buf.readByte(),buf.readByte(),buf.readBoolean()));
         @Override public Type<? extends CustomPacketPayload> type() { return TYPE; }
     }
     public record Push(int wagonId,byte forward,byte sideways) implements CustomPacketPayload {
@@ -37,9 +37,9 @@ public final class WagonNetwork {
     }
     @SubscribeEvent public static void register(RegisterPayloadHandlersEvent event) {
         event.registrar("3").playToClient(MatSleep.TYPE,MatSleep.CODEC,(input,context)->context.enqueueWork(()->com.sange.tm_wagon.cargo.StrawMatSleep.receive(context.player().level(),input)));
-        event.registrar("2").playToServer(Input.TYPE,Input.CODEC,(input,context)->context.enqueueWork(()->{
+        event.registrar("3").playToServer(Input.TYPE,Input.CODEC,(input,context)->context.enqueueWork(()->{
             if (context.player().getVehicle() instanceof WagonEntity wagon && wagon.getId()==input.wagonId)
-                wagon.acceptInput(context.player(),input.forward,input.steering);
+                wagon.acceptInput(context.player(),input.forward,input.steering,input.sprint);
         }));
         event.registrar("2").playToServer(Push.TYPE,Push.CODEC,(input,context)->context.enqueueWork(()->{
             if(context.player().level().getEntity(input.wagonId) instanceof WagonEntity wagon)
