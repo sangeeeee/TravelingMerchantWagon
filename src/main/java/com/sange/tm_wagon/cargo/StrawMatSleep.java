@@ -29,19 +29,89 @@ import net.neoforged.neoforge.network.PacketDistributor;
 /** Vanilla sleep counters and night skipping, without replacing the player's respawn location. */
 @EventBusSubscriber(modid=TravelingMerchantWagon.MODID)
 public final class StrawMatSleep {
-    private record Session(CargoHold hold,UUID mat,int anchor,WagonPose pose,Vec3 head,BlockPos bed) {}
+    private record Session(CargoHold hold,UUID mat,int anchor,WagonPose pose,Vec3 head,BlockPos bed,int wagonId,BlockPos frame) {
+        Session(CargoHold hold,UUID mat,int anchor,WagonPose pose,Vec3 head,BlockPos bed) {
+            this(hold,mat,anchor,pose,head,bed,hold!=null&&hold.owner() instanceof WagonEntity w?w.getId():-1,
+                hold!=null&&hold.owner() instanceof AssemblyFrameBlockEntity f?f.getBlockPos():BlockPos.ZERO);
+        }
+        Vec3 localHead() { return pose.local(head); }
+    }
     private static final Map<LivingEntity,Session> SERVER_SESSIONS=new WeakHashMap<>(),CLIENT_SESSIONS=new WeakHashMap<>();
     // Entity equality uses the numeric ID: the integrated server and its client must not share a map.
     private static Map<LivingEntity,Session> sessions(LivingEntity player) { return player.level().isClientSide?CLIENT_SESSIONS:SERVER_SESSIONS; }
     private static synchronized Session session(LivingEntity player) { return sessions(player).get(player); }
     private static synchronized void put(LivingEntity player,Session value) { sessions(player).put(player,value); }
     private static synchronized Session remove(LivingEntity player) { return sessions(player).remove(player); }
+    private static Session resolved(LivingEntity sleeper) {
+        Session s=session(sleeper);if(s==null||s.hold!=null)return s;
+        // A conversion payload can arrive before vanilla has spawned the new wagon.
+        CargoHold hold=null;
+        if(s.wagonId>=0&&sleeper.level().getEntity(s.wagonId) instanceof WagonEntity w)hold=w.cargo();
+        else if(s.wagonId<0&&sleeper.level().getBlockEntity(s.frame) instanceof AssemblyFrameBlockEntity f)hold=f.cargo();
+        if(hold!=null) { s=new Session(hold,s.mat,s.anchor,s.pose,s.head,s.bed);put(sleeper,s); }
+        return s;
+    }
+    private static WagonPose pose(Session s) { return s.hold!=null&&s.hold.owner().cargoLive()?s.hold.owner().cargoPose():s.pose; }
     public static boolean nativeStart(Player player,BlockPos pos) {
         Session s=session(player);return s!=null&&s.bed.equals(pos)&&!player.isSleeping();
     }
-    public static Vec3 sleepingPoint(LivingEntity player) { Session s=session(player);return s==null?null:s.head; }
-    public static WagonPose sleepingPose(LivingEntity player) { Session s=session(player);return s==null?null:s.pose; }
-    public static Direction direction(LivingEntity player) { Session s=session(player);return s==null?null:Direction.fromYRot(s.pose.yaw()); }
+    public static Vec3 sleepingPoint(LivingEntity player) { Session s=resolved(player);return s==null?null:pose(s).point(s.localHead()); }
+    public static WagonPose sleepingPose(LivingEntity player) { Session s=resolved(player);return s==null?null:pose(s); }
+    public static WagonPose sleepingPose(LivingEntity player,float partial) {
+        Session s=resolved(player);if(s==null)return null;
+        if(s.hold!=null&&s.hold.owner() instanceof WagonEntity w&&w.cargoLive())
+            return new WagonPose(renderPosition(w,partial),net.minecraft.util.Mth.rotLerp(partial,w.yRotO,w.getYRot()),w.renderPitch(partial),w.renderRoll(partial));
+        return pose(s);
+    }
+    /** LevelRenderer uses xOld, not the xo snapshot used by getPosition. */
+    public static Vec3 renderPosition(net.minecraft.world.entity.Entity entity,float partial) {
+        return new Vec3(net.minecraft.util.Mth.lerp(partial,entity.xOld,entity.getX()),
+            net.minecraft.util.Mth.lerp(partial,entity.yOld,entity.getY()),net.minecraft.util.Mth.lerp(partial,entity.zOld,entity.getZ()));
+    }
+    public static boolean attachedTo(net.minecraft.world.entity.Entity entity,WagonEntity wagon) {
+        if(!(entity instanceof LivingEntity living)||!living.isSleeping())return false;
+        Session s=resolved(living);
+        return s!=null&&s.hold==wagon.cargo();
+    }
+    public static Vec3 sleepingPoint(LivingEntity player,float partial) {
+        Session s=resolved(player);return s==null?null:sleepingPose(player,partial).point(s.localHead());
+    }
+    public static Direction direction(LivingEntity player) { var pose=sleepingPose(player);return pose==null?null:Direction.fromYRot(pose.yaw()); }
+    /** Only active sleepers follow a mat; ordinary entities on deck still use normal world movement. */
+    public static void follow(LivingEntity sleeper) {
+        if(!sleeper.isSleeping())return;
+        Session s=resolved(sleeper);if(s==null)return;
+        Vec3 point=pose(s).point(s.localHead());
+        long oldSection=net.minecraft.core.SectionPos.asLong(sleeper.blockPosition());
+        sleeper.setPos(point);sleeper.setDeltaMovement(Vec3.ZERO);sleeper.fallDistance=0;
+        BlockPos bed=BlockPos.containing(point);
+        if(!sleeper.getSleepingPos().filter(bed::equals).isPresent())sleeper.setSleepingPos(bed);
+        if(sleeper instanceof ServerPlayer p&&p.connection!=null) {
+            p.connection.resetPosition();
+            // Sleeping movement packets skip vanilla's normal chunk-tracking update.
+            if(oldSection!=net.minecraft.core.SectionPos.asLong(bed))p.serverLevel().getChunkSource().move(p);
+        }
+    }
+    /** Settle bindings after both wagon and sleeper ticks, independent of entity tick order. */
+    @SubscribeEvent public static void followAfterLevel(net.neoforged.neoforge.event.tick.LevelTickEvent.Post event) {
+        java.util.List<LivingEntity> sleepers;
+        synchronized(StrawMatSleep.class) {
+            var active=event.getLevel().isClientSide?CLIENT_SESSIONS:SERVER_SESSIONS;
+            if(active.isEmpty())return;
+            sleepers=active.keySet().stream().filter(e->e.level()==event.getLevel()).toList();
+        }
+        for(var sleeper:sleepers) {
+            follow(sleeper);
+            if(sleeper.level().isClientSide&&sleeper.isSleeping()) {
+                // Keep vanilla consumers of either old-position snapshot in the
+                // parent's frame too. Rendering still uses the exact rotated arc.
+                Vec3 previous=sleepingPoint(sleeper,0);
+                if(previous!=null) {
+                    sleeper.xOld=sleeper.xo=previous.x;sleeper.yOld=sleeper.yo=previous.y;sleeper.zOld=sleeper.zo=previous.z;
+                }
+            }
+        }
+    }
     private static Vec3 head(CargoHold hold,int anchor) {
         AABB box=hold.matBounds(anchor);
         return hold.owner().cargoPose().point(new Vec3((box.minX+box.maxX)/2,CargoHold.FLOOR+.16,box.minZ+.26));
@@ -115,11 +185,8 @@ public final class StrawMatSleep {
     }
     private static boolean remains(Session s,LivingEntity player) {
         var hold=s.hold;if(hold==null||!hold.owner().cargoLive()||hold.owner().cargoBusy()||hold.owner().cargoLevel()!=player.level())return false;
-        var entry=hold.entry(s.anchor);if(entry==null||!entry.id.equals(s.mat)||!player.getUUID().equals(entry.sleeper)||!stable(hold))return false;
-        var now=hold.owner().cargoPose();
-        // A moving, falling or converting wagon wakes its sleeper rather than attaching a camera to an invalid bed.
-        return now.position().distanceToSqr(s.pose.position())<.0025&&Math.abs(net.minecraft.util.Mth.wrapDegrees(now.yaw()-s.pose.yaw()))<2
-            &&Math.abs(now.pitch()-s.pose.pitch())<.035&&Math.abs(now.roll()-s.pose.roll())<.035;
+        var entry=hold.entry(s.anchor);
+        return entry!=null&&entry.id.equals(s.mat)&&player.getUUID().equals(entry.sleeper);
     }
     @SubscribeEvent public static void continueSleep(CanContinueSleepingEvent event) {
         LivingEntity p=event.getEntity();Session s=session(p);if(s==null)return;
@@ -134,12 +201,30 @@ public final class StrawMatSleep {
             else finishWake(player);
         }
     }
+    /** Rebind the same sleep session after cargo ownership commits, without stop/startSleeping. */
+    public static void transfer(CargoHold source,CargoHold target) {
+        java.util.List<Map.Entry<LivingEntity,Session>> sleepers;
+        synchronized(StrawMatSleep.class) { sleepers=SERVER_SESSIONS.entrySet().stream().filter(e->e.getValue().hold==source)
+            .map(e->Map.entry(e.getKey(),e.getValue())).toList(); }
+        for(var sleeper:sleepers) {
+            LivingEntity living=sleeper.getKey();Session old=sleeper.getValue();var mat=target.entry(old.anchor);
+            if(mat==null||!mat.id.equals(old.mat))continue;
+            WagonPose pose=target.owner().cargoPose();Vec3 point=pose.point(old.localHead());
+            Session next=new Session(target,old.mat,old.anchor,pose,point,BlockPos.containing(point));
+            put(living,next);follow(living);send(living,next,true);
+        }
+    }
     /** Called in LivingEntity.stopSleeping before vanilla can use the unrelated block under a moving bed. */
     public static boolean finishWake(LivingEntity player) {
         Session s=remove(player);if(s==null)return false;
         Vec3 target=standUp(player,s);
         player.setPose(Pose.STANDING);player.clearSleepingPos();player.setDeltaMovement(Vec3.ZERO);player.fallDistance=0;
         player.setPos(target);player.setXRot(0);player.setOnGround(false);
+        if(player.level().isClientSide) {
+            // Do not interpolate the first awake frame from a now-detached moving bed.
+            player.xOld=player.xo=target.x;player.yOld=player.yo=target.y;player.zOld=player.zo=target.z;
+            player.xRotO=0;
+        }
         if(!player.level().isClientSide) {
             if(s.hold!=null) { var mat=s.hold.entry(s.anchor);if(mat!=null&&mat.id.equals(s.mat)) { mat.sleeper=null;s.hold.changed(true); } }
             send(player,s,false);
@@ -163,7 +248,7 @@ public final class StrawMatSleep {
             Vec3 point=pose.point(new Vec3(x,dy,z));
             if(player.level().noCollision(player,player.getDimensions(Pose.STANDING).makeBoundingBox(point)))return point;
         }
-        return s.head.add(0,3,0);
+        return pose.point(s.localHead()).add(0,3,0);
     }
     /** Start above cloth at the wake footprint, including a sloped wagon; rolls have no surface. */
     private static Vec3 aboveCover(LivingEntity player,CargoHold hold,WagonPose pose,Vec3 base) {
@@ -187,7 +272,8 @@ public final class StrawMatSleep {
         if(player instanceof ServerPlayer p&&(p.connection==null||!p.connection.hasChannel(WagonNetwork.MatSleep.TYPE)))return;
         int wagon=s.hold!=null&&s.hold.owner() instanceof WagonEntity w?w.getId():-1;
         BlockPos frame=s.hold!=null&&s.hold.owner() instanceof AssemblyFrameBlockEntity f?f.getBlockPos():BlockPos.ZERO;
-        var packet=new WagonNetwork.MatSleep(player.getId(),wagon,frame,s.mat,s.anchor,s.pose.position(),s.pose.yaw(),s.pose.pitch(),s.pose.roll(),s.head,sleeping);
+        var now=pose(s);var point=now.point(s.localHead());
+        var packet=new WagonNetwork.MatSleep(player.getId(),wagon,frame,s.mat,s.anchor,now.position(),now.yaw(),now.pitch(),now.roll(),point,sleeping);
         if(player instanceof ServerPlayer p)PacketDistributor.sendToPlayersTrackingEntityAndSelf(p,packet);
         else PacketDistributor.sendToPlayersTrackingEntity(player,packet);
     }
@@ -197,15 +283,16 @@ public final class StrawMatSleep {
         CargoHold hold=null;
         if(packet.wagonId()>=0&&level.getEntity(packet.wagonId()) instanceof WagonEntity w)hold=w.cargo();
         else if(level.getBlockEntity(packet.frame()) instanceof AssemblyFrameBlockEntity f)hold=f.cargo();
-        put(p,new Session(hold,packet.mat(),packet.anchor(),new WagonPose(packet.position(),packet.yaw(),packet.pitch(),packet.roll()),packet.head(),BlockPos.containing(packet.head())));
-        if(p.isSleeping())p.setPos(packet.head());
+        put(p,new Session(hold,packet.mat(),packet.anchor(),new WagonPose(packet.position(),packet.yaw(),packet.pitch(),packet.roll()),packet.head(),BlockPos.containing(packet.head()),packet.wagonId(),packet.frame()));
+        follow(p);
     }
     /** Late tracking sends the same one-shot session; no periodic sleep packet is necessary. */
     public static void track(ServerPlayer observer,LivingEntity sleeper) {
         Session s=session(sleeper);if(s==null||observer.connection==null||!observer.connection.hasChannel(WagonNetwork.MatSleep.TYPE))return;
         int wagon=s.hold.owner() instanceof WagonEntity w?w.getId():-1;
         BlockPos frame=s.hold.owner() instanceof AssemblyFrameBlockEntity f?f.getBlockPos():BlockPos.ZERO;
-        PacketDistributor.sendToPlayer(observer,new WagonNetwork.MatSleep(sleeper.getId(),wagon,frame,s.mat,s.anchor,s.pose.position(),s.pose.yaw(),s.pose.pitch(),s.pose.roll(),s.head,true));
+        var now=pose(s);var point=now.point(s.localHead());
+        PacketDistributor.sendToPlayer(observer,new WagonNetwork.MatSleep(sleeper.getId(),wagon,frame,s.mat,s.anchor,now.position(),now.yaw(),now.pitch(),now.roll(),point,true));
     }
     @SubscribeEvent public static void tracking(net.neoforged.neoforge.event.entity.player.PlayerEvent.StartTracking event) {
         if(event.getEntity() instanceof ServerPlayer observer&&event.getTarget() instanceof LivingEntity sleeper)track(observer,sleeper);

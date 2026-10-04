@@ -8,6 +8,7 @@
     "WagonMaidFollowVehicleMixin",
     "WagonMaidTaskMixin",
     "WagonMaidBedMixin",
+    "WagonMaidSleepMixin",
     "WagonMovementMixin",
     "WagonLithiumMovementMixin",
     "WagonLithiumClearanceMixin",
@@ -24,6 +25,7 @@
     "HorseLeashMixin"
   ],
   "client": [
+    "WagonSleepCameraMixin",
     "WagonSleepRendererMixin",
     "WagonChestLidMixin"
   ],

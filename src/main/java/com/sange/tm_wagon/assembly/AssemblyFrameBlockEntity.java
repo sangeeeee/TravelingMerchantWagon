@@ -121,7 +121,7 @@ public class AssemblyFrameBlockEntity extends BlockEntity implements GeoBlockEnt
                 if (player != null && !level.mayInteract(player,pos)) return "message.tm_wagon.protected";
             }
             Map<WagonSlot,WagonPart> modules=parts();var styles=materials();
-            cargo.closeMenus();
+            cargo.closeMenusForTransfer();
             long oldStart=motionStart; double oldFrom=motionFrom; int oldDuration=motionDuration;
             boolean oldTarget=motionTargetExtended;
             String error=animateFrame(player,null);

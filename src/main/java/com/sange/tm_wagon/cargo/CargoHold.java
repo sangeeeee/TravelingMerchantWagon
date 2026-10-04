@@ -340,16 +340,18 @@ public final class CargoHold {
         }
     }
     public void closeMenus() { cabinet.closeMenus();StrawMatSleep.wake(this,null);seats.release(null);CargoMenus.close(this,null); }
+    public void closeMenusForTransfer() { cabinet.closeMenus();seats.release(null);CargoMenus.close(this,null); }
     /** Called only after target creation/layout has committed, on the server thread. */
     public void transferTo(CargoHold target) {
         if(target==this||!target.empty())throw new IllegalStateException("Cargo target already owns entries");
         for(int i=target.capacity();i<MAX_CAPACITY;i++)if(entries[i]!=null)throw new IllegalStateException("Cargo target is too small");
-        closeMenus();
+        closeMenusForTransfer();
         for(int i=0;i<MAX_CAPACITY;i++) { target.entries[i]=entries[i];entries[i]=null;if(target.entries[i]!=null)target.entries[i].hold=target; }
         cabinet.transferTo(target.cabinet);
         cover.transferTo(target.cover);canopy.transferTo(target.canopy);
         target.gateTarget=gateTarget;target.gateCollision=gateCollision;target.gateStart=gateStart;target.gateFrom=gateFrom;
         gateTarget=gateCollision=false;gateStart=Long.MIN_VALUE;gateFrom=0;changed(true);target.changed(true);
+        StrawMatSleep.transfer(this,target);
     }
     public CompoundTag save(HolderLookup.Provider lookup,boolean visual) {
         var tag=new CompoundTag();var list=new ListTag();

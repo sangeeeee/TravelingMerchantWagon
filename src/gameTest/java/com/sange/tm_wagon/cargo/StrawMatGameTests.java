@@ -130,7 +130,7 @@ public class StrawMatGameTests {
         });
     }
     @GameTest(template="assembly_test",batch="straw_mat_tilt_sleep",timeoutTicks=40)
-    public static void straw_mat_tilted_wake_removal_and_movement_clear_sleep_state(GameTestHelper h) {
+    public static void straw_mat_tilted_wake_removal_and_movement_preserve_sleep_state(GameTestHelper h) {
         var w=wagon(h);var hold=w.cargo();
         h.assertTrue(hold.place(8,new ItemStack(WagonContent.STRAW_MAT.get()),player(h,hold))==null,"Mat placement failed");
         // Stage the wagon to hold the chosen slope pose while exercising real Player sleep/wake ticks.
@@ -145,10 +145,29 @@ public class StrawMatGameTests {
             Vec3 outside=w.pose().point(new Vec3(-3,1.5,0));p.teleportTo(outside.x,outside.y,outside.z);
             String replacement=hold.place(8,new ItemStack(WagonContent.STRAW_MAT.get()),observer);h.assertTrue(replacement==null,"Replacing mat failed: "+replacement+", observer="+observer.position()+", outside="+outside+", player="+p.position());
             h.assertTrue(StrawMatSleep.sleep(hold,hold.entry(8),p)==null,"Third sleep failed");
-            w.setPos(w.position().add(.3,0,0));
+            Vec3 local=w.pose().local(StrawMatSleep.sleepingPoint(p));int timer=p.getSleepTimer();
+            w.applyPose(new WagonPose(w.position().add(2,1,-3),267,1.2F,1.4F));w.setDeltaMovement(new Vec3(.4,-1,.2));
             var event=new net.neoforged.neoforge.event.entity.player.CanContinueSleepingEvent(p,Player.BedSleepingProblem.NOT_POSSIBLE_HERE);
-            StrawMatSleep.continueSleep(event);h.assertTrue(!event.mayContinueSleeping(),"Moving wagon retained sleeper");
-            p.doTick();h.assertTrue(!p.isSleeping()&&StrawMatSleep.sleepingPoint(p)==null,"Moving wagon did not clear camera state");h.succeed();
+            StrawMatSleep.continueSleep(event);h.assertTrue(event.mayContinueSleeping(),"Movement or extreme tilt interrupted sleep");
+            p.doTick();h.assertTrue(p.isSleeping()&&p.getPose()==Pose.SLEEPING&&p.getSleepTimer()>timer,"Movement reset native sleep state/counter");
+            h.assertTrue(p.position().distanceToSqr(w.pose().point(local))<.000001,"Sleeping player did not follow wagon");
+            h.assertTrue(hold.entry(8).sleeper.equals(p.getUUID()),"Movement released mat occupancy");
+            p.stopSleepInBed(true,true);h.assertTrue(!p.isSleeping()&&StrawMatSleep.sleepingPoint(p)==null,"Manual wake did not release moving mat");h.succeed();
+        });
+    }
+    @GameTest(template="assembly_test",batch="straw_mat_conversion_sleep",timeoutTicks=45)
+    public static void sleeping_player_survives_block_to_entity_conversion(GameTestHelper h) {
+        var f=frame(h);var hold=f.cargo();h.assertTrue(hold.place(8,new ItemStack(WagonContent.STRAW_MAT.get()),player(h,hold))==null,"Mat placement failed");
+        h.setNight();var p=sleeper(h,hold);h.runAfterDelay(2,()->{
+            String error=StrawMatSleep.sleep(hold,hold.entry(8),p);h.assertTrue(error==null,"Sleep setup failed: "+error);p.doTick();
+            var mat=hold.entry(8);int timer=p.getSleepTimer();
+            h.assertTrue(f.toggleFrame(null)==null,"Sleeping mat prevented entity conversion");
+            var w=h.getLevel().getEntitiesOfClass(WagonEntity.class,new AABB(f.getBlockPos()).inflate(6)).getFirst();
+            h.assertTrue(p.isSleeping()&&p.getPose()==Pose.SLEEPING&&p.getSleepTimer()==timer,"Conversion woke/restarted sleeping player");
+            h.assertTrue(hold.empty()&&w.cargo().entry(8)==mat&&mat.sleeper.equals(p.getUUID()),"Conversion duplicated mat or lost sleeper");
+            w.applyPose(new WagonPose(w.position().add(3,.5,0),231,.4F,-.3F));p.doTick();
+            h.assertTrue(p.isSleeping()&&p.position().distanceToSqr(StrawMatSleep.sleepingPoint(p))<.000001,"Converted sleeper retained old frame anchor");
+            w.cargo().destroy(false);h.assertTrue(!p.isSleeping()&&!StrawMatSleep.matSleeper(p),"Destroy did not wake transferred sleeper");h.succeed();
         });
     }
     @GameTest(template="assembly_test",timeoutTicks=30)

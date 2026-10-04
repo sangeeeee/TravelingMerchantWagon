@@ -33,7 +33,9 @@ public class WagonMaidGameTests {
     @GameTest(template="assembly_test",batch="maid_rest",timeoutTicks=55)
     public static void block_mat_sleeps_and_removal_releases_occupancy(GameTestHelper h) { Scenarios.block_mat_sleeps_and_removal_releases_occupancy(h); }
     @GameTest(template="assembly_test",batch="maid_rest",timeoutTicks=55)
-    public static void movement_wakes_maid_and_mat_cannot_have_two_sleepers(GameTestHelper h) { Scenarios.movement_wakes_maid_and_mat_cannot_have_two_sleepers(h); }
+    public static void movement_keeps_maid_asleep_and_mat_cannot_have_two_sleepers(GameTestHelper h) { Scenarios.movement_keeps_maid_asleep_and_mat_cannot_have_two_sleepers(h); }
+    @GameTest(template="assembly_test",batch="maid_rest",timeoutTicks=65)
+    public static void entity_conversion_keeps_maid_asleep_without_new_reward(GameTestHelper h) { Scenarios.entity_conversion_keeps_maid_asleep_without_new_reward(h); }
     @GameTest(template="assembly_test",batch="maid_work",timeoutTicks=40)
     public static void changing_task_immediately_releases_companion_seat(GameTestHelper h) { Scenarios.changing_task_immediately_releases_companion_seat(h); }
     @GameTest(template="assembly_test",batch="maid_rest",timeoutTicks=70)
@@ -46,6 +48,8 @@ public class WagonMaidGameTests {
     public static void destroying_wagon_wakes_without_extra_favorability_loss(GameTestHelper h) { Scenarios.destroying_wagon_wakes_without_extra_favorability_loss(h); }
     @GameTest(template="assembly_test",batch="maid_rest",timeoutTicks=70)
     public static void working_task_chooses_nearest_mat_across_both_wagon_forms(GameTestHelper h) { Scenarios.working_task_chooses_nearest_mat_across_both_wagon_forms(h); }
+    @GameTest(template="assembly_test",batch="maid_rest",timeoutTicks=55)
+    public static void sleeper_does_not_snap_to_block_centres_or_block_tilting(GameTestHelper h) { Scenarios.sleeper_does_not_snap_to_block_centres_or_block_tilting(h); }
     private static final class Scenarios {
 
     private static void time(GameTestHelper h,long time) {
@@ -198,15 +202,57 @@ public class WagonMaidGameTests {
             h.assertTrue(farther.cargo().entry(8).sleeper==null,"Farther entity mat was occupied");
         });
     }
-    public static void movement_wakes_maid_and_mat_cannot_have_two_sleepers(GameTestHelper h) {
+    public static void movement_keeps_maid_asleep_and_mat_cannot_have_two_sleepers(GameTestHelper h) {
         time(h,17000);var w=wagon(h,WagonPart.DOUBLE_SEAT);mat(h,w.cargo());
         var m=maid(h,w.pose().point(new Vec3(-2,0,.5)));var other=maid(h,m.position());other.setNoAi(true);
         h.runAfterDelay(30,()->{
             h.assertTrue(m.isSleeping(),"First maid did not sleep");
             h.assertTrue(!StrawMatSleep.sleepMob(w.cargo(),8,other),"Occupied mat accepted second maid");
-            w.applyPose(new WagonPose(w.position().add(.3,0,0),225,0,0));
+            Vec3 local=w.pose().local(StrawMatSleep.sleepingPoint(m));int favorability=m.getFavorability();m.setNoAi(true);
+            w.applyPose(new WagonPose(w.position().add(2,1,-3),225,1.2F,1.4F));w.setDeltaMovement(new Vec3(.4,-1,.2));
             StrawMatSleep.checkMobSleep(m,true);
-            h.assertTrue(!m.isSleeping()&&w.cargo().entry(8).sleeper==null&&h.getLevel().noCollision(m,m.getBoundingBox().deflate(.0001)),"Moving wagon retained or trapped sleeper");h.succeed();
+            m.tick();h.assertTrue(m.isSleeping()&&StrawMatSleep.matSleeper(m)&&m.position().distanceToSqr(w.pose().point(local))<.000001,"Moving/tilted wagon woke or lost maid");
+            h.assertTrue(m.getFavorability()==favorability&&m.getUUID().equals(w.cargo().entry(8).sleeper),"Movement restarted sleep reward or released mat");
+            m.stopSleeping();h.assertTrue(!m.isSleeping()&&!StrawMatSleep.matSleeper(m),"Manual wake failed after movement");h.succeed();
+        });
+    }
+    public static void entity_conversion_keeps_maid_asleep_without_new_reward(GameTestHelper h) {
+        time(h,17000);var f=frame(h);mat(h,f.cargo());var m=maid(h,f.cargoPose().point(new Vec3(-2,0,.5)));
+        h.runAfterDelay(30,()->{
+            h.assertTrue(m.isSleeping()&&StrawMatSleep.matSleeper(m),"Maid did not sleep on block-form mat");
+            int favorability=m.getFavorability();var mat=f.cargo().entry(8);
+            h.assertTrue(f.toggleFrame(null)==null,"Conversion failed with sleeping maid");
+            var w=h.getLevel().getEntitiesOfClass(WagonEntity.class,new net.minecraft.world.phys.AABB(f.getBlockPos()).inflate(6)).getFirst();
+            h.assertTrue(m.isSleeping()&&m.getPose()==Pose.SLEEPING&&m.getFavorability()==favorability,"Conversion woke/restarted sleeping maid");
+            h.assertTrue(f.cargo().empty()&&w.cargo().entry(8)==mat&&m.getUUID().equals(mat.sleeper),"Conversion duplicated mat or cleared occupancy");
+            w.applyPose(new WagonPose(w.position().add(2,1,0),237,.4F,-.3F));m.setNoAi(true);m.tick();
+            h.assertTrue(m.isSleeping()&&m.position().distanceToSqr(StrawMatSleep.sleepingPoint(m))<.000001,"Converted maid remained at old frame");h.succeed();
+        });
+    }
+    public static void sleeper_does_not_snap_to_block_centres_or_block_tilting(GameTestHelper h) {
+        time(h,17000);var w=wagon(h,WagonPart.DOUBLE_SEAT);mat(h,w.cargo());
+        var m=maid(h,w.pose().point(new Vec3(-2,0,.5)));
+        h.runAfterDelay(30,()->{
+            h.assertTrue(m.isSleeping(),"Maid did not sleep");m.setNoAi(true);
+            var start=new WagonPose(w.position().add(.37,4,.23),213,0,0);w.applyPose(start);
+            StrawMatSleep.follow(m);Vec3 expected=StrawMatSleep.sleepingPoint(m);
+            m.baseTick();h.assertTrue(m.position().distanceToSqr(expected)<1e-10,"Native maid base tick snapped mat sleeper to block centre");
+            h.assertTrue(!w.canCollideWith(m)&&!com.sange.tm_wagon.physics.WagonCollision.eligible(m,w),"Sleeper collided with its own wagon");
+            h.assertTrue(h.getLevel().getEntityCollisions(w,m.getBoundingBox()).isEmpty(),"Sleeping maid entered wagon's movement obstacles");
+            // Exercise the real swept translation/rotation solver, with the sleeper
+            // still at the previous pose just as it is during a vehicle tick.
+            try {
+                var move=com.sange.tm_wagon.physics.WagonPhysics.class.getDeclaredMethod("move",WagonEntity.class,Vec3.class,float.class,float.class,float.class);
+                move.setAccessible(true);var physics=new com.sange.tm_wagon.physics.WagonPhysics();
+                Vec3 delta=new Vec3(.2,.7,-.3);
+                move.invoke(physics,w,delta,235F,.4F,-.3F);
+                h.assertTrue(w.position().distanceToSqr(start.position().add(delta))<1e-8&&Math.abs(w.pitch()-.4F)<1e-5&&Math.abs(w.roll()+.3F)<1e-5,"Sleeping maid blocked wagon climb/tilt");
+            } catch(ReflectiveOperationException e) { throw new RuntimeException(e); }
+            StrawMatSleep.followAfterLevel(new net.neoforged.neoforge.event.tick.LevelTickEvent.Post(()->true,h.getLevel()));
+            h.assertTrue(m.position().distanceToSqr(StrawMatSleep.sleepingPoint(m))<1e-10,"Tick order left sleeper behind wagon");
+            m.stopSleeping();
+            h.assertTrue(w.canCollideWith(m)&&com.sange.tm_wagon.physics.WagonCollision.eligible(m,w),"Wake retained own-wagon collision exemption");
+            h.succeed();
         });
     }
     }

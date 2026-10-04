@@ -79,6 +79,7 @@ public final class WagonCollision {
         // optimized broad-phase collectors never turn the outer bounds solid.
         return entity!=wagon&&wagon!=WagonCrowd.excludedWagon()&&!wagon.isRemoved()
             &&(entity==null||!entity.isSpectator()&&!entity.isPassengerOfSameVehicle(wagon)
+                &&!com.sange.tm_wagon.cargo.StrawMatSleep.attachedTo(entity,wagon)
                 &&!(entity instanceof AbstractHorse&&wagon.hasHorse(entity.getUUID())));
     }
     public static List<OrientedBox> nearby(Level level,Entity entity,AABB area) {

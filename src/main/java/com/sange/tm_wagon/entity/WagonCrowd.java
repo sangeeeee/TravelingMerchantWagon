@@ -44,6 +44,7 @@ public final class WagonCrowd {
     }
 
     private boolean roadMob(Mob mob) {
+        if(com.sange.tm_wagon.cargo.StrawMatSleep.attachedTo(mob,wagon))return false;
         AABB deck=WagonGeometry.partBoxes(wagon.cargoBody()).getFirst();
         Vec3 feet=wagon.pose().local(mob.position());
         if(feet.y>=deck.maxY-.1&&feet.x>=deck.minX-.2&&feet.x<=deck.maxX+.2

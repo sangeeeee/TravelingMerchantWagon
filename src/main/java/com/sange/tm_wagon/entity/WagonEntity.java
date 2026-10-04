@@ -750,7 +750,8 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
         else if(++hangingTicks[slot]>=HORSE_HANG_TIMEOUT)detachHorse(horse.getUUID(),true);
     }
     @Override public boolean canCollideWith(Entity entity) {
-        return !crowd.yields(entity)&&!(entity instanceof AbstractHorse h&&hasHorse(h.getUUID()))&&!entity.isPassengerOfSameVehicle(this)
+        return !com.sange.tm_wagon.cargo.StrawMatSleep.attachedTo(entity,this)
+            &&!crowd.yields(entity)&&!(entity instanceof AbstractHorse h&&hasHorse(h.getUUID()))&&!entity.isPassengerOfSameVehicle(this)
             &&(entity instanceof WagonEntity||entity.canBeCollidedWith()||entity.isPushable());
     }
     @Override public boolean hurt(DamageSource source,float amount) {
