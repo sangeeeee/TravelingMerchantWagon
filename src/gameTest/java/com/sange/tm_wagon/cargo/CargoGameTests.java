@@ -453,22 +453,22 @@ public class CargoGameTests {
     }
 
     @GameTest(template="assembly_test",timeoutTicks=30)
-    public static void legacy_decorative_variant_inventory_migrates_once(GameTestHelper h) {
+    public static void container_inventory_round_trip_loads_before_level_assignment(GameTestHelper h) {
         var hold=wagon(h).cargo();var stack=new ItemStack(ContainerVariantFixtures.CHEST);
         var contents=NonNullList.withSize(27,ItemStack.EMPTY);contents.set(8,new ItemStack(Items.DIAMOND,23));
         stack.set(DataComponents.CONTAINER,ItemContainerContents.fromItems(contents));
-        var old=new CargoEntry(hold,java.util.UUID.randomUUID(),stack,ContainerVariantFixtures.CHEST.defaultBlockState());
-        var migrated=CargoEntry.load(hold,old.save(h.getLevel().registryAccess(),false),h.getLevel().registryAccess());
-        h.assertTrue(migrated.id.equals(old.id)&&migrated.inventory.getItem(8).getCount()==23&&!migrated.item.has(DataComponents.CONTAINER),"Legacy item storage was lost or retained twice");
-        var again=CargoEntry.load(hold,migrated.save(h.getLevel().registryAccess(),false),h.getLevel().registryAccess());
+        var placed=CargoEntry.fromItem(hold,stack,ContainerVariantFixtures.CHEST.defaultBlockState());
+        var saved=placed.save(h.getLevel().registryAccess(),false);
+        var restored=CargoEntry.load(hold,saved,h.getLevel().registryAccess());
+        h.assertTrue(restored.id.equals(placed.id)&&restored.inventory.getItem(8).getCount()==23&&!restored.item.has(DataComponents.CONTAINER),"Current inventory was lost or retained twice");
+        var again=CargoEntry.load(hold,restored.save(h.getLevel().registryAccess(),false),h.getLevel().registryAccess());
         h.assertTrue(again.inventory.getItem(8).getCount()==23&&!again.item.has(DataComponents.CONTAINER),"Repeated loading duplicated inventory");
         var detached=new AssemblyFrameBlockEntity(BlockPos.ZERO,WagonContent.FRAME.get().defaultBlockState());
-        var detachedEntry=CargoEntry.load(detached.cargo(),old.save(h.getLevel().registryAccess(),false),h.getLevel().registryAccess());
-        h.assertTrue(detached.getLevel()==null&&detachedEntry.inventory.getItem(8).getCount()==23,"Chunk load before setLevel lost imported contents");
-        var protectedTag=new CompoundTag();protectedTag.putString("id","cargo_fixture:chest");protectedTag.putString("Lock","secret");stack.set(DataComponents.BLOCK_ENTITY_DATA,CustomData.of(protectedTag));
-        var locked=new CargoEntry(hold,java.util.UUID.randomUUID(),stack,ContainerVariantFixtures.CHEST.defaultBlockState());
-        var loaded=CargoEntry.load(hold,locked.save(h.getLevel().registryAccess(),false),h.getLevel().registryAccess());
-        h.assertTrue(loaded.kind==CargoEntry.Kind.ORDINARY&&loaded.inventory.getContainerSize()==0&&loaded.item.has(DataComponents.CONTAINER),"Legacy locked item exposed or lost its contents");h.succeed();
+        var detachedEntry=CargoEntry.load(detached.cargo(),saved,h.getLevel().registryAccess());
+        h.assertTrue(detached.getLevel()==null&&detachedEntry.inventory.getItem(8).getCount()==23,"Chunk load before setLevel lost contents");
+        placed.inventory.clearContent();
+        var empty=CargoEntry.load(hold,placed.save(h.getLevel().registryAccess(),false),h.getLevel().registryAccess());
+        h.assertTrue(empty.inventory.isEmpty(),"Empty authoritative inventory refilled on load");h.succeed();
     }
 
     private static List<net.minecraft.world.level.block.Block> bclibBarrels(GameTestHelper h) {

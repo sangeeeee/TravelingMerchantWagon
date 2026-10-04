@@ -87,17 +87,15 @@ public final class CargoEntry {
         });
     }
     public static CargoEntry fromItem(CargoHold hold,ItemStack stack,BlockState state) {
-        return fromItem(hold,stack,state,UUID.randomUUID(),hold.owner().cargoLevel().registryAccess());
-    }
-    private static CargoEntry fromItem(CargoHold hold,ItemStack stack,BlockState state,UUID id,HolderLookup.Provider lookup) {
-        var entry=new CargoEntry(hold,id,stack,state);entry.loading=true;
+        var lookup=hold.owner().cargoLevel().registryAccess();
+        var entry=new CargoEntry(hold,UUID.randomUUID(),stack,state);entry.loading=true;
         if(entry.inventory.getContainerSize()>0) {
             var contents=NonNullList.withSize(entry.inventory.getContainerSize(),ItemStack.EMPTY);
             var tag=stack.getOrDefault(DataComponents.BLOCK_ENTITY_DATA,CustomData.EMPTY).copyTag();
             ContainerHelper.loadAllItems(tag,contents,lookup);
             var component=stack.get(DataComponents.CONTAINER);
             // Vanilla container items have an empty default component. It must
-            // not erase inventory imported from legacy BlockEntityTag data.
+            // not erase inventory imported from the item's block entity data.
             if(component!=null&&component.nonEmptyStream().findAny().isPresent())component.copyInto(contents);
             for(int i=0;i<contents.size();i++)entry.inventory.setItem(i,contents.get(i));
             entry.burn=Math.max(0,tag.getInt("BurnTime"));entry.cook=Math.max(0,tag.getInt("CookTime"));
@@ -206,31 +204,18 @@ public final class CargoEntry {
         var item=ItemStack.parseOptional(lookup,tag.getCompound("Item"));
         if(item.isEmpty()||!(item.getItem() instanceof net.minecraft.world.item.BlockItem||item.getItem() instanceof StrawMatItem||item.getItem() instanceof WagonStoolItem))return null;
         var state=NbtUtils.readBlockState(lookup.lookupOrThrow(net.minecraft.core.registries.Registries.BLOCK),tag.getCompound("State"));
-        var id=tag.hasUUID("Id")?tag.getUUID("Id"):UUID.randomUUID();
-        var detected=kind(state);
-        // Previously decorative variants may still carry inventory inside their item.
-        // Import and strip it once; an existing authoritative cargo inventory takes precedence.
-        var entry=detected==Kind.CHEST||detected==Kind.BARREL?fromItem(hold,item,state,id,lookup):new CargoEntry(hold,id,item,state);
+        if(!tag.hasUUID("Id"))return null;
+        var entry=new CargoEntry(hold,tag.getUUID("Id"),item,state);
         entry.loading=true;
-        if(entry.kind==Kind.ORDINARY&&(detected==Kind.CHEST||detected==Kind.BARREL)
-                &&!tag.getList("Items",net.minecraft.nbt.Tag.TAG_COMPOUND).isEmpty()) {
-            // Older builds allowed locked vanilla cargo to have separate storage.
-            // Preserve it in the non-interactive returned item instead of dropping it on load.
-            var preserved=entry.item.getOrDefault(DataComponents.BLOCK_ENTITY_DATA,CustomData.EMPTY).copyTag();
-            preserved.put("Items",tag.getList("Items",net.minecraft.nbt.Tag.TAG_COMPOUND).copy());
-            entry.item.remove(DataComponents.CONTAINER);entry.item.set(DataComponents.BLOCK_ENTITY_DATA,CustomData.of(preserved));
-        }
         if(tag.getBoolean("Visual")&&tag.hasUUID("Sleeper"))entry.sleeper=tag.getUUID("Sleeper");
         var contents=NonNullList.withSize(entry.inventory.getContainerSize(),ItemStack.EMPTY);
-        if(tag.getList("Items",net.minecraft.nbt.Tag.TAG_COMPOUND).isEmpty())
-            for(int i=0;i<contents.size();i++)contents.set(i,entry.inventory.getItem(i));
         ContainerHelper.loadAllItems(tag,contents,lookup);
         for(int i=0;i<contents.size();i++)entry.inventory.setItem(i,contents.get(i));
         entry.brewTime=Math.max(0,tag.getInt("BrewTime"));entry.brewFuel=Math.max(0,tag.getInt("BrewFuel"));entry.page=Math.max(0,tag.getInt("Page"));
         entry.compostReady=tag.contains("CompostReady")?tag.getLong("CompostReady"):Long.MIN_VALUE;
         var ingredient=ResourceLocation.tryParse(tag.getString("BrewingIngredient"));entry.brewingIngredient=ingredient==null?Items.AIR:net.minecraft.core.registries.BuiltInRegistries.ITEM.get(ingredient);
         entry.burn=Math.max(0,tag.getInt("Burn"));entry.fuelDuration=Math.max(0,tag.getInt("FuelDuration"));entry.cook=Math.max(0,tag.getInt("Cook"));entry.totalCook=Math.max(1,tag.getInt("TotalCook"));
-        entry.opened=tag.getBoolean("Opened");entry.lidStart=tag.contains("LidStart")?tag.getLong("LidStart"):Long.MIN_VALUE;entry.lidFrom=tag.getFloat("LidFrom");
+        entry.opened=tag.getBoolean("Opened");entry.lidStart=tag.getLong("LidStart");entry.lidFrom=tag.getFloat("LidFrom");
         if(!tag.getBoolean("Visual")) {
             entry.opened=false;entry.lidStart=Long.MIN_VALUE;entry.lidFrom=0;
             if(entry.kind==Kind.BARREL)entry.state=entry.state.setValue(BarrelBlock.OPEN,false);

@@ -65,7 +65,7 @@ public final class WagonEffects {
     }
     private static float rollingVolume(double speed) {
         double ratio=Math.min(1.5,speed/WagonPhysics.FORWARD_SPEED);
-        return (float)Math.min(1,Math.sqrt(ratio)*.82);
+        return (float)Math.min(1,Math.sqrt(ratio)*.82)*1.3F;
     }
     private static final class Dust extends TerrainParticle {
         Dust(ClientLevel level,Vec3 point,Vec3 trail,net.minecraft.world.level.block.state.BlockState state,BlockPos block) {

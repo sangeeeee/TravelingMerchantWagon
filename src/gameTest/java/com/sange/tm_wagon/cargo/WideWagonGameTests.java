@@ -136,12 +136,12 @@ public class WideWagonGameTests {
         h.succeed();
     }
     @GameTest(template="assembly_test",timeoutTicks=35)
-    public static void old_saved_cargo_seat_indices_migrate_to_reserved_triple_range(GameTestHelper h) {
+    public static void saved_cargo_seat_indices_remain_in_reserved_triple_range(GameTestHelper h) {
         var w=wagon(h,WagonPart.DOUBLE_SEAT);place(h,w.cargo(),31,new ItemStack(WagonContent.STOOL.get()));
         var p=player(h,w.cargo(),w.cargo().centreAt(31));h.assertTrue(w.cargo().seats.sit(31,p)==null,"Fixture boarding failed");
-        var tag=new CompoundTag();w.saveWithoutId(tag);tag.remove("SeatLayoutVersion");tag.getCompound("Seats").putInt(p.getUUID().toString(),33);
+        var tag=new CompoundTag();w.saveWithoutId(tag);
         var restored=WagonContent.WAGON.get().create(h.getLevel());restored.load(tag);
-        h.assertTrue(restored.passengerSeat(p)==34&&restored.cargo().entry(31)!=null,"Legacy seat index not migrated");h.succeed();
+        h.assertTrue(restored.passengerSeat(p)==34&&restored.cargo().entry(31)!=null,"Saved seat index or cargo changed on load");h.succeed();
     }
     @GameTest(template="assembly_test",timeoutTicks=90)
     public static void wide_cargo_and_triple_cabinet_round_trip_keep_one_inventory_owner(GameTestHelper h) {

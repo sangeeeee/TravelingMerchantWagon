@@ -49,7 +49,7 @@ public class AssemblyCellBlockEntity extends BlockEntity {
     }
     @Override protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries); owner = BlockPos.of(tag.getLong("Owner"));
-        source=tag.contains("Source")?BlockPos.of(tag.getLong("Source")):worldPosition;
+        source=BlockPos.of(tag.getLong("Source"));
         List<AABB> loaded = new ArrayList<>();
         for (Tag entry : tag.getList("Boxes", Tag.TAG_LIST)) {
             ListTag v = (ListTag) entry;

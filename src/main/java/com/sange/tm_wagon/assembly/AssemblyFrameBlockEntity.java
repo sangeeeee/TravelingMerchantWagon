@@ -299,7 +299,7 @@ public class AssemblyFrameBlockEntity extends BlockEntity implements GeoBlockEnt
         if (layout == null) layout = buildLayout(parts);
         return layout;
     }
-    /** Also upgrades older controllers whose platform did not have world cells. */
+    /** Creates the platform cells for a newly placed frame. */
     public void ensureFrame() { if (!frameBuilt) initializeFrame(); }
     public String initializeFrame() {
         return replaceModules(parts,null,null,false);
@@ -508,7 +508,6 @@ public class AssemblyFrameBlockEntity extends BlockEntity implements GeoBlockEnt
     }
     private void saveFrame(CompoundTag tag,HolderLookup.Provider registries,boolean visual) {
         tag.putBoolean("FrameBuilt",frameBuilt);
-        tag.putInt("CollisionSignature",WagonGeometry.collisionSignature());
         tag.putBoolean("CollisionExtended",collisionExtended);
         tag.putBoolean("MotionTargetExtended",motionTargetExtended);
         if (restoringWagon != null) tag.putUUID("RestoringWagon",restoringWagon);
@@ -525,20 +524,15 @@ public class AssemblyFrameBlockEntity extends BlockEntity implements GeoBlockEnt
         for (WagonSlot slot : WagonSlot.values()) {
             if (modules.contains(slot.name())) {
                 try { WagonPart part = WagonPart.valueOf(modules.getString(slot.name())); if (slot.accepts(part)) parts.put(slot, part); }
-                catch (IllegalArgumentException ignored) { /* Ignore unknown parts from incompatible saves. */ }
+                catch (IllegalArgumentException ignored) { /* Discard invalid module identifiers. */ }
             }
         }
-        // Existing proxy cells persist their collision boxes. Rebuild them when
-        // model collision data changes, preserving installed modules on failure.
-        frameBuilt = tag.getBoolean("FrameBuilt") && tag.contains("CollisionSignature")
-            && tag.getInt("CollisionSignature")==WagonGeometry.collisionSignature();
-        motionStart = tag.contains("MotionStart") ? tag.getLong("MotionStart") : Long.MIN_VALUE;
+        frameBuilt = tag.getBoolean("FrameBuilt");
+        motionStart = tag.getLong("MotionStart");
         motionFrom = Math.clamp(tag.getDouble("MotionFrom"),0,1);
         motionDuration = Math.max(1,tag.getInt("MotionDuration"));
-        collisionExtended = tag.contains("CollisionExtended") ? tag.getBoolean("CollisionExtended")
-            : motionStart == Long.MIN_VALUE ? getBlockState().getValue(AssemblyFrameBlock.EXTENDED) : motionFrom < .5;
-        motionTargetExtended = tag.contains("MotionTargetExtended") ? tag.getBoolean("MotionTargetExtended")
-            : getBlockState().getValue(AssemblyFrameBlock.EXTENDED);
+        collisionExtended = tag.getBoolean("CollisionExtended");
+        motionTargetExtended = tag.getBoolean("MotionTargetExtended");
         restoringWagon=tag.hasUUID("RestoringWagon") ? tag.getUUID("RestoringWagon") : null;
         restoringPlayer=tag.hasUUID("RestoringPlayer") ? tag.getUUID("RestoringPlayer") : null;
         cargo.load(tag.getCompound("Cargo"),registries);

@@ -269,11 +269,9 @@ public class WagonEntityGameTests {
         AABB oldBar=new AABB(.9,1.2,-5.38,1.0,1.27,-5.3).move(origin);
         helper.assertTrue(!helper.getLevel().noCollision(null,tip)&&!helper.getLevel().noCollision(null,bar),"Extended pole or relocated yoke missing block collision");
         helper.assertTrue(helper.getLevel().noCollision(null,oldBar),"Old yoke location retained collision");
-        // A saved world must refresh persisted cell shapes after the model update.
-        frame.layout().keySet().forEach(pos -> ((AssemblyCellBlockEntity)helper.getLevel().getBlockEntity(pos)).configure(frame.getBlockPos(),java.util.List.of()));
-        var saved=frame.saveWithFullMetadata(helper.getLevel().registryAccess());saved.remove("CollisionSignature");
+        var saved=frame.saveWithFullMetadata(helper.getLevel().registryAccess());
         frame.loadWithComponents(saved,helper.getLevel().registryAccess());frame.ensureFrame();
-        helper.assertTrue(frame.parts().equals(modules)&&!helper.getLevel().noCollision(null,tip),"Saved block cart did not refresh collision without losing modules");
+        helper.assertTrue(frame.parts().equals(modules)&&!helper.getLevel().noCollision(null,tip),"Current save lost installed modules or cell collision");
         helper.assertTrue(frame.toggleFrame(null)==null,"Updated wagon did not assemble");
         helper.assertTrue(!helper.getLevel().noCollision(null,tip)&&!helper.getLevel().noCollision(null,bar),"Entity collision did not match extended double shafts");
         helper.assertTrue(helper.getLevel().noCollision(null,oldBar),"Entity retained old yoke collision");

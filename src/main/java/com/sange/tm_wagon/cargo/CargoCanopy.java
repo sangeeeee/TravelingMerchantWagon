@@ -33,7 +33,6 @@ public final class CargoCanopy {
     public com.sange.tm_wagon.material.WagonMaterial material() { return material; }
     private final CargoHold hold;
     private boolean installed,frontClosed,rearClosed;
-    public static int geometrySignature() { return 31*GEOMETRY.hashCode()+2; }
     public CargoCanopy(CargoHold hold) { this.hold=hold; }
     public boolean installed() { return installed; }
     public boolean closed(boolean front) { return front?frontClosed:rearClosed; }

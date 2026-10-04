@@ -889,7 +889,7 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
     @Override protected void addAdditionalSaveData(CompoundTag tag) {
         tag.put("Materials",entityData.get(MATERIALS).copy());tag.put("Modules",entityData.get(MODULES).copy()); tag.putInt("WagonFacing",facing().get2DDataValue());
         tag.put("Cargo",cargo.save(level().registryAccess(),false));
-        tag.put("Seats",entityData.get(SEATS).copy());tag.putInt("SeatLayoutVersion",2);
+        tag.put("Seats",entityData.get(SEATS).copy());
         tag.putFloat("Yaw",getYRot());tag.putFloat("Pitch",pitch);tag.putFloat("Roll",roll);tag.putBoolean("MotionStarted",motionStarted);
         tag.putFloat("ShaftPitch",shaftPitch);tag.putFloat("Steering",steering);
         for(int i=0;i<2;i++)if(horses[i]!=null) { tag.putUUID("Horse"+i,horses[i]);tag.putInt("Hanging"+i,hangingTicks[i]);if(Double.isFinite(horseContactHeights[i]))tag.putDouble("HorseContact"+i,horseContactHeights[i]); }
@@ -904,9 +904,7 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
         setMaterials(com.sange.tm_wagon.material.WagonMaterial.loadSlots(tag.getCompound("Materials")));
         cargo.load(tag.getCompound("Cargo"),level().registryAccess());rebuildGeometry();cargoChanged(true);
         assemblyLock=tag.contains("AssemblyLock") ? net.minecraft.core.BlockPos.of(tag.getLong("AssemblyLock")) : null;
-        var savedSeats=tag.getCompound("Seats").copy();
-        if(tag.getInt("SeatLayoutVersion")<2)for(String key:savedSeats.getAllKeys())if(savedSeats.getInt(key)>=2)savedSeats.putInt(key,savedSeats.getInt(key)+1);
-        entityData.set(SEATS,savedSeats);
+        entityData.set(SEATS,tag.getCompound("Seats").copy());
         pitch=tag.getFloat("Pitch");roll=tag.getFloat("Roll");motionStarted=tag.getBoolean("MotionStarted");
         shaftPitch=tag.getFloat("ShaftPitch");steering=tag.getFloat("Steering");
         if(tag.contains("Yaw"))setYRot(tag.getFloat("Yaw"));
