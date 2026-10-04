@@ -63,6 +63,7 @@ public final class CarryOnCargo {
         if(!(player instanceof ServerPlayer server))return false;
         var data=CarryOnDataManager.getCarryData(player);
         if(!data.isCarrying())return false;
+        if(data.isCarrying(tschipp.carryon.common.carry.CarryOnData.CarryType.ENTITY))return seatEntity(hold,slot,server,data);
         if(!data.isCarrying(tschipp.carryon.common.carry.CarryOnData.CarryType.BLOCK)) {
             CargoHold.message(player,"message.tm_wagon.cargo_unsupported");return true;
         }
@@ -104,6 +105,47 @@ public final class CarryOnCargo {
             if(!command.isEmpty())server.getServer().getCommands().performPrefixedCommand(
                 server.getServer().createCommandSourceStack(),"/execute as "+server.getGameProfile().getName()+" run "+command);
         });
+        return true;
+    }
+    /** Spawn -> seat -> clear serialized source, all on one server thread. Failed insertions retain Carry On data. */
+    private static boolean seatEntity(CargoHold hold,int slot,ServerPlayer player,tschipp.carryon.common.carry.CarryOnData data) {
+        if(data.getTick()==player.tickCount)return true;
+        var entry=hold.entry(slot);
+        if(entry==null||entry.kind!=CargoEntry.Kind.STOOL||!hold.valid(entry,player)) {
+            CargoHold.message(player,"message.tm_wagon.cargo_unsupported");return true;
+        }
+        // getEntity clears invalid data in Carry On; inspect a detached copy instead.
+        var copy=new tschipp.carryon.common.carry.CarryOnData(data.getNbt().copy());
+        var entity=copy.getEntity(player.level());
+        if(!(entity instanceof net.minecraft.world.entity.LivingEntity rider)||!CargoSeats.eligible(rider)) {
+            CargoHold.message(player,"message.tm_wagon.stool_cannot_sit");return true;
+        }
+        rider.setPos(hold.owner().cargoPose().point(hold.centreAt(slot)));
+        if(!hold.seats.available(slot,rider)||!player.level().mayInteract(player,BlockPos.containing(rider.position()))) {
+            CargoHold.message(player,"message.tm_wagon.stool_cannot_sit");return true;
+        }
+        if(rider instanceof net.minecraft.world.entity.Mob mob) {
+            var check=new net.neoforged.neoforge.event.entity.living.MobSpawnEvent.PositionCheck(mob,player.serverLevel(),net.minecraft.world.entity.MobSpawnType.EVENT,null);
+            NeoForge.EVENT_BUS.post(check);
+            if(check.getResult()==net.neoforged.neoforge.event.entity.living.MobSpawnEvent.PositionCheck.Result.FAIL)return true;
+        }
+        for(var level:player.server.getAllLevels())if(level.getEntity(rider.getUUID())!=null)return true;
+        if(!player.serverLevel().addFreshEntity(rider))return true;
+        boolean committed=false;var script=data.getActiveScript();
+        try {
+            String error=hold.seats.sit(slot,rider);
+            if(error!=null) { CargoHold.message(player,error);return true; }
+            // The maid may immediately dismount when another task is selected;
+            // that is still a successful transfer to the world, not a rollback.
+            data.clear();data.setTick(player.tickCount);committed=true;
+        } finally { if(!committed) { rider.stopRiding();rider.discard(); } }
+        CarryOnDataManager.setCarryData(player,data);
+        if(!player.isCreative()||tschipp.carryon.Constants.COMMON_CONFIG.settings.slownessInCreative)
+            player.removeEffect(net.minecraft.world.effect.MobEffects.MOVEMENT_SLOWDOWN);
+        player.swing(net.minecraft.world.InteractionHand.MAIN_HAND,true);
+        script.ifPresent(value->{String command=value.scriptEffects().commandPlace();if(!command.isEmpty())
+            player.server.getCommands().performPrefixedCommand(player.server.createCommandSourceStack(),
+                "/execute as "+player.getGameProfile().getName()+" run "+command);});
         return true;
     }
     private static <T extends Comparable<T>> BlockState copyProperty(BlockState target,BlockState source,net.minecraft.world.level.block.state.properties.Property<T> property) {

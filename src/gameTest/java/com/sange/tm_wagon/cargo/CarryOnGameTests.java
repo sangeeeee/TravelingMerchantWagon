@@ -19,6 +19,22 @@ import tschipp.carryon.Constants;
 @GameTestHolder("tm_wagon_carryon")
 @PrefixGameTestTemplate(false)
 public class CarryOnGameTests {
+    @GameTest(template="assembly_test",timeoutTicks=35)
+    public static void carried_entity_seats_and_blocked_attempt_retains_source(GameTestHelper h) {
+        if(!available(h))return;
+        var w=CargoGameTests.wagon(h);var hold=w.cargo();var p=player(h,hold,false,false);
+        h.assertTrue(hold.place(4,new ItemStack(WagonContent.STOOL.get()),p)==null,"Stool fixture failed");
+        var sheep=net.minecraft.world.entity.EntityType.SHEEP.create(h.getLevel());sheep.setCustomName(net.minecraft.network.chat.Component.literal("Kept sheep"));
+        var data=CarryOnDataManager.getCarryData(p);data.setEntity(sheep);data.setTick(-1);var original=data.getNbt().copy();
+        var block=BlockPos.containing(hold.owner().cargoPose().point(hold.centreAt(4).add(0,1.2,0)));
+        h.getLevel().setBlock(block,Blocks.STONE.defaultBlockState(),3);hold.interact(p,InteractionHand.MAIN_HAND,hold.centreAt(4).add(0,.5,0));
+        h.assertTrue(original.equals(data.getNbt())&&h.getLevel().getEntity(sheep.getUUID())==null,"Blocked carried mob lost data or spawned");
+        h.getLevel().removeBlock(block,false);hold.interact(p,InteractionHand.MAIN_HAND,hold.centreAt(4).add(0,.5,0));
+        var live=h.getLevel().getEntity(sheep.getUUID());
+        h.assertTrue(!data.isCarrying()&&live!=null&&live.getVehicle()==w&&"Kept sheep".equals(live.getCustomName().getString()),"Carried mob was not transferred and seated");
+        hold.interact(p,InteractionHand.MAIN_HAND,hold.centreAt(4).add(0,.5,0));
+        h.assertTrue(w.getPassengers().size()==1,"Repeated click duplicated entity");h.succeed();
+    }
     private static boolean available(GameTestHelper h) {
         boolean loaded=ModList.get().isLoaded("carryon");
         if(Boolean.getBoolean("tm_wagon.requireCarryOnTest"))h.assertTrue(loaded,"Carry On missing");

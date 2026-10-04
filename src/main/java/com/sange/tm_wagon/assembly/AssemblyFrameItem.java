@@ -31,7 +31,7 @@ public class AssemblyFrameItem extends BlockItem implements GeoItem {
         var level = context.getLevel();
         var origin = context.getClickedPos();
         String error = null;
-        for (var entry : WagonGeometry.frameCells(state.getValue(AssemblyFrameBlock.FACING)).entrySet()) {
+        for (var entry : WagonGeometry.frameCells(state.getValue(AssemblyFrameBlock.FACING),state.getValue(AssemblyFrameBlock.EXTENDED)?0:1).entrySet()) {
             var pos = origin.offset(entry.getKey());
             if (level.isOutsideBuildHeight(pos) || !level.getWorldBorder().isWithinBounds(pos) || !level.hasChunkAt(pos)) {
                 error = "message.tm_wagon.out_of_bounds"; break;

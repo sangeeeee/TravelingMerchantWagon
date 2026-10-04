@@ -97,7 +97,8 @@ public class CargoCanopyGameTests {
         h.assertTrue(hold.seats.sit(8,p)==null&&p.isPassenger(),"Canopy disabled block stool");p.stopRiding();
         h.assertTrue(f.toggleFrame(null)==null,"Assembly failed");var w=h.getLevel().getEntitiesOfClass(WagonEntity.class,new AABB(f.getBlockPos()).inflate(7)).getFirst();
         h.assertTrue(hold.empty()&&w.cargo().canopy().installed()&&w.cargo().canopy().closed(true)&&!w.cargo().canopy().closed(false),"Assembly cloned/lost canopy states");
-        h.assertTrue(w.cargo().canopy().remove(p,SIDE)!=null,"Entity canopy was removable");
+        h.assertTrue(w.lock(f.getBlockPos()),"Could not lock accessory during conversion");
+        h.assertTrue(w.cargo().canopy().remove(p,SIDE)!=null,"Accessory removed during conversion lock");w.unlock();
         h.assertTrue(w.cargo().seats.sit(8,p)==null,"Canopy disabled moving stool");p.stopRiding();
         h.runAtTickTime(24,()->h.assertTrue(f.toggleFrame(null)==null,"Restore failed to start"));
         h.runAtTickTime(49,()->{

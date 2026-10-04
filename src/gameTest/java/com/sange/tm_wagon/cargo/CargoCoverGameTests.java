@@ -53,6 +53,13 @@ public class CargoCoverGameTests {
     private static int drops(GameTestHelper h,Vec3 pos) {
         return h.getLevel().getEntitiesOfClass(ItemEntity.class,new AABB(pos,pos).inflate(6),e->e.getItem().is(WagonContent.CARGO_COVER.get())).stream().mapToInt(e->e.getItem().getCount()).sum();
     }
+    @GameTest(template="assembly_test",timeoutTicks=35)
+    public static void small_rider_fits_below_cover_without_slot_blanket_ban(GameTestHelper h) {
+        var f=frame(h,false);var hold=f.cargo();var p=player(h,hold);
+        h.assertTrue(hold.place(4,new ItemStack(WagonContent.STOOL.get()),p)==null,"Stool setup failed");install(h,hold,p);
+        var rabbit=EntityType.RABBIT.create(h.getLevel());rabbit.setAge(-24000);rabbit.setNoAi(true);rabbit.setPos(p.position());h.getLevel().addFreshEntity(rabbit);
+        h.assertTrue(hold.seats.available(4,rabbit)&&hold.seats.sit(4,rabbit)==null,"Small rider rejected solely because cloth covers slot");h.succeed();
+    }
     @GameTest(template="assembly_test",timeoutTicks=40)
     public static void cover_installs_on_every_cargo_wall_and_returns_exactly_once(GameTestHelper h) {
         var f=frame(h,false);var hold=f.cargo();var p=player(h,hold);
@@ -292,16 +299,17 @@ public class CargoCoverGameTests {
     public static void covered_stools_reject_manual_direct_and_automatic_boarding_in_both_forms(GameTestHelper h) {
         var f=frame(h,false);var hold=f.cargo();var p=player(h,hold);
         h.assertTrue(hold.place(8,new ItemStack(WagonContent.STOOL.get()),p)==null,"Stool placement failed");install(h,hold,p);
-        h.assertTrue(CargoHold.ACCESS_BLOCKED.equals(hold.seats.sit(8,p))&&!p.isPassenger(),"Covered block stool allowed manual seating");
+        h.assertTrue(hold.seats.sit(8,p)!=null&&!p.isPassenger(),"Covered block stool allowed manual seating");
         var anchor=WagonContent.CARGO_SEAT.get().create(h.getLevel());anchor.initialize(hold,8,hold.entry(8).id);h.getLevel().addFreshEntity(anchor);
         h.assertTrue(!p.startRiding(anchor),"Direct boarding bypassed covered block stool restriction");anchor.discard();
         var chicken=EntityType.CHICKEN.create(h.getLevel());chicken.setAge(-24000);chicken.setNoAi(true);chicken.setNoGravity(true);
         chicken.setPos(f.cargoPose().point(CargoHold.centre(8).add(0,.5,0)));h.getLevel().addFreshEntity(chicken);
+        boolean fits=hold.seats.available(8,chicken);
         h.assertTrue(hold.toggleGate()==null,"Tailgate failed");
         h.runAtTickTime(22,()->{
             p.setPos(f.cargoPose().point(new Vec3(-.5,.25,3.2)));
-            h.assertTrue(hold.valid(hold.entry(8),p)&&CargoHold.ACCESS_BLOCKED.equals(hold.seats.sit(8,p)),"Visible covered stool became usable from the rear");
-            h.assertTrue(!chicken.isPassenger(),"Covered stool automatically captured a mob");chicken.discard();
+            h.assertTrue(hold.valid(hold.entry(8),p)&&hold.seats.sit(8,p)!=null,"Visible covered stool became usable from the rear");
+            h.assertTrue(chicken.isPassenger()==fits,"Auto seating ignored actual clearance");chicken.discard();
             h.assertTrue(f.toggleFrame(null)==null,"Assembly failed");
             var w=h.getLevel().getEntitiesOfClass(WagonEntity.class,new AABB(f.getBlockPos()).inflate(6)).getFirst();
             h.assertTrue(w.cargo().seats.sit(8,p)!=null&&!w.boardCargoSeat(p,8)&&!p.isPassenger(),"Entity stool bypassed cover restriction");
@@ -361,7 +369,8 @@ public class CargoCoverGameTests {
         var f=frame(h,true);var hold=f.cargo();var p=player(h,hold);h.assertTrue(hold.place(11,new ItemStack(Items.CHEST),p)==null,"Rear chest placement failed");var chest=hold.entry(11);chest.inventory.setItem(0,new ItemStack(Items.EMERALD,31));install(h,hold,p);step(h,hold,p,1);step(h,hold,p,1);
         h.assertTrue(f.toggleFrame(null)==null,"Assembly with optional cover failed");var w=h.getLevel().getEntitiesOfClass(WagonEntity.class,new AABB(f.getBlockPos()).inflate(6)).getFirst();
         h.assertTrue(w.cargo().cover().installed()&&w.cargo().cover().openRows()==2&&hold.empty()&&w.cargo().entry(11)==chest,"Entity conversion reset or cloned accessory/cargo");
-        h.assertTrue(w.cargo().cover().remove(p,SIDE)!=null,"Entity cover was removable");
+        h.assertTrue(w.lock(f.getBlockPos()),"Could not lock accessory during conversion");
+        h.assertTrue(w.cargo().cover().remove(p,SIDE)!=null,"Accessory removed during conversion lock");w.unlock();
         var animal=EntityType.SHEEP.create(h.getLevel());animal.setNoAi(true);animal.setNoGravity(true);animal.setPos(w.pose().point(new Vec3(0,CargoCover.TOP+.01,1.5)));h.getLevel().addFreshEntity(animal);animal.move(MoverType.SELF,new Vec3(0,-.1,0));
         h.assertTrue(animal.onGround()&&Math.abs(w.pose().local(animal.position()).y-CargoCover.TOP)<.002,"Entity cover is not walkable");animal.discard();
         // Rolling and spreading remain available in entity form.

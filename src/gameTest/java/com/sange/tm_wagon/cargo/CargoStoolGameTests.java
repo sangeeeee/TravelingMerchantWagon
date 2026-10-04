@@ -23,6 +23,21 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 @GameTestHolder("tm_wagon")
 @PrefixGameTestTemplate(false)
 public class CargoStoolGameTests {
+    @GameTest(template="assembly_test",timeoutTicks=35)
+    public static void lead_seats_only_linked_mob_and_refunds_once(GameTestHelper h) {
+        var w=wagon(h);place(h,w.cargo(),4);var p=player(h,w.cargo());
+        p.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND,new ItemStack(Items.LEAD));
+        var mob=EntityType.SHEEP.create(h.getLevel());mob.setNoAi(true);mob.setPos(p.position());h.getLevel().addFreshEntity(mob);mob.setLeashedTo(p,true);
+        var ceiling=BlockPos.containing(w.pose().point(w.cargo().centreAt(4).add(0,1.2,0)));
+        h.getLevel().setBlock(ceiling,net.minecraft.world.level.block.Blocks.STONE.defaultBlockState(),3);
+        var hit=w.cargo().centreAt(4).add(0,.5,0);w.cargo().interact(p,net.minecraft.world.InteractionHand.MAIN_HAND,hit);
+        h.assertTrue(!mob.isPassenger()&&mob.getLeashHolder()==p,"Rejected seating lost leash or moved mob");h.getLevel().removeBlock(ceiling,false);
+        w.cargo().interact(p,net.minecraft.world.InteractionHand.MAIN_HAND,hit);
+        h.assertTrue(mob.getVehicle()==w&&!mob.isLeashed()&&!p.isPassenger(),"Lead click did not board linked mob");
+        h.assertTrue(p.getMainHandItem().getCount()==1,"Held lead was consumed");
+        int drops=h.getLevel().getEntitiesOfClass(net.minecraft.world.entity.item.ItemEntity.class,w.getBoundingBox().inflate(5),e->e.getItem().is(Items.LEAD)).stream().mapToInt(e->e.getItem().getCount()).sum();
+        h.assertTrue(drops==1,"Existing leash was not returned exactly once: "+drops);h.succeed();
+    }
     private static WagonEntity wagon(GameTestHelper h) {
         var w=WagonContent.WAGON.get().create(h.getLevel());var parts=WagonEntity.defaultParts();parts.put(WagonSlot.SEAT,WagonPart.DOUBLE_SEAT);
         w.configure(parts,Direction.NORTH);w.setPos(Vec3.atBottomCenterOf(h.absolutePos(new BlockPos(11,2,17))));h.getLevel().addFreshEntity(w);return w;

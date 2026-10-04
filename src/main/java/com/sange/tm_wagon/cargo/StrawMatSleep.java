@@ -52,6 +52,13 @@ public final class StrawMatSleep {
         return s;
     }
     private static WagonPose pose(Session s) { return s.hold!=null&&s.hold.owner().cargoLive()?s.hold.owner().cargoPose():s.pose; }
+    /** Interaction silhouette for the lying body; native sleeping AABBs cover only the head. */
+    public static java.util.Optional<Vec3> pickSleeper(LivingEntity sleeper,Vec3 start,Vec3 end) {
+        Session s=resolved(sleeper);if(s==null||s.hold==null||!sleeper.isSleeping())return java.util.Optional.empty();
+        var bounds=s.hold.matBounds(s.anchor);var p=pose(s);
+        return new AABB(bounds.minX,bounds.maxY,bounds.minZ,bounds.maxX,bounds.maxY+.5,bounds.maxZ)
+            .clip(p.local(start),p.local(end)).map(p::point);
+    }
     public static boolean nativeStart(Player player,BlockPos pos) {
         Session s=session(player);return s!=null&&s.bed.equals(pos)&&!player.isSleeping();
     }
@@ -122,7 +129,16 @@ public final class StrawMatSleep {
             &&(!(hold.owner() instanceof WagonEntity w)||!w.falling()&&w.getDeltaMovement().lengthSqr()<.0001);
     }
     public static String sleep(CargoHold hold,CargoEntry mat,Player player) {
-        if(!(player instanceof ServerPlayer p)||!hold.valid(mat,player)||mat.kind!=CargoEntry.Kind.STRAW_MAT)return "message.tm_wagon.assembly_busy";
+        return sleep(hold,mat,player,null);
+    }
+    public static String sleep(CargoHold hold,CargoEntry mat,Player player,Vec3 clicked) {
+        int slot=hold.slot(mat);
+        boolean valid=clicked==null?hold.valid(mat,player):slot>=0&&hold.owner().cargoLive()&&!hold.owner().cargoBusy()
+            &&player.isAlive()&&player.level()==hold.owner().cargoLevel()
+            &&hold.matBounds(slot).inflate(.04).contains(clicked)
+            &&player.distanceToSqr(hold.owner().cargoPose().point(clicked))<=64
+            &&!hold.cover().obstructs(hold.owner().cargoPose().local(player.getEyePosition()),clicked);
+        if(!(player instanceof ServerPlayer p)||!valid||mat.kind!=CargoEntry.Kind.STRAW_MAT)return "message.tm_wagon.assembly_busy";
         var level=p.serverLevel();
         if(!level.dimensionType().bedWorks()||!level.dimensionType().natural())return "message.tm_wagon.mat_dimension";
         if(p.isSleeping()||!p.isAlive()||p.isSpectator())return "message.tm_wagon.mat_unavailable";
@@ -130,7 +146,11 @@ public final class StrawMatSleep {
         if(!stable(hold))return "message.tm_wagon.mat_unstable";
         if(level.isDay())return "block.minecraft.bed.no_sleep";
         int anchor=hold.slot(mat);Vec3 point=head(hold,anchor);
-        if(p.distanceToSqr(point)>36)return "block.minecraft.bed.too_far_away";
+        // Any segment of the mat can be used, just like either half of a bed.
+        var bounds=hold.matBounds(anchor);Vec3 near=hold.owner().cargoPose().local(p.position());
+        Vec3 usePoint=clicked!=null?clicked:new Vec3(net.minecraft.util.Mth.clamp(near.x,bounds.minX,bounds.maxX),bounds.maxY,
+            net.minecraft.util.Mth.clamp(near.z,bounds.minZ,bounds.maxZ));
+        if(p.distanceToSqr(hold.owner().cargoPose().point(usePoint))>36)return "block.minecraft.bed.too_far_away";
         if(!p.getAbilities().instabuild&&!level.getEntitiesOfClass(Monster.class,new AABB(point,point).inflate(8,5,8),m->m.isPreventingPlayerRest(p)).isEmpty())
             return "block.minecraft.bed.not_safe";
         Vec3 clear=null;

@@ -93,7 +93,6 @@ public final class WagonCabinet {
     }
     public String install(ItemStack stack,Player p,Vec3 local) {
         String error=hold.cover().permission(p,local);if(error!=null)return error;
-        if(!(hold.owner() instanceof AssemblyFrameBlockEntity))return "message.tm_wagon.cabinet_block_only";
         if(installed||side(local)<0||stack.isEmpty()||!(stack.getItem() instanceof WagonCabinetItem))return "message.tm_wagon.cabinet_side";
         rows=hold.owner().cargoSeat().seatCapacity()>=2?6:3;installed=true;store=new Store(this,rows*9);
         material=new com.sange.tm_wagon.material.WagonMaterial(com.sange.tm_wagon.material.WagonMaterial.of(stack).wood(),net.minecraft.world.item.DyeColor.WHITE);

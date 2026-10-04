@@ -180,15 +180,15 @@ public class WagonDrivingGameTests {
         h.assertTrue(!w.falling()&&Math.abs(w.getY()-landing)<.35,"Wagon did not settle after fall: "+w.position()+" pitch "+w.pitch()+" mask "+w.supportMask());h.succeed();
     }
     @GameTest(template="assembly_test",timeoutTicks=40)
-    public static void save_links_pose_and_damage_drops_materials(GameTestHelper h) {
+    public static void save_links_pose_and_hammer_releases_horse_and_rider(GameTestHelper h) {
         var w=wagon(h,false,false);var p=driver(h,w);var horse=attach(h,w,p,0);drive(w,p,1,1,5);
         var saved=new net.minecraft.nbt.CompoundTag();w.saveWithoutId(saved);var copy=WagonContent.WAGON.get().create(h.getLevel());copy.load(saved);
         h.assertTrue(copy.hasHorse(horse.getUUID())&&Math.abs(copy.getYRot()-w.getYRot())<.001,"Save lost horse or continuous heading");
-        w.hurt(w.damageSources().generic(),5);h.assertTrue(!w.isRemoved(),"Wagon is no stronger than a boat");w.hurt(w.damageSources().generic(),15);
+        w.hurt(w.damageSources().generic(),100);h.assertTrue(!w.isRemoved(),"Wagon accepted ordinary damage");DismantlingHammerGameTests.strike(h,w);
         h.assertTrue(w.isRemoved()&&!p.isPassenger()&&!HorseHarness.attached(horse)&&leads(h,w)==1,"Destruction cleanup incorrect");
         var drops=h.getLevel().getEntitiesOfClass(ItemEntity.class,new AABB(w.position(),w.position()).inflate(10));
-        h.assertTrue(drops.stream().anyMatch(e->e.getItem().is(Items.OAK_PLANKS))&&drops.stream().anyMatch(e->e.getItem().is(Items.WHITE_WOOL)),"Destruction lacks wood/wool");
-        h.assertTrue(drops.stream().noneMatch(e->e.getItem().getItem() instanceof WagonPartItem),"Destroyed wagon returned complete components");h.succeed();
+        h.assertTrue(drops.stream().noneMatch(e->e.getItem().is(Items.OAK_PLANKS)||e.getItem().is(Items.WHITE_WOOL)),"Dismantling returned scraps");
+        h.assertTrue(drops.stream().filter(e->e.getItem().getItem() instanceof WagonPartItem).mapToInt(e->e.getItem().getCount()).sum()==7,"Dismantling did not return seven complete components");h.succeed();
     }
     @GameTest(template="assembly_test",timeoutTicks=40)
     public static void rotated_collision_and_wall_stop(GameTestHelper h) {

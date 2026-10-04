@@ -1,6 +1,5 @@
 package com.sange.tm_wagon.cargo;
 
-import com.sange.tm_wagon.assembly.AssemblyFrameBlockEntity;
 import com.sange.tm_wagon.assembly.WagonContent;
 import com.sange.tm_wagon.assembly.WagonGeometry;
 import com.sange.tm_wagon.assembly.WagonPart;
@@ -118,7 +117,6 @@ public final class CargoCover {
     }
     public String install(ItemStack stack,Player player,Vec3 local) {
         String error=permission(player,local);if(error!=null)return error;
-        if(!(hold.owner() instanceof AssemblyFrameBlockEntity))return "message.tm_wagon.cover_block_only";
         if(hold.canopy().installed())return "message.tm_wagon.roof_conflict";
         if(installed)return "message.tm_wagon.cover_installed";
         if(!(stack.getItem() instanceof WagonCoverItem)||stack.isEmpty()||!side(local))return "message.tm_wagon.cover_side";
@@ -132,7 +130,6 @@ public final class CargoCover {
     }
     public String remove(Player player,Vec3 local) {
         String error=permission(player,local);if(error!=null)return error;
-        if(!(hold.owner() instanceof AssemblyFrameBlockEntity))return "message.tm_wagon.cover_block_only";
         if(!installed||!side(local))return "message.tm_wagon.cover_side";
         int previous=openRows;installed=false;openRows=0;
         error=hold.owner().cargoGeometryChanged();

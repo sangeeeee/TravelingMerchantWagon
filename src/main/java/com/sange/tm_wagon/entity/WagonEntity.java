@@ -63,7 +63,7 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
     private Vec3 lerpPosition;
     private float lerpYaw;
     private int lerpSteps;
-    private float health=20;
+    private boolean dismantled;
     private boolean motionStarted;
     private record Component(AABB box,WagonSlot slot) {}
     // Exact wool bounds in wagon-local space; independent of the solid lower-seat collider.
@@ -354,7 +354,7 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
         } else { setDeltaMovement(Vec3.ZERO);physics.reset(); }
         updateHorses();
         if(tickCount%2==0)syncMotion();
-        if(getY()<level().getMinBuildHeight()-64)hurt(damageSources().fellOutOfWorld(),100);
+        if(getY()<level().getMinBuildHeight()-64)discard();
     }
     @Override public void lerpTo(double x,double y,double z,float yaw,float xRot,int steps) {
         lerpPosition=new Vec3(x,y,z);lerpYaw=yaw;lerpSteps=Math.max(1,Math.min(5,steps));
@@ -457,12 +457,12 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
     }
     @Override protected boolean canAddPassenger(Entity passenger) {
         int seat=availableSeat(passenger);
-        return passenger instanceof LivingEntity&&seat>=0&&(seat<CARGO_SEAT_BASE||!cargo.cover().covered(seat-CARGO_SEAT_BASE))
+        return passenger instanceof LivingEntity&&seat>=0
             &&passenger.getBbWidth()<=(seat<CARGO_SEAT_BASE?1.5F:1F)&&seatClear(passenger,seat);
     }
     @Override protected boolean couldAcceptPassenger() {
         for(int i=0;i<CARGO_SEAT_BASE+cargo.capacity();i++)
-            if(validSeat(i)&&(i<CARGO_SEAT_BASE||!cargo.cover().covered(i-CARGO_SEAT_BASE))&&!seatOccupied(i,null))return true;
+            if(validSeat(i)&&!seatOccupied(i,null))return true;
         return false;
     }
     /** Stable IDs 0..2 are driver seats; cargo stools start at 3, independent of passenger ordering. */
@@ -496,7 +496,6 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
         finally { requestedSeat=-1; }
     }
     public boolean boardCargoSeat(LivingEntity rider,int slot) {
-        if(cargo.cover().covered(slot))return false;
         requestedSeat=CARGO_SEAT_BASE+slot;
         try { return rider.startRiding(this); }finally { requestedSeat=-1; }
     }
@@ -764,17 +763,24 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
             &&(entity instanceof WagonEntity||entity.canBeCollidedWith()||entity.isPushable());
     }
     @Override public boolean hurt(DamageSource source,float amount) {
-        if(level().isClientSide||isRemoved()||isInvulnerableTo(source)||amount<=0)return false;
-        markHurt();health-=amount;
-        if(health<=0) {
-            releasePassengers();detachAllHorses();
-            if(level().getGameRules().getBoolean(net.minecraft.world.level.GameRules.RULE_DOENTITYDROPS)) {
-                spawnAtLocation(new net.minecraft.world.item.ItemStack(Items.OAK_PLANKS,6+random.nextInt(5)));
-                spawnAtLocation(new net.minecraft.world.item.ItemStack(Items.WHITE_WOOL,seatCapacity()));
-                spawnAtLocation(new net.minecraft.world.item.ItemStack(Items.STICK,2+random.nextInt(3)));
-            }
-            discard();
-        }return true;
+        return false;
+    }
+    /** A direct hammer action, not damage: no attack cooldown, sweeping or projectile side effects. */
+    public boolean dismantle(Player player) {
+        if(level().isClientSide||isRemoved()||dismantled||cargoBusy()||player.level()!=level()||!player.isAlive()
+            ||player.isSpectator()||!player.mayBuild()||!player.getMainHandItem().is(WagonContent.DISMANTLING_HAMMER.get()))return false;
+        Vec3 eye=player.getEyePosition();var hit=pick(eye,eye.add(player.getLookAngle().scale(player.entityInteractionRange())));
+        if(hit.isEmpty()||!level().mayInteract(player,BlockPos.containing(hit.get())))return false;
+        var block=level().clip(new net.minecraft.world.level.ClipContext(eye,hit.get(),net.minecraft.world.level.ClipContext.Block.OUTLINE,
+            net.minecraft.world.level.ClipContext.Fluid.NONE,player));
+        if(block.getType()!=HitResult.Type.MISS&&eye.distanceToSqr(block.getLocation())+.0001<eye.distanceToSqr(hit.get()))return false;
+        dismantled=true;
+        boolean drops=level().getGameRules().getBoolean(net.minecraft.world.level.GameRules.RULE_DOENTITYDROPS);
+        releasePassengers();detachAllHorses();cargo.destroy(drops,true);
+        if(drops)parts().forEach((slot,part)->spawnAtLocation(material(slot).stack(WagonContent.PART_ITEMS.get(part).get())));
+        player.getMainHandItem().hurtAndBreak(1,player,EquipmentSlot.MAINHAND);
+        level().playSound(null,getX(),getY(),getZ(),net.minecraft.sounds.SoundEvents.WOOD_BREAK,net.minecraft.sounds.SoundSource.BLOCKS,1,.8F);
+        discard();return true;
     }
     @Override public void remove(RemovalReason reason) {
         if(level()!=null&&!level().isClientSide) {
@@ -787,7 +793,7 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
         tag.put("Materials",entityData.get(MATERIALS).copy());tag.put("Modules",entityData.get(MODULES).copy()); tag.putInt("WagonFacing",facing().get2DDataValue());
         tag.put("Cargo",cargo.save(level().registryAccess(),false));
         tag.put("Seats",entityData.get(SEATS).copy());tag.putInt("SeatLayoutVersion",2);
-        tag.putFloat("Yaw",getYRot());tag.putFloat("Pitch",pitch);tag.putFloat("Roll",roll);tag.putFloat("Health",health);tag.putBoolean("MotionStarted",motionStarted);
+        tag.putFloat("Yaw",getYRot());tag.putFloat("Pitch",pitch);tag.putFloat("Roll",roll);tag.putBoolean("MotionStarted",motionStarted);
         tag.putFloat("ShaftPitch",shaftPitch);tag.putFloat("Steering",steering);
         for(int i=0;i<2;i++)if(horses[i]!=null) { tag.putUUID("Horse"+i,horses[i]);tag.putInt("Hanging"+i,hangingTicks[i]);if(Double.isFinite(horseContactHeights[i]))tag.putDouble("HorseContact"+i,horseContactHeights[i]); }
         for(int i=0;i<4;i++)tag.putFloat("Wheel"+i,wheels[i]);
@@ -804,7 +810,7 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
         var savedSeats=tag.getCompound("Seats").copy();
         if(tag.getInt("SeatLayoutVersion")<2)for(String key:savedSeats.getAllKeys())if(savedSeats.getInt(key)>=2)savedSeats.putInt(key,savedSeats.getInt(key)+1);
         entityData.set(SEATS,savedSeats);
-        pitch=tag.getFloat("Pitch");roll=tag.getFloat("Roll");health=tag.contains("Health")?tag.getFloat("Health"):20;motionStarted=tag.getBoolean("MotionStarted");
+        pitch=tag.getFloat("Pitch");roll=tag.getFloat("Roll");motionStarted=tag.getBoolean("MotionStarted");
         shaftPitch=tag.getFloat("ShaftPitch");steering=tag.getFloat("Steering");
         if(tag.contains("Yaw"))setYRot(tag.getFloat("Yaw"));
         for(int i=0;i<2;i++) { horses[i]=tag.hasUUID("Horse"+i)?tag.getUUID("Horse"+i):null;hangingTicks[i]=tag.getInt("Hanging"+i);horseContactHeights[i]=tag.contains("HorseContact"+i)?tag.getDouble("HorseContact"+i):Double.NaN; }

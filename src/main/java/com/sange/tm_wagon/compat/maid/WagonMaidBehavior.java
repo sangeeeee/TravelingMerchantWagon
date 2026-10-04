@@ -52,11 +52,13 @@ public final class WagonMaidBehavior extends Behavior<EntityMaid> {
         nextTick=time+10;
         boolean selected=WagonMaidExtension.selected(maid),rest=maid.getScheduleDetail()==Activity.REST;
         StrawMatSleep.checkMobSleep(maid,rest);
-        if(!selected&&maid.getVehicle() instanceof WagonEntity w&&w.passengerSeat(maid)<w.seatCapacity())leaveCompanionSeat(maid);
+        if(maid.getVehicle() instanceof WagonEntity w) {
+            if(w.passengerSeat(maid)>=WagonEntity.CARGO_SEAT_BASE?!WagonMaidExtension.ridingTask(maid):!selected)leaveCompanionSeat(maid);
+        } else if(maid.getVehicle() instanceof com.sange.tm_wagon.entity.CargoSeatEntity&&!WagonMaidExtension.ridingTask(maid))maid.stopRiding();
         if((!selected&&!rest)||!maid.isAlive()||maid.isMaidInSittingPose()||maid.isLeashed()||maid.getBrain().isActive(Activity.PANIC)) { clear(maid);return; }
         if(maid.isSleeping()) { clear(maid);return; }
         if(rest!=resting||stoolTask!=WagonMaidExtension.ridingTask(maid)) { clear(maid);resting=rest;stoolTask=WagonMaidExtension.ridingTask(maid);nextSearch=0; }
-        if(rest&&maid.getVehicle() instanceof WagonEntity) {
+        if(rest&&(maid.getVehicle() instanceof WagonEntity||maid.getVehicle() instanceof com.sange.tm_wagon.entity.CargoSeatEntity)) {
             maid.stopRiding();maid.getBrain().setActiveActivityIfPossible(Activity.REST);
         }
         if(!rest&&maid.getScheduleDetail()!=Activity.WORK) { clear(maid);return; }
@@ -93,7 +95,7 @@ public final class WagonMaidBehavior extends Behavior<EntityMaid> {
         if(maid.getVehicle() instanceof WagonEntity wagon) {
             int seat=wagon.passengerSeat(maid);
             if(seat>=0)maid.stopRiding();
-        }
+        } else if(maid.getVehicle() instanceof com.sange.tm_wagon.entity.CargoSeatEntity)maid.stopRiding();
     }
     public static boolean approachingMat(EntityMaid maid) {
         Target mat=MAT_TARGETS.get(maid);

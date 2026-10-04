@@ -43,7 +43,6 @@ public final class CargoSeats {
         var entry=hold.entry(slot);var level=hold.owner().cargoLevel();
         if(level==null||level.isClientSide||!hold.owner().cargoLive()||hold.owner().cargoBusy()
             ||entry==null||entry.kind!=CargoEntry.Kind.STOOL)return "message.tm_wagon.assembly_busy";
-        if(hold.cover().covered(slot))return CargoHold.ACCESS_BLOCKED;
         if(occupied(slot))return "message.tm_wagon.seat_occupied";
         if(!eligible(rider)||rider.level()!=level||rider.distanceToSqr(hold.position(entry))>64||!available(slot,rider))return "message.tm_wagon.stool_cannot_sit";
         boolean seated;
@@ -58,7 +57,21 @@ public final class CargoSeats {
         }
         if(!seated)return "message.tm_wagon.stool_cannot_sit";
         if(rider instanceof Mob mob)mob.getNavigation().stop();
-        rider.getVehicle().positionRider(rider);return null;
+        rider.getVehicle().positionRider(rider);com.sange.tm_wagon.compat.MaidCompat.afterStoolMount(rider);return null;
+    }
+    /** Vanilla Mob.startRiding drops the existing leash exactly once on success. */
+    public boolean seatLeashed(int slot,Player player) {
+        var mobs=player.level().getEntitiesOfClass(Mob.class,player.getBoundingBox().inflate(10),m->m.getLeashHolder()==player);
+        if(mobs.isEmpty())return false;
+        mobs.sort(java.util.Comparator.comparingDouble(m->m.distanceToSqr(hold.owner().cargoPose().point(hold.centreAt(slot)))));
+        for(var mob:mobs)if(eligible(mob)&&available(slot,mob)) {
+            String error=sit(slot,mob);
+            if(error==null) {
+                if(mob.getLeashHolder()==player)mob.dropLeash(true,true);
+                return true;
+            }
+        }
+        CargoHold.message(player,"message.tm_wagon.stool_cannot_sit");return true;
     }
     /** One bounded query every ten ticks, only if a free stool exists; never capture players automatically. */
     public void tick() {
@@ -71,7 +84,7 @@ public final class CargoSeats {
         }
         if(area==null)return;
         for(var mob:hold.owner().cargoLevel().getEntitiesOfClass(Mob.class,area,CargoSeats::eligible)) {
-            if(mob.isLeashed())continue;
+            if(mob.isLeashed()||!com.sange.tm_wagon.compat.MaidCompat.automaticStool(mob))continue;
             Vec3 local=hold.owner().cargoPose().local(mob.position());
             for(int i=0;i<hold.capacity();i++)if(stool(i)&&!occupied(i)) {
                 Vec3 p=hold.centreAt(i);
@@ -82,7 +95,7 @@ public final class CargoSeats {
             }
         }
     }
-    private boolean stool(int slot) { return !hold.cover().covered(slot)&&hold.entry(slot)!=null&&hold.entry(slot).kind==CargoEntry.Kind.STOOL; }
+    private boolean stool(int slot) { return hold.entry(slot)!=null&&hold.entry(slot).kind==CargoEntry.Kind.STOOL; }
     public void release(CargoEntry entry) {
         if(entry!=null&&entry.kind!=CargoEntry.Kind.STOOL)return;
         if(hold.owner().cargoLevel()==null||hold.owner().cargoLevel().isClientSide)return;

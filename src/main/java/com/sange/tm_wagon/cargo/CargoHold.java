@@ -3,6 +3,7 @@ package com.sange.tm_wagon.cargo;
 import com.sange.tm_wagon.CargoConfig;
 import com.sange.tm_wagon.assembly.WagonGeometry;
 import com.sange.tm_wagon.assembly.WagonPart;
+import com.sange.tm_wagon.assembly.WagonContent;
 import com.sange.tm_wagon.entity.WagonEntity;
 import com.sange.tm_wagon.physics.WagonPose;
 import java.util.ArrayList;
@@ -168,6 +169,8 @@ public final class CargoHold {
     /** Called with the first actual cart-surface hit, so a wall cannot be clicked through. */
     public InteractionResult interact(Player player,InteractionHand hand,Vec3 local) {
         if(!owner.cargoLive())return InteractionResult.PASS;
+        var maidResult=com.sange.tm_wagon.compat.MaidCompat.interact(this,player,hand,local);
+        if(maidResult!=InteractionResult.PASS)return maidResult;
         var cabinetResult=cabinet.interact(player,hand,local);if(cabinetResult!=InteractionResult.PASS)return cabinetResult;
         var canopyResult=canopy.interact(player,hand,local);if(canopyResult!=InteractionResult.PASS)return canopyResult;
         var coverResult=cover.interact(player,hand,local);if(coverResult!=InteractionResult.PASS)return coverResult;
@@ -184,12 +187,14 @@ public final class CargoHold {
         if(owner.cargoLevel().isClientSide)return InteractionResult.SUCCESS;
         if(hand==InteractionHand.MAIN_HAND&&com.sange.tm_wagon.compat.CarryOnCompat.place(this,slot,player))return InteractionResult.CONSUME;
         if(hand==InteractionHand.MAIN_HAND&&com.sange.tm_wagon.compat.CarryOnCompat.pickup(this,entries[slot],player))return InteractionResult.CONSUME;
+        if(entries[slot]!=null&&entries[slot].kind==CargoEntry.Kind.STOOL&&stack.is(net.minecraft.world.item.Items.LEAD)
+            &&seats.seatLeashed(slot,player))return InteractionResult.CONSUME;
         if(player.isSecondaryUseActive()) {
             if(entries[slot]!=null)message(player,take(slot,player));
             return InteractionResult.CONSUME;
         }
         if(entries[slot]!=null) {
-            if(entries[slot].kind==CargoEntry.Kind.STRAW_MAT)message(player,StrawMatSleep.sleep(this,entries[slot],player));
+            if(entries[slot].kind==CargoEntry.Kind.STRAW_MAT)message(player,StrawMatSleep.sleep(this,entries[slot],player,local));
             else if(entries[slot].kind==CargoEntry.Kind.STOOL)message(player,seats.sit(slot,player));
             else if(entries[slot].kind!=CargoEntry.Kind.ORDINARY)CargoWorkBlocks.interact(this,entries[slot],player,hand,local);
             else if(stack.getItem() instanceof BlockItem)message(player,"message.tm_wagon.cargo_occupied");
@@ -317,8 +322,14 @@ public final class CargoHold {
         entity.setDefaultPickUpDelay();owner.cargoLevel().addFreshEntity(entity);
     }
     public void destroy(boolean drops) {
+        destroy(drops,false);
+    }
+    /** Tool dismantling also recovers the intact optional components; inventory ownership is still revoked once. */
+    public void destroy(boolean drops,boolean dismantled) {
+        ItemStack cabinetItem=dismantled&&cabinet.installed()?cabinet.material().stack(WagonContent.CABINET.get()):ItemStack.EMPTY;
         cabinet.destroy(drops);
-        boolean remnants=owner instanceof com.sange.tm_wagon.entity.WagonEntity;
+        if(drops&&!cabinetItem.isEmpty())drop(owner.cargoPose().position(),cabinetItem);
+        boolean remnants=!dismantled&&owner instanceof com.sange.tm_wagon.entity.WagonEntity;
         cover.destroy(drops&&!remnants);canopy.destroy(drops&&!remnants);
         StrawMatSleep.wake(this,null);
         closeMenus();

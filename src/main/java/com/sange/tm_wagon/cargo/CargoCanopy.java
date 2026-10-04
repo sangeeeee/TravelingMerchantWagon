@@ -1,7 +1,6 @@
 package com.sange.tm_wagon.cargo;
 
 import com.google.gson.JsonParser;
-import com.sange.tm_wagon.assembly.AssemblyFrameBlockEntity;
 import com.sange.tm_wagon.assembly.WagonContent;
 import com.sange.tm_wagon.assembly.WagonGeometry;
 import com.sange.tm_wagon.assembly.WagonPart;
@@ -100,7 +99,6 @@ public final class CargoCanopy {
     }
     public String install(ItemStack stack,Player player,Vec3 local) {
         String error=hold.cover().permission(player,local);if(error!=null)return error;
-        if(!(hold.owner() instanceof AssemblyFrameBlockEntity))return "message.tm_wagon.canopy_block_only";
         if(installed||hold.cover().installed())return "message.tm_wagon.roof_conflict";
         if(!(stack.getItem() instanceof WagonCanopyItem)||stack.isEmpty()||!hold.cover().side(local))return "message.tm_wagon.canopy_side";
         installed=true;frontClosed=rearClosed=false;
@@ -112,7 +110,6 @@ public final class CargoCanopy {
     }
     public String remove(Player player,Vec3 local) {
         String error=hold.cover().permission(player,local);if(error!=null)return error;
-        if(!(hold.owner() instanceof AssemblyFrameBlockEntity))return "message.tm_wagon.canopy_block_only";
         if(!installed||!hold.cover().side(local))return "message.tm_wagon.canopy_side";
         installed=false;error=hold.owner().cargoGeometryChanged();if(error!=null) { installed=true;return error; }
         frontClosed=rearClosed=false;

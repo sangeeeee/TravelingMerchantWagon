@@ -39,7 +39,10 @@ public class AssemblyFrameBlock extends BaseEntityBlock {
     }
     @Override protected MapCodec<? extends BaseEntityBlock> codec() { return CODEC; }
     @Override protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) { builder.add(FACING,EXTENDED); }
-    @Override public BlockState getStateForPlacement(BlockPlaceContext context) { return defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite()); }
+    @Override public BlockState getStateForPlacement(BlockPlaceContext context) {
+        return defaultBlockState().setValue(FACING,context.getHorizontalDirection().getOpposite())
+            .setValue(EXTENDED,context.getPlayer()==null||!context.getPlayer().isShiftKeyDown());
+    }
     @Override protected RenderShape getRenderShape(BlockState state) { return RenderShape.ENTITYBLOCK_ANIMATED; }
     @Override protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) { return level.getBlockEntity(pos) instanceof AssemblyFrameBlockEntity frame
             ? WagonGeometry.shape(frame.frameCells().getOrDefault(BlockPos.ZERO,java.util.List.of())) : Shapes.block(); }

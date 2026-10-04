@@ -1,0 +1,4 @@
+Built-in imagegen; transparent background.
+Minecraft inventory dismantling hammer: tiny 16 by 16 pixel art, hard edges, no antialiasing, broad silver iron head, dark oak handle diagonally toward bottom left, restrained gray shading, small dark band below head. Simple vanilla-tool silhouette, about eight colors, one transparent pixel margin, no text or external shadow.
+Generated source: exec-719e5e6b-2775-420c-b017-6ba48089f7fe.png.
+Final asset is alpha-cropped, nearest-neighbor fit into 14x14, centered on a transparent 16x16 canvas.

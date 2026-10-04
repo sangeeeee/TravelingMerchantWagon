@@ -17,5 +17,15 @@ public final class CargoInteractions {
         var result=frame.cargo().interact(event.getEntity(),event.getHand(),frame.cargoPose().local(event.getHitVec().getLocation()));
         if(result!=InteractionResult.PASS) { event.setCancellationResult(result);event.setCanceled(true); }
     }
+    @SubscribeEvent(priority=net.neoforged.bus.api.EventPriority.HIGHEST)
+    public static void specific(PlayerInteractEvent.EntityInteractSpecific event) {
+        var result=com.sange.tm_wagon.compat.MaidCompat.capture(event.getEntity(),event.getTarget(),event.getHand());
+        if(result!=InteractionResult.PASS) { event.setCancellationResult(result);event.setCanceled(true); }
+    }
+    @SubscribeEvent(priority=net.neoforged.bus.api.EventPriority.HIGHEST)
+    public static void entity(PlayerInteractEvent.EntityInteract event) {
+        var result=com.sange.tm_wagon.compat.MaidCompat.capture(event.getEntity(),event.getTarget(),event.getHand());
+        if(result!=InteractionResult.PASS) { event.setCancellationResult(result);event.setCanceled(true); }
+    }
     private CargoInteractions() {}
 }

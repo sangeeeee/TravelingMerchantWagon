@@ -25,6 +25,7 @@ public final class WagonContent {
     public static final DeferredHolder<net.minecraft.sounds.SoundEvent,net.minecraft.sounds.SoundEvent> ROLL=SOUNDS.register("wagon_roll",()->net.minecraft.sounds.SoundEvent.createVariableRangeEvent(net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(TravelingMerchantWagon.MODID,"wagon_roll")));
     public static final DeferredRegister.Blocks BLOCKS = DeferredRegister.createBlocks(TravelingMerchantWagon.MODID);
     public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(TravelingMerchantWagon.MODID);
+    public static final DeferredItem<DismantlingHammerItem> DISMANTLING_HAMMER = ITEMS.register("dismantling_hammer",DismantlingHammerItem::new);
     public static final DeferredItem<com.sange.tm_wagon.cargo.WagonCabinetItem> CABINET = ITEMS.register("wagon_cabinet",()->new com.sange.tm_wagon.cargo.WagonCabinetItem(new Item.Properties().stacksTo(16)));
     public static final DeferredItem<com.sange.tm_wagon.cargo.StrawMatItem> STRAW_MAT = ITEMS.register("wagon_straw_mat",()->new com.sange.tm_wagon.cargo.StrawMatItem(new Item.Properties().stacksTo(16)));
     public static final DeferredItem<com.sange.tm_wagon.cargo.WagonStoolItem> STOOL = ITEMS.register("wagon_stool",()->new com.sange.tm_wagon.cargo.WagonStoolItem(new Item.Properties().stacksTo(16)));
@@ -65,6 +66,7 @@ public final class WagonContent {
         .icon(() -> ICON.get().getDefaultInstance())
         .displayItems((parameters, output) -> {
             output.accept(FRAME_ITEM.get());
+            output.accept(DISMANTLING_HAMMER.get());
             for (WagonPart part : new WagonPart[]{
                 WagonPart.CARGO_BODY,WagonPart.LONG_CARGO_BODY,WagonPart.WIDE_CARGO_BODY,
                 WagonPart.SINGLE_WOODEN_SEAT,WagonPart.DOUBLE_WOODEN_SEAT,WagonPart.TRIPLE_WOODEN_SEAT,

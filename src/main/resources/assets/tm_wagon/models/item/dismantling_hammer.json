@@ -1,0 +1,4 @@
+{
+  "parent": "minecraft:item/handheld",
+  "textures": {"layer0": "tm_wagon:item/dismantling_hammer"}
+}

@@ -27,6 +27,24 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 @GameTestHolder("tm_wagon")
 @PrefixGameTestTemplate(false)
 public class StrawMatGameTests {
+    @GameTest(template="assembly_test",batch="mat_clicks",timeoutTicks=35)
+    public static void all_three_mat_segments_sleep_in_block_and_entity_forms(GameTestHelper h) {
+        h.setNight();var f=frame(h);
+        for(CargoHold hold:new CargoHold[]{f.cargo()})checkMatSegments(h,hold);
+        f.dismantle(false,true);var w=wagon(h);checkMatSegments(h,w.cargo());h.succeed();
+    }
+    private static void checkMatSegments(GameTestHelper h,CargoHold hold) {
+        h.assertTrue(hold.place(8,new ItemStack(WagonContent.STRAW_MAT.get()),player(h,hold))==null,"Mat setup failed");
+        var p=sleeper(h,hold);p.getAbilities().instabuild=true;
+        for(int slot:new int[]{4,6,8}) {
+            Vec3 hit=hold.centreAt(slot).add(0,.125,0);Vec3 eye=hold.owner().cargoPose().point(hit.add(0,2,0));
+            p.setPos(eye.add(0,-p.getEyeHeight(),0));p.setXRot(90);p.setYRot(0);
+            hold.interact(p,net.minecraft.world.InteractionHand.MAIN_HAND,hit);
+            h.assertTrue(p.isSleeping()&&hold.entry(8).sleeper.equals(p.getUUID()),"Cannot sleep via mat segment "+slot);
+            p.stopSleepInBed(true,true);
+        }
+        p.discard();
+    }
     private static WagonEntity wagon(GameTestHelper h) {
         var w=WagonContent.WAGON.get().create(h.getLevel());w.configure(WagonEntity.defaultParts(),Direction.NORTH);
         w.setPos(Vec3.atBottomCenterOf(h.absolutePos(new BlockPos(11,2,17))));h.getLevel().addFreshEntity(w);return w;

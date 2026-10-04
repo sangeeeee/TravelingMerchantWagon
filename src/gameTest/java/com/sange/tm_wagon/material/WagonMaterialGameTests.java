@@ -165,7 +165,7 @@ public class WagonMaterialGameTests {
         });
     }
     @GameTest(template="assembly_test",timeoutTicks=35)
-    public static void block_dismantling_and_entity_destruction_use_different_loot(GameTestHelper h) {
+    public static void block_and_hammer_dismantling_preserve_materials(GameTestHelper h) {
         var f=frame(h);var p=player(h,f);var styles=f.materials();
         var canopy=new WagonMaterial(WoodMaterial.OAK,DyeColor.ORANGE);
         h.assertTrue(f.cargo().canopy().install(canopy.stack(WagonContent.CANOPY.get()),p,new Vec3(-1.15625,1.9,.5))==null,"Canopy failed");
@@ -177,9 +177,11 @@ public class WagonMaterialGameTests {
         var cargo=w.cargo().save(h.getLevel().registryAccess(),false);var roof=new CompoundTag();roof.putBoolean("Installed",true);roof.put("Material",canopy.save());cargo.put("Canopy",roof);w.cargo().load(cargo,h.getLevel().registryAccess());
         var cab=new CompoundTag();cab.putBoolean("Installed",true);cab.putInt("Rows",3);cab.put("Material",new WagonMaterial(WoodMaterial.SPRUCE,DyeColor.WHITE).save());cargo=w.cargo().save(h.getLevel().registryAccess(),false);cargo.put("Cabinet",cab);w.cargo().load(cargo,h.getLevel().registryAccess());
         w.cargo().cabinet().inventory().setItem(0,new ItemStack(Items.EMERALD,11));
-        w.hurt(h.getLevel().damageSources().generic(),100);w.cargo().destroy(true);w.discard();
+        com.sange.tm_wagon.assembly.DismantlingHammerGameTests.strike(h,w);w.cargo().destroy(true,true);w.discard();
         final var loot=dropped(h,w.position());
-        h.assertTrue(loot.stream().allMatch(s->s.is(Items.OAK_PLANKS)||s.is(Items.WHITE_WOOL)||s.is(Items.STICK)||s.is(Items.EMERALD)),"Entity returned components or material-specific debris");
-        h.assertTrue(loot.stream().filter(s->s.is(Items.OAK_PLANKS)).mapToInt(ItemStack::getCount).sum()>=6&&loot.stream().filter(s->s.is(Items.WHITE_WOOL)).mapToInt(ItemStack::getCount).sum()>=1&&loot.stream().filter(s->s.is(Items.STICK)).mapToInt(ItemStack::getCount).sum()>=2&&loot.stream().filter(s->s.is(Items.EMERALD)).mapToInt(ItemStack::getCount).sum()==11,"Entity debris or contents missing/duplicated");h.succeed();
+        for(var e:styles.entrySet())h.assertTrue(loot.stream().anyMatch(s->s.is(item(w.parts().get(e.getKey())))&&WagonMaterial.of(s).equals(e.getValue())),"Hammer lost component material: "+e.getKey());
+        h.assertTrue(loot.stream().filter(s->s.is(WagonContent.CANOPY.get())&&WagonMaterial.of(s).equals(canopy)).mapToInt(ItemStack::getCount).sum()==1,"Hammer lost canopy colour");
+        h.assertTrue(loot.stream().filter(s->s.is(WagonContent.CABINET.get())&&WagonMaterial.of(s).wood()==WoodMaterial.SPRUCE).mapToInt(ItemStack::getCount).sum()==1
+            &&loot.stream().filter(s->s.is(Items.EMERALD)).mapToInt(ItemStack::getCount).sum()==11,"Hammer lost cabinet or duplicated inventory");h.succeed();
     }
 }

@@ -52,8 +52,79 @@ public class WagonMaidGameTests {
     public static void sleeper_does_not_snap_to_block_centres_or_block_tilting(GameTestHelper h) { Scenarios.sleeper_does_not_snap_to_block_centres_or_block_tilting(h); }
     @GameTest(template="assembly_test",batch="maid_work",timeoutTicks=100)
     public static void riding_task_skips_occupied_and_obstructed_stools_and_leaves_on_task_change(GameTestHelper h) { Scenarios.riding_task_stools(h); }
+    @GameTest(template="assembly_test",batch="maid_items",timeoutTicks=45)
+    public static void maid_items_release_on_wagon_and_capture_seated_maid(GameTestHelper h) { Scenarios.itemRoundTrip(h); }
+    @GameTest(template="assembly_test",batch="maid_items_sleep",timeoutTicks=45)
+    public static void camera_respects_sleep_and_soul_capture_releases_mat(GameTestHelper h) { Scenarios.sleepCapture(h); }
+    @GameTest(template="assembly_test",batch="maid_items",timeoutTicks=100)
+    public static void lead_maid_stool_requires_riding_task(GameTestHelper h) { Scenarios.leadMaid(h); }
+    @GameTest(template="assembly_test",batch="maid_items",timeoutTicks=45)
+    public static void carryon_maid_stool_transfer_obeys_task_without_duplication(GameTestHelper h) {
+        if(net.neoforged.fml.ModList.get().isLoaded("carryon"))CarryMaidScenarios.run(h);else h.succeed();
+    }
+    private static final class CarryMaidScenarios {
+        static void run(GameTestHelper h) {
+            var w=Scenarios.wagon(h,WagonPart.DOUBLE_SEAT);var hold=w.cargo();var p=h.makeMockServerPlayerInLevel();p.setPos(w.position().add(-2,0,0));
+            h.assertTrue(hold.place(4,new ItemStack(WagonContent.STOOL.get()),p)==null,"Stool fixture failed");
+            for(boolean riding:new boolean[]{false,true}) {
+                var maid=EntityMaid.TYPE.create(h.getLevel());maid.setTame(true,true);maid.setOwnerUUID(p.getUUID());maid.setHomeModeEnable(false);
+                maid.setTask(riding?TaskManager.findTask(WagonMaidExtension.RIDE_TASK).orElseThrow():TaskManager.getIdleTask());
+                var data=tschipp.carryon.common.carry.CarryOnDataManager.getCarryData(p);data.setEntity(maid);data.setTick(-1);
+                hold.interact(p,net.minecraft.world.InteractionHand.MAIN_HAND,hold.centreAt(4).add(0,.5,0));
+                var live=h.getLevel().getEntity(maid.getUUID());
+                h.assertTrue(live!=null&&!data.isCarrying()&&live.isPassenger()==riding,"Carried maid ownership/task transfer failed");
+                live.stopRiding();live.discard();
+            }
+            h.succeed();
+        }
+    }
     private static final class Scenarios {
 
+    static void itemRoundTrip(GameTestHelper h) {
+        time(h,1000);var w=wagon(h,WagonPart.DOUBLE_SEAT);var hold=w.cargo();var p=h.makeMockServerPlayerInLevel();p.setPos(w.position().add(0,1,0));
+        var maid=EntityMaid.TYPE.create(h.getLevel());maid.setTame(true,true);maid.setOwnerUUID(p.getUUID());maid.setHomeModeEnable(false);
+        maid.setTask(TaskManager.findTask(WagonMaidExtension.RIDE_TASK).orElseThrow());
+        var slab=com.github.tartaricacid.touhoulittlemaid.init.InitItems.SMART_SLAB_HAS_MAID.get().getDefaultInstance();
+        com.github.tartaricacid.touhoulittlemaid.item.AbstractStoreMaidItem.storeMaidData(slab,maid);p.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND,slab);
+        Vec3 at=new Vec3(0,1.5,0);var block=BlockPos.containing(w.pose().point(at.add(0,1,0)));h.getLevel().setBlock(block,Blocks.STONE.defaultBlockState(),3);
+        hold.interact(p,net.minecraft.world.InteractionHand.MAIN_HAND,at);
+        h.assertTrue(p.getMainHandItem()==slab&&h.getLevel().getEntity(maid.getUUID())==null,"Blocked release lost source");h.getLevel().removeBlock(block,false);
+        hold.interact(p,net.minecraft.world.InteractionHand.MAIN_HAND,at);var live=(EntityMaid)h.getLevel().getEntity(maid.getUUID());
+        h.assertTrue(live!=null&&live.position().distanceTo(w.pose().point(at))<.1,"Stored maid did not release at clicked point");
+        h.assertTrue(p.getMainHandItem().is(com.github.tartaricacid.touhoulittlemaid.init.InitItems.SMART_SLAB_EMPTY.get()),"Filled slab not replaced by empty slab");
+        live.setPos(w.position().add(-2,0,0));p.setPos(w.position().add(2,0,0));p.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND,ItemStack.EMPTY);
+        h.assertTrue(hold.place(4,new ItemStack(WagonContent.STOOL.get()),p)==null&&hold.seats.sit(4,live)==null,"Capture stool fixture failed");
+        p.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND,com.github.tartaricacid.touhoulittlemaid.init.InitItems.CAMERA.get().getDefaultInstance());
+        h.assertTrue(WagonMaidItems.capture(p,live,net.minecraft.world.InteractionHand.MAIN_HAND).consumesAction()&&live.isRemoved(),"Camera did not capture seated maid");
+        var photo=p.getInventory().items.stream().filter(it->it.is(com.github.tartaricacid.touhoulittlemaid.init.InitItems.PHOTO.get())).findFirst().orElseThrow();
+        p.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND,photo);hold.interact(p,net.minecraft.world.InteractionHand.MAIN_HAND,new Vec3(0,1.5,1.4));
+        h.assertTrue(photo.isEmpty()&&h.getLevel().getEntity(maid.getUUID()) instanceof EntityMaid,"Photo did not release or consume once");h.succeed();
+    }
+    static void sleepCapture(GameTestHelper h) {
+        time(h,17000);var w=wagon(h,WagonPart.DOUBLE_SEAT);mat(h,w.cargo());var p=h.makeMockServerPlayerInLevel();
+        p.setPos(w.position().add(-1,1,0));var m=maid(h,w.position().add(-2,0,0));m.setOwnerUUID(p.getUUID());
+        h.assertTrue(StrawMatSleep.sleepMob(w.cargo(),8,m),"Sleep fixture failed");
+        p.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND,com.github.tartaricacid.touhoulittlemaid.init.InitItems.CAMERA.get().getDefaultInstance());
+        WagonMaidItems.capture(p,m,net.minecraft.world.InteractionHand.MAIN_HAND);
+        h.assertTrue(m.isSleeping()&&!m.isRemoved()&&p.getMainHandItem().getDamageValue()==0,"Camera changed native sleeping rule");
+        p.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND,com.github.tartaricacid.touhoulittlemaid.init.InitItems.SMART_SLAB_EMPTY.get().getDefaultInstance());
+        Vec3 point=w.pose().point(w.cargo().centreAt(6).add(0,.25,0));p.setPos(point.add(0,2-p.getEyeHeight(),0));p.setXRot(90);
+        w.cargo().interact(p,net.minecraft.world.InteractionHand.MAIN_HAND,w.cargo().centreAt(6).add(0,.125,0));
+        h.assertTrue(m.isRemoved()&&!StrawMatSleep.matSleeper(m)&&w.cargo().entry(8).sleeper==null,"Soul capture did not win over mat interaction or clear sleeping binding");
+        h.assertTrue(p.getMainHandItem().is(com.github.tartaricacid.touhoulittlemaid.init.InitItems.SMART_SLAB_HAS_MAID.get()),"Soul capture did not store maid");h.succeed();
+    }
+    static void leadMaid(GameTestHelper h) {
+        time(h,1000);var w=wagon(h,WagonPart.DOUBLE_SEAT);var p=h.makeMockServerPlayerInLevel();p.setPos(w.position().add(-2,0,0));
+        h.assertTrue(w.cargo().place(4,new ItemStack(WagonContent.STOOL.get()),p)==null,"Stool fixture failed");
+        var m=maid(h,p.position());m.setNoAi(true);m.setOwnerUUID(p.getUUID());m.setTask(TaskManager.getIdleTask());m.setLeashedTo(p,true);
+        p.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND,new ItemStack(net.minecraft.world.item.Items.LEAD));
+        w.cargo().interact(p,net.minecraft.world.InteractionHand.MAIN_HAND,w.cargo().centreAt(4).add(0,.5,0));
+        h.assertTrue(!m.isPassenger()&&!m.isLeashed(),"Non-riding task stayed seated or failed to transfer");
+        m.discard();var passenger=maid(h,p.position());passenger.setNoAi(true);passenger.setOwnerUUID(p.getUUID());
+        passenger.setTask(TaskManager.findTask(WagonMaidExtension.RIDE_TASK).orElseThrow());passenger.setLeashedTo(p,true);
+        w.cargo().interact(p,net.minecraft.world.InteractionHand.MAIN_HAND,w.cargo().centreAt(4).add(0,.5,0));
+        h.assertTrue(passenger.getVehicle()==w&&!passenger.isLeashed(),"Riding-task maid did not stay seated");h.succeed();
+    }
     static void riding_task_stools(GameTestHelper h) {
         time(h,1000);var w=wagon(h,WagonPart.DOUBLE_SEAT);
         var p=h.makeMockPlayer(net.minecraft.world.level.GameType.CREATIVE);p.setPos(w.position().add(0,1,0));

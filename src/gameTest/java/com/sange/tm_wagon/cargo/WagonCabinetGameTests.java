@@ -96,7 +96,7 @@ public class WagonCabinetGameTests {
         inventory.setItem(inventory.getContainerSize()-1,new ItemStack(Items.DIAMOND,23));c.open(p,end(dual,0));var old=p.containerMenu;old.setCarried(new ItemStack(Items.EMERALD,2));
         h.assertTrue(f.toggleFrame(null)==null,"Assembly failed");var w=h.getLevel().getEntitiesOfClass(WagonEntity.class,new AABB(f.getBlockPos()).inflate(7)).getFirst();var wc=w.cargo().cabinet();
         h.assertTrue(!c.installed()&&c.inventory()==null&&wc.inventory()==inventory&&p.containerMenu==p.inventoryMenu&&!old.stillValid(p)&&carried(p,Items.EMERALD)==2,"Assembly copied inventory or retained stale menu/cursor");
-        h.assertTrue(wc.install(new ItemStack(WagonContent.CABINET.get()),p,end(dual,0))!=null,"Entity allowed installation");
+        h.assertTrue(wc.install(new ItemStack(WagonContent.CABINET.get()),p,end(dual,0))!=null,"Occupied cabinet accepted another cabinet");
         h.assertTrue(wc.open(p,end(dual,1))==null,"Entity drawer inaccessible");var entityMenu=p.containerMenu;
         h.runAtTickTime(24,()->h.assertTrue(f.toggleFrame(null)==null,"Restoration failed to start"));
         h.runAtTickTime(49,()->{
@@ -161,7 +161,7 @@ public class WagonCabinetGameTests {
         p.closeContainer();h.succeed();
     }
     @GameTest(template="assembly_test",timeoutTicks=45)
-    public static void block_seat_returns_cabinet_but_entity_destruction_only_spills_contents(GameTestHelper h) {
+    public static void block_seat_and_hammer_return_cabinet_and_contents(GameTestHelper h) {
         var f=frame(h,false);var p=player(h,f.cargo());var c=install(h,f,p,false);c.inventory().setItem(0,new ItemStack(Items.DIAMOND,17));c.open(p,end(false,0));
         f.remove(Set.of(WagonSlot.SEAT),true);c.destroy(true);f.remove(Set.of(WagonSlot.SEAT),true);
         h.assertTrue(!c.installed()&&p.containerMenu==p.inventoryMenu&&dropped(h,f.cargo(),Items.DIAMOND)==17&&dropped(h,f.cargo(),WagonContent.CABINET.get())==1
@@ -169,8 +169,8 @@ public class WagonCabinetGameTests {
         f.dismantle(false,true);
         var w=WagonContent.WAGON.get().create(h.getLevel());w.configure(WagonEntity.defaultParts(),Direction.NORTH);w.setPos(f.cargoPose().position());h.getLevel().addFreshEntity(w);
         var tag=new CompoundTag();tag.putBoolean("Installed",true);tag.putInt("Rows",3);var cargo=w.cargo().save(h.getLevel().registryAccess(),false);cargo.put("Cabinet",tag);w.cargo().load(cargo,h.getLevel().registryAccess());
-        w.cargo().cabinet().inventory().setItem(0,new ItemStack(Items.IRON_INGOT,21));w.hurt(h.getLevel().damageSources().generic(),100);w.cargo().destroy(true);
-        h.assertTrue(w.isRemoved()&&dropped(h,w.cargo(),Items.IRON_INGOT)==21&&dropped(h,w.cargo(),WagonContent.CABINET.get())==1,"Entity destruction duplicated contents or returned another cabinet");h.succeed();
+        w.cargo().cabinet().inventory().setItem(0,new ItemStack(Items.IRON_INGOT,21));com.sange.tm_wagon.assembly.DismantlingHammerGameTests.strike(h,w);w.cargo().destroy(true,true);
+        h.assertTrue(w.isRemoved()&&dropped(h,w.cargo(),Items.IRON_INGOT)==21&&dropped(h,w.cargo(),WagonContent.CABINET.get())==2,"Hammer lost cabinet or duplicated contents");h.succeed();
     }
     @GameTest(template="assembly_test",timeoutTicks=45)
     public static void double_block_seat_returns_one_empty_cabinet_and_all_items(GameTestHelper h) {

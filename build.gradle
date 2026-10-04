@@ -131,6 +131,13 @@ neoForge {
             programArguments.addAll '--width', '1000', '--height', '700'
         }
 
+        hammerSmokeTest {
+            client()
+            gameDirectory = project.file('build/hammer-client')
+            systemProperty 'tm_wagon.hammerSmokeTest', 'true'
+            programArguments.addAll '--width', '1000', '--height', '700'
+        }
+
         server {
             server()
             programArgument '--nogui'
