@@ -3,6 +3,7 @@
   "package": "com.sange.tm_wagon.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "WagonSwingThroughGrassMixin",
     "WagonCollisionMixin",
     "WagonCarryOnPickupMixin",
     "WagonMaidFollowVehicleMixin",

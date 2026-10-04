@@ -272,6 +272,10 @@ dependencies {
     if (providers.gradleProperty('lithiumTestJar').isPresent()) {
         localRuntime files(providers.gradleProperty('lithiumTestJar').get())
     }
+    // Optional pack-exact SwingThroughGrass JAR for server mining regression runs.
+    if (providers.gradleProperty('swingThroughGrassTestJar').isPresent()) {
+        localRuntime files(providers.gradleProperty('swingThroughGrassTestJar').get())
+    }
 
     // Example optional mod dependency with JEI
     // The JEI API is declared for compile time use, while the full JEI artifact is used at runtime
