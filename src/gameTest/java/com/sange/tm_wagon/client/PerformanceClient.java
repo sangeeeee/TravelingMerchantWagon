@@ -31,8 +31,9 @@ public final class PerformanceClient {
         new Case("small1",1,false,false,false,false),new Case("wide_chests32",1,true,true,false,false),
         new Case("wide_chests32_canopy",1,true,true,true,false),new Case("small8",8,false,false,false,false),
         new Case("wide_chests256",8,true,true,false,false),new Case("wide_chests256_canopy",8,true,true,true,false),new Case("block_wide_chests256",8,true,true,false,true),
+        new Case("wide_canopy8",8,true,false,true,false),new Case("block_wide_chests256_canopy",8,true,true,true,true),
         new Case("baseline_repeat",0,false,false,false,false));
-    private static boolean opened,measuring;
+    private static boolean opened,measuring,scenePrepared;
     private static volatile boolean ready;
     private static volatile String failure;
     private static int scenario=-1,age,loading;
@@ -54,11 +55,21 @@ public final class PerformanceClient {
     }
     private static class Probe extends WagonRenderer {
         Probe(EntityRendererProvider.Context context) { super(context); }
+        @Override public void renderCubesOfBone(PoseStack poses,software.bernie.geckolib.cache.object.GeoBone bone,com.mojang.blaze3d.vertex.VertexConsumer buffer,int light,int overlay,int colour) {
+            var slot=MaterialRenderer.slot(bone.getName());
+            RenderCacheChecks.bone(this,poses,bone,slot==null?null:getAnimatable().parts().get(slot));
+            super.renderCubesOfBone(poses,bone,buffer,light,overlay,colour);
+        }
         @Override public void render(WagonEntity w,float yaw,float tick,PoseStack poses,MultiBufferSource buffers,int light) {
             long start=System.nanoTime();super.render(w,yaw,tick,poses,buffers,light);record(start);
         }
     }
     private static class FrameProbe extends AssemblyRenderer {
+        @Override public void renderCubesOfBone(PoseStack poses,software.bernie.geckolib.cache.object.GeoBone bone,com.mojang.blaze3d.vertex.VertexConsumer buffer,int light,int overlay,int colour) {
+            var slot=MaterialRenderer.slot(bone.getName());
+            RenderCacheChecks.bone(this,poses,bone,slot==null?null:getAnimatable().part(slot));
+            super.renderCubesOfBone(poses,bone,buffer,light,overlay,colour);
+        }
         @Override public void render(AssemblyFrameBlockEntity f,float tick,PoseStack poses,MultiBufferSource buffers,int light,int overlay) {
             long start=System.nanoTime();super.render(f,tick,poses,buffers,light,overlay);record(start);
         }
@@ -82,7 +93,7 @@ public final class PerformanceClient {
         }
         if(failure!=null)throw new IllegalStateException(failure);
         if(mc.player==null||mc.level==null||mc.screen!=null) { if(++loading>2000)throw new IllegalStateException("Profile loading timed out");return; }
-        if(scenario<0) { next(mc);return; }
+        if(scenario<0) { RenderCacheChecks.accessories(mc);next(mc);return; }
         if(!ready)return;
         Vec3 d=new Vec3(0,82.5,-5).subtract(mc.player.getEyePosition());
         mc.player.setYRot((float)-Math.toDegrees(Math.atan2(d.x,d.z)));mc.player.setXRot((float)-Math.toDegrees(Math.atan2(d.y,Math.hypot(d.x,d.z))));
@@ -93,7 +104,7 @@ public final class PerformanceClient {
             if(frames.size()<20||c.count>0&&renders.size()<frames.size()*c.count*.8)throw new IllegalStateException("Insufficient visible rendered workload: "+c.name+" frames="+frames.size()+" renders="+renders.size());
             String row=String.format(Locale.ROOT,"%s,%d,%d,%.5f,%.5f,%.5f,%.5f,%.2f,%d,%.5f",c.name,frames.size(),renders.size(),PerformanceGameTests.mean(frames),PerformanceGameTests.percentile(frames,.95),PerformanceGameTests.mean(renders),PerformanceGameTests.percentile(renders,.95),PerformanceGameTests.mean(allocations),shadowRenders.size(),PerformanceGameTests.mean(shadowRenders));
             rows.add(row);LogUtils.getLogger().info("PERFORMANCE_CLIENT_RESULT {}",row);
-            if(c.block)net.minecraft.client.Screenshot.grab(mc.gameDirectory,mc.getMainRenderTarget(),message->{});
+            net.minecraft.client.Screenshot.grab(mc.gameDirectory,"profile-"+c.name+".png",mc.getMainRenderTarget(),message->{});
             next(mc);
         }
     }
@@ -104,7 +115,12 @@ public final class PerformanceClient {
         if(scenario==CASES.size()) {
             try { Files.write(Path.of(mc.gameDirectory.toString(),"performance-client.csv"),rows); }
             catch(java.io.IOException e) { throw new IllegalStateException(e); }
-            LogUtils.getLogger().info("PERFORMANCE_CLIENT_COMPLETE");mc.stop();return;
+            RenderCacheChecks.summary();
+            LogUtils.getLogger().info("PERFORMANCE_CLIENT_COMPLETE");
+            mc.reloadResourcePacks().thenRun(()->mc.execute(()->{
+                RenderCacheChecks.accessories(mc);
+                LogUtils.getLogger().info("RENDER_CACHE_RESOURCE_RELOAD_PASSED");mc.stop();
+            }));return;
         }
         var c=CASES.get(scenario);
         mc.getSingleplayerServer().execute(()->{
@@ -112,7 +128,12 @@ public final class PerformanceClient {
                 var p=mc.getSingleplayerServer().getPlayerList().getPlayers().getFirst();var level=p.serverLevel();p.stopRiding();if(p.isSleeping())p.stopSleepInBed(true,true);
                 for(var f:placed)f.dismantle(false,true);placed.clear();
                 for(var e:level.getEntities(p,new AABB(-60,70,-60,60,110,60)))e.discard();
-                if(scenario==0) {
+                if(!scenePrepared) {
+                    scenePrepared=true;
+                    // A previous client run can leave block-form assemblies in the saved fixture.
+                    // Remove their complete multiblocks before rebuilding the disposable arena.
+                    for(var block:BlockPos.betweenClosed(-40,75,-40,40,100,40))
+                        if(level.getBlockEntity(block) instanceof AssemblyFrameBlockEntity frame)frame.dismantle(false,true);
                     level.getGameRules().getRule(GameRules.RULE_DOMOBSPAWNING).set(false,level.getServer());
                     level.getGameRules().getRule(GameRules.RULE_DOENTITYDROPS).set(false,level.getServer());
                     level.getGameRules().getRule(GameRules.RULE_DOBLOCKDROPS).set(false,level.getServer());

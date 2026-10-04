@@ -13,37 +13,51 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ModelEvent;
 
-/** Five baked meshes reused for both lengths and all four independent curtain states. */
+/** Cached shell per body size, with independently selected front/rear curtain meshes. */
 @EventBusSubscriber(modid="tm_wagon",value=Dist.CLIENT)
 public final class CanopyRenderer {
     private static final ModelResourceLocation SHELL=model("shell"),RIB=model("rib"),END=model("end"),CLOSED=model("curtain_closed"),OPEN=model("curtain_open");
+    private record Meshes(CachedMesh shell,CachedMesh frontOpen,CachedMesh frontClosed,CachedMesh backOpen,CachedMesh backClosed) {}
+    private static final java.util.Map<WagonPart,Meshes> CACHE=new java.util.EnumMap<>(WagonPart.class);
+    static void clear() { CACHE.clear(); }
     private static ModelResourceLocation model(String name) { return ModelResourceLocation.standalone(ResourceLocation.fromNamespaceAndPath("tm_wagon","block/canopy_"+name)); }
     @SubscribeEvent public static void models(ModelEvent.RegisterAdditional event) { for(var id:new ModelResourceLocation[]{SHELL,RIB,END,CLOSED,OPEN})event.register(id); }
     public static void render(CargoCanopy canopy,WagonPart body,PoseStack poses,MultiBufferSource buffers,int light,int overlay) {
         if(!canopy.installed())return;
         int colour=FabricColours.tint(canopy.material().colour());
-        int rows=body.rows();
+        var mesh=CACHE.computeIfAbsent(body,b->bake(canopy,b));
+        var buffer=buffers.getBuffer(RenderType.cutout());
+        mesh.shell.render(poses.last(),buffer,light,overlay,-1,colour);
+        (canopy.closed(true)?mesh.frontClosed:mesh.frontOpen).render(poses.last(),buffer,light,overlay,-1,colour);
+        (canopy.closed(false)?mesh.backClosed:mesh.backOpen).render(poses.last(),buffer,light,overlay,-1,colour);
+    }
+    private static Meshes bake(CargoCanopy canopy,WagonPart body) {
+        var builder=new CachedMesh.Builder();int rows=body.rows();
         for(int row=0;row<rows;row++) {
             double z=boundary(row,rows,canopy,body),end=boundary(row+1,rows,canopy,body);
             double referenceDepth=row==0?.73375:row==rows-1?.713125:.7;
-            draw(body.widthScale(),colour,SHELL,poses,buffers,light,overlay,z,end-z,referenceDepth);
+            append(builder,body.widthScale(),SHELL,z,end-z,referenceDepth);
         }
         for(int row=0;row<=rows;row++) {
             double z=boundary(row,rows,canopy,body)+(row==0?.065:row==rows?-.065:0);
-            draw(body.widthScale(),colour,RIB,poses,buffers,light,overlay,z,1,1);
+            append(builder,body.widthScale(),RIB,z,1,1);
         }
-        draw(body.widthScale(),colour,END,poses,buffers,light,overlay,com.sange.tm_wagon.cargo.CargoCover.front(body)+CargoCanopy.THICK/4,1,1);
-        draw(body.widthScale(),colour,END,poses,buffers,light,overlay,canopy.back(body)-CargoCanopy.THICK-CargoCanopy.THICK/4,1,1);
-        for(boolean front:new boolean[]{true,false})draw(body.widthScale(),colour,canopy.closed(front)?CLOSED:OPEN,poses,buffers,light,overlay,canopy.curtainZ(body,front),1,1);
+        append(builder,body.widthScale(),END,com.sange.tm_wagon.cargo.CargoCover.front(body)+CargoCanopy.THICK/4,1,1);
+        append(builder,body.widthScale(),END,canopy.back(body)-CargoCanopy.THICK-CargoCanopy.THICK/4,1,1);
+        return new Meshes(builder.build(),curtain(canopy,body,true,false),curtain(canopy,body,true,true),curtain(canopy,body,false,false),curtain(canopy,body,false,true));
+    }
+    private static CachedMesh curtain(CargoCanopy canopy,WagonPart body,boolean front,boolean closed) {
+        var builder=new CachedMesh.Builder();
+        append(builder,body.widthScale(),closed?CLOSED:OPEN,canopy.curtainZ(body,front),1,1);
+        return builder.build();
     }
     private static double boundary(int row,int rows,CargoCanopy canopy,WagonPart body) {
         return row==0?com.sange.tm_wagon.cargo.CargoCover.front(body):row==rows?canopy.back(body):body.firstRowZ()-.35+row*.7;
     }
-    private static void draw(double width,int colour,ModelResourceLocation id,PoseStack poses,MultiBufferSource buffers,int light,int overlay,double z,double depth,double referenceDepth) {
-        var mc=Minecraft.getInstance();poses.pushPose();poses.translate(-width,CargoCanopy.BASE,z);poses.scale((float)(2*width),2,(float)depth);
+    private static void append(CachedMesh.Builder builder,double width,ModelResourceLocation id,double z,double depth,double referenceDepth) {
+        var mc=Minecraft.getInstance();var local=new PoseStack();local.translate(-width,CargoCanopy.BASE,z);local.scale((float)(2*width),2,(float)depth);
         var model=TextureTiling.model(mc.getModelManager().getModel(id),new net.minecraft.world.phys.Vec3(2*width,2,depth),new net.minecraft.world.phys.Vec3(2,2,referenceDepth));
-        mc.getBlockRenderer().getModelRenderer().renderModel(poses.last(),buffers.getBuffer(RenderType.cutout()),null,model,((colour>>16)&255)/255F,((colour>>8)&255)/255F,(colour&255)/255F,light,overlay);
-        poses.popPose();
+        builder.model(model,local.last());
     }
     private CanopyRenderer() {}
 }

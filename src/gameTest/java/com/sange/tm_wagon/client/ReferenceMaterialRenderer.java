@@ -12,14 +12,15 @@ import java.util.EnumMap;
 import java.util.HashMap;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.FastColor;
 import software.bernie.geckolib.cache.object.*;
 import software.bernie.geckolib.renderer.GeoRenderer;
 
-/** One atlas and immutable local meshes per material/bone; animated bone poses remain dynamic. */
-public final class MaterialRenderer {
+/** One packed texture, immutable per-material UV caches, no whole-wagon combinations. */
+final class ReferenceMaterialRenderer {
     public static final ResourceLocation ATLAS=ResourceLocation.fromNamespaceAndPath("tm_wagon","textures/entity/component_atlas.png");
     private record Baked(GeoCube cube,boolean wool) {}
-    @SuppressWarnings("unchecked") private static final Map<GeoBone,CachedMesh>[] CACHE=new Map[131];
+    @SuppressWarnings("unchecked") private static final Map<GeoCube,Baked>[] CACHE=new Map[131];
     private static Map<WagonPart,Map<String,List<Vec3>>> references=Map.of();
     public static void reload(net.minecraft.server.packs.resources.ResourceManager manager) {
         java.util.Arrays.fill(CACHE,null);
@@ -59,19 +60,14 @@ public final class MaterialRenderer {
         };return kind*10+material.wood().ordinal();
     }
     public static void cubes(GeoRenderer<?> renderer,PoseStack poses,GeoBone bone,VertexConsumer buffer,int light,int overlay,int colour,WagonPart part,WagonMaterial material) {
-        if(bone.isHidden()||bone.getCubes().isEmpty())return;
+        if(bone.isHidden())return;
         int tile=index(part,material);var cache=CACHE[tile];if(cache==null)CACHE[tile]=cache=new IdentityHashMap<>();
-        var mesh=cache.get(bone);
-        if(mesh==null) {
-            var builder=new CachedMesh.Builder();
-            List<Vec3> sizes=part==null?List.of():references.getOrDefault(part,Map.of()).getOrDefault(bone.getName(),List.of());int index=0;
-            for(GeoCube cube:bone.getCubes()) {
-                var baked=bake(cube,tile,part!=null&&WagonMaterial.cushioned(part),index<sizes.size()?sizes.get(index):cube.size());
-                builder.cube(baked.cube,baked.wool);index++;
-            }
-            mesh=builder.build();cache.put(bone,mesh);
+        List<Vec3> sizes=part==null?List.of():references.getOrDefault(part,Map.of()).getOrDefault(bone.getName(),List.of());int index=0;
+        for(GeoCube cube:bone.getCubes()) {
+            var baked=cache.get(cube);if(baked==null) { baked=bake(cube,tile,part!=null&&WagonMaterial.cushioned(part),index<sizes.size()?sizes.get(index):cube.size());cache.put(cube,baked); }
+            poses.pushPose();renderer.renderCube(poses,baked.cube,buffer,light,overlay,baked.wool?FastColor.ARGB32.multiply(colour,FabricColours.tint(material.colour())):colour);poses.popPose();
+            index++;
         }
-        mesh.render(poses.last(),buffer,light,overlay,colour,FabricColours.tint(material.colour()));
     }
     private static Baked bake(GeoCube cube,int tile,boolean dyeable,Vec3 reference) {
         var quads=new ArrayList<GeoQuad>();boolean wool=dyeable;
@@ -88,5 +84,5 @@ public final class MaterialRenderer {
         }
         return new Baked(new GeoCube(quads.toArray(GeoQuad[]::new),cube.pivot(),cube.rotation(),cube.size(),cube.inflate(),cube.mirror()),wool);
     }
-    private MaterialRenderer() {}
+    private ReferenceMaterialRenderer() {}
 }
