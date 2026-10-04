@@ -40,7 +40,7 @@ public final class WagonComponentRecipe extends CustomRecipe {
         }
         this.component=component;this.pattern=List.copyOf(pattern);this.count=count;
     }
-    private Item output() {
+    Item output() {
         for(var part:WagonPart.values())if(part.id.equals(component))return WagonContent.PART_ITEMS.get(part).get();
         return switch(component) {
             case "wagon_assembly_frame"->WagonContent.FRAME_ITEM.get();case "wagon_straw_mat"->WagonContent.STRAW_MAT.get();
@@ -50,6 +50,12 @@ public final class WagonComponentRecipe extends CustomRecipe {
         };
     }
     private static Item part(WagonPart p) { return WagonContent.PART_ITEMS.get(p).get(); }
+    List<String> pattern() { return pattern; }
+    String component() { return component; }
+    int count() { return count; }
+    boolean samePlanks() {
+        return component.equals("cargo_body")||component.equals("single_wooden_seat")||component.equals("wagon_stool")||component.equals("wagon_cabinet");
+    }
     private boolean accepts(char token,ItemStack stack) {
         if(token==' ')return stack.isEmpty();if(stack.isEmpty())return false;
         return switch(token) {
@@ -70,7 +76,7 @@ public final class WagonComponentRecipe extends CustomRecipe {
     }
     private WagonMaterial style(CraftingInput input,int ox,int oy,boolean mirror) {
         WoodMaterial chosen=null;DyeColor colour=null;
-        boolean samePlanks=component.equals("cargo_body")||component.equals("single_wooden_seat")||component.equals("wagon_stool")||component.equals("wagon_cabinet");
+        boolean samePlanks=samePlanks();
         int width=pattern.getFirst().length();
         for(int y=0;y<input.height();y++)for(int x=0;x<input.width();x++) {
             int px=x-ox,py=y-oy;

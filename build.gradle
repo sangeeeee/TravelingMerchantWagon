@@ -37,6 +37,11 @@ sourceSets {
 }
 
 repositories {
+    maven {
+        name = 'JEI'
+        url = 'https://maven.blamejared.com'
+        content { includeGroup('mezz.jei') }
+    }
     exclusiveContent {
         forRepository {
             maven {
@@ -173,6 +178,12 @@ neoForge {
             systemProperty 'tm_wagon.hammerSmokeTest', 'true'
             programArguments.addAll '--width', '1000', '--height', '700'
         }
+        jeiSmokeTest {
+            client()
+            gameDirectory = project.file('build/jei-client')
+            systemProperty 'tm_wagon.jeiSmokeTest', 'true'
+            programArguments.addAll '--width', '1000', '--height', '700'
+        }
 
         server {
             server()
@@ -277,6 +288,11 @@ def extractSableCompanionApi = tasks.register('extractSableCompanionApi', Sync) 
 }
 
 dependencies {
+    // Optional recipe viewer API; never bundle JEI or require it on a server.
+    compileOnly 'mezz.jei:jei-1.21.1-common-api:19.39.0.372'
+    if (providers.gradleProperty('jeiTestJar').isPresent()) {
+        localRuntime files(providers.gradleProperty('jeiTestJar').get())
+    }
     implementation "software.bernie.geckolib:geckolib-neoforge-${minecraft_version}:${geckolib_version}"
 
     // Compile against the minimum supported NeoForge version; do not bundle Carry On.
@@ -302,13 +318,6 @@ dependencies {
     if (providers.gradleProperty('swingThroughGrassTestJar').isPresent()) {
         localRuntime files(providers.gradleProperty('swingThroughGrassTestJar').get())
     }
-
-    // Example optional mod dependency with JEI
-    // The JEI API is declared for compile time use, while the full JEI artifact is used at runtime
-    // compileOnly "mezz.jei:jei-${mc_version}-common-api:${jei_version}"
-    // compileOnly "mezz.jei:jei-${mc_version}-neoforge-api:${jei_version}"
-    // We add the full version to localRuntime, not runtimeOnly, so that we do not publish a dependency on it
-    // localRuntime "mezz.jei:jei-${mc_version}-neoforge:${jei_version}"
 
     // Example mod dependency using a mod jar from ./libs with a flat dir repository
     // This maps to ./libs/coolmod-${mc_version}-${coolmod_version}.jar
