@@ -107,7 +107,7 @@ The oak assembly frame block model is in the [wagon assembly frame modeling subp
 
 ### 货物黑白名单与音效
 
-服务器或单人世界启动后自动生成 `config/tm_wagon-server.toml`，开发运行时位于 `run/config/`。可在世界的 `serverconfig/` 中提供同名文件覆盖全局设置。配置由服务端决定并同步至客户端，修改文件后支持自动重载。[默认配置示例](config-examples/tm_wagon-server.toml) 的所有注释均为英文。
+游戏启动、进入主菜单前即自动生成 `config/tm_wagon-server.toml`（专用服务器也在启动时生成），开发运行时位于 `run/config/`。可在世界的 `serverconfig/` 中提供同名文件覆盖全局设置。配置由服务端决定并同步至客户端，修改文件后支持自动重载。[默认配置示例](config-examples/tm_wagon-server.toml) 的所有注释均为英文。
 
 `[cargo]` 下的 `listMode` 默认是 `"BLACKLIST"`，此时只有 `blacklist` 生效；改为 `"WHITELIST"` 后只有 `whitelist` 生效。默认 `blacklist = ["tm_wagon:*"]`，禁止所有本模组方块作为货物，包括装配架、车厢、轮子、座位、辕及未来新增的方块。列表支持方块 ID（`"minecraft:stone"`）、命名空间通配符（`"tm_wagon:*"`）和方块标签（`"#minecraft:logs"`）。空黑名单不额外限制，空白名单禁止所有新货物；床、门等多格结构和 `tm_wagon:disallowed_cargo` 物品标签始终禁止，不会被白名单放行。
 
@@ -329,7 +329,7 @@ Touhou Little Maid 仍为仅编译依赖，运行时为可选兼容，版本范�
 
 ### 服务端驾驶配置
 
-自动生成 `config/tm_wagon-driving-server.toml`（开发运行位于 `run/config/`），可用世界 `serverconfig/` 中的同名文件覆盖。配置由服务端决定并同步至客户端，支持文件自动重载；重载后影响下一次驾驶计算。完整英文注释、单位与取值范围见 [默认驾驶配置](config-examples/tm_wagon-driving-server.toml)。
+游戏启动、进入主菜单前即自动生成 `config/tm_wagon-server.toml`（专用服务器也在启动时生成；开发运行位于 `run/config/`），可用世界 `serverconfig/` 中的同名文件覆盖。配置由服务端决定并同步至客户端，支持文件自动重载；重载后影响下一次驾驶计算。完整英文注释、单位与取值范围见 [默认驾驶配置](config-examples/tm_wagon-server.toml)。
 
 - `[speed.small]`、`[speed.long]`、`[speed.wide]`：分别设置三种尺寸的前进与倒车最高速度，单位格/秒。默认前进为 5.616／4.68／3.744，倒车为 1.404／1.17／0.936。
 - `[boost]`：空载 Ctrl 倍率、每占用一槽扣减的绝对速度、最低倍率。默认 1.8 倍、每槽 0.234 格/秒、最低 1 倍；不降低普通前进／倒车最高速度。
@@ -337,3 +337,7 @@ Touhou Little Maid 仍为仅编译依赖，运行时为可选兼容，版本范�
 - `[acceleration.lightLoad]`、`[acceleration.mediumLoad]`、`[acceleration.fullLoad]`：可分别调整占用率门槛及加速度倍率。默认达到 30%／60%／100% 时，参考加速度分别乘 1.1／0.9／0.6；低于 30% 时乘 1.3。这些倍率均直接乘参考值，彼此不叠加。刹车及滑行减速度不随载货减少。
 
 占用率使用各车厢实际容量：普通 10 槽、加长 12 槽、加宽 32 槽；草席占三槽。默认三档门槛分别在普通 3／6／10 槽、加长 4／8／12 槽、加宽 10／20／32 槽触发。为避免矛盾设置，后续门槛不会低于前一档、载货倍率不会高于前一档、最低 Ctrl 倍率不会超过空载 Ctrl 倍率；生效时进行钳制。配置只在加载／重载时转换单位并生成快照，行驶过程中不读取 TOML。
+
+配置文件提前生成仅影响文件创建时机，不会将服务端配置改为客户端配置。已有配置值优先保留，缺少的配置项在启动时补齐；首次创建时优先使用加载器配置的 `defaultconfigs/` 模板，否则从配置定义生成带英文注释的默认值。进入世界或连接服务器后仍由 NeoForge 加载／同步服务端配置。
+
+货物规则与驾驶参数共用唯一的 `tm_wagon-server.toml`，分别位于 `[cargo]`、`[speed]`、`[boost]` 和 `[acceleration]`。启动时将全局旧驾驶配置中尚未设置的驾驶选项迁入统一文件，保留统一文件中的已有值，并将旧文件改名为 `.bak` 备份；不再注册或生成独立驾驶配置。

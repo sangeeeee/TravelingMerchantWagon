@@ -15,14 +15,12 @@ import net.neoforged.neoforge.common.ModConfigSpec;
 public final class CargoConfig {
     public enum ListMode { BLACKLIST, WHITELIST }
 
-    public static final ModConfigSpec SPEC;
-    public static final ModConfigSpec.EnumValue<ListMode> LIST_MODE;
-    public static final ModConfigSpec.ConfigValue<List<? extends String>> BLACKLIST, WHITELIST;
+    public static ModConfigSpec.EnumValue<ListMode> LIST_MODE;
+    public static ModConfigSpec.ConfigValue<List<? extends String>> BLACKLIST, WHITELIST;
     private static final List<String> DEFAULT_BLACKLIST=List.of("tm_wagon:*");
     private static volatile Policy policy=Policy.from(ListMode.BLACKLIST,DEFAULT_BLACKLIST,List.of());
 
-    static {
-        var builder=new ModConfigSpec.Builder();
+    static void define(ModConfigSpec.Builder builder) {
         builder.comment("Cargo placement rules. Existing cargo can always be removed or transferred.").push("cargo");
         LIST_MODE=builder.comment("BLACKLIST rejects matching blocks; WHITELIST only accepts matching blocks.",
             "Only the selected list is used. Multi-block structures and the disallowed cargo item tag remain forbidden.")
@@ -34,18 +32,18 @@ public final class CargoConfig {
         WHITELIST=builder.comment("Blocks accepted in WHITELIST mode. An empty list rejects all new cargo.",
             "Uses the same block ID, namespace wildcard, and block tag syntax as the blacklist.")
             .defineListAllowEmpty("whitelist",List.<String>of(),()->"minecraft:stone",CargoConfig::validEntry);
-        builder.pop();SPEC=builder.build();
+        builder.pop();
     }
 
     public static boolean allows(Block block) { return policy.allows(block); }
 
     public static void refresh(ModConfigEvent event) {
-        if(event.getConfig().getSpec()!=SPEC)return;
+        if(event.getConfig().getSpec()!=ServerConfig.SPEC)return;
         policy=Policy.from(LIST_MODE.get(),BLACKLIST.get(),WHITELIST.get());
     }
 
     public static void unload(ModConfigEvent.Unloading event) {
-        if(event.getConfig().getSpec()==SPEC)policy=Policy.from(ListMode.BLACKLIST,DEFAULT_BLACKLIST,List.of());
+        if(event.getConfig().getSpec()==ServerConfig.SPEC)policy=Policy.from(ListMode.BLACKLIST,DEFAULT_BLACKLIST,List.of());
     }
 
     public static boolean validEntry(Object value) {

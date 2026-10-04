@@ -28,6 +28,12 @@ public final class DrivingClientSmoke {
         if(!Boolean.getBoolean("tm_wagon.drivingSmokeTest"))return;
         var mc=Minecraft.getInstance();mc.options.pauseOnLostFocus=false;mc.mouseHandler.releaseMouse();
         if(!opened&&mc.screen instanceof TitleScreen&&mc.getOverlay()==null) {
+            for(String name:new String[]{"tm_wagon-server.toml"})
+                require(java.nio.file.Files.isRegularFile(net.neoforged.fml.loading.FMLPaths.CONFIGDIR.get().resolve(name)),
+                    "Configuration was not generated before entering a world: "+name);
+            require(!java.nio.file.Files.exists(net.neoforged.fml.loading.FMLPaths.CONFIGDIR.get().resolve("tm_wagon-driving-server.toml")),
+                "Legacy driving config was not migrated before the title screen");
+            LogUtils.getLogger().info("STARTUP_CONFIG_PASS: unified server configuration exists at the title screen");
             opened=true;mc.createWorldOpenFlows().openWorld("repro",()->{throw new IllegalStateException("Cannot open driving fixture");});return;
         }
         if(failure!=null)throw new IllegalStateException(failure);

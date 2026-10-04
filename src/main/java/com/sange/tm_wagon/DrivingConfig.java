@@ -32,13 +32,11 @@ public final class DrivingConfig {
         1.8,.0117,1,.00975,.004875,.234/28,.234/7,1.3,new Band(30,1.1),new Band(60,.9),new Band(100,.6));
     private static volatile Settings settings=DEFAULTS;
     public static Settings get() { return settings; }
-    public static final ModConfigSpec SPEC;
     private static final ModConfigSpec.DoubleValue[] FORWARD=new ModConfigSpec.DoubleValue[3],REVERSE=new ModConfigSpec.DoubleValue[3];
-    private static final ModConfigSpec.DoubleValue BOOST,PENALTY,FLOOR,ACCEL,REVERSE_ACCEL,COAST,BRAKE,UNLOADED;
+    private static ModConfigSpec.DoubleValue BOOST,PENALTY,FLOOR,ACCEL,REVERSE_ACCEL,COAST,BRAKE,UNLOADED;
     private static final ModConfigSpec.IntValue[] THRESHOLDS=new ModConfigSpec.IntValue[3];
     private static final ModConfigSpec.DoubleValue[] MULTIPLIERS=new ModConfigSpec.DoubleValue[3];
-    static {
-        var b=new ModConfigSpec.Builder();
+    static void define(ModConfigSpec.Builder b) {
         b.comment("Server-authoritative speed limits in blocks per second (20 game ticks per second).",
             "Ordinary forward and reverse limits are not reduced by cargo. Cargo reduces only the sprint bonus.").push("speed");
         String[] sizes={"small","long","wide"};Speed[] defaults={DEFAULTS.small(),DEFAULTS.longBody(),DEFAULTS.wide()};
@@ -70,18 +68,18 @@ public final class DrivingConfig {
                 "Multipliers are effectively clamped to the previous tier so loading cannot increase acceleration.").push(tiers[i]);
             THRESHOLDS[i]=b.comment("Occupied percentage required for this tier, inclusive.").defineInRange("thresholdPercent",bands[i].percent(),1,100);
             MULTIPLIERS[i]=b.comment("Multiplier of forwardReference and reverseReference, not of unloaded acceleration.").defineInRange("multiplier",bands[i].multiplier(),.05,3);b.pop();
-        }b.pop();SPEC=b.build();
+        }b.pop();
     }
     private static Speed speed(int index) { return new Speed(FORWARD[index].get()/20,REVERSE[index].get()/20); }
     private static Band band(int index) { return new Band(THRESHOLDS[index].get(),MULTIPLIERS[index].get()); }
     public static void refresh(ModConfigEvent event) {
-        if(event.getConfig().getSpec()!=SPEC)return;
+        if(event.getConfig().getSpec()!=ServerConfig.SPEC)return;
         refresh();
     }
     static void refresh() {
         settings=new Settings(speed(0),speed(1),speed(2),BOOST.get(),PENALTY.get()/20,FLOOR.get(),
             ACCEL.get()/400,REVERSE_ACCEL.get()/400,COAST.get()/400,BRAKE.get()/400,UNLOADED.get(),band(0),band(1),band(2));
     }
-    public static void unload(ModConfigEvent.Unloading event) { if(event.getConfig().getSpec()==SPEC)settings=DEFAULTS; }
+    public static void unload(ModConfigEvent.Unloading event) { if(event.getConfig().getSpec()==ServerConfig.SPEC)settings=DEFAULTS; }
     private DrivingConfig() {}
 }

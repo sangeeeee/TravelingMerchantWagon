@@ -10,12 +10,40 @@ import net.neoforged.neoforge.gametest.*;
 @GameTestHolder("tm_wagon")
 @PrefixGameTestTemplate(false)
 public class DrivingConfigGameTests {
+    @GameTest(template="assembly_test")
+    public static void unified_startup_config_preserves_settings_and_migrates_legacy(GameTestHelper h) throws java.io.IOException {
+        var root=java.nio.file.Files.createTempDirectory("tm-wagon-config-test-");
+        var directory=root.resolve("config");var templates=root.resolve("defaultconfigs");
+        StartupConfigFiles.ensure(directory,templates);
+        var target=directory.resolve(ServerConfig.FILE_NAME);
+        var parser=new com.electronwill.nightconfig.toml.TomlParser();
+        var fresh=parser.parse(java.nio.file.Files.readString(target));
+        h.assertTrue(ServerConfig.SPEC.isCorrect(fresh)&&fresh.contains("cargo.blacklist")&&fresh.contains("speed.small.forward"),"Fresh file does not contain both sections");
+        try(var files=java.nio.file.Files.list(directory)) { h.assertTrue(files.count()==1,"Startup generated multiple files"); }
+        java.nio.file.Files.writeString(target,"[cargo]\nlistMode = \"WHITELIST\"\nwhitelist = [\"minecraft:stone\"]\n[speed.small]\nforward = 7.0\n");
+        var legacy=directory.resolve("tm_wagon-driving-server.toml");
+        java.nio.file.Files.writeString(legacy,"[speed.small]\nforward = 6.0\nreverse = 2.0\n[acceleration]\nunloadedMultiplier = 1.6\n");
+        StartupConfigFiles.ensure(directory,templates);
+        var merged=parser.parse(java.nio.file.Files.readString(target));
+        h.assertTrue("WHITELIST".equals(merged.get("cargo.listMode")),"Migration overwrote cargo rules");
+        close(h,merged.<Number>get("speed.small.forward").doubleValue(),7,"Migration overwrote unified value");
+        close(h,merged.<Number>get("speed.small.reverse").doubleValue(),2,"Legacy speed was lost");
+        close(h,merged.<Number>get("acceleration.unloadedMultiplier").doubleValue(),1.6,"Legacy acceleration was lost");
+        h.assertTrue(!java.nio.file.Files.exists(legacy),"Legacy file remained active");
+        String before=java.nio.file.Files.readString(target);StartupConfigFiles.ensure(directory,templates);
+        h.assertTrue(before.equals(java.nio.file.Files.readString(target)),"Repeated startup changed user settings");
+        java.nio.file.Files.createDirectories(templates);
+        java.nio.file.Files.writeString(templates.resolve(ServerConfig.FILE_NAME),"[speed.long]\nforward = 6.5\n");
+        var templated=root.resolve("templated");StartupConfigFiles.ensure(templated,templates);
+        var copied=parser.parse(java.nio.file.Files.readString(templated.resolve(ServerConfig.FILE_NAME)));
+        close(h,copied.<Number>get("speed.long.forward").doubleValue(),6.5,"Default template ignored");h.succeed();
+    }
     private static void close(GameTestHelper h,double actual,double expected,String message) {
         h.assertTrue(Math.abs(actual-expected)<1e-9,message+": "+actual+" != "+expected);
     }
     @GameTest(template="assembly_test")
     public static void cargo_acceleration_boundaries_use_each_bodys_capacity(GameTestHelper h) {
-        h.assertTrue(DrivingConfig.SPEC.isLoaded(),"Server driving config was not loaded");
+        h.assertTrue(ServerConfig.SPEC.isLoaded(),"Server driving config was not loaded");
         var bodies=new WagonPart[]{WagonPart.CARGO_BODY,WagonPart.LONG_CARGO_BODY,WagonPart.WIDE_CARGO_BODY};
         int[][] boundaries={{3,6,10},{4,8,12},{10,20,32}};
         for(int i=0;i<bodies.length;i++)for(int used=0;used<=bodies[i].cargoCapacity();used++) {
@@ -38,7 +66,7 @@ public class DrivingConfigGameTests {
         drive.load(.234);close(h,drive.tick(0,.234,12,12),emptyCoast,"Cargo weakened coasting deceleration");h.succeed();
     }
     @SuppressWarnings("unchecked")
-    private static ModConfigSpec.ConfigValue<Object> value(String path) { return DrivingConfig.SPEC.getValues().get(path); }
+    private static ModConfigSpec.ConfigValue<Object> value(String path) { return ServerConfig.SPEC.getValues().get(path); }
     @GameTest(template="assembly_test")
     public static void server_config_reload_drives_limits_acceleration_and_range_validation(GameTestHelper h) {
         var original=new LinkedHashMap<String,Object>();
