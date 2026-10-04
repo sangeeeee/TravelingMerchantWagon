@@ -47,6 +47,16 @@ public final class PerformanceGameTests {
         new Case("crowd120_control",0,false,false,"",120,0,false,false),
         new Case("moving_crowd40",1,true,false,"",40,0,false,false),
         new Case("moving_crowd120",1,true,false,"",120,0,false,false),
+        new Case("moving_crowd120_45",1,true,false,"",120,45,false,false),
+        new Case("moving_crowd120_turn",1,true,false,"",120,0,false,false),
+        new Case("wide_canopy_crowd120_turn",1,true,true,"canopy",120,0,false,false),
+        new Case("wide_stone32_crowd120_45",1,true,true,"stone",120,45,false,false),
+        new Case("wide_canopy_crowd120_45",1,true,true,"canopy",120,45,false,false),
+        new Case("moving_crowd120_corridor",1,true,false,"",120,0,false,false),
+        new Case("crowd120_ai_control",0,false,false,"",120,0,false,false),
+        new Case("moving_crowd120_ai",1,true,false,"",120,0,false,false),
+        new Case("crowd320_control",0,false,false,"",320,0,false,false),
+        new Case("moving_crowd320",1,true,false,"",320,0,false,false),
         new Case("moving_empty8",8,true,false,"",0,45,false,false),
         new Case("idle_empty8",8,false,false,"",0,45,false,false),
         new Case("falling_wide_stone32",1,false,true,"fall",0,45,false,false),
@@ -54,7 +64,11 @@ public final class PerformanceGameTests {
         new Case("sable_floor_45",1,true,true,"stone",0,45,true,false),
         new Case("sable_moving_floor_45",1,true,true,"stone",0,45,true,true),
         new Case("sable_rotated_floor_45",1,true,true,"rotated",0,45,true,false),
-        new Case("sable_rotated_moving_floor_45",1,true,true,"rotated",0,45,true,true));
+        new Case("sable_rotated_moving_floor_45",1,true,true,"rotated",0,45,true,true),
+        new Case("sable_floor_crowd120_45",1,true,true,"stone",120,45,true,false),
+        new Case("sable_moving_floor_crowd120_45",1,true,true,"stone",120,45,true,true),
+        new Case("sable_floor_crowd120_control",0,false,false,"",120,45,true,false),
+        new Case("sable_moving_floor_crowd120_control",0,false,false,"",120,45,true,true));
     private static final int WARMUP=200,SAMPLES=800;
     private static final com.sun.management.ThreadMXBean MEMORY=(com.sun.management.ThreadMXBean)ManagementFactory.getThreadMXBean();
     private static PerformanceGameTests active;
@@ -70,6 +84,19 @@ public final class PerformanceGameTests {
     private final List<Double> tickTimes=new ArrayList<>(),wagonTimes=new ArrayList<>(),tickBytes=new ArrayList<>(),wagonBytes=new ArrayList<>();
     private long tickStart,allocationStart,entityStart,entityAllocation;
     private double travelled;
+    private int clippedTicks,horseBlockedTicks;
+    private final List<String> traces=new ArrayList<>();
+    private record Trace(int tick,double requested,double actual,boolean horseBlocked,double ms,double kib) {}
+    private final List<Trace> scenarioTraces=new ArrayList<>();
+    /** Observes the speed request before contact resolution; no extra collision queries. */
+    private static final class ProbeWagon extends WagonEntity {
+        double requested; boolean horseBlocked;
+        ProbeWagon(Level level) { super(WagonContent.WAGON.get(),level); }
+        @Override public boolean horsesCanAdvance(Vec3 delta) {
+            requested=delta.horizontalDistance();boolean result=super.horsesCanAdvance(delta);
+            horseBlocked=!result;return result;
+        }
+    }
     private Runnable structureStep=()->{},structureClose=()->{};
     @jdk.jfr.Name("tm_wagon.PerformanceScenario")
     @jdk.jfr.Label("Measured wagon workload (after warmup)")
@@ -80,6 +107,7 @@ public final class PerformanceGameTests {
     public static void sequential_live_tick_profile(GameTestHelper helper) {
         if(!Boolean.getBoolean("tm_wagon.performance")) { helper.succeed();return; }
         active=new PerformanceGameTests();active.helper=helper;
+        StructureUtils.removeBarriers(helper.getBounds(),helper.getLevel());
         helper.getLevel().getGameRules().getRule(GameRules.RULE_DOMOBSPAWNING).set(false,helper.getLevel().getServer());
         helper.getLevel().getGameRules().getRule(GameRules.RULE_DOENTITYDROPS).set(false,helper.getLevel().getServer());
         helper.getLevel().getGameRules().getRule(GameRules.RULE_RANDOMTICKING).set(0,helper.getLevel().getServer());
@@ -93,10 +121,12 @@ public final class PerformanceGameTests {
             helper.setBlock(new BlockPos(x,7,z),Blocks.STONE);
             for(int y=8;y<=18;y++)helper.setBlock(new BlockPos(x,y,z),Blocks.AIR);
         }
-        active.rows.add("scenario,sable,wagons,passengers,sleepers,crowd,colliders,motion_colliders,ticks,wagon_ticks,tick_mean_ms,tick_p95_ms,tick_max_ms,wagon_mean_ms,wagon_p95_ms,tick_KiB,wagon_KiB,distance");
+        active.rows.add("scenario,sable,wagons,passengers,sleepers,crowd,colliders,motion_colliders,ticks,wagon_ticks,tick_mean_ms,tick_p95_ms,tick_max_ms,wagon_mean_ms,wagon_p95_ms,tick_KiB,wagon_KiB,distance,clipped_ticks,horse_blocked_ticks");
+        active.traces.add("scenario,tick,requested,actual,horse_blocked,wagon_ms,wagon_KiB");
         active.next();
     }
     private void next() {
+        if(scenario>=0&&CASES.get(scenario).name.endsWith("_corridor"))corridor(false);
         for(var w:wagons) {
             StrawMatSleep.wake(w.cargo(),null);
             for(int i=0;i<w.horseCapacity();i++)if(w.horse(i)!=null)w.detachHorse(w.horse(i).getUUID(),false);
@@ -114,13 +144,13 @@ public final class PerformanceGameTests {
             scenario++;
         }
         if(scenario>=CASES.size()||CASES.get(scenario).structure&&!StructureCollision.available()) {
-            try { Files.write(Path.of("performance-server.csv"),rows); }
+            try { Files.write(Path.of("performance-server.csv"),rows);Files.write(Path.of("performance-trace.csv"),traces); }
             catch(java.io.IOException e) { throw new IllegalStateException(e); }
             LogUtils.getLogger().info("PERFORMANCE_SERVER_COMPLETE {} scenarios",rows.size()-1);
             active=null;helper.succeed();return;
         }
-        var c=CASES.get(scenario);age=0;travelled=0;
-        tickTimes.clear();wagonTimes.clear();tickBytes.clear();wagonBytes.clear();
+        var c=CASES.get(scenario);age=0;travelled=0;clippedTicks=horseBlockedTicks=0;
+        tickTimes.clear();wagonTimes.clear();tickBytes.clear();wagonBytes.clear();scenarioTraces.clear();
         Vec3 base=Vec3.atBottomCenterOf(helper.absolutePos(new BlockPos(10,8,15)));
         if(c.structure) {
             var fixture=new SablePerformanceFixture(helper.getLevel(),BlockPos.containing(base),c.cargo.equals("rotated"));
@@ -128,7 +158,7 @@ public final class PerformanceGameTests {
         }
         for(int i=0;i<c.wagons;i++) {
             Vec3 origin=base.add(i*12,c.cargo.equals("fall")?8:0,0);
-            var w=WagonContent.WAGON.get().create(helper.getLevel());var parts=WagonEntity.defaultParts();
+            var w=new ProbeWagon(helper.getLevel());var parts=WagonEntity.defaultParts();
             if(c.wide)parts.put(WagonSlot.BODY,WagonPart.WIDE_CARGO_BODY);
             w.configure(parts,Direction.NORTH);w.applyPose(new WagonPose(origin,180+c.yaw,0,0));
             var p=helper.makeMockPlayer(GameType.CREATIVE);p.setPos(origin.add(0,0,5));
@@ -164,9 +194,14 @@ public final class PerformanceGameTests {
             }
         }
         for(int i=0;i<c.mobs;i++) {
-            var mob=EntityType.PIG.create(helper.getLevel());mob.setNoAi(true);mob.setInvulnerable(true);helper.getLevel().addFreshEntity(mob);fixtures.add(mob);crowd.add(mob);
+            var mob=EntityType.PIG.create(helper.getLevel());mob.setNoAi(!c.name.contains("_ai"));mob.setInvulnerable(true);helper.getLevel().addFreshEntity(mob);fixtures.add(mob);crowd.add(mob);
         }
+        if(c.name.endsWith("_corridor"))corridor(true);
         reset();LogUtils.getLogger().info("PERFORMANCE_BEGIN {}",c.name);
+    }
+    private void corridor(boolean wall) {
+        for(int x:new int[]{7,13})for(int z=-20;z<=25;z++)for(int y=8;y<=11;y++)
+            helper.setBlock(new BlockPos(x,y,z),wall?Blocks.STONE:Blocks.AIR);
     }
     private void reset() {
         for(int i=0;i<wagons.size();i++) {
@@ -174,7 +209,12 @@ public final class PerformanceGameTests {
             for(int j=0;j<w.horseCapacity();j++)if(w.horse(j)!=null)w.horse(j).setPos(w.horsePosition(j));
         }
         Vec3 base=Vec3.atBottomCenterOf(helper.absolutePos(new BlockPos(10,8,15)));
-        for(int i=0;i<crowd.size();i++) { var m=crowd.get(i);m.setPos(base.add((i%8-3.5)*.55,0,-(i/8)*.55));m.setDeltaMovement(Vec3.ZERO); }
+        for(int i=0;i<crowd.size();i++) {
+            var m=crowd.get(i);double x=(i%8-3.5)*.55,z=-(i/8)*.55;
+            // Keep the same density relative to travel when testing diagonal wagons.
+            Vec3 local=new WagonPose(base,180+CASES.get(scenario).yaw,0,0).point(new Vec3(x,0,z));
+            m.setPos(local);m.setDeltaMovement(Vec3.ZERO);
+        }
     }
     @SubscribeEvent public static void before(ServerTickEvent.Pre event) {
         if(active==null)return;var a=active;
@@ -182,7 +222,7 @@ public final class PerformanceGameTests {
         if(a.age%40==0)a.reset();a.structureStep.run();
         if(a.age==WARMUP) { a.phase=new Phase();a.phase.scenario=CASES.get(a.scenario).name;a.phase.sable=StructureCollision.available();a.phase.begin(); }
         var c=CASES.get(a.scenario);
-        for(int i=0;i<a.wagons.size();i++)a.wagons.get(i).acceptInput(a.drivers.get(i),c.moving?1:0,0,false);
+        for(int i=0;i<a.wagons.size();i++)a.wagons.get(i).acceptInput(a.drivers.get(i),c.moving?1:0,c.name.endsWith("_turn")?1:0,false);
         a.allocationStart=allocated();a.tickStart=System.nanoTime();
     }
     @SubscribeEvent public static void after(ServerTickEvent.Post event) {
@@ -199,17 +239,25 @@ public final class PerformanceGameTests {
     @SubscribeEvent public static void entityAfter(EntityTickEvent.Post event) {
         if(active==null||event.getEntity().level().isClientSide||!(event.getEntity() instanceof WagonEntity))return;
         long time=System.nanoTime()-active.entityStart,bytes=allocated()-active.entityAllocation;
-        if(active.age>=WARMUP) { active.wagonTimes.add(time/1e6);active.wagonBytes.add(bytes/1024.0);active.travelled+=event.getEntity().getDeltaMovement().horizontalDistance(); }
+        if(active.age>=WARMUP) {
+            var w=(ProbeWagon)event.getEntity();double actual=w.getDeltaMovement().horizontalDistance();
+            active.wagonTimes.add(time/1e6);active.wagonBytes.add(bytes/1024.0);active.travelled+=actual;
+            if(w.requested>1e-5&&actual<w.requested*.99)active.clippedTicks++;
+            if(w.horseBlocked)active.horseBlockedTicks++;
+            active.scenarioTraces.add(new Trace(active.age-WARMUP,w.requested,actual,w.horseBlocked,time/1e6,bytes/1024.0));
+        }
     }
     private void finish() {
         phase.end();phase.commit();
         var c=CASES.get(scenario);
+        for(var t:scenarioTraces)traces.add(String.format(Locale.ROOT,"%s,%d,%.8f,%.8f,%s,%.6f,%.3f",c.name,t.tick,t.requested,t.actual,t.horseBlocked,t.ms,t.kib));
         require(tickTimes.size()==SAMPLES,"missing tick samples");
         require(wagonTimes.size()==SAMPLES*c.wagons,"wagons not being naturally ticked");
         if(c.moving)require(travelled>1,"moving workload did not move");
         String row=String.format(Locale.ROOT,"%s,%s,%d,%d,%d,%d,%d,%d,%d,%d,%.5f,%.5f,%.5f,%.5f,%.5f,%.2f,%.2f,%.3f",c.name,StructureCollision.available(),c.wagons,
             wagons.stream().mapToInt(w->w.getPassengers().size()).sum(),sleepers.size(),crowd.size(),wagons.isEmpty()?0:wagons.getFirst().colliders().size(),
             wagons.isEmpty()?0:wagons.getFirst().motionCollidersAt(wagons.getFirst().pose()).size(),tickTimes.size(),wagonTimes.size(),mean(tickTimes),percentile(tickTimes,.95),percentile(tickTimes,1),mean(wagonTimes),percentile(wagonTimes,.95),mean(tickBytes),mean(wagonBytes),travelled);
+        row+=","+clippedTicks+","+horseBlockedTicks;
         rows.add(row);LogUtils.getLogger().info("PERFORMANCE_RESULT {}",row);
     }
     public static double mean(List<Double> values) { return values.stream().mapToDouble(Double::doubleValue).average().orElse(0); }

@@ -257,7 +257,13 @@ public final class WagonPhysics {
     private boolean move(WagonEntity wagon,Vec3 motion,float yaw,float pitch,float roll) {
         if(motion.lengthSqr()<1e-12&&Math.abs(Mth.wrapDegrees(yaw-wagon.getYRot()))<1e-6
             &&Math.abs(pitch-wagon.pitch())<1e-6&&Math.abs(roll-wagon.roll())<1e-6)return false;
-        try { wagon.crowd().begin(motion);return moveVehicle(wagon,motion,yaw,pitch,roll); }
+        WagonPose previous=wagon.pose();
+        try {
+            wagon.crowd().begin(motion);
+            boolean landed=moveVehicle(wagon,motion,yaw,pitch,roll);
+            wagon.crowd().clear(previous);
+            return landed;
+        }
         finally { wagon.crowd().end(); }
     }
     private boolean moveVehicle(WagonEntity wagon,Vec3 motion,float yaw,float pitch,float roll) {
@@ -274,7 +280,6 @@ public final class WagonPhysics {
         for(int n=1;n<=steps;n++) {
             float t=(float)n/steps;
             WagonPose previous=wagon.pose();
-            WagonPose movementStart=previous;
             WagonPose rotated=new WagonPose(wagon.position(),Mth.rotLerp(t,start.yaw(),yaw),
                 Mth.lerp(t,start.pitch(),pitch),Mth.lerp(t,start.roll(),roll));
             boolean turning=rotated.yaw()!=previous.yaw()||rotated.pitch()!=previous.pitch()||rotated.roll()!=previous.roll();
@@ -353,7 +358,6 @@ public final class WagonPhysics {
             }
             oldBoxes=shift(boxes,0,0,z);
             wagon.applyPose(new WagonPose(rotated.position().add(x,y,z),rotated.yaw(),rotated.pitch(),rotated.roll()));
-            wagon.crowd().clear(movementStart);
         }
         return landedOnLowerGround;
     }

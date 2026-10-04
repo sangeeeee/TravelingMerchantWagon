@@ -20,6 +20,36 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 @GameTestHolder("tm_wagon")
 @PrefixGameTestTemplate(false)
 public class WagonCrowdGameTests {
+    @GameTest(template="assembly_test",timeoutTicks=40)
+    public static void dense_crowd_is_budgeted_without_blocking_and_every_mob_gets_a_turn(GameTestHelper h) {
+        var f=wagon(h,Direction.NORTH);var w=f.wagon;
+        var mobs=new java.util.ArrayList<Mob>();var starts=new java.util.ArrayList<Vec3>();
+        for(int i=0;i<48;i++) {
+            var pig=mob(h,w,EntityType.PIG,new Vec3(.1,0,.3));mobs.add(pig);starts.add(pig.position());
+        }
+        Vec3 start=w.position();drive(f,1,0,1);
+        int moved=0;for(int i=0;i<mobs.size();i++)if(mobs.get(i).position().distanceToSqr(starts.get(i))>1e-6)moved++;
+        h.assertTrue(moved>0&&moved<48,"Dense crowd was not spread over ticks: "+moved);
+        drive(f,1,0,5);
+        for(int i=0;i<mobs.size();i++)h.assertTrue(mobs.get(i).position().distanceToSqr(starts.get(i))>1e-6,"A mob starved behind the push budget");
+        h.assertTrue(Math.abs(start.z-w.getZ()-travel(6,1))<.01,"Deferred crowd stopped wagon");h.succeed();
+    }
+    @GameTest(template="assembly_test",timeoutTicks=40)
+    public static void yielding_contact_is_local_protects_deck_and_expires_after_stopping(GameTestHelper h) {
+        var f=wagon(h,Direction.NORTH);var w=f.wagon;
+        var pig=mob(h,w,EntityType.PIG,new Vec3(.1,0,.3));drive(f,1,0,1);
+        h.assertTrue(!com.sange.tm_wagon.physics.WagonCollision.eligible(pig,w),"Mob tick still fights its clearing wagon");
+        var other=WagonContent.WAGON.get().create(h.getLevel());other.setPos(w.position().add(6,0,0));
+        h.assertTrue(com.sange.tm_wagon.physics.WagonCollision.eligible(pig,other),"Yielding disabled another wagon's collision");
+        Vec3 road=pig.position();pig.setPos(w.pose().point(new Vec3(0,1.5,.5)));
+        h.assertTrue(!w.crowd().yieldingContact(pig)&&com.sange.tm_wagon.physics.WagonCollision.eligible(pig,w),"Yielding disabled deck collision after boarding");
+        var board=w.collisionBoxes().stream().filter(b->w.pose().local(b.getCenter()).z<-2&&b.maxY>w.getY()+1).findFirst().orElseThrow();
+        pig.setPos(board.getCenter().x,board.maxY,board.getCenter().z);pig.setDeltaMovement(Vec3.ZERO);
+        h.assertTrue(com.sange.tm_wagon.entity.WagonSupport.supports(w,pig)&&!w.crowd().yieldingContact(pig),"Footboard boarding retained a road contact");
+        pig.setPos(road);drive(f,0,0,12);
+        h.assertTrue(!w.crowd().yieldingContact(pig)&&com.sange.tm_wagon.physics.WagonCollision.eligible(pig,w),"Parked wagon retained stale yielding contacts");
+        h.succeed();
+    }
     private record Fixture(WagonEntity wagon,Player driver,AbstractHorse horse) {
         void remove() { wagon.discard();horse.discard(); }
     }
@@ -60,7 +90,7 @@ public class WagonCrowdGameTests {
             h.assertTrue(w.pose().local(left.position()).x<-.5&&w.pose().local(right.position()).x>.5,"Mobs were not pushed to their respective sides: "+facing);
             h.assertTrue(left.getHealth()==left.getMaxHealth()&&right.getHealth()==right.getMaxHealth(),"Clearing road damaged mobs");
             h.assertTrue(h.getLevel().noBlockCollision(left,left.getBoundingBox().deflate(.001))&&h.getLevel().noBlockCollision(right,right.getBoundingBox().deflate(.001)),"Road clearing pushed mobs into blocks");
-            drive(f,0,0,30);Vec3 stopped=left.position();drive(f,0,0,3);h.assertTrue(left.position().equals(stopped),"Parked wagon kept pushing road mob");
+            drive(f,0,0,40);h.assertTrue(w.getDeltaMovement().horizontalDistanceSqr()<1e-12,"Coasting fixture has not stopped");Vec3 stopped=left.position();drive(f,0,0,3);h.assertTrue(left.position().equals(stopped),"Parked wagon kept pushing road mob: start="+stopped+" now="+left.position()+" speed="+w.getDeltaMovement()+" facing="+facing);
             left.discard();right.discard();f.remove();
         }h.succeed();
     }

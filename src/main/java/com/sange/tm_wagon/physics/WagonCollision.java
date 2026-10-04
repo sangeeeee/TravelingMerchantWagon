@@ -69,8 +69,12 @@ public final class WagonCollision {
         private void remember(Vec3 result,Contacts contacts) { results.put(result,contacts); }
     }
     public static Recording record(Entity entity,Vec3 movement) {
-        if(entity.noPhysics||WagonSpatialIndex.candidates(entity.level(),entity.getBoundingBox()
-            .expandTowards(movement).inflate(entity.maxUpStep()+.26)).isEmpty())return null;
+        if(entity.noPhysics)return null;
+        boolean needed=false;
+        for(var wagon:WagonSpatialIndex.candidates(entity.level(),entity.getBoundingBox()
+            .expandTowards(movement).inflate(entity.maxUpStep()+.26)))
+            if(eligible(entity,wagon)) { needed=true;break; }
+        if(!needed)return null;
         var recording=new Recording(entity,RECORDING.get());RECORDING.set(recording);return recording;
     }
     public static boolean vanillaOnly() { return VANILLA.get(); }
@@ -80,6 +84,7 @@ public final class WagonCollision {
         return entity!=wagon&&wagon!=WagonCrowd.excludedWagon()&&!wagon.isRemoved()
             &&(entity==null||!entity.isSpectator()&&!entity.isPassengerOfSameVehicle(wagon)
                 &&!com.sange.tm_wagon.cargo.StrawMatSleep.attachedTo(entity,wagon)
+                &&!wagon.crowd().yieldingContact(entity)
                 &&!(entity instanceof AbstractHorse&&wagon.hasHorse(entity.getUUID())));
     }
     public static List<OrientedBox> nearby(Level level,Entity entity,AABB area) {

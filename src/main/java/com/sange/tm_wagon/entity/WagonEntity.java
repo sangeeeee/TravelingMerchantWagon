@@ -346,6 +346,7 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
         }
         if(assemblyLock!=null&&level().hasChunkAt(assemblyLock)
             && (!(level().getBlockEntity(assemblyLock) instanceof AssemblyFrameBlockEntity frame)||!frame.restoring(getUUID())))assemblyLock=null;
+        crowd.beginTick();
         Player driver=driver();
         if(driver==null||inputDriver==null||!driver.getUUID().equals(inputDriver)||level().getGameTime()-lastInput>10) { forwardInput=steeringInput=0;boostedDrive=false; }
         pushTick++;int pushing=manualPushInput();

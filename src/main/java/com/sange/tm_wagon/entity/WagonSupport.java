@@ -7,6 +7,7 @@ import net.minecraft.world.phys.AABB;
 /** Read-only foot contact for flight checks and road clearing; never moves an occupant. */
 public final class WagonSupport {
     private static final double CONTACT_EPSILON=.06;
+    private static final net.minecraft.world.phys.Vec3 DOWN=new net.minecraft.world.phys.Vec3(0,-2*CONTACT_EPSILON,0);
 
     public static boolean supports(WagonEntity wagon,Entity entity) {
         if(entity==wagon||entity instanceof WagonEntity||entity.isRemoved()||entity.isSpectator()
@@ -14,9 +15,11 @@ public final class WagonSupport {
             ||Math.abs(wagon.pitch())>=Math.toRadians(35)||Math.abs(wagon.roll())>=Math.toRadians(30)
             ||(entity instanceof Player player&&(player.getAbilities().flying||player.isSleeping())))return false;
         AABB feet=entity.getBoundingBox();
-        AABB footSlice=new AABB(feet.minX,feet.minY,feet.minZ,feet.maxX,feet.minY+.002,feet.maxZ);
+        AABB footSlice=new AABB(feet.minX,feet.minY+CONTACT_EPSILON,feet.minZ,feet.maxX,feet.minY+.002+CONTACT_EPSILON,feet.maxZ);
+        AABB swept=footSlice.expandTowards(DOWN).inflate(1e-7);
         for(var box:wagon.colliders()) {
-            var hit=box.sweep(footSlice.move(0,CONTACT_EPSILON,0),new net.minecraft.world.phys.Vec3(0,-2*CONTACT_EPSILON,0));
+            if(!box.bounds().intersects(swept))continue;
+            var hit=box.sweep(footSlice,DOWN);
             if(hit!=null&&hit.normal().y>.5)return true;
         }
         return false;
@@ -24,7 +27,9 @@ public final class WagonSupport {
 
     /** Query only when checking a particular entity, rather than scanning every moving wagon. */
     public static boolean supportedByWagon(Entity entity) {
-        for(WagonEntity wagon:WagonSpatialIndex.candidates(entity.level(),entity.getBoundingBox().inflate(CONTACT_EPSILON)))
+        AABB feet=entity.getBoundingBox();
+        AABB contact=new AABB(feet.minX,feet.minY-CONTACT_EPSILON,feet.minZ,feet.maxX,feet.minY+.002+CONTACT_EPSILON,feet.maxZ);
+        for(WagonEntity wagon:WagonSpatialIndex.candidates(entity.level(),contact))
             if(supports(wagon,entity))return true;
         return false;
     }

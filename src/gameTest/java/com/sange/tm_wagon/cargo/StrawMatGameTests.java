@@ -151,8 +151,10 @@ public class StrawMatGameTests {
     public static void straw_mat_tilted_wake_removal_and_movement_preserve_sleep_state(GameTestHelper h) {
         var w=wagon(h);var hold=w.cargo();
         h.assertTrue(hold.place(8,new ItemStack(WagonContent.STRAW_MAT.get()),player(h,hold))==null,"Mat placement failed");
-        // Stage the wagon to hold the chosen slope pose while exercising real Player sleep/wake ticks.
-        h.getLevel().setBlock(w.blockPosition(),WagonContent.FRAME.get().defaultBlockState(),3);
+        // Stage the wagon without the extended platform intersecting the deliberately
+        // tilted mat. This tests sleep/wake, not placing cargo through a real obstacle.
+        h.getLevel().setBlock(w.blockPosition(),WagonContent.FRAME.get().defaultBlockState()
+            .setValue(com.sange.tm_wagon.assembly.AssemblyFrameBlock.EXTENDED,false),3);
         w.applyPose(new WagonPose(w.position(),213,.18F,.12F));var p=sleeper(h,hold);
         h.setNight();h.runAfterDelay(2,()->{
             w.applyPose(new WagonPose(w.position(),213,.18F,.12F));w.setDeltaMovement(Vec3.ZERO);

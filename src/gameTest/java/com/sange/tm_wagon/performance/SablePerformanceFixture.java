@@ -15,9 +15,16 @@ final class SablePerformanceFixture {
     private final ServerLevel level;
     private final ServerSubLevel sub;
     private final org.joml.Vector3d position;
+    private final dev.ryanhcode.sable.sublevel.system.SubLevelPhysicsSystem physics;
+    private final boolean wasPaused;
     private int ticks;
     SablePerformanceFixture(ServerLevel level,BlockPos origin,boolean rotated) {
-        this.level=level;var blocks=new ArrayList<BlockPos>();
+        this.level=level;
+        // This fixture supplies a prescribed floor pose. Do not let Sable's rigid-body
+        // solver independently move/drop it between samples and invalidate comparisons.
+        physics=dev.ryanhcode.sable.sublevel.system.SubLevelPhysicsSystem.require(level);
+        wasPaused=physics.getPaused();physics.setPaused(true);
+        var blocks=new ArrayList<BlockPos>();
         for(int x=-16;x<16;x++)for(int z=-24;z<8;z++) {
             var p=origin.offset(x,-1,z);level.setBlock(p,Blocks.STONE.defaultBlockState(),3);blocks.add(p);
         }
@@ -29,5 +36,8 @@ final class SablePerformanceFixture {
         sub.updateLastPose();sub.logicalPose().position().set(position).add(Math.sin(++ticks*.06)*.4,0,0);
         sub.updateBoundingBox();sub.forceUpdateGlobalBounds();
     }
-    void close() { SubLevelContainer.getContainer(level).removeSubLevel(sub,SubLevelRemovalReason.REMOVED); }
+    void close() {
+        try { SubLevelContainer.getContainer(level).removeSubLevel(sub,SubLevelRemovalReason.REMOVED); }
+        finally { physics.setPaused(wasPaused); }
+    }
 }

@@ -8,14 +8,15 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.phys.AABB;
 
 /** A terrain snapshot local to ONE synchronous movement, never retained across ticks.
- * Moving entities/structures are queried separately. Context-sensitive blocks and road
- * mobs (whose movement may activate/change blocks) keep the live vanilla query path. */
+ * Moving entities/structures are queried separately. Context-sensitive blocks
+ * keep the live vanilla query path. Road mobs move only after this movement
+ * finishes, so their block callbacks cannot invalidate the snapshot mid-sweep. */
 final class WagonTerrain {
     private final WagonEntity wagon;
     private AABB region;
     private List<OrientedBox> snapshot;
     private boolean live;
-    WagonTerrain(WagonEntity wagon,boolean cache) { this.wagon=wagon;live=!cache||wagon.crowd().hasCandidates(); }
+    WagonTerrain(WagonEntity wagon,boolean cache) { this.wagon=wagon;live=!cache; }
 
     List<OrientedBox> blocks(AABB area) {
         if(live)return query(area);
