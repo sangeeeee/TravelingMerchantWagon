@@ -140,3 +140,18 @@ config="${mod_id}.mixins.json"
     versionRange="*"
     ordering="AFTER"
     side="BOTH"
+
+# Optional native backpack menus and lossless cargo transfers.
+[[dependencies.${mod_id}]]
+    modId="travelersbackpack"
+    type="optional"
+    versionRange="[10.1.39,)"
+    ordering="AFTER"
+    side="BOTH"
+
+[[dependencies.${mod_id}]]
+    modId="sophisticatedbackpacks"
+    type="optional"
+    versionRange="[3.26.7,)"
+    ordering="AFTER"
+    side="BOTH"

@@ -59,13 +59,16 @@ repositories {
     exclusiveContent {
         forRepository {
             maven {
-                name = 'ModrinthSable'
+                name = 'Modrinth'
                 url = 'https://api.modrinth.com/maven'
             }
         }
         filter {
             includeModule('maven.modrinth', 'sable')
             includeModule('maven.modrinth', 'carry-on')
+            includeModule('maven.modrinth', 'travelersbackpack')
+            includeModule('maven.modrinth', 'sophisticated-backpacks')
+            includeModule('maven.modrinth', 'sophisticated-core')
         }
     }
     maven {
@@ -99,6 +102,17 @@ neoForge {
     // Default run configurations.
     // These can be tweaked, removed, or duplicated as needed.
     runs {
+        backpackClientSmokeTest {
+            client()
+            gameDirectory = project.file('build/backpack-client')
+            systemProperty 'tm_wagon.backpackClientSmoke', 'true'
+            programArguments.addAll '--width', '1000', '--height', '700'
+        }
+        backpackGameTestServer {
+            type = "gameTestServer"
+            gameDirectory = project.file('build/backpack-server')
+            systemProperty 'neoforge.enabledGameTestNamespaces', 'tm_wagon_backpacks'
+        }
         uphillPerformanceServer {
             type = "gameTestServer"
             gameDirectory = project.file(providers.gradleProperty('performanceDirectory').getOrElse('build/uphill-performance'))
@@ -310,6 +324,20 @@ dependencies {
 
     // Touhou Little Maid 1.5.3 for NeoForge 1.21.1; compile-time access only.
     compileOnly('curse.maven:touhou-little-maid-355044:8061852') { transitive = false }
+
+    // Optional backpack APIs and Sophisticated Backpacks' required core library.
+    // Pin NeoForge release IDs; keep all three out of runtime and the published JAR.
+    compileOnly("maven.modrinth:travelersbackpack:${travelers_backpack_neoforge_version_id}") { transitive = false }
+    compileOnly("maven.modrinth:sophisticated-backpacks:${sophisticated_backpacks_neoforge_version_id}") { transitive = false }
+    compileOnly("maven.modrinth:sophisticated-core:${sophisticated_core_neoforge_version_id}") { transitive = false }
+    if (providers.gradleProperty('withBackpacks').getOrElse('false').toBoolean()) {
+        localRuntime("maven.modrinth:travelersbackpack:${travelers_backpack_neoforge_version_id}") { transitive = false }
+        localRuntime("maven.modrinth:sophisticated-backpacks:${sophisticated_backpacks_neoforge_version_id}") { transitive = false }
+        localRuntime("maven.modrinth:sophisticated-core:${sophisticated_core_neoforge_version_id}") { transitive = false }
+    }
+    if (providers.gradleProperty('withCarryOn').getOrElse('false').toBoolean()) {
+        localRuntime('maven.modrinth:carry-on:cgZi7nC7') { transitive = false }
+    }
 
     // Official Patchouli API only; do not bundle the mod or add it to development runtime.
     compileOnly("vazkii.patchouli:Patchouli:${patchouli_version}:api") { transitive = false }

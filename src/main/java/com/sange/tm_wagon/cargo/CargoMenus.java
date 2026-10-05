@@ -118,6 +118,7 @@ public final class CargoMenus {
         for(var player:players) { player.closeContainer();closed(player); }
     }
     public static void close(CargoHold hold,CargoEntry entry) {
+        BackpackSessions.close(hold,entry);
         var players=new java.util.ArrayList<Player>();
         VIEWERS.forEach((player,view)->{if(view.hold==hold&&(entry==null||view.entry==entry))players.add(player);});
         for(var player:players) { player.closeContainer();closed(player); }

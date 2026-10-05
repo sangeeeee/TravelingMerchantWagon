@@ -197,14 +197,21 @@ public final class CargoHold {
             &&seats.seatLeashed(slot,player))return InteractionResult.CONSUME;
         if(player.isSecondaryUseActive()) {
             if(entries[slot]!=null)message(player,take(slot,player));
+            else if(com.sange.tm_wagon.compat.BackpackCompat.matches(stack))message(player,place(slot,stack,player));
             return InteractionResult.CONSUME;
         }
         if(entries[slot]!=null) {
-            if(entries[slot].kind==CargoEntry.Kind.STRAW_MAT)message(player,StrawMatSleep.sleep(this,entries[slot],player,local));
+            if(com.sange.tm_wagon.compat.BackpackCompat.matches(entries[slot].item))com.sange.tm_wagon.compat.BackpackCompat.open(this,entries[slot],player);
+            else if(entries[slot].kind==CargoEntry.Kind.STRAW_MAT)message(player,StrawMatSleep.sleep(this,entries[slot],player,local));
             else if(entries[slot].kind==CargoEntry.Kind.STOOL)message(player,seats.sit(slot,player));
             else if(entries[slot].kind!=CargoEntry.Kind.ORDINARY)CargoWorkBlocks.interact(this,entries[slot],player,hand,local);
             else if(stack.getItem() instanceof BlockItem)message(player,"message.tm_wagon.cargo_occupied");
             return InteractionResult.CONSUME;
+        }
+        if(com.sange.tm_wagon.compat.BackpackCompat.matches(stack)) {
+            // Both audited mods hard-code their placement gesture to player sneaking.
+            // Ordinary use retains the held backpack's own opening/configuration behavior.
+            stack.getItem().use(owner.cargoLevel(),player,hand);return InteractionResult.CONSUME;
         }
         if(!(stack.getItem() instanceof BlockItem||stack.getItem() instanceof StrawMatItem||stack.getItem() instanceof WagonStoolItem))return InteractionResult.CONSUME;
         message(player,place(slot,stack,player));return InteractionResult.CONSUME;
@@ -215,8 +222,9 @@ public final class CargoHold {
     }
     static String placementRestriction(ItemStack item) {
         if(!item.isEmpty()&&(item.getItem() instanceof StrawMatItem||item.getItem() instanceof WagonStoolItem))return null;
-        if(item.isEmpty()||!(item.getItem() instanceof BlockItem blockItem)||item.is(DISALLOWED))return "message.tm_wagon.cargo_unsupported";
-        Block block=blockItem.getBlock();
+        if(item.isEmpty()||item.is(DISALLOWED))return "message.tm_wagon.cargo_unsupported";
+        Block block=item.getItem() instanceof BlockItem blockItem?blockItem.getBlock():com.sange.tm_wagon.compat.BackpackCompat.block(item);
+        if(block==null)return "message.tm_wagon.cargo_unsupported";
         if(block instanceof BedBlock||block instanceof DoorBlock||block instanceof DoublePlantBlock)return "message.tm_wagon.cargo_unsupported";
         return CargoConfig.allows(block)?null:"message.tm_wagon.cargo_filtered";
     }
@@ -248,7 +256,7 @@ public final class CargoHold {
         if((storageKind==CargoEntry.Kind.CHEST||storageKind==CargoEntry.Kind.BARREL)&&CargoContainers.protectedContents(stack))
             return "message.tm_wagon.cargo_container_protected";
         if(!freeLocalVolume(mat?matBounds(slot):stool?stoolBounds(slot):slotBounds(slot)))return "message.tm_wagon.cargo_blocked";
-        CargoEntry entry=CargoEntry.fromItem(this,stack,state);entries[slot]=entry;
+        CargoEntry entry=CargoEntry.fromItem(this,commitSource==null?com.sange.tm_wagon.compat.BackpackCompat.placementCopy(stack,player):stack,state);entries[slot]=entry;
         try {
             String error=owner.cargoGeometryChanged();
             if(error!=null) { entries[slot]=null;return error; }
@@ -284,6 +292,7 @@ public final class CargoHold {
     public String take(int slot,Player player) {
         var entry=entry(slot);if(entry!=null&&coverObstructed(slot(entry),player))return ACCESS_BLOCKED;
         if(entry==null||!valid(entry,player))return "message.tm_wagon.assembly_busy";
+        if(!com.sange.tm_wagon.compat.BackpackCompat.canTake(entry,player))return ACCESS_BLOCKED;
         slot=slot(entry);StrawMatSleep.wake(this,entry);seats.release(entry);
         CargoMenus.close(this,entry);Vec3 position=position(entry);BlockState state=entry.state;entries[slot]=null;
         String error=owner.cargoGeometryChanged();if(error!=null) { entries[slot]=entry;return error; }

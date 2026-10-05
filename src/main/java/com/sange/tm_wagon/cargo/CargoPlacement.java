@@ -31,7 +31,7 @@ final class CargoPlacement {
             @Override public Direction getNearestLookingDirection() { return getNearestLookingDirections()[0]; }
             @Override public Direction getNearestLookingVerticalDirection() { return direction.y>0?Direction.UP:Direction.DOWN; }
         };
-        var block=((BlockItem)stack.getItem()).getBlock();BlockState state;
+        var block=stack.getItem() instanceof BlockItem item?item.getBlock():com.sange.tm_wagon.compat.BackpackCompat.block(stack);BlockState state;
         try { state=block.getStateForPlacement(context); }
         catch(RuntimeException unsupported) {
             if(FALLBACKS.add(block))com.mojang.logging.LogUtils.getLogger().warn("Using default cargo placement state for {}",block,unsupported);

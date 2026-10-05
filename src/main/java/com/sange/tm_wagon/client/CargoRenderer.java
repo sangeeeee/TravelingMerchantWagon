@@ -38,7 +38,10 @@ public final class CargoRenderer {
             poses.pushPose();poses.translate(p.x-CargoHold.SCALE/2,p.y,p.z-CargoHold.SCALE/2);
             poses.scale((float)CargoHold.SCALE,(float)CargoHold.SCALE,(float)CargoHold.SCALE);
             try {
-                if(entry.kind==CargoEntry.Kind.CHEST||entry.kind==CargoEntry.Kind.SHULKER||entry.kind==CargoEntry.Kind.ENDER_CHEST
+                if(com.sange.tm_wagon.compat.BackpackCompat.matches(entry.item)) {
+                    // Native item renderers retain dyes and upgrade visuals without a staged world BE.
+                    item(mc,entry,poses,buffers,light,overlay);
+                } else if(entry.kind==CargoEntry.Kind.CHEST||entry.kind==CargoEntry.Kind.SHULKER||entry.kind==CargoEntry.Kind.ENDER_CHEST
                     ||entry.kind==CargoEntry.Kind.ENCHANTING||entry.kind==CargoEntry.Kind.LECTERN||entry.kind==CargoEntry.Kind.POT) {
                     if(entry.kind==CargoEntry.Kind.ENCHANTING||entry.kind==CargoEntry.Kind.LECTERN)
                         mc.getBlockRenderer().renderSingleBlock(entry.state,poses,buffers,light,overlay);

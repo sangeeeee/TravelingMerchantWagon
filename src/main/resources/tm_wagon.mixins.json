@@ -6,6 +6,8 @@
     "WagonSwingThroughGrassMixin",
     "WagonCollisionMixin",
     "WagonCarryOnPickupMixin",
+    "WagonSophisticatedContextMixin",
+    "WagonTravelerActionsMixin",
     "WagonMaidFollowVehicleMixin",
     "WagonMaidTaskMixin",
     "WagonMaidBedMixin",

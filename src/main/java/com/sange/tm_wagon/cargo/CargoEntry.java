@@ -186,7 +186,7 @@ public final class CargoEntry {
     }
     public CompoundTag save(HolderLookup.Provider lookup,boolean visual) {
         var tag=new CompoundTag();tag.putUUID("Id",id);var saved=item.copy();
-        if(visual) { saved.remove(DataComponents.CONTAINER);saved.remove(DataComponents.BLOCK_ENTITY_DATA); }
+        if(visual) { saved.remove(DataComponents.CONTAINER);saved.remove(DataComponents.BLOCK_ENTITY_DATA);com.sange.tm_wagon.compat.BackpackCompat.visual(saved); }
         tag.put("Item",saved.save(lookup));tag.put("State",NbtUtils.writeBlockState(state));
         tag.putBoolean("Opened",opened);tag.putLong("LidStart",lidStart);tag.putFloat("LidFrom",lidFrom);
         tag.putBoolean("Visual",visual);
@@ -202,7 +202,7 @@ public final class CargoEntry {
     }
     public static CargoEntry load(CargoHold hold,CompoundTag tag,HolderLookup.Provider lookup) {
         var item=ItemStack.parseOptional(lookup,tag.getCompound("Item"));
-        if(item.isEmpty()||!(item.getItem() instanceof net.minecraft.world.item.BlockItem||item.getItem() instanceof StrawMatItem||item.getItem() instanceof WagonStoolItem))return null;
+        if(item.isEmpty()||!(item.getItem() instanceof net.minecraft.world.item.BlockItem||item.getItem() instanceof StrawMatItem||item.getItem() instanceof WagonStoolItem||com.sange.tm_wagon.compat.BackpackCompat.matches(item)))return null;
         var state=NbtUtils.readBlockState(lookup.lookupOrThrow(net.minecraft.core.registries.Registries.BLOCK),tag.getCompound("State"));
         if(!tag.hasUUID("Id"))return null;
         var entry=new CargoEntry(hold,tag.getUUID("Id"),item,state);

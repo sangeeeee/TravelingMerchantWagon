@@ -26,12 +26,13 @@ import tschipp.carryon.common.config.ListHandler;
 public final class CarryOnCargo {
     public static boolean pickup(CargoHold hold,CargoEntry entry,Player player) {
         if(entry.kind==CargoEntry.Kind.STRAW_MAT||entry.kind==CargoEntry.Kind.STOOL)return false;
-        if(!(player instanceof ServerPlayer server)||!(entry.item.getItem() instanceof BlockItem)
+        if(!(player instanceof ServerPlayer server)||!(entry.item.getItem() instanceof BlockItem||com.sange.tm_wagon.compat.BackpackCompat.matches(entry.item))
             ||!hold.valid(entry,player))return false;
         var data=CarryOnDataManager.getCarryData(player);
         if(data.isCarrying()||(data.isKeyPressed()&&data.getTick()==player.tickCount))return true;
         if(!data.isKeyPressed()||!player.getMainHandItem().isEmpty()||!player.getOffhandItem().isEmpty()
             ||!ListHandler.isPermitted(entry.state.getBlock()))return false;
+        if(!com.sange.tm_wagon.compat.BackpackCompat.canTake(entry,player))return true;
         // 2.2.4 writes transient key/slot fields into NBT only in getNbt(); clone()
         // alone would lose the held key when rolling back an unsuccessful transfer.
         var backup=new tschipp.carryon.common.carry.CarryOnData(data.getNbt().copy());
@@ -71,13 +72,16 @@ public final class CarryOnCargo {
         boolean[] committed={false};
         var script=data.getActiveScript();
         try {
-            var state=data.getBlock();var stack=new ItemStack(state.getBlock());
+            var state=data.getBlock();var stack=com.sange.tm_wagon.compat.BackpackCompat.blockItem(state.getBlock());
             String restriction=CargoHold.placementRestriction(stack);
             if(restriction!=null){CargoHold.message(player,restriction);return true;}
             var lookup=player.level().registryAccess();
             var be=data.getBlockEntity(BlockPos.containing(hold.owner().cargoPose().point(hold.centreAt(slot))),lookup);
             if(state.hasBlockEntity()&&be==null){CargoHold.message(player,"message.tm_wagon.cargo_unsupported");return true;}
-            if(be!=null){be.setLevel(player.level());be.saveToItem(stack,lookup);}
+            if(be!=null){
+                if(com.sange.tm_wagon.compat.BackpackCompat.matches(stack))stack=com.sange.tm_wagon.compat.BackpackCompat.fromBlockEntity(be,stack,lookup);
+                else {be.setLevel(player.level());be.saveToItem(stack,lookup);}
+            }
             // Orient in wagon-local coordinates, retaining fill levels and other carried state.
             var placed=CargoPlacement.state(hold,slot,stack,player);
             for(var property:placed.getProperties())if(state.hasProperty(property)
@@ -184,6 +188,12 @@ public final class CarryOnCargo {
         if(!(state.getBlock() instanceof EntityBlock factory))return null;
         var be=factory.newBlockEntity(pos,state);
         if(be==null)throw new IllegalStateException("Block entity factory returned null");
+        if(com.sange.tm_wagon.compat.BackpackCompat.matches(entry.item)) {
+            if(!com.sange.tm_wagon.compat.BackpackCompat.sophisticated(entry.item))be.setLevel(level);
+            com.sange.tm_wagon.compat.BackpackCompat.snapshot(be,entry.item,level.registryAccess());
+            be.setLevel(level); // Carry On serializes using the BE's registry access.
+            return be;
+        }
         be.setLevel(level);
         var lookup=level.registryAccess();
         be.loadWithComponents(entry.item.getOrDefault(DataComponents.BLOCK_ENTITY_DATA,CustomData.EMPTY).copyTag(),lookup);

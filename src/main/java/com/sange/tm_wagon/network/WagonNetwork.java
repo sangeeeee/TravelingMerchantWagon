@@ -13,6 +13,21 @@ import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 @EventBusSubscriber(modid=TravelingMerchantWagon.MODID)
 public final class WagonNetwork {
+    /** Full backpack data is sent only to a viewer when opening, never in wagon render updates. */
+    public record BackpackView(java.util.UUID entry,net.minecraft.world.item.ItemStack stack) implements CustomPacketPayload {
+        public static final Type<BackpackView> TYPE=new Type<>(ResourceLocation.fromNamespaceAndPath(TravelingMerchantWagon.MODID,"backpack_view"));
+        public static final StreamCodec<RegistryFriendlyByteBuf,BackpackView> CODEC=StreamCodec.of(
+            (buf,p)->{buf.writeUUID(p.entry);net.minecraft.world.item.ItemStack.STREAM_CODEC.encode(buf,p.stack);},
+            buf->new BackpackView(buf.readUUID(),net.minecraft.world.item.ItemStack.STREAM_CODEC.decode(buf)));
+        @Override public Type<? extends CustomPacketPayload> type(){return TYPE;}
+    }
+    public record BackpackUpdate(java.util.UUID entry,net.minecraft.core.component.DataComponentPatch patch) implements CustomPacketPayload {
+        public static final Type<BackpackUpdate> TYPE=new Type<>(ResourceLocation.fromNamespaceAndPath(TravelingMerchantWagon.MODID,"backpack_update"));
+        public static final StreamCodec<RegistryFriendlyByteBuf,BackpackUpdate> CODEC=StreamCodec.of(
+            (buf,p)->{buf.writeUUID(p.entry);net.minecraft.core.component.DataComponentPatch.STREAM_CODEC.encode(buf,p.patch);},
+            buf->new BackpackUpdate(buf.readUUID(),net.minecraft.core.component.DataComponentPatch.STREAM_CODEC.decode(buf)));
+        @Override public Type<? extends CustomPacketPayload> type(){return TYPE;}
+    }
     /** Sleep transitions only; no per-tick messages or persistent moving respawn records. */
     public record MatSleep(int playerId,int wagonId,net.minecraft.core.BlockPos frame,java.util.UUID mat,int anchor,Vec3 position,float yaw,float pitch,float roll,Vec3 head,boolean sleeping) implements CustomPacketPayload {
         public static final Type<MatSleep> TYPE=new Type<>(ResourceLocation.fromNamespaceAndPath(TravelingMerchantWagon.MODID,"mat_sleep"));
@@ -36,6 +51,12 @@ public final class WagonNetwork {
         @Override public Type<? extends CustomPacketPayload> type() { return TYPE; }
     }
     @SubscribeEvent public static void register(RegisterPayloadHandlersEvent event) {
+        event.registrar("1").playToClient(BackpackView.TYPE,BackpackView.CODEC,(input,context)->context.enqueueWork(()->
+            com.sange.tm_wagon.cargo.BackpackSessions.receive(context.player(),input.entry,input.stack)));
+        event.registrar("1").playToClient(BackpackUpdate.TYPE,BackpackUpdate.CODEC,(input,context)->context.enqueueWork(()->{
+            if(net.neoforged.fml.ModList.get().isLoaded("travelersbackpack"))
+                com.sange.tm_wagon.compat.backpack.TravelerCargo.receive(context.player(),input.entry,input.patch);
+        }));
         event.registrar("3").playToClient(MatSleep.TYPE,MatSleep.CODEC,(input,context)->context.enqueueWork(()->com.sange.tm_wagon.cargo.StrawMatSleep.receive(context.player().level(),input)));
         event.registrar("3").playToServer(Input.TYPE,Input.CODEC,(input,context)->context.enqueueWork(()->{
             if (context.player().getVehicle() instanceof WagonEntity wagon && wagon.getId()==input.wagonId)

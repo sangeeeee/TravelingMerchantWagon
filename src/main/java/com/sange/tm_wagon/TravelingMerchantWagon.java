@@ -14,6 +14,7 @@ public class TravelingMerchantWagon {
     public TravelingMerchantWagon(IEventBus bus, ModContainer container) {
         com.sange.tm_wagon.material.WagonMaterial.register(bus);
         WagonContent.register(bus);
+        com.sange.tm_wagon.compat.BackpackCompat.register(bus);
         container.registerConfig(ModConfig.Type.SERVER,ServerConfig.SPEC,ServerConfig.FILE_NAME);
         bus.addListener((ModConfigEvent.Loading event)->CargoConfig.refresh(event));
         bus.addListener((ModConfigEvent.Reloading event)->CargoConfig.refresh(event));
