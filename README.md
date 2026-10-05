@@ -41,3 +41,7 @@ Supported vanilla-style modded chests and barrels also work as interactive cargo
 For either backpack mod, sneak-right-click an empty slot to load a held backpack, right-click the loaded backpack to open it, and sneak-right-click it to unload. Carry On takes priority when its pickup conditions are met.
 
 **[GeckoLib](https://modrinth.com/mod/geckolib) is required** for wagon animations. Server owners can customize cargo rules, driving behaviour and handbook gifts in `tm_wagon-server.toml`.
+
+## License
+
+TravelingMerchantWagon is licensed under the **GNU General Public License, version 2 only (GPL-2.0-only)**. See [LICENSE](LICENSE) for the full terms and [NOTICE](NOTICE) for attribution. The original NeoForged MDK template retains its [MIT license notice](TEMPLATE_LICENSE.txt).

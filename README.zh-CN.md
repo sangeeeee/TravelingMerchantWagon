@@ -41,3 +41,7 @@ TravelingMerchantWagon 为 Minecraft 添加了可以自由搭配的木制马车�
 对于上述两种背包：手持背包潜行右键空货位即可装载，右键已放置的背包打开界面，潜行右键取出。满足 Carry On 的搬运条件时，优先执行搬运。
 
 马车动画需要安装 **[GeckoLib](https://modrinth.com/mod/geckolib)**。服务器可以通过 `tm_wagon-server.toml` 调整货物规则、驾驶体验和手册赠送。
+
+## 许可证
+
+TravelingMerchantWagon 使用 **GNU 通用公共许可证第 2 版，仅限该版本（GPL-2.0-only）**。完整条款见 [LICENSE](LICENSE)，版权说明见 [NOTICE](NOTICE)。原始 NeoForged MDK 模板的 [MIT 许可声明](TEMPLATE_LICENSE.txt) 予以保留。
