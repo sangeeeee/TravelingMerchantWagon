@@ -483,7 +483,8 @@
       "cargo_cover_fabric": "tm_wagon:component/dye/cargo_cover_fabric",
       "canopy_cloth": "tm_wagon:component/dye/canopy_cloth",
       "canopy_curtain": "tm_wagon:component/dye/canopy_curtain",
-      "cargo_cover_spiral": "tm_wagon:component/dye/cargo_cover_spiral"
+      "cargo_cover_spiral": "tm_wagon:component/dye/cargo_cover_spiral",
+      "cargo_cover_hem": "tm_wagon:component/dye/cargo_cover_hem"
     },
     "bindings": {
       "single_seat": [
@@ -497,7 +498,8 @@
       ],
       "wagon_cargo_cover": [
         "cargo_cover_fabric",
-        "cargo_cover_spiral"
+        "cargo_cover_spiral",
+        "cargo_cover_hem"
       ],
       "wagon_canopy": [
         "canopy_cloth",

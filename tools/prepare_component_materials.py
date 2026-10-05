@@ -153,6 +153,19 @@ def spiral(fabric):
     return im
 
 
+def cover_hem():
+    # Two coarse cloth rows: a narrow crease beside each edge tie, widening below.
+    # U follows the cargo row; the tie is at the row boundary (both tile ends).
+    im = Image.new('RGB', (16, 2), gray(221));d = ImageDraw.Draw(im)
+    for y in range(2):
+        for x in range(16):
+            distance = min(x,15-x)
+            tone = ([173,205,239,222] if y == 0 else [162,189,226,239])[min(distance,3)]
+            if distance > 3:tone = 216 if x % 4 == 0 else 227
+            d.point((x,y),fill=gray(tone))
+    return im
+
+
 def canopy():
     im = Image.new('RGB', (16, 16), gray(238));d = ImageDraw.Draw(im)
     tones=[190,211,250,243,238,238,238,238,238,238,238,238,243,250,211,190]
@@ -229,14 +242,14 @@ def preview(materials, dyes):
 
 
 def main():
-    fabrics={'seat_cushion':cushion(),'cargo_cover_fabric':cover(),
+    fabrics={'seat_cushion':cushion(),'cargo_cover_fabric':cover(),'cargo_cover_hem':cover_hem(),
              'canopy_cloth':canopy(),'canopy_curtain':curtain()}
     fabrics['cargo_cover_spiral']=spiral(fabrics['cargo_cover_fabric'])
     dyes={}
     for name,im in fabrics.items():
         size=16 if name=='seat_cushion' else 64
         p=DEST/f'dye/{name}.png'
-        save_texture(p,im.resize((size,size),Image.Resampling.NEAREST));dyes[name]=p
+        save_texture(p,im.resize((size,round(size*im.height/im.width)),Image.Resampling.NEAREST));dyes[name]=p
     components={};published={};assets=[]
     for component,(zh,en,layout,phase) in COMPONENTS.items():
         variants={};published[component]={}
@@ -264,7 +277,7 @@ def main():
         'dyes':{'source':'crafting_wool_colour','colours':COLOURS,
                 'textures':{name:'tm_wagon:component/dye/'+name for name in fabrics},
                 'bindings':{'single_seat':['seat_cushion'],'double_seat':['seat_cushion'],'triple_seat':['seat_cushion'],
-                            'wagon_cargo_cover':['cargo_cover_fabric','cargo_cover_spiral'],
+                            'wagon_cargo_cover':['cargo_cover_fabric','cargo_cover_spiral','cargo_cover_hem'],
                             'wagon_canopy':['canopy_cloth','canopy_curtain']},
                 'never_tint':['iron','brass','leather','light','rope','canopy_wood','wood_regions']},
         'files':assets}

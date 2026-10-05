@@ -35,11 +35,11 @@ for path in [*ASSETS.glob('models/block/cargo_cover_*.json'),*ASSETS.glob('model
              ASSETS/'models/item/wagon_cargo_cover.json',ASSETS/'models/item/wagon_canopy.json']:
     model=json.loads(path.read_text())
     for key,value in model['textures'].items():
-        for name in ['cargo_cover_fabric','cargo_cover_spiral','canopy_cloth','canopy_curtain']:
+        for name in ['cargo_cover_fabric','cargo_cover_spiral','cargo_cover_hem','canopy_cloth','canopy_curtain']:
             if value.endswith('/'+name):model['textures'][key]='tm_wagon:component/dye/'+name
     for element in model['elements']:
         for face in element['faces'].values():
-            if face['texture'] in ['#fabric','#spiral','#cloth','#curtain']:face['tintindex']=0
+            if face['texture'] in ['#fabric','#spiral','#hem','#cloth','#curtain']:face['tintindex']=0
     write(path,model)
 
 def cabinet(model,wood):

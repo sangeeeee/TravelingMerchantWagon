@@ -4,7 +4,7 @@
   "textures": {
     "fabric": "tm_wagon:component/dye/cargo_cover_fabric",
     "rope": "tm_wagon:block/cargo_cover_rope",
-    "spiral": "tm_wagon:component/dye/cargo_cover_spiral",
+    "hem": "tm_wagon:component/dye/cargo_cover_hem",
     "particle": "tm_wagon:component/dye/cargo_cover_fabric"
   },
   "elements": [
@@ -101,9 +101,9 @@
             0,
             0,
             0.105,
-            2
+            16
           ],
-          "texture": "#fabric",
+          "texture": "#hem",
           "tintindex": 0
         },
         "south": {
@@ -111,9 +111,9 @@
             0,
             0,
             0.105,
-            2
+            16
           ],
-          "texture": "#fabric",
+          "texture": "#hem",
           "tintindex": 0
         },
         "east": {
@@ -121,9 +121,9 @@
             0,
             0,
             16,
-            2
+            16
           ],
-          "texture": "#fabric",
+          "texture": "#hem",
           "tintindex": 0
         },
         "west": {
@@ -131,9 +131,9 @@
             0,
             0,
             16,
-            2
+            16
           ],
-          "texture": "#fabric",
+          "texture": "#hem",
           "tintindex": 0
         },
         "down": {
@@ -143,7 +143,7 @@
             16,
             16
           ],
-          "texture": "#fabric",
+          "texture": "#hem",
           "tintindex": 0
         }
       }
@@ -166,9 +166,9 @@
             0,
             0,
             0.105,
-            2
+            16
           ],
-          "texture": "#fabric",
+          "texture": "#hem",
           "tintindex": 0
         },
         "south": {
@@ -176,9 +176,9 @@
             0,
             0,
             0.105,
-            2
+            16
           ],
-          "texture": "#fabric",
+          "texture": "#hem",
           "tintindex": 0
         },
         "east": {
@@ -186,9 +186,9 @@
             0,
             0,
             16,
-            2
+            16
           ],
-          "texture": "#fabric",
+          "texture": "#hem",
           "tintindex": 0
         },
         "west": {
@@ -196,9 +196,9 @@
             0,
             0,
             16,
-            2
+            16
           ],
-          "texture": "#fabric",
+          "texture": "#hem",
           "tintindex": 0
         },
         "down": {
@@ -208,7 +208,7 @@
             16,
             16
           ],
-          "texture": "#fabric",
+          "texture": "#hem",
           "tintindex": 0
         }
       }
@@ -216,12 +216,12 @@
     {
       "name": "cross_cord_main",
       "from": [
-        -3.08,
+        -3.413708498984761,
         0.34,
         7.82
       ],
       "to": [
-        19.08,
+        19.41370849898476,
         0.65,
         8.18
       ],
@@ -293,15 +293,15 @@
       }
     },
     {
-      "name": "cross_cord_left",
+      "name": "cross_cord_cross",
       "from": [
-        -3.08,
-        0.34,
+        -3.413708498984761,
+        0.34500000000000003,
         7.82
       ],
       "to": [
-        7.82,
-        0.65,
+        19.41370849898476,
+        0.655,
         8.18
       ],
       "faces": {
@@ -372,16 +372,16 @@
       }
     },
     {
-      "name": "cross_cord_right",
+      "name": "hanging_cord_left",
       "from": [
-        8.18,
-        0.34,
-        7.82
+        -0.16,
+        -2.2,
+        -0.27
       ],
       "to": [
-        19.08,
-        0.65,
-        8.18
+        0.08,
+        0.42,
+        0.27
       ],
       "faces": {
         "north": {
@@ -438,16 +438,75 @@
           ],
           "texture": "#rope"
         }
-      },
-      "rotation": {
-        "origin": [
-          8,
-          0.34,
-          8
-        ],
-        "axis": "y",
-        "angle": 45,
-        "rescale": false
+      }
+    },
+    {
+      "name": "hanging_cord_right",
+      "from": [
+        15.92,
+        -2.2,
+        -0.27
+      ],
+      "to": [
+        16.16,
+        0.42,
+        0.27
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#rope"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#rope"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#rope"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#rope"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#rope"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#rope"
+        }
       }
     }
   ]
