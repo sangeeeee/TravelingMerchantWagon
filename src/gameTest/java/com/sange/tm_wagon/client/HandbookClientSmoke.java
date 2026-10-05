@@ -100,7 +100,7 @@ public final class HandbookClientSmoke {
         if(((Map<?,?>)field(contents,"categories")).size()!=6)throw new IllegalStateException("Missing handbook categories");
         var entries=(Map<?,?>)field(contents,"entries");
         int expected=21;
-        for(String mod:List.of("carryon","touhou_little_maid","sable"))if(ModList.get().isLoaded(mod))expected++;
+        for(String mod:List.of("carryon","touhou_little_maid","sable","travelersbackpack","sophisticatedbackpacks"))if(ModList.get().isLoaded(mod))expected++;
         if(entries.size()!=expected)throw new IllegalStateException("Expected "+expected+" entries, got "+entries.size());
         for(var id:entries.keySet().stream().map(ResourceLocation.class::cast).sorted().toList()) {
             if(Boolean.getBoolean("tm_wagon.handbookPreviewOnly")&&!id.getPath().startsWith("equipment/"))continue;

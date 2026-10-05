@@ -10,7 +10,7 @@
     },
     {
       "type": "patchouli:text",
-      "text": "Use an empty cargo slot while carrying a permitted block to load it with its contents. Wagon placement rules still apply. Use an empty stool while carrying an entity to seat it if clearance allows.$(br2)Custom Carry On keys remain separate from sneak-unloading. Maids still follow their riding-task rules."
+      "text": "Use an empty cargo slot while carrying a permitted block to load it with its contents. Wagon placement rules still apply. Use an empty stool while carrying an entity to seat it if clearance allows.$(br2)Custom Carry On keys remain separate from sneak-unloading. Maids still follow their riding-task rules. Loaded backpacks also use Carry On’s permitted pickup gesture first."
     }
   ],
   "flag": "mod:carryon"

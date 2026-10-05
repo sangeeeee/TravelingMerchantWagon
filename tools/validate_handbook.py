@@ -25,7 +25,7 @@ for locale in ('en_us', 'zh_cn', 'zh_tw'):
     categories = {p.stem:read(p) for p in (folder/'categories').glob('*.json')}
     entries = {p.relative_to(folder/'entries').with_suffix('').as_posix():read(p)
                for p in (folder/'entries').rglob('*.json')}
-    assert len(categories) == 6 and len(entries) == 24, locale
+    assert len(categories) == 6 and len(entries) == 26, locale
     if expected_entries is None: expected_entries = entries
     assert entries.keys() == expected_entries.keys(), locale
     covered, images, pages = set(), set(), 0
@@ -60,7 +60,7 @@ for locale in ('en_us', 'zh_cn', 'zh_tw'):
     for id in ('cabinet','cover','canopy'):
         preview = entries['equipment/'+id]['pages'][-1]
         assert preview['type'] == 'patchouli:image' and len(preview['images']) == 2, id
-    for id in ('carryon','maid','sable'):
+    for id in ('carryon','maid','sable','travelers_backpack','sophisticated_backpacks'):
         assert entries['help/'+id]['flag'].startswith('mod:'), id
     print(f'{locale}: {len(categories)} categories, {len(entries)} entries, {pages} pages, {len(covered)} recipes, {len(assembly_images)} diagrams, {len(equipment_images)} previews; references valid')
 

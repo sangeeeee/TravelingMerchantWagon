@@ -6,7 +6,9 @@ Edit the native JSON files directly. English, Simplified Chinese and Traditional
 Other languages use Patchouli's English content fallback, with translated category names, landing links and recipe headings.
 
 The six categories are introduction/assembly, driving, cargo/passengers, optional equipment, workshop, and help/integrations.
-All entries are available without advancements. Carry On, Touhou Little Maid and Sable entries are gated by their installed-mod flags.
+All entries are available without advancements. Carry On, Touhou Little Maid, Sable, Traveler's Backpack and Sophisticated Backpacks entries are gated
+by their installed-mod flags. Modded storage, including BetterEnd/BCLib barrels, is explained in Containers;
+Patchouli's handbook delivery is explained in Troubleshooting.
 Keep unconditional links pointed at unconditional entries.
 
 The handbook item and its recipe exist only when Patchouli is installed. Login gifts are controlled by the server option.

@@ -14,7 +14,7 @@
     },
     {
       "type": "patchouli:text",
-      "text": "$(bold)Cargo access$(reset): Open curtains or the tailgate, or roll back the cover. Use a clear path after conversion finishes, with permitted cargo and supported workstations.$(br2)$(bold)Mat placement$(reset): Leave three consecutive slots in one column toward the front from your target. Stop before sleeping."
+      "text": "$(bold)Cargo access$(reset): Open curtains or the tailgate, or roll back the cover. Use a clear path after conversion finishes, with permitted cargo and supported workstations.$(br2)$(bold)Mat placement$(reset): Leave three consecutive slots in one column away from you, starting at your target. Stop before sleeping."
     },
     {
       "type": "patchouli:text",
