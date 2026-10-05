@@ -10,7 +10,7 @@
     },
     {
       "type": "patchouli:text",
-      "text": "Leave room around the jack. Fit required parts while it is $(bold)extended$(reset).$(br2)Placing a part once creates its complete multiblock component. Incorrect mounting positions or blocked space prevent installation.",
+      "text": "Leave room around the jack. Fit parts while it is $(bold)extended$(reset).$(br2)Placing a part once creates its complete multiblock component. Aim at its mounting area and leave room for the whole part.",
       "title": "Before Building"
     },
     {
@@ -28,7 +28,7 @@
     },
     {
       "type": "patchouli:text",
-      "text": "Use the wagon box on the jack’s $(bold)upper platform$(reset). The deck, sideboards, tailgate, footboard and steps are placed together. Do not build it block by block.",
+      "text": "Use the wagon box on the jack’s $(bold)upper platform$(reset). The deck, sideboards, tailgate, footboard and boarding steps are placed together.",
       "title": "Step 2: The Box"
     },
     {
@@ -41,7 +41,7 @@
     },
     {
       "type": "patchouli:text",
-      "text": "Fit a driver’s seat at the front centre, above the footboard. Choose a wooden or upholstered seat. A cargo stool cannot replace the required driver’s seat.",
+      "text": "Fit a driver’s seat at the front centre, above the footboard. Choose a wooden or upholstered seat to provide the driving position.",
       "title": "Step 3: The Seat"
     },
     {
@@ -67,7 +67,7 @@
     },
     {
       "type": "patchouli:text",
-      "text": "Fit two $(bold)small wheels$(reset), one at each end of the front axle. Walk around to fit the far wheel. Large wheels do not belong on the front axle.",
+      "text": "Fit two $(bold)small wheels$(reset), one at each end of the front axle. Walk around to fit the far wheel.",
       "title": "Step 5: Front Wheels"
     },
     {
@@ -80,7 +80,7 @@
     },
     {
       "type": "patchouli:text",
-      "text": "Fit two $(bold)large wheels$(reset), one at each end of the rear axle. Check that all four wheels are present. Cabinets, cargo covers and canopies are optional.",
+      "text": "Fit two $(bold)large wheels$(reset), one at each end of the rear axle. Check all four wheels. You can also add optional equipment such as a cabinet, cargo cover or canopy.",
       "title": "Step 6: Rear Wheels"
     },
     {
@@ -93,7 +93,7 @@
     },
     {
       "type": "patchouli:text",
-      "text": "Use the jack. If required parts are complete and correctly fitted, it folds and the wagon becomes an entity immediately. Missing parts produce a message and prevent folding.$(br2)Clicks during the animation are ignored. An empty jack can still extend and fold normally."
+      "text": "Once every required part is correctly fitted, use the jack. Its platform folds and the wagon becomes an entity immediately. Wait for the animation before using the jack again.$(br2)Follow any messages to complete missing parts. An empty jack toggles directly. Next, hitch up and board."
     },
     {
       "type": "patchouli:relations",

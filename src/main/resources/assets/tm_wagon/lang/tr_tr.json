@@ -39,7 +39,7 @@
   "message.tm_wagon.seats_full": "Arabadaki tüm koltuklar dolu.",
   "message.tm_wagon.seat_occupied": "Bu koltuk dolu. Başka bir koltuk seç.",
   "message.tm_wagon.hitch_occupied": "Bu koşum yeri dolu.",
-  "message.tm_wagon.lead_horse_required": "Kayışla bağladığın yetişkin bir atı veya eşeği araba okunun yanına getir.",
+  "message.tm_wagon.lead_horse_required": "Önce yetişkin bir atı, eşeği, iskelet atı veya zombi atı kayışla buraya getirin.",
   "message.tm_wagon.hitch_blocked": "Hayvanın boş alana ve basabileceği yakın bir zemine ihtiyacı var.",
   "subtitles.tm_wagon.wagon_roll": "Araba tekerlekleri gıcırdıyor",
   "message.tm_wagon.cargo_unsupported": "Bu blok yük olarak taşınamaz. Çok bloklu yapılar desteklenmez.",

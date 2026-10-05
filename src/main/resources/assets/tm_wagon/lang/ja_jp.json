@@ -39,7 +39,7 @@
   "message.tm_wagon.seats_full": "馬車の座席がすべて埋まっています。",
   "message.tm_wagon.seat_occupied": "この席には既に座っています。別の席を選んでください。",
   "message.tm_wagon.hitch_occupied": "この牽引位置は使用中です。",
-  "message.tm_wagon.lead_horse_required": "リードでつないだ大人のウマかロバを轅のそばに連れてきてください。",
+  "message.tm_wagon.lead_horse_required": "まずリードで大人の馬、ロバ、スケルトンホース、ゾンビホースのいずれかを連れてきてください。",
   "message.tm_wagon.hitch_blocked": "ウマが立つための空間と近くの地面が必要です。",
   "subtitles.tm_wagon.wagon_roll": "馬車の車輪がきしむ",
   "message.tm_wagon.cargo_unsupported": "このブロックは貨物にできません。複数ブロックの構造物には対応していません。",

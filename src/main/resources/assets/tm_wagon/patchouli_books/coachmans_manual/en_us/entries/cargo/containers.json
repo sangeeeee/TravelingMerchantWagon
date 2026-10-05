@@ -6,11 +6,11 @@
   "pages": [
     {
       "type": "patchouli:text",
-      "text": "Chests, barrels, shulker boxes and ender chests open their usual screens on the wagon. Adjacent cargo chests do not merge.$(br2)Conversion between blocks and an entity preserves cargo positions and container contents. Menus may close during conversion; reopen them afterward."
+      "text": "Chests, barrels, shulker boxes and ender chests open their usual screens on the wagon. Each cargo chest provides independent storage.$(br2)Conversion preserves cargo positions and container contents. Reopen storage menus after conversion finishes."
     },
     {
       "type": "patchouli:text",
-      "text": "Unloading or destroying an ordinary container drops its block and contents separately. Shulker boxes retain their contents; ender chests still access your personal storage.$(br2)Some modded chests and barrels also work. Custom containers are not universally supported, and locked or unresolved loot containers may reject interaction."
+      "text": "Unloading or destroying an ordinary container drops its block and contents separately. Shulker boxes retain their contents; ender chests access personal storage.$(br2)Compatible modded chests and barrels work too. Unlock containers and resolve their loot before transporting them as interactive cargo."
     }
   ]
 }

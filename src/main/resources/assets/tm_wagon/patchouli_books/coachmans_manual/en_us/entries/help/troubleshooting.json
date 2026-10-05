@@ -14,7 +14,7 @@
     },
     {
       "type": "patchouli:text",
-      "text": "$(bold)Cargo will not respond?$(reset) Fabric, conversion, server placement rules or an unsupported workstation may be responsible. Try an unobstructed approach.$(br2)$(bold)Mat will not fit?$(reset) It needs three slots in the same column toward the front. Empty slots behind your target do not count. Stop before sleeping."
+      "text": "$(bold)Cargo access$(reset): Open curtains or the tailgate, or roll back the cover. Use a clear path after conversion finishes, with permitted cargo and supported workstations.$(br2)$(bold)Mat placement$(reset): Leave three consecutive slots in one column toward the front from your target. Stop before sleeping."
     },
     {
       "type": "patchouli:text",

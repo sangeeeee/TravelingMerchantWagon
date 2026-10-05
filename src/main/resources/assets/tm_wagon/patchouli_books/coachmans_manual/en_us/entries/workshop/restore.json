@@ -6,7 +6,7 @@
   "pages": [
     {
       "type": "patchouli:text",
-      "text": "Park roughly above a $(bold)folded jack$(reset), then use it. The platform rises and checks space at the end of the animation. Success restores the wagon to blocks.$(br2)If space is blocked, the wagon remains an entity and the jack folds again. Nearby blocks, standing entities or sleepers may obstruct restoration."
+      "text": "Park roughly above a $(bold)folded jack$(reset), then use it. The platform rises and checks space at the end of the animation before restoring the wagon to blocks.$(br2)Clear room for the whole wagon and move standing or sleeping passengers aside. If space is blocked, the jack folds again; clear it and retry."
     },
     {
       "type": "patchouli:text",

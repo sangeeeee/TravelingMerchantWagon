@@ -10,7 +10,7 @@
     },
     {
       "type": "patchouli:text",
-      "text": "Craft an extended box from a standard box, then a wide box from an extended box. Each upgrade retains the input box’s wood; auxiliary wood materials may differ.$(br2)Upgrading happens in crafting, not by using an installed box. Unload and recover the box first, craft the upgrade, then rebuild."
+      "text": "Craft an extended box from a standard box, then a wide box from an extended box. Upgrades retain the input box’s wood; auxiliary wood materials may differ.$(br2)Unload and recover the box, craft its upgrade, then fit the new box to the jack."
     },
     {
       "type": "tm_wagon:component_recipe",

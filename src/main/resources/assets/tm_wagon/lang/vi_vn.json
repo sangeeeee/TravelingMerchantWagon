@@ -39,7 +39,7 @@
   "message.tm_wagon.seats_full": "Mọi chỗ ngồi trên xe đều đã có người.",
   "message.tm_wagon.seat_occupied": "Chỗ này đã có người. Hãy chọn chỗ khác.",
   "message.tm_wagon.hitch_occupied": "Vị trí kéo xe này đã được sử dụng.",
-  "message.tm_wagon.lead_horse_required": "Dùng dây dắt đưa ngựa hoặc lừa trưởng thành đến cạnh càng xe.",
+  "message.tm_wagon.lead_horse_required": "Trước tiên hãy dùng dây dắt đưa ngựa, lừa, ngựa bộ xương hoặc ngựa thây ma trưởng thành đến đây.",
   "message.tm_wagon.hitch_blocked": "Con vật cần chỗ trống và mặt đất gần đó để đứng.",
   "subtitles.tm_wagon.wagon_roll": "Bánh xe ngựa kẽo kẹt",
   "message.tm_wagon.cargo_unsupported": "Không thể chở khối này làm hàng. Không hỗ trợ kết cấu nhiều khối.",

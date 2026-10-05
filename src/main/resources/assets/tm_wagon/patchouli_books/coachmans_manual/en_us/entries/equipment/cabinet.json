@@ -6,11 +6,11 @@
   "pages": [
     {
       "type": "patchouli:text",
-      "text": "Fit a cabinet by using the side below the driver’s seat. Both wagon forms support installation, and its width adapts to the seat.$(br2)A single seat provides single-chest capacity. Two- and three-seat benches both provide double-chest capacity; the wider cabinet adds no extra slots."
+      "text": "Use the side below the driver’s seat with a cabinet to fit it. Both wagon forms support installation, and its width adapts to the seat.$(br2)A single seat provides 27 storage slots; double and triple benches provide 54. Choose a wood to suit the other parts."
     },
     {
       "type": "patchouli:text",
-      "text": "Use either handled end to open a drawer, even while holding an item. It slides out and returns when the menu closes. Sneak-use to remove the cabinet; contents drop separately.$(br2)Conversion preserves storage. Breaking a block-form seat drops the seat, cabinet and contents separately. Hammer dismantling also recovers the cabinet."
+      "text": "Use either handled drawer end to open storage, even while holding an item. The drawer slides out and returns when its menu closes.$(br2)Sneak-use to remove the cabinet; its contents drop separately. Conversion preserves storage. Removing the seat or hammer-dismantling also recovers the cabinet and contents."
     },
     {
       "type": "tm_wagon:component_recipe",
@@ -19,6 +19,15 @@
       "heading": "book.tm_wagon.recipe",
       "text": "Use six matching planks around a barrel. The planks determine the cabinet’s wood.",
       "anchor": "wagon_cabinet"
+    },
+    {
+      "type": "patchouli:image",
+      "images": [
+        "tm_wagon:textures/gui/handbook/equipment/cabinet_closed.png",
+        "tm_wagon:textures/gui/handbook/equipment/cabinet_open.png"
+      ],
+      "border": false,
+      "text": "Oak cabinet: closed / open drawer."
     }
   ],
   "extra_recipe_mappings": {

@@ -10,11 +10,11 @@
     },
     {
       "type": "patchouli:text",
-      "text": "Sneak-use cargo to unload it into your inventory; overflow drops into the world. Beds, doors and other multiblock structures are rejected. By default, wagon parts are also blacklisted as ordinary cargo.$(br2)Fabric does not hide cargo, but blocks interactions through it. Open the tailgate or curtains and use an unobstructed path."
+      "text": "Sneak-use cargo to unload it into your inventory; overflow drops into the world. Ordinary cargo uses allowed single-block items. Mats and stools use dedicated accessories.$(br2)Open the tailgate or curtains, or roll back a cover, to access cargo from an unobstructed direction."
     },
     {
       "type": "patchouli:text",
-      "text": "Use the rear tailgate to open or close it in either wagon form. It folds outward and hangs down, making rear access easier.$(br2)Opening it adds no cargo slots and does not unload anything automatically. A canopy’s rear curtains must be opened separately. Covered cargo remains accessible from behind when fabric does not obstruct the path.",
+      "text": "Use the rear tailgate to open or close it in either wagon form. It folds outward and hangs down for boarding and loading.$(br2)With a canopy fitted, also open its rear curtains. With a cover, use cargo through the clear rear opening.",
       "title": "The Tailgate"
     },
     {

@@ -380,10 +380,9 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
         if(level()!=null&&level().isClientSide) { var tag=entityData.get(MOTION);return tag.hasUUID("Horse0")||tag.hasUUID("Horse1"); }
         return horses[0]!=null||horses[1]!=null;
     }
-    /** Constant-time eligibility; normal slope tilt is allowed, tipped or falling wagons are not. */
+    /** Grounded players may also push stranded, tipped or unsupported wagons. */
     public boolean canBeManuallyPushed() {
-        return !isRemoved()&&assemblyLock==null&&!hasAttachedHorses()&&!falling()&&Integer.bitCount(supportMask)>=2
-            &&Math.abs(pitch)<Math.toRadians(35)&&Math.abs(roll)<Math.toRadians(30);
+        return !isRemoved()&&assemblyLock==null&&!hasAttachedHorses();
     }
     /** onGround also includes entity platforms; only real block support permits pushing. */
     public static boolean hasGroundForPushing(Player player) {
@@ -398,8 +397,6 @@ public class WagonEntity extends Entity implements GeoEntity,com.sange.tm_wagon.
     public int pushDirection(Player player,int forward,int sideways) {
         if(Math.abs(forward)>1||Math.abs(sideways)>1||(forward==0&&sideways==0)
             ||player.level()!=level()||!hasGroundForPushing(player)||!canBeManuallyPushed())return 0;
-        Vec3 local=pose().local(player.position());
-        if(local.y>.9||local.y<-.9)return 0;
         Vec3 intent=new Vec3(sideways,0,forward).normalize().yRot(-(float)Math.toRadians(player.getYRot()));
         Vec3 heading=new WagonPose(position(),getYRot(),0,0).forward();
         double along=intent.dot(heading);

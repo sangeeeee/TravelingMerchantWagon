@@ -39,7 +39,7 @@
   "message.tm_wagon.seats_full": "馬車座位已滿。",
   "message.tm_wagon.seat_occupied": "此座位已被占用，請選擇其他座位。",
   "message.tm_wagon.hitch_occupied": "此牽引位置已被占用。",
-  "message.tm_wagon.lead_horse_required": "請用拴繩將成年的馬或驢帶到車轅旁。",
+  "message.tm_wagon.lead_horse_required": "請先用拴繩牽來一匹成年馬、驢、骷髏馬或殭屍馬。",
   "message.tm_wagon.hitch_blocked": "馬匹需要足夠空間與附近可站立的地面。",
   "subtitles.tm_wagon.wagon_roll": "馬車車輪吱嘎作響",
   "message.tm_wagon.cargo_unsupported": "此方塊無法裝載為貨物，不支援多方塊結構。",

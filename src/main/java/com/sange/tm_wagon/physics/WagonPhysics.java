@@ -135,7 +135,8 @@ public final class WagonPhysics {
         WagonPose old=wagon.pose();Vec3[] oldCentres=new Vec3[4];
         for(int i=0;i<4;i++)oldCentres[i]=wagon.wheelCentre(i,old);
         boolean unstable=falling||Math.abs(old.pitch())>NORMAL_PITCH+.1||Math.abs(old.roll())>NORMAL_ROLL+.1;
-        driverRecovery=input!=0&&unstable&&touchingGround(wagon);
+        boolean manualPush=!powered&&pushing!=0;
+        driverRecovery=unstable&&(manualPush||(input!=0&&touchingGround(wagon)));
         float steer=Mth.lerp(.28F,wagon.steering(),steering*(float)Math.toRadians(25));
         wagon.setSteering(steer);
         int occupied=wagon.cargo().occupiedSlots();
@@ -144,14 +145,16 @@ public final class WagonPhysics {
         // A stranded driver can still rock a tipped wagon after its horses detach.
         if(driverRecovery&&!powered)limit*=.35;
         double speed=drive.tick(powered||driverRecovery?input:0,limit,occupied,wagon.cargo().capacity());
-        if(!powered&&!driverRecovery&&!falling&&pushing!=0) { speed=PUSH_SPEED*pushing;drive.reset(); }
+        if(manualPush) { speed=PUSH_SPEED*pushing;drive.reset(); }
         float yaw=old.yaw()+(float)Math.toDegrees(speed*Math.tan(steer)/wagon.wheelbase());
         Vec3 direction=new WagonPose(old.position(),yaw,0,0).forward();
         Vec3 horizontal=direction.scale(speed);
         if(!driverRecovery&&!falling&&!wagon.horsesCanAdvance(horizontal)) { horizontal=Vec3.ZERO;yaw=old.yaw(); }
         if(falling) {
             Vec3 momentum=wagon.getDeltaMovement();horizontal=new Vec3(momentum.x,0,momentum.z);
-            if(input!=0&&(powered||driverRecovery))horizontal=horizontal.lerp(direction.scale(speed),.4);
+            // Hand pressure remains effective when the chassis, rather than its wheels,
+            // rests on terrain. Gravity and swept collisions still constrain recovery.
+            if(manualPush||input!=0&&(powered||driverRecovery))horizontal=horizontal.lerp(direction.scale(speed),.4);
             else if(tipDirection!=0)horizontal=horizontal.add(direction.scale(.018*tipDirection));
             double fallLimit=WagonSpeed.maxForward()*(16.0/15);
             if(horizontal.horizontalDistance()>fallLimit)horizontal=horizontal.normalize().scale(fallLimit);

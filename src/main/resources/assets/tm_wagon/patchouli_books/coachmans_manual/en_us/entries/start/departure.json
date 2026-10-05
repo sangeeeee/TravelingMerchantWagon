@@ -6,7 +6,7 @@
   "pages": [
     {
       "type": "patchouli:text",
-      "text": "Lead an adult horse or donkey to the shafts. With a lead in hand, use any part of the shafts to hitch it. Its existing lead secures it; no extra lead is charged.$(br2)Single shafts need one animal. Both positions on double shafts must be occupied before driving."
+      "text": "Lead an adult horse, donkey, skeleton horse or zombie horse to the shafts. With a lead in hand, use any part of the shafts to hitch it with its existing lead.$(br2)Fill the single hitch, or both double-hitch positions, then drive."
     },
     {
       "type": "patchouli:text",

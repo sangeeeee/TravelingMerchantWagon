@@ -6,18 +6,18 @@
   "pages": [
     {
       "type": "patchouli:text",
-      "text": "A mat occupies three consecutive slots in one column. Use an empty slot with a mat; it extends $(bold)toward the front$(reset) and requires three clear slots. Use any part of the mat to try sleeping.$(br2)Stop the wagon and avoid excessive tilt before entering sleep. Moving afterward does not wake sleeping players or maids."
+      "text": "A straw mat uses three consecutive slots in one column. Use an empty slot with a mat; it extends $(bold)toward the front$(reset). Use any part to try sleeping.$(br2)Stop the wagon in a reasonably level posture before sleeping. Players and maids stay asleep as the wagon moves afterward."
     },
     {
       "type": "patchouli:text",
-      "text": "Mats follow normal sleeping conditions but $(bold)do not set a respawn point$(reset). They only work in bed-compatible dimensions. The Nether and End reject use without an explosion.$(br2)Sneak-use to remove a mat. Removal wakes its sleeper safely. Block-to-entity conversion preserves sleep; sleepers may still obstruct conversion back to blocks."
+      "text": "Mats let you sleep through the night while keeping your existing respawn setting. Use them in bed-compatible dimensions under normal sleeping conditions. The Nether and End show a message.$(br2)Sneak-use to remove a mat and wake its sleeper safely. Assembly preserves sleep; wake sleepers and clear space before restoring the wagon to blocks."
     },
     {
       "type": "tm_wagon:component_recipe",
       "recipe": "tm_wagon:wagon_straw_mat",
       "alternative": 0,
       "heading": "book.tm_wagon.recipe",
-      "text": "Use any planks, including modded planks. Mats have no wood variants.",
+      "text": "Use any planks, including modded planks. Mats use a consistent straw appearance.",
       "anchor": "wagon_straw_mat"
     }
   ],

@@ -54,10 +54,15 @@ for locale in ('en_us', 'zh_cn', 'zh_tw'):
             assert entry['pages'][index]['recipe'] == item, (id,item)
     required = {p.stem for p in RECIPES.glob('*.json')}
     assert covered == required, (locale,'missing recipes',required-covered)
-    assert len(images) == 6, locale
+    assembly_images = {image for image in images if '/assembly/' in image}
+    equipment_images = {image for image in images if '/equipment/' in image}
+    assert len(assembly_images) == 6 and len(equipment_images) == 6, locale
+    for id in ('cabinet','cover','canopy'):
+        preview = entries['equipment/'+id]['pages'][-1]
+        assert preview['type'] == 'patchouli:image' and len(preview['images']) == 2, id
     for id in ('carryon','maid','sable'):
         assert entries['help/'+id]['flag'].startswith('mod:'), id
-    print(f'{locale}: {len(categories)} categories, {len(entries)} entries, {pages} pages, {len(covered)} recipes, {len(images)} diagrams; references valid')
+    print(f'{locale}: {len(categories)} categories, {len(entries)} entries, {pages} pages, {len(covered)} recipes, {len(assembly_images)} diagrams, {len(equipment_images)} previews; references valid')
 
 template = read(BOOK/'en_us/templates/component_recipe.json')
 assert any(p.get('class') == 'com.sange.tm_wagon.handbook.client.WagonRecipeComponent' for p in template['components'])

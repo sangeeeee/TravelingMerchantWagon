@@ -6,11 +6,11 @@
   "pages": [
     {
       "type": "patchouli:text",
-      "text": "With $(bold)no animals attached$(reset), grounded players can push along the wagon’s length. Push from behind to move forward, or from in front to move backward. The body and axle areas can be used.$(br2)Standing on the wagon, flying or being airborne does not push it. Sideways pressure does not cause strafing."
+      "text": "Unhitch all draft animals, then push along the wagon’s length while standing on the ground. Push from behind to move forward, or from the front to reverse. Body and axle areas can be used.$(br2)Keep your feet grounded. Pushing also helps free a tipped wagon or one with unsupported wheels; continued pressure helps it settle upright."
     },
     {
       "type": "patchouli:text",
-      "text": "A seated driver can steer while someone pushes. Pushing is slow and useful for docking; it does not replace draft animals.$(br2)To restore a wagon to blocks, start with a folded jack and park roughly above it. Exact pixel alignment is unnecessary."
+      "text": "A seated driver can steer while someone pushes.$(br2)Move the wagon roughly over the centre of a folded jack, then use the jack to restore it to blocks."
     },
     {
       "type": "patchouli:relations",

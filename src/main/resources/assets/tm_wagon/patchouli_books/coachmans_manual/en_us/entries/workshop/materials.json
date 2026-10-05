@@ -6,11 +6,11 @@
   "pages": [
     {
       "type": "patchouli:text",
-      "text": "Available woods are oak, spruce, birch, jungle, acacia, dark oak, mangrove, cherry, crimson and warped; bamboo is excluded.$(br2)Boxes, driver’s seats, wheels, stools and cabinets have wood variants. Different parts may use different woods. Conversion and recovery preserve each part’s material."
+      "text": "Choose oak, spruce, birch, jungle, acacia, dark oak, mangrove, cherry, crimson or warped wood.$(br2)Boxes, driver’s seats, wheels, stools and cabinets have wood variants. Mix different woods on one wagon; conversion and recovery preserve each part’s material."
     },
     {
       "type": "patchouli:text",
-      "text": "Upholstered cushions, cargo covers and canopies support all sixteen wool colours. Multiple wool blocks in a recipe must match.$(br2)Materials that determine wood must use supported vanilla species. Auxiliary ingredients marked “any planks” may be modded. Oak and white recipe examples are illustrative, not the only choices."
+      "text": "Upholstered cushions, covers and canopies support sixteen wool colours. Use matching wool in each recipe.$(br2)Wood-determining materials use supported vanilla species; auxiliary “any planks” may be modded. Replace the oak and white examples with your preferred wood and wool."
     }
   ]
 }

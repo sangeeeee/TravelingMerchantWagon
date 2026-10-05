@@ -191,6 +191,7 @@ neoForge {
             client()
             gameDirectory = project.file('build/handbook-client')
             systemProperty 'tm_wagon.handbookSmokeTest', 'true'
+            systemProperty 'tm_wagon.handbookPreviewOnly', providers.gradleProperty('handbookPreviewOnly').getOrElse('false')
             programArguments.addAll '--width', '1000', '--height', '700'
         }
 

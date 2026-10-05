@@ -6,11 +6,11 @@
   "pages": [
     {
       "type": "patchouli:text",
-      "text": "手持货箱罩，右键货箱木质侧面安装，初始完全铺开。方块与实体形态都可安装或拆下。货箱罩与车蓬互斥。$(br2)右键布面或卷起的布卷，每次从车头向车尾卷起一行。潜行右键布或布卷，每次铺开一行。完全卷起时仍可点布卷重新铺开。"
+      "text": "手持货箱罩，右键货箱木质侧面安装，初始完全铺开。方块与实体形态都支持；在货箱罩和车蓬之间选择一种。$(br2)右键布面或布卷，每次从车头向车尾卷起一行。潜行右键布面或布卷，每次铺开一行。"
     },
     {
       "type": "patchouli:text",
-      "text": "要拆下整个货箱罩，请潜行右键$(bold)木质侧板$(reset)，而不是布面。$(br2)铺开的布可以站立，会阻挡穿过布的货物交互和凳子上方的空间。货物仍然正常渲染。打开尾门，从后方没有布遮挡的方向也能操作货物。"
+      "text": "卷起盖布，露出所需货位，就能使用、装入或卸下货物。也可以打开尾门，从后方通道操作。铺开的布面可以站立。$(br2)完全卷起时，潜行右键布卷可重新铺开。要拆下整个货箱罩，请潜行右键$(bold)露出的木质侧板$(reset)。"
     },
     {
       "type": "tm_wagon:component_recipe",
@@ -19,6 +19,15 @@
       "heading": "book.tm_wagon.recipe",
       "text": "羊毛必须同色。四角可以使用拴绳或藤蔓，决定颜色的只有羊毛。",
       "anchor": "wagon_cargo_cover"
+    },
+    {
+      "type": "patchouli:image",
+      "images": [
+        "tm_wagon:textures/gui/handbook/equipment/cover_spread.png",
+        "tm_wagon:textures/gui/handbook/equipment/cover_rolled.png"
+      ],
+      "border": false,
+      "text": "浅灰色货箱罩：铺开／卷起两行。"
     }
   ],
   "extra_recipe_mappings": {

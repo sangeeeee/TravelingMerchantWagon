@@ -6,7 +6,7 @@
   "pages": [
     {
       "type": "patchouli:text",
-      "text": "Carry On cannot pick up an entire entity wagon, wagon stools or straw mats. Normal wagon interactions remain available.$(br2)Picking up ordinary cargo follows Carry On’s current configuration. If its default sneak-use gesture conflicts with unloading, permitted cargo is picked up first; otherwise normal unloading applies."
+      "text": "Use Carry On’s pickup gesture on ordinary container cargo permitted by its configuration. With the default sneak-use gesture, pickup is tried before wagon unloading.$(br2)Dedicated parts such as stools and mats use their own fitting/removal interactions. Recover the whole wagon with a carpenter’s hammer."
     },
     {
       "type": "patchouli:text",

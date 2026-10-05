@@ -6,11 +6,11 @@
   "pages": [
     {
       "type": "patchouli:text",
-      "text": "A wagon stool is a dedicated part occupying one cargo slot. It can only be placed on wagons. Use its seat to sit; sneak to dismount or remove a stool.$(br2)Boarding checks occupancy and the rider’s full clearance, including cargo, covers, world blocks and Sable structures. Stools do not control the wagon."
+      "text": "Fit a wagon stool into one empty cargo slot. In either form, use its seat to sit, sneak to dismount, and sneak-use to remove it.$(br2)Choose a free stool with room for the rider’s whole body. Leave extra clearance for tall entities and keep surrounding passages clear. Drive from the driver’s seat."
     },
     {
       "type": "patchouli:text",
-      "text": "Eligible mobs approaching an empty stool can board automatically; players cannot. Lead a mob and use an empty stool with a lead in hand to seat it and recover the lead.$(br2)Unseated entities do not follow a moving deck and may slide off. Maids need the appropriate riding task or will leave the seat."
+      "text": "Eligible mobs approaching an empty stool can board automatically. Players board by right-clicking. Use a free stool with a lead in hand to seat a led mob and recover its lead.$(br2)Seat passengers before moving so they travel with the wagon. Choose the Wagon Passenger task for maids riding cargo stools."
     },
     {
       "type": "tm_wagon:component_recipe",

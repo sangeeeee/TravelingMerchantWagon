@@ -39,7 +39,7 @@
   "message.tm_wagon.seats_full": "Semua tempat duduk terisi.",
   "message.tm_wagon.seat_occupied": "Tempat duduk ini terisi. Pilih yang lain.",
   "message.tm_wagon.hitch_occupied": "Posisi penambatan ini terisi.",
-  "message.tm_wagon.lead_horse_required": "Bawa kuda atau keledai dewasa dengan tali penuntun ke dekat batang penarik.",
+  "message.tm_wagon.lead_horse_required": "Tuntun kuda, keledai, kuda tengkorak, atau kuda zombi dewasa ke sini dahulu.",
   "message.tm_wagon.hitch_blocked": "Hewan memerlukan ruang kosong dan tanah terdekat untuk berpijak.",
   "subtitles.tm_wagon.wagon_roll": "Roda pedati berderit",
   "message.tm_wagon.cargo_unsupported": "Blok ini tidak dapat dijadikan muatan. Struktur multiblok tidak didukung.",

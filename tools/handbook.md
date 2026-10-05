@@ -14,6 +14,10 @@ Each player's persisted data records actual receipt, rather than the first login
 and disabled gifts or missing Patchouli do not consume eligibility. Receipt survives reconnects, respawns and saves.
 
 Assembly instruction/image pairs form two-page spreads. See `render_assembly_guide.md` to regenerate images from the actual models.
+Equipment entries end with a two-image preview page opposite the recipe. Use the small image arrows to compare states.
+Run `python tools/render_equipment_guide.py` to render cabinet drawers, rolled covers and canopy curtains from the
+current runtime models, transforms and textures. Review images are saved to `docs/handbook/equipment`; the
+text-free 256px book textures live under `textures/gui/handbook/equipment`.
 
 `tm_wagon:component_recipe` pages refer to live recipe IDs. `WagonRecipeComponent` renders a single oak/white example
 using the same material projection as JEI. This avoids generating every material combination when opening the book.

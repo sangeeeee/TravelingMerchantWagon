@@ -68,6 +68,41 @@ public class WagonDrivingGameTests {
         h.getLevel().addFreshEntity(horse);horse.setLeashedTo(p,true);return horse;
     }
     @GameTest(template="assembly_test",timeoutTicks=35)
+    public static void undead_horses_use_native_leads_drive_and_refund_once(GameTestHelper h) {
+        var w=wagon(h,true,true);var p=driver(h,w);
+        p.setItemInHand(InteractionHand.MAIN_HAND,new ItemStack(Items.LEAD,2));
+        var skeleton=EntityType.SKELETON_HORSE.create(h.getLevel());
+        var zombie=EntityType.ZOMBIE_HORSE.create(h.getLevel());
+        AbstractHorse[] animals={skeleton,zombie};
+        for(int slot=0;slot<animals.length;slot++) {
+            var horse=animals[slot];horse.setNoAi(true);horse.setAge(0);horse.setPos(w.horsePosition(slot));
+            h.getLevel().addFreshEntity(horse);
+            h.assertTrue(horse.canHaveALeashAttachedToIt(),"Undead horse rejects a native leash");
+            h.assertTrue(horse.interact(p,InteractionHand.MAIN_HAND).consumesAction()&&horse.getLeashHolder()==p,"Native lead interaction failed");
+            h.assertTrue(w.attachHorse(p,horse,slot)==null,"Undead horse did not attach");
+            h.assertTrue(horse.getLeashHolder()==w&&HorseHarness.attached(horse),"Harness ownership was lost");
+        }
+        h.assertTrue(p.getMainHandItem().isEmpty()&&w.readyToPull(),"Wrong leash cost or incomplete undead hitch");
+        Vec3 start=w.position();drive(w,p,1,0,8);
+        h.assertTrue(w.position().distanceToSqr(start)>.01,"Undead horses could not pull the wagon");
+        w.detachAllHorses();w.detachAllHorses();
+        h.assertTrue(leads(h,w)==2&&!w.readyToPull(),"Undead detach duplicated or lost leads");
+        for(var horse:animals)h.assertTrue(!HorseHarness.attached(horse)&&!horse.isLeashed()&&!horse.isNoGravity(),"Undead horse did not recover normal state");
+        h.succeed();
+    }
+    @GameTest(template="assembly_test")
+    public static void undead_harness_keeps_adult_and_occupancy_rules(GameTestHelper h) {
+        for(var type:new EntityType<?>[]{EntityType.SKELETON_HORSE,EntityType.ZOMBIE_HORSE}) {
+            var horse=(AbstractHorse)type.create(h.getLevel());horse.setAge(0);
+            h.assertTrue(HorseHarness.eligible(horse),"Adult undead horse rejected");
+            horse.setAge(-100);h.assertTrue(!HorseHarness.eligible(horse),"Baby undead horse accepted");horse.setAge(0);
+            var rider=h.makeMockPlayer(GameType.SURVIVAL);rider.startRiding(horse,true);
+            h.assertTrue(!HorseHarness.eligible(horse),"Occupied undead horse accepted");rider.stopRiding();
+            horse.discard();h.assertTrue(!HorseHarness.eligible(horse),"Removed undead horse accepted");
+        }
+        h.succeed();
+    }
+    @GameTest(template="assembly_test",timeoutTicks=35)
     public static void seated_driver_can_bind_from_middle_of_single_shafts_without_second_lead(GameTestHelper h) {
         var w=wagon(h,false,false);var p=driver(h,w);w.positionRider(p);
         var horse=lead(h,w,p,0);p.setItemInHand(InteractionHand.MAIN_HAND,new ItemStack(Items.LEAD,2));
@@ -407,6 +442,15 @@ public class WagonDrivingGameTests {
         h.assertTrue(w.getYRot()<yaw-.5&&w.getZ()>z,"Falling wagon ignored reverse or steering input");h.succeed();
     }
     @GameTest(template="assembly_test",timeoutTicks=40)
+    public static void harnessed_wagon_accepts_driving_with_all_wheels_unsupported(GameTestHelper h) {
+        var w=wagon(h,false,false);var p=driver(h,w);var horse=attach(h,w,p,0);cliff(h,23);
+        w.tick();h.assertTrue(w.supportMask()==0&&w.falling(),"Fixture retained ground support");
+        Vec3 start=w.position();drive(w,p,1,1,8);
+        h.assertTrue(w.readyToPull()&&w.hasHorse(horse.getUUID()),"Unsupported wheels disabled the harness");
+        h.assertTrue(start.z-w.getZ()>.05&&Math.abs(w.getYRot()-180)>.1,"Unsupported wheels disabled forward driving or turning");
+        h.assertTrue(w.getY()<start.y,"Driving canceled gravity");h.succeed();
+    }
+    @GameTest(template="assembly_test",timeoutTicks=40)
     public static void airborne_unpowered_wagon_cannot_right_itself(GameTestHelper h) {
         var w=wagon(h,false,false);var p=driver(h,w);
         w.applyPose(new WagonPose(w.position().add(0,8,0),180,0,(float)Math.PI));
@@ -550,7 +594,7 @@ public class WagonDrivingGameTests {
         h.assertTrue(w.position().distanceToSqr(stopped)<.001,"Driver propelled upright wagon without horse or external push");h.succeed();
     }
     @GameTest(template="assembly_test",timeoutTicks=40)
-    public static void manual_push_requires_valid_contact_empty_harness_and_safe_pose(GameTestHelper h) {
+    public static void manual_push_requires_valid_contact_empty_harness_and_no_assembly_lock(GameTestHelper h) {
         var w=wagon(h,false,false);var p=pusher(h,w,1);
         h.assertTrue(w.pushDirection(p,0,0)==0&&w.pushDirection(p,-1,0)==0&&w.pushDirection(p,127,0)==0,"Standing, walking away or invalid keys enabled push");
         p.setPos(w.position().add(1.4,0,0));p.setYRot(90);h.assertTrue(w.pushDirection(p,1,0)==0,"Pure transverse contact enabled pushing");
@@ -561,8 +605,45 @@ public class WagonDrivingGameTests {
         var horse=attach(h,w,p,0);h.assertTrue(!w.readyToPull()&&w.pushDirection(p,1,0)==0,"Partially filled double harness allowed pushing");
         w.detachAllHorses();h.assertTrue(w.pushDirection(p,1,0)==1,"Detached wagon remained unpushable");
         w.lock(w.blockPosition());h.assertTrue(w.pushDirection(p,1,0)==0,"Assembly lock allowed push");w.unlock();
-        for(float roll:new float[]{.8F,(float)Math.PI}) { w.applyPose(new WagonPose(w.position(),180,0,roll));h.assertTrue(!w.canBeManuallyPushed(),"Tipped or inverted wagon accepted pushing"); }
-        w.applyPose(new WagonPose(w.position(),180,-1.2F,0));h.assertTrue(!w.canBeManuallyPushed(),"Severe front tilt accepted pushing");h.succeed();
+        w.setSupportMask(0);
+        for(float roll:new float[]{.8F,(float)Math.PI}) { w.applyPose(new WagonPose(w.position(),180,0,roll));h.assertTrue(w.canBeManuallyPushed(),"Tipped or inverted wagon rejected pushing"); }
+        w.applyPose(new WagonPose(w.position(),180,-1.2F,0));h.assertTrue(w.canBeManuallyPushed(),"Severe front tilt rejected pushing");h.succeed();
+    }
+    @GameTest(template="assembly_test",timeoutTicks=40)
+    public static void grounded_player_push_recovers_inverted_wagon(GameTestHelper h) { recoverByPushing(h,0,(float)Math.PI); }
+    @GameTest(template="assembly_test",timeoutTicks=40)
+    public static void grounded_player_push_recovers_front_tipped_wagon(GameTestHelper h) { recoverByPushing(h,-1.2F,0); }
+    private static void recoverByPushing(GameTestHelper h,float pitch,float roll) {
+        var w=wagon(h,false,false);var p=h.makeMockPlayer(GameType.SURVIVAL);Vec3 start=w.position();
+        WagonPose tilted=new WagonPose(start,180,pitch,roll);
+        double min=w.boxesAt(tilted).stream().mapToDouble(b->b.minY).min().orElseThrow();
+        w.applyPose(new WagonPose(start.add(0,start.y-min+.001,0),180,pitch,roll));w.setSupportMask(0);
+        h.assertTrue(w.canBeManuallyPushed(),"Unsupported recovery wagon is locked");
+        double travelled=0;
+        for(int tick=0;tick<100;tick++) {
+            boolean contact=false;AABB bounds=w.getBoundingBox();
+            for(double z=bounds.maxZ+.3;z>=bounds.minZ-.3&&!contact;z-=.2)
+                for(double x=bounds.minX-.3;x<=bounds.maxX+.3&&!contact;x+=.2) {
+                    p.setPos(x,start.y,z);p.setOnGround(true);p.setYRot(w.getYRot());
+                    if(w.colliders().stream().noneMatch(box->box.intersects(p.getBoundingBox()))&&w.pushDirection(p,1,0)==1)contact=true;
+                }
+            h.assertTrue(contact,"No grounded push contact on tilted body at tick "+tick);
+            Vec3 before=w.position();w.acceptPush(p,1,0);w.tick();travelled+=before.z-w.getZ();
+            for(var box:w.motionBoxesAt(w.pose()))h.assertTrue(box.minY>=start.y-.03,"Manual recovery penetrated the floor");
+        }
+        h.assertTrue(travelled>.3,"Grounded hand pressure did not move the stranded wagon");
+        h.assertTrue(Math.abs(w.pitch())<.15&&Math.abs(w.roll())<.15&&!w.falling(),"Manual pushing did not recover the wagon: pitch "+w.pitch()+" roll "+w.roll());h.succeed();
+    }
+    @GameTest(template="assembly_test",timeoutTicks=40)
+    public static void manual_pressure_during_fall_moves_both_directions_without_canceling_gravity(GameTestHelper h) {
+        for(int direction:new int[]{1,-1}) {
+            var w=wagon(h,false,false);cliff(h,23);w.setSupportMask(0);Vec3 start=w.position();
+            var physics=new WagonPhysics();
+            for(int tick=0;tick<5;tick++)physics.tick(w,0,0,false,direction);
+            h.assertTrue(physics.falling()&&w.supportMask()==0,"Fixture retained wheel support");
+            h.assertTrue((start.z-w.getZ())*direction>.02,"Hand pressure was lost during falling: direction "+direction+" movement "+w.position().subtract(start));
+            h.assertTrue(w.getY()<start.y-.5,"Hand pressure canceled gravity");w.discard();
+        }h.succeed();
     }
     @GameTest(template="assembly_test",timeoutTicks=40)
     public static void entity_supported_players_never_push_even_on_low_wheel_edges(GameTestHelper h) {

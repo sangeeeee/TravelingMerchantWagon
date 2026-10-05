@@ -6,7 +6,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.TitleScreen;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.neoforged.fml.ModList;
 import java.util.*;
@@ -61,13 +60,26 @@ public final class HandbookClientSmoke {
                     inspectPage(field(mc.screen,"leftPage"));inspectPage(field(mc.screen,"rightPage"));
                     var current=spreads.get(spreadIndex);
                     if(current.entry().getPath().equals("start/assembly")||current.entry().getPath().equals("start/supplies")
-                        ||current.entry().getPath().equals("workshop/seats"))
+                        ||current.entry().getPath().equals("workshop/seats")||current.entry().getPath().startsWith("equipment/"))
                         net.minecraft.client.Screenshot.grab(mc.gameDirectory,mc.getMainRenderTarget(),c->{});
-                    if(spreadIndex+1==spreads.size()) {
-                        LogUtils.getLogger().info("HANDBOOK_SMOKE: PASS - {} entries, {} rendered pages, {} recipe pages, {} overflowing text blocks",spreads.stream().map(Spread::entry).distinct().count(),checkedPages,checkedRecipes,overflow);
-                        mc.stop();
-                    } else nextSpread();
+                    var page=field(mc.screen,"rightPage");
+                    boolean preview=page!=null&&current.entry().getPath().startsWith("equipment/")&&page.getClass().getSimpleName().equals("PageImage");
+                    if(preview) {
+                        if(((ResourceLocation[])field(page,"images")).length!=2)throw new IllegalStateException("Preview must contain two states");
+                        boolean clicked=false;
+                        for(var child:mc.screen.children())if(child instanceof net.minecraft.client.gui.components.Button button
+                            &&child.getClass().getSimpleName().equals("GuiButtonBookArrowSmall")&&!(boolean)field(child,"left")) {
+                            button.onPress();clicked=true;break;
+                        }
+                        if(!clicked)throw new IllegalStateException("Preview's next-image button missing");
+                    }else advance();
                 }catch(Exception e){throw new IllegalStateException("Handbook spread failed: "+spreads.get(spreadIndex),e);}
+            }else if(spreadIndex>=0&&spreadTicks==12) {
+                try {
+                    if((int)field(field(mc.screen,"rightPage"),"index")!=1)throw new IllegalStateException("Preview did not advance");
+                    net.minecraft.client.Screenshot.grab(mc.gameDirectory,mc.getMainRenderTarget(),c->{});
+                    advance();
+                }catch(Exception e){throw new IllegalStateException("Preview switch failed",e);}
             }
         }
     }
@@ -91,9 +103,17 @@ public final class HandbookClientSmoke {
         for(String mod:List.of("carryon","touhou_little_maid","sable"))if(ModList.get().isLoaded(mod))expected++;
         if(entries.size()!=expected)throw new IllegalStateException("Expected "+expected+" entries, got "+entries.size());
         for(var id:entries.keySet().stream().map(ResourceLocation.class::cast).sorted().toList()) {
+            if(Boolean.getBoolean("tm_wagon.handbookPreviewOnly")&&!id.getPath().startsWith("equipment/"))continue;
             var pages=(List<?>)invoke(entries.get(id),"getPages");
             for(int page=0;page<pages.size();page+=2)spreads.add(new Spread(id,page));
         }
+    }
+    private static void advance() {
+        if(spreadIndex+1==spreads.size()) {
+            if(overflow!=0)throw new IllegalStateException("Overflowing handbook text: "+overflow);
+            LogUtils.getLogger().info("HANDBOOK_SMOKE: PASS - {} entries, {} rendered pages, {} recipe pages, {} overflowing text blocks",spreads.stream().map(Spread::entry).distinct().count(),checkedPages,checkedRecipes,overflow);
+            Minecraft.getInstance().stop();
+        }else nextSpread();
     }
     private static void nextSpread() {
         spreadIndex++;spreadTicks=0;

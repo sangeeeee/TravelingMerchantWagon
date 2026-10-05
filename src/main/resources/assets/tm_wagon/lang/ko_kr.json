@@ -39,7 +39,7 @@
   "message.tm_wagon.seats_full": "마차의 모든 자리가 찼습니다.",
   "message.tm_wagon.seat_occupied": "이미 사용 중인 자리입니다. 다른 자리를 선택하세요.",
   "message.tm_wagon.hitch_occupied": "이미 사용 중인 말 연결 위치입니다.",
-  "message.tm_wagon.lead_horse_required": "끈으로 묶은 다 자란 말이나 당나귀를 끌채 옆으로 데려오세요.",
+  "message.tm_wagon.lead_horse_required": "먼저 끈으로 다 자란 말, 당나귀, 스켈레톤 말 또는 좀비 말을 데려오세요.",
   "message.tm_wagon.hitch_blocked": "말이 설 수 있는 빈 공간과 가까운 지면이 필요합니다.",
   "subtitles.tm_wagon.wagon_roll": "마차 바퀴가 삐걱거림",
   "message.tm_wagon.cargo_unsupported": "이 블록은 화물로 실을 수 없습니다. 여러 블록으로 된 구조물은 지원하지 않습니다.",

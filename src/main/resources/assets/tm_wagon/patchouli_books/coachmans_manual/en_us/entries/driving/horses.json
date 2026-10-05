@@ -6,11 +6,11 @@
   "pages": [
     {
       "type": "patchouli:text",
-      "text": "Hitch adult horses or donkeys, not mules. The animal must be on your lead with suitable ground nearby. Animals being ridden, carried or already hitched cannot be attached.$(br2)Use any part of the shafts while holding a lead, even from the wagon. Fill both double-hitch positions. Horse speed attributes do not set wagon speed."
+      "text": "Use adult horses, donkeys, skeleton horses or zombie horses. Lead an available animal beside the shafts with clear footing.$(br2)Use any shaft part while holding a lead, even from a seat. Single shafts need one animal; double shafts need two. Box size, cargo and server settings determine speed."
     },
     {
       "type": "patchouli:text",
-      "text": "Use shears on a hitched animal to release it and recover its lead. Converting the wagon back to blocks or dismantling it also releases animals and returns leads.$(br2)An animal left unsupported near a cliff for about three seconds detaches and falls. Leave safe ground for both animals and wheels."
+      "text": "Use shears on a hitched animal to release it and recover its lead. Restoring the wagon to blocks or dismantling it also releases animals and returns leads.$(br2)Keep safe footing near cliffs. An animal unsupported for about three seconds detaches; restoring ground contact in time keeps it hitched."
     }
   ]
 }

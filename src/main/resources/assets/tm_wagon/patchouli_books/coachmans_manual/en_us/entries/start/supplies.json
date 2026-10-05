@@ -6,18 +6,18 @@
   "pages": [
     {
       "type": "patchouli:text",
-      "text": "For your first wagon, choose a standard wagon box, a single wooden driver’s seat and single-horse shafts.$(br2)You need:$(li)1 assembly jack$(li)1 wagon box$(li)1 driver’s seat$(li)1 set of shafts$(li)2 small and 2 large wheels$(br2)Bring an adult horse or donkey and a lead."
+      "text": "For your first wagon, choose a standard box, a single wooden driver’s seat and single-horse shafts.$(br2)Gather:$(li)1 assembly jack$(li)1 wagon box$(li)1 driver’s seat$(li)1 set of shafts$(li)2 small and 2 large wheels$(br2)Bring a lead and one adult draft animal."
     },
     {
       "type": "patchouli:text",
-      "text": "One small-wheel recipe makes two wheels. Upgrade small wheels to make large ones. Parts on the same wagon may use different woods.$(br2)Recipes below show oak examples; their captions explain material rules. Continue with $(l:tm_wagon:start/assembly)Six-Step Assembly$(/l)."
+      "text": "Horses, donkeys, skeleton horses and zombie horses can pull wagons. Small wheels craft in pairs; upgrade them into large wheels. Parts may use different woods.$(br2)The recipes show oak examples and explain material rules. Continue with $(l:tm_wagon:start/assembly)Six-Step Assembly$(/l)."
     },
     {
       "type": "tm_wagon:component_recipe",
       "recipe": "tm_wagon:wagon_assembly_frame",
       "alternative": 0,
       "heading": "book.tm_wagon.recipe",
-      "text": "Use any planks, including modded planks. The jack has no wood variants.",
+      "text": "Use any planks, including modded planks. The jack uses a fixed wooden appearance.",
       "anchor": "wagon_assembly_frame"
     },
     {
@@ -41,7 +41,7 @@
       "recipe": "tm_wagon:single_horse_shafts",
       "alternative": 0,
       "heading": "book.tm_wagon.recipe",
-      "text": "Use any log or stripped log in the middle. Shafts have no wood variants.",
+      "text": "Use any log or stripped log in the middle. Shafts use a fixed wooden appearance.",
       "anchor": "single_horse_shafts"
     },
     {

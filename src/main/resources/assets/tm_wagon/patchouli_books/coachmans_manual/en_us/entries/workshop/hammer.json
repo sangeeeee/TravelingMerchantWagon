@@ -6,11 +6,11 @@
   "pages": [
     {
       "type": "patchouli:text",
-      "text": "Entity wagons resist ordinary attacks, weapons and environmental damage. $(bold)Hit an actual wagon part with a carpenter’s hammer$(reset) to dismantle it in one strike. Intact parts retain wood and cloth colours. Cargo follows normal unloading rules, and riders and animals are released."
+      "text": "To recover an entity wagon, $(bold)hit an actual wagon part with a carpenter’s hammer$(reset). One strike returns intact parts with their wood and cloth colours. Cargo follows normal unloading rules, while riders and draft animals are released."
     },
     {
       "type": "patchouli:text",
-      "text": "The hammer also chops wood like an iron axe, with equivalent durability and axe enchantments.$(br2)Other tools can break directly targeted world blocks, including grass inside the wagon’s broad bounds. They cannot mine through actual sideboards or the deck."
+      "text": "The hammer also chops wood like an iron axe, with equivalent durability and axe enchantments.$(br2)To mine world blocks near the wagon, aim at their exposed surfaces. This also works for grass and similar blocks appearing inside the box."
     },
     {
       "type": "tm_wagon:component_recipe",

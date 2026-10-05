@@ -6,11 +6,11 @@
   "pages": [
     {
       "type": "patchouli:text",
-      "text": "The wagon can climb successive one-block steps, but not taller obstacles or fences. Uneven wheel heights tilt it.$(br2)Allow room for the whole wagon and its turns. Canopies, cargo and seated passengers count toward clearance. A low tunnel stops the wagon rather than forcing a passenger’s head into blocks."
+      "text": "The wagon climbs successive one-block steps and tilts with uneven wheel heights. Choose gentle routes with room for its width and turns.$(br2)Clearance includes canopies, cargo and seated passengers. Leave enough height in tunnels; obstacles stop the wagon."
     },
     {
       "type": "patchouli:text",
-      "text": "Cliffs and steep slopes remain dangerous. Losing front-wheel support can make the wagon slide, tilt or overturn. The driver can still try moving and steering to recover, but escape is not guaranteed.$(br2)Hand pushing requires a reasonable posture. For difficult overturns, recover the parts with a carpenter’s hammer and rebuild."
+      "text": "Take care on steep slopes and cliffs. Losing front-wheel support can make the wagon slide or overturn. Try moving and steering to recover.$(br2)Hand pushing works with a reasonable posture. For a difficult recovery, dismantle with a carpenter’s hammer and rebuild on clear, level ground."
     }
   ]
 }
