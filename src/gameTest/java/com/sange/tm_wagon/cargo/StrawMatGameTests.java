@@ -27,6 +27,38 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 @GameTestHolder("tm_wagon")
 @PrefixGameTestTemplate(false)
 public class StrawMatGameTests {
+    @GameTest(template="assembly_test",timeoutTicks=35)
+    public static void mats_place_away_from_player_in_both_directions_without_changing_the_column(GameTestHelper h) {
+        var hold=wagon(h).cargo();var p=player(h,hold);var stack=new ItemStack(WagonContent.STRAW_MAT.get(),3);
+        p.setPos(hold.owner().cargoPose().point(new Vec3(-3,0,-3)));
+        h.assertTrue(hold.place(0,stack,p)==null&&stack.getCount()==2,"Rearward mat placement failed");
+        var mat=hold.entry(0);
+        h.assertTrue(mat.reversed&&hold.entry(2)==mat&&hold.entry(4)==mat&&hold.entry(1)==null&&hold.occupiedSlots()==3,"Rearward span/direction incorrect");
+        var saved=hold.save(h.getLevel().registryAccess(),false);hold.load(saved,h.getLevel().registryAccess());
+        h.assertTrue(hold.entry(0).reversed&&hold.anchorSlot(0)==4,"Reload lost rearward direction");
+        h.assertTrue(hold.take(2,p)==null&&hold.empty(),"Rearward mat did not remove through its middle");
+        h.assertTrue(hold.place(8,stack,p)!=null&&stack.getCount()==2,"Rear edge failed to enforce the requested direction");
+        p.setPos(hold.owner().cargoPose().point(new Vec3(-3,0,3)));
+        h.assertTrue(hold.place(9,stack,p)==null&&!hold.entry(9).reversed&&hold.entry(5)==hold.entry(9)&&hold.entry(4)==null,"Forward mat changed column or orientation");
+        h.succeed();
+    }
+    @GameTest(template="assembly_test",batch="mat_reverse_sleep",timeoutTicks=35)
+    public static void reversed_mat_sleep_uses_rear_head_and_safe_wake(GameTestHelper h) {
+        h.setNight();var hold=frame(h).cargo();var loader=player(h,hold);
+        loader.setPos(hold.owner().cargoPose().point(new Vec3(-3,0,-3)));
+        h.assertTrue(hold.place(0,new ItemStack(WagonContent.STRAW_MAT.get()),loader)==null,"Rearward mat failed");
+        var p=sleeper(h,hold);var bounds=hold.matBounds(4);
+        for(int cell:new int[]{0,2,4}) {
+            var hit=hold.centreAt(cell).add(0,.125,0);
+            p.setPos(hold.owner().cargoPose().point(hit.add(-1.2,0,0)));
+            hold.interact(p,net.minecraft.world.InteractionHand.MAIN_HAND,hit);
+            h.assertTrue(p.isSleeping()&&StrawMatSleep.reversed(p),"Rearward mat segment could not sleep");
+            var local=hold.owner().cargoPose().local(StrawMatSleep.sleepingPoint(p));
+            h.assertTrue(local.z>bounds.getCenter().z&&p.getBedOrientation()==Direction.fromYRot(hold.owner().cargoPose().yaw()+180),"Reversed mat retained front-facing head");
+            p.stopSleepInBed(true,true);
+            h.assertTrue(!p.isSleeping()&&h.getLevel().noCollision(p,p.getBoundingBox().deflate(.001)),"Rearward mat wake obstructed");
+        }h.succeed();
+    }
     @GameTest(template="assembly_test",batch="mat_clicks",timeoutTicks=35)
     public static void all_three_mat_segments_sleep_in_block_and_entity_forms(GameTestHelper h) {
         h.setNight();var f=frame(h);
@@ -50,7 +82,7 @@ public class StrawMatGameTests {
         w.setPos(Vec3.atBottomCenterOf(h.absolutePos(new BlockPos(11,2,17))));h.getLevel().addFreshEntity(w);return w;
     }
     private static Player player(GameTestHelper h,CargoHold hold) {
-        var p=h.makeMockPlayer(GameType.SURVIVAL);p.setPos(hold.owner().cargoPose().point(new Vec3(-3,0,0)));return p;
+        var p=h.makeMockPlayer(GameType.SURVIVAL);p.setPos(hold.owner().cargoPose().point(new Vec3(-3,0,3)));return p;
     }
     private static ServerPlayer sleeper(GameTestHelper h,CargoHold hold) {
         var p=h.makeMockServerPlayerInLevel();p.getAbilities().instabuild=false;p.getAbilities().flying=false;
@@ -161,7 +193,7 @@ public class StrawMatGameTests {
             String error=StrawMatSleep.sleep(hold,hold.entry(8),p);h.assertTrue(error==null,"Tilted sleep failed: "+error+", falling="+w.falling()+", player="+p.position()+", wagon="+w.position());p.stopSleepInBed(true,true);
             h.assertTrue(!p.isSleeping()&&p.getPose()==Pose.STANDING&&h.getLevel().noCollision(p,p.getBoundingBox().deflate(.001)),"Tilted wake trapped player");
             h.assertTrue(StrawMatSleep.sleep(hold,hold.entry(8),p)==null,"Repeat tilted sleep failed");
-            var observer=player(h,hold);observer.setPos(w.pose().point(new Vec3(-4,0,0)));h.assertTrue(hold.take(4,observer)==null&&!p.isSleeping()&&carried(observer)==1,"Removing a mat did not wake the sleeper or dropped duplicates");
+            var observer=player(h,hold);observer.setPos(w.pose().point(new Vec3(-4,0,3)));h.assertTrue(hold.take(4,observer)==null&&!p.isSleeping()&&carried(observer)==1,"Removing a mat did not wake the sleeper or dropped duplicates");
             Vec3 outside=w.pose().point(new Vec3(-3,1.5,0));p.teleportTo(outside.x,outside.y,outside.z);
             String replacement=hold.place(8,new ItemStack(WagonContent.STRAW_MAT.get()),observer);
             if(replacement!=null) {

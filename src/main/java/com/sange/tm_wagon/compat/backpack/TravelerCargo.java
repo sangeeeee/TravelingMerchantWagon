@@ -34,6 +34,9 @@ public final class TravelerCargo {
         MENUS.register("traveler_cargo_settings",()->IMenuTypeExtension.create(Settings::new));
     private static final java.util.Map<CargoEntry,java.lang.ref.WeakReference<Wrapper>> WRAPPERS=new java.util.WeakHashMap<>();
     public static void register(IEventBus bus){MENUS.register(bus);}
+    public static boolean sleepingBag(ItemStack stack) {
+        return stack.getItem() instanceof com.tiviacz.travelersbackpack.items.SleepingBagItem;
+    }
     public static boolean matches(ItemStack stack){return stack.getItem() instanceof TravelersBackpackItem;}
     public static void visual(ItemStack stack) {
         stack.remove(ModDataComponents.BACKPACK_CONTAINER.get());stack.remove(ModDataComponents.UPGRADES.get());

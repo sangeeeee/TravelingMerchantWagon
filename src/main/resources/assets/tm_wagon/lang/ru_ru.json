@@ -46,10 +46,10 @@
   "message.tm_wagon.cargo_filtered": "Фильтр груза не разрешает этот блок.",
   "item.tm_wagon.wagon_straw_mat": "Соломенная циновка для повозки",
   "tooltip.tm_wagon.wagon_straw_mat": "Занимает три свободные ячейки подряд в одной колонке к передней части повозки. ПКМ — спать без установки точки возрождения; ПКМ при приседании — снять.",
-  "message.tm_wagon.mat_space": "Недостаточно места: нужны три свободные ячейки подряд в направлении передней части повозки.",
-  "message.tm_wagon.mat_dimension": "В этом измерении нельзя спать на циновке.",
-  "message.tm_wagon.mat_unstable": "Перед сном остановите и выровняйте повозку.",
-  "message.tm_wagon.mat_unavailable": "Сейчас нельзя спать на циновке.",
+  "message.tm_wagon.mat_space": "Недостаточно места: нужны три свободные ячейки подряд в направлении от вас.",
+  "message.tm_wagon.mat_dimension": "В этом измерении нельзя спать.",
+  "message.tm_wagon.mat_unstable": "Остановите и выровняйте повозку перед сном.",
+  "message.tm_wagon.mat_unavailable": "Сейчас нельзя спать.",
   "message.tm_wagon.cargo_occupied": "Эта грузовая ячейка занята.",
   "message.tm_wagon.cargo_blocked": "Грузовую ячейку перекрывает блок или сущность.",
   "item.tm_wagon.wagon_stool": "Табурет для повозки",
@@ -125,5 +125,6 @@
   "book.tm_wagon.category.workshop": "Мастерская повозок",
   "book.tm_wagon.category.help": "Помощь и интеграции",
   "book.tm_wagon.recipe": "Создание",
-  "book.tm_wagon.recipe_unavailable": "Этот рецепт недоступен на этом сервере."
+  "book.tm_wagon.recipe_unavailable": "Этот рецепт недоступен на этом сервере.",
+  "message.tm_wagon.sleeping_bag_space": "Недостаточно места: нужны две свободные ячейки подряд в направлении от вас."
 }

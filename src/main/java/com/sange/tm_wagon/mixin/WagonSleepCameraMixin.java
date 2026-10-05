@@ -49,7 +49,7 @@ public abstract class WagonSleepCameraMixin {
         // Compose the complete wagon frame with the native north-facing bed view.
         // Convert only at Camera's API boundary so combined slopes keep their roll.
         var orientation=new Quaternionf().rotationY((180-pose.yaw())*Mth.DEG_TO_RAD)
-            .rotateZ(pose.roll()).rotateX(pose.pitch()).rotateY(Mth.PI);
+            .rotateZ(pose.roll()).rotateX(pose.pitch()).rotateY(StrawMatSleep.reversed(sleeper)?0:Mth.PI);
         Vector3f angles=orientation.getEulerAnglesYXZ(new Vector3f());
         setRotation(180-angles.y*Mth.RAD_TO_DEG,-angles.x*Mth.RAD_TO_DEG,-angles.z*Mth.RAD_TO_DEG);
         setPosition(StrawMatSleep.sleepingPoint(sleeper,partial)

@@ -158,6 +158,7 @@ neoForge {
             client()
             gameDirectory = project.file('build/straw-mat-client')
             systemProperty 'tm_wagon.strawMatSleepSmokeTest', 'true'
+            systemProperty 'tm_wagon.sleepingBagSleepSmokeTest', providers.gradleProperty('sleepingBagSmoke').getOrElse('false')
             programArguments.addAll '--width', '1000', '--height', '700'
         }
 

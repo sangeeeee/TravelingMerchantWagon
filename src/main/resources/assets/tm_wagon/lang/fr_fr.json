@@ -46,10 +46,10 @@
   "message.tm_wagon.cargo_filtered": "Le filtre de chargement n'autorise pas ce bloc.",
   "item.tm_wagon.wagon_straw_mat": "Natte de paille pour chariot",
   "tooltip.tm_wagon.wagon_straw_mat": "Occupe trois emplacements libres consécutifs dans une colonne vers l'avant. Clic droit pour dormir sans définir de point de réapparition ; clic droit accroupi pour retirer.",
-  "message.tm_wagon.mat_space": "Espace insuffisant : trois emplacements libres consécutifs vers l'avant sont nécessaires.",
-  "message.tm_wagon.mat_dimension": "Vous ne pouvez pas dormir sur une natte dans cette dimension.",
+  "message.tm_wagon.mat_space": "Espace insuffisant : trois emplacements libres consécutifs en s’éloignant de vous sont nécessaires.",
+  "message.tm_wagon.mat_dimension": "Vous ne pouvez pas dormir dans cette dimension.",
   "message.tm_wagon.mat_unstable": "Arrêtez et stabilisez le chariot avant de dormir.",
-  "message.tm_wagon.mat_unavailable": "Vous ne pouvez pas dormir sur la natte pour le moment.",
+  "message.tm_wagon.mat_unavailable": "Vous ne pouvez pas dormir pour le moment.",
   "message.tm_wagon.cargo_occupied": "Cet emplacement de chargement est occupé.",
   "message.tm_wagon.cargo_blocked": "Un bloc ou une entité obstrue cet emplacement.",
   "item.tm_wagon.wagon_stool": "Tabouret de chariot",
@@ -125,5 +125,6 @@
   "book.tm_wagon.category.workshop": "Atelier du chariot",
   "book.tm_wagon.category.help": "Aide et intégrations",
   "book.tm_wagon.recipe": "Fabrication",
-  "book.tm_wagon.recipe_unavailable": "Cette recette est indisponible sur ce serveur."
+  "book.tm_wagon.recipe_unavailable": "Cette recette est indisponible sur ce serveur.",
+  "message.tm_wagon.sleeping_bag_space": "Espace insuffisant : deux emplacements libres consécutifs en s’éloignant de vous sont nécessaires."
 }

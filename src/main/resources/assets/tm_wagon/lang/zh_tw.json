@@ -46,10 +46,10 @@
   "message.tm_wagon.cargo_filtered": "貨物篩選設定不允許此方塊。",
   "item.tm_wagon.wagon_straw_mat": "馬車草蓆",
   "tooltip.tm_wagon.wagon_straw_mat": "由點擊處向車頭占用同一列的三個連續空貨位。右鍵可睡覺，但不會設定重生點；蹲下右鍵可取下。",
-  "message.tm_wagon.mat_space": "空間不足：朝車頭方向需要三個連續空貨位。",
-  "message.tm_wagon.mat_dimension": "無法在此維度使用草蓆睡覺。",
-  "message.tm_wagon.mat_unstable": "請先停穩馬車再睡覺。",
-  "message.tm_wagon.mat_unavailable": "現在無法使用草蓆睡覺。",
+  "message.tm_wagon.mat_space": "空間不足：從此處朝遠離你的方向需要同列連續三個空貨位。",
+  "message.tm_wagon.mat_dimension": "此維度無法睡覺。",
+  "message.tm_wagon.mat_unstable": "請先將馬車停穩，再睡覺。",
+  "message.tm_wagon.mat_unavailable": "現在無法睡覺。",
   "message.tm_wagon.cargo_occupied": "此貨位已被占用。",
   "message.tm_wagon.cargo_blocked": "此貨位被方塊或實體阻擋。",
   "item.tm_wagon.wagon_stool": "馬車木凳",
@@ -125,5 +125,6 @@
   "book.tm_wagon.category.workshop": "裝配與改造",
   "book.tm_wagon.category.help": "相容與疑難排解",
   "book.tm_wagon.recipe": "合成",
-  "book.tm_wagon.recipe_unavailable": "此伺服器未提供這個配方。"
+  "book.tm_wagon.recipe_unavailable": "此伺服器未提供這個配方。",
+  "message.tm_wagon.sleeping_bag_space": "空間不足：從此處朝遠離你的方向需要同列連續兩個空貨位。"
 }

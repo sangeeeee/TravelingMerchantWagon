@@ -46,10 +46,10 @@
   "message.tm_wagon.cargo_filtered": "Cribrum mercium hunc cubum non permittit.",
   "item.tm_wagon.wagon_straw_mat": "Storea Straminea Plaustri",
   "tooltip.tm_wagon.wagon_straw_mat": "Tres locos vacuos continuos eiusdem columnae versus frontem occupat. Ictu dextro dormi sine loco renascendi statuendo; furtim ictu dextro remove.",
-  "message.tm_wagon.mat_space": "Spatium deest: tres loci vacui continui versus frontem requiruntur.",
-  "message.tm_wagon.mat_dimension": "In hac dimensione in storea dormire non potes.",
-  "message.tm_wagon.mat_unstable": "Plaustrum siste et stabilitum tene antequam dormis.",
-  "message.tm_wagon.mat_unavailable": "Nunc in storea dormire non potes.",
+  "message.tm_wagon.mat_space": "Spatium deest: tres loci vacui continui a te recedentes requiruntur.",
+  "message.tm_wagon.mat_dimension": "In hac dimensione dormire non potes.",
+  "message.tm_wagon.mat_unstable": "Currum siste et stabili antequam dormias.",
+  "message.tm_wagon.mat_unavailable": "Nunc dormire non potes.",
   "message.tm_wagon.cargo_occupied": "Hic locus mercium occupatus est.",
   "message.tm_wagon.cargo_blocked": "Cubus aut entitas hunc locum mercium impedit.",
   "item.tm_wagon.wagon_stool": "Scabellum Plaustri",
@@ -125,5 +125,6 @@
   "book.tm_wagon.category.workshop": "Officina curruum",
   "book.tm_wagon.category.help": "Auxilium et coniunctiones",
   "book.tm_wagon.recipe": "Fabricatio",
-  "book.tm_wagon.recipe_unavailable": "Haec formula in hoc ministro non praesto est."
+  "book.tm_wagon.recipe_unavailable": "Haec formula in hoc ministro non praesto est.",
+  "message.tm_wagon.sleeping_bag_space": "Spatium deest: duo loci vacui continui a te recedentes requiruntur."
 }

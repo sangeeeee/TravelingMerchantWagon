@@ -46,10 +46,10 @@
   "message.tm_wagon.cargo_filtered": "Il filtro del carico non consente questo blocco.",
   "item.tm_wagon.wagon_straw_mat": "Stuoia di paglia del carro",
   "tooltip.tm_wagon.wagon_straw_mat": "Occupa tre spazi liberi consecutivi nella stessa colonna verso la parte anteriore. Clic destro per dormire senza impostare la rinascita; clic destro da accovacciato per rimuovere.",
-  "message.tm_wagon.mat_space": "Spazio insufficiente: servono tre spazi liberi consecutivi verso la parte anteriore.",
-  "message.tm_wagon.mat_dimension": "Non puoi dormire su una stuoia in questa dimensione.",
+  "message.tm_wagon.mat_space": "Spazio insufficiente: servono tre spazi liberi consecutivi nella direzione opposta a te.",
+  "message.tm_wagon.mat_dimension": "Non puoi dormire in questa dimensione.",
   "message.tm_wagon.mat_unstable": "Ferma e stabilizza il carro prima di dormire.",
-  "message.tm_wagon.mat_unavailable": "Al momento non puoi dormire sulla stuoia.",
+  "message.tm_wagon.mat_unavailable": "Non puoi dormire adesso.",
   "message.tm_wagon.cargo_occupied": "Questo spazio di carico è occupato.",
   "message.tm_wagon.cargo_blocked": "Un blocco o un'entità ostruisce questo spazio di carico.",
   "item.tm_wagon.wagon_stool": "Sgabello del carro",
@@ -125,5 +125,6 @@
   "book.tm_wagon.category.workshop": "Officina dei carri",
   "book.tm_wagon.category.help": "Aiuto e integrazioni",
   "book.tm_wagon.recipe": "Fabbricazione",
-  "book.tm_wagon.recipe_unavailable": "Questa ricetta non è disponibile su questo server."
+  "book.tm_wagon.recipe_unavailable": "Questa ricetta non è disponibile su questo server.",
+  "message.tm_wagon.sleeping_bag_space": "Spazio insufficiente: servono due spazi liberi consecutivi nella direzione opposta a te."
 }

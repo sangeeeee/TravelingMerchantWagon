@@ -46,10 +46,10 @@
   "message.tm_wagon.cargo_filtered": "The cargo filter does not allow this block.",
   "item.tm_wagon.wagon_straw_mat": "Wagon Straw Mat",
   "tooltip.tm_wagon.wagon_straw_mat": "Occupies three consecutive empty slots in one column toward the front. Right-click to sleep without setting a respawn point; sneak-right-click to remove.",
-  "message.tm_wagon.mat_space": "Not enough room: three consecutive empty slots toward the front are required.",
-  "message.tm_wagon.mat_dimension": "You cannot sleep on a straw mat in this dimension.",
+  "message.tm_wagon.mat_space": "Not enough room: three consecutive empty slots away from you are required.",
+  "message.tm_wagon.mat_dimension": "You cannot sleep in this dimension.",
   "message.tm_wagon.mat_unstable": "Stop and steady the wagon before sleeping.",
-  "message.tm_wagon.mat_unavailable": "You cannot use the straw mat to sleep right now.",
+  "message.tm_wagon.mat_unavailable": "You cannot sleep right now.",
   "message.tm_wagon.cargo_occupied": "This cargo slot is occupied.",
   "message.tm_wagon.cargo_blocked": "A block or entity is obstructing this cargo slot.",
   "item.tm_wagon.wagon_stool": "Wagon Stool",
@@ -125,5 +125,6 @@
   "book.tm_wagon.category.workshop": "The Wagon Workshop",
   "book.tm_wagon.category.help": "Help & Integrations",
   "book.tm_wagon.recipe": "Crafting",
-  "book.tm_wagon.recipe_unavailable": "This recipe is unavailable on this server."
+  "book.tm_wagon.recipe_unavailable": "This recipe is unavailable on this server.",
+  "message.tm_wagon.sleeping_bag_space": "Not enough room: two consecutive empty slots away from you are required."
 }

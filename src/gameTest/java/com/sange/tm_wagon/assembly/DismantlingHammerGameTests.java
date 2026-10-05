@@ -79,7 +79,7 @@ public class DismantlingHammerGameTests {
     }
     @GameTest(template="assembly_test")
     public static void hammer_recovers_accessories_and_container_contents_once(GameTestHelper h) {
-        var w=wagon(h);var hold=w.cargo();var p=h.makeMockPlayer(GameType.SURVIVAL);p.setPos(w.position().add(-3,1,0));
+        var w=wagon(h);var hold=w.cargo();var p=h.makeMockPlayer(GameType.SURVIVAL);p.setPos(w.position().add(-3,1,3));
         var stool=new com.sange.tm_wagon.material.WagonMaterial(com.sange.tm_wagon.material.WoodMaterial.BIRCH,DyeColor.WHITE);
         h.assertTrue(hold.place(0,new ItemStack(Items.CHEST),p)==null&&hold.place(1,new ItemStack(Items.SHULKER_BOX),p)==null,"Container fixtures failed");
         h.assertTrue(hold.place(4,stool.stack(WagonContent.STOOL.get()),p)==null&&hold.place(9,WagonContent.STRAW_MAT.get().getDefaultInstance(),p)==null,"Accessory fixtures failed");

@@ -131,7 +131,7 @@ public class OrientedCollisionGameTests {
         var f=(AssemblyFrameBlockEntity)h.getLevel().getBlockEntity(pos);h.assertTrue(f.initializeFrame()==null,"Frame failed");
         var parts=new EnumMap<WagonSlot,WagonPart>(WagonSlot.class);parts.putAll(WagonEntity.defaultParts());parts.put(WagonSlot.SEAT,WagonPart.DOUBLE_SEAT);
         for(var entry:parts.entrySet())h.assertTrue(f.install(entry.getKey(),entry.getValue(),null,new ItemStack(WagonContent.PART_ITEMS.get(entry.getValue()).get()))==null,"Part install failed");
-        var player=h.makeMockPlayer(GameType.SURVIVAL);player.setPos(f.cargoPose().point(new Vec3(-5,0,0)));
+        var player=h.makeMockPlayer(GameType.SURVIVAL);player.setPos(f.cargoPose().point(new Vec3(-5,0,3)));
         h.assertTrue(f.cargo().cabinet().install(new ItemStack(WagonContent.CABINET.get()),player,new Vec3(-15.5/16,1.7,-1.8))==null,"Cabinet failed");
         h.assertTrue(f.cargo().place(0,new ItemStack(WagonContent.STOOL.get()),player)==null,"Stool failed");
         h.assertTrue(f.cargo().place(8,new ItemStack(WagonContent.STRAW_MAT.get()),player)==null,"Mat failed");

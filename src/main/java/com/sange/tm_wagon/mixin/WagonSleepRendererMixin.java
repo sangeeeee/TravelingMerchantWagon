@@ -29,6 +29,7 @@ public abstract class WagonSleepRendererMixin {
             poses.translate(offset.x,offset.y,offset.z);
             poses.mulPose(Axis.YP.rotationDegrees(180-pose.yaw()));
             poses.mulPose(Axis.ZP.rotation(pose.roll()));poses.mulPose(Axis.XP.rotation(pose.pitch()));
+            if(StrawMatSleep.reversed(living))poses.mulPose(Axis.YP.rotationDegrees(180));
             // Undo the cardinal bed frame. The renderer still owns its native lying pose,
             // model scale and head offset, now expressed in the wagon's moving frame.
             poses.mulPose(Axis.YP.rotationDegrees(living.getBedOrientation().toYRot()-180));

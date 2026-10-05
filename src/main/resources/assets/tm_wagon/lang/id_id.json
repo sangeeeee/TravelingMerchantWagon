@@ -46,10 +46,10 @@
   "message.tm_wagon.cargo_filtered": "Filter muatan tidak mengizinkan blok ini.",
   "item.tm_wagon.wagon_straw_mat": "Tikar Jerami Pedati",
   "tooltip.tm_wagon.wagon_straw_mat": "Menempati tiga slot kosong berurutan dalam satu kolom ke arah depan. Klik kanan untuk tidur tanpa menetapkan titik respawn; klik kanan sambil mengendap untuk melepas.",
-  "message.tm_wagon.mat_space": "Ruang tidak cukup: diperlukan tiga slot kosong berurutan ke arah depan.",
-  "message.tm_wagon.mat_dimension": "Tidak dapat tidur di tikar dalam dimensi ini.",
-  "message.tm_wagon.mat_unstable": "Hentikan dan stabilkan pedati sebelum tidur.",
-  "message.tm_wagon.mat_unavailable": "Tikar belum dapat digunakan untuk tidur sekarang.",
+  "message.tm_wagon.mat_space": "Ruang tidak cukup: diperlukan tiga slot kosong berurutan menjauh darimu.",
+  "message.tm_wagon.mat_dimension": "Kamu tidak bisa tidur di dimensi ini.",
+  "message.tm_wagon.mat_unstable": "Hentikan dan stabilkan gerobak sebelum tidur.",
+  "message.tm_wagon.mat_unavailable": "Kamu tidak bisa tidur sekarang.",
   "message.tm_wagon.cargo_occupied": "Slot muatan ini terisi.",
   "message.tm_wagon.cargo_blocked": "Blok atau entitas menghalangi slot muatan ini.",
   "item.tm_wagon.wagon_stool": "Bangku Kecil Pedati",
@@ -125,5 +125,6 @@
   "book.tm_wagon.category.workshop": "Bengkel kereta",
   "book.tm_wagon.category.help": "Bantuan dan integrasi",
   "book.tm_wagon.recipe": "Pembuatan",
-  "book.tm_wagon.recipe_unavailable": "Resep ini tidak tersedia di server ini."
+  "book.tm_wagon.recipe_unavailable": "Resep ini tidak tersedia di server ini.",
+  "message.tm_wagon.sleeping_bag_space": "Ruang tidak cukup: diperlukan dua slot kosong berurutan menjauh darimu."
 }

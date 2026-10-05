@@ -23,6 +23,8 @@ import net.neoforged.neoforge.client.event.ClientTickEvent;
 /** Real integrated-server sleep/wake and input checks, in a disposable build-directory world only. */
 @EventBusSubscriber(modid="tm_wagon",value=Dist.CLIENT)
 public final class StrawMatSleepClientSmoke {
+    private static final boolean BAG=Boolean.getBoolean("tm_wagon.sleepingBagSleepSmokeTest");
+    private static final int ANCHOR=BAG?2:8;
     private static boolean opened;
     private static int ticks,loading,wagonId;
     private static volatile String failure;
@@ -56,7 +58,7 @@ public final class StrawMatSleepClientSmoke {
             var p=mc.getSingleplayerServer().getPlayerList().getPlayers().getFirst();var w=(WagonEntity)p.serverLevel().getEntity(wagonId);
             w.applyPose(new WagonPose(w.position(),213,.18F,.12F));w.syncMotion();
             Vec3 rear=w.pose().point(new Vec3(-.5,.25,3.2));p.teleportTo(rear.x,rear.y,rear.z);
-            require(StrawMatSleep.sleep(w.cargo(),w.cargo().entry(8),p)==null,"Could not sleep under cloth on tilted entity wagon");
+            require(StrawMatSleep.sleep(w.cargo(),w.cargo().entry(ANCHOR),p)==null,"Could not sleep under cloth on tilted entity wagon");
         });
         if(ticks==120) { checkSleeping(mc,true);leaveBed(mc); }
         if(ticks==140) {
@@ -82,7 +84,7 @@ public final class StrawMatSleepClientSmoke {
                 require(Math.abs(p.getYRot()-yaw)<.2&&Math.abs(p.getXRot()-pitch)<.2,"Server rejected view rotation after wake");verified=true;
             });
         }
-        if(ticks>=260&&verified) { LogUtils.getLogger().info("STRAW_MAT_SLEEP_CLIENT_PASS: covered block sleep, covered tilted entity sleep, wake above cloth, leave-bed packet, view, walking, jump, unchanged respawn and server agreement");mc.stop(); }
+        if(ticks>=260&&verified) { LogUtils.getLogger().info((BAG?"SLEEPING_BAG_CLIENT_PASS: ":"STRAW_MAT_SLEEP_CLIENT_PASS: ")+" covered block sleep, covered tilted entity sleep, wake above cloth, leave-bed packet, view, walking, jump, unchanged respawn and server agreement");mc.stop(); }
         if(ticks>300)throw new IllegalStateException("Straw mat sleep verification timed out");
     }
     private static void server(Minecraft mc,Runnable task) {
@@ -96,25 +98,26 @@ public final class StrawMatSleepClientSmoke {
             level.getChunk(new BlockPos(x,80,z));level.setBlock(new BlockPos(x,80,z),Blocks.STONE.defaultBlockState(),3);
             for(int y=81;y<=88;y++)level.setBlock(new BlockPos(x,y,z),Blocks.AIR.defaultBlockState(),3);
         }
-        p.setGameMode(GameType.SURVIVAL);p.getAbilities().flying=false;p.onUpdateAbilities();p.teleportTo(-3,82.5,0);
+        p.setGameMode(GameType.SURVIVAL);p.getAbilities().flying=false;p.onUpdateAbilities();p.teleportTo(-3,82.5,BAG?-3:3);
         level.setBlock(FRAME,WagonContent.FRAME.get().defaultBlockState(),3);var f=(AssemblyFrameBlockEntity)level.getBlockEntity(FRAME);
         require(f.initializeFrame()==null,"Frame init failed");
         require(f.install(WagonSlot.BODY,WagonPart.CARGO_BODY,null,new ItemStack(WagonContent.PART_ITEMS.get(WagonPart.CARGO_BODY).get()))==null,"Body init failed");
         for(var entry:WagonEntity.defaultParts().entrySet())if(entry.getKey()!=WagonSlot.BODY)
             require(f.install(entry.getKey(),entry.getValue(),null,new ItemStack(WagonContent.PART_ITEMS.get(entry.getValue()).get()))==null,"Module init failed");
-        require(f.cargo().place(8,new ItemStack(WagonContent.STRAW_MAT.get()),p)==null,"Mat placement failed");
+        require(f.cargo().place(BAG?0:8,BAG?new ItemStack(net.minecraft.core.registries.BuiltInRegistries.ITEM.get(net.minecraft.resources.ResourceLocation.parse("travelersbackpack:red_sleeping_bag"))):new ItemStack(WagonContent.STRAW_MAT.get()),p)==null,"Mat placement failed");
         require(f.cargo().cover().install(new ItemStack(WagonContent.CARGO_COVER.get()),p,new Vec3(-1.15625,1.9,.5))==null,"Cover install failed");
         var cargo=f.cargo().save(level.registryAccess(),false);cargo.putBoolean("GateTarget",true);cargo.putBoolean("GateCollision",true);cargo.putLong("GateStart",Long.MIN_VALUE);
         f.cargo().load(cargo,level.registryAccess());require(f.cargoGeometryChanged()==null,"Open rear fixture failed");f.cargoChanged(true);
         Vec3 rear=f.cargoPose().point(new Vec3(-.5,.25,3.2));p.teleportTo(rear.x,rear.y,rear.z);
         p.setRespawnPosition(level.dimension(),new BlockPos(8,81,0),47,false,false);level.setDayTime(13000);level.updateSkyBrightness();
-        require(StrawMatSleep.sleep(f.cargo(),f.cargo().entry(8),p)==null,"Block-form native sleep failed");
+        require(StrawMatSleep.sleep(f.cargo(),f.cargo().entry(ANCHOR),p)==null,"Block-form native sleep failed");
     }
     private static void leaveBed(Minecraft mc) {
         mc.player.connection.send(new ServerboundPlayerCommandPacket(mc.player,ServerboundPlayerCommandPacket.Action.STOP_SLEEPING));
     }
     private static void checkSleeping(Minecraft mc,boolean tilted) {
         require(mc.player.isSleeping()&&mc.player.getPose()==Pose.SLEEPING&&StrawMatSleep.sleepingPoint(mc.player)!=null,"Client did not enter the mat sleeping pose/session");
+        require(StrawMatSleep.reversed(mc.player)==BAG,"Client lost reversed sleeping direction");
         if(tilted)require(Math.abs(StrawMatSleep.sleepingPose(mc.player).roll()-.12F)<.001,"Client did not receive the tilted sleeping pose");
     }
     private static void checkAwake(Minecraft mc) {

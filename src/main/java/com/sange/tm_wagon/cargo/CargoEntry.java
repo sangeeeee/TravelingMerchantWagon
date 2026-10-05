@@ -30,7 +30,7 @@ import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.state.BlockState;
 
 public final class CargoEntry {
-    public enum Kind { ORDINARY, CHEST, BARREL, SHULKER, FURNACE, SMOKER, BLAST_FURNACE, CRAFTING, CARTOGRAPHY, STONECUTTER, ANVIL, SMITHING, LOOM, GRINDSTONE, ENCHANTING, BREWING, CAULDRON, COMPOSTER, ENDER_CHEST, LECTERN, BOOKSHELF, POT, STRAW_MAT, STOOL }
+    public enum Kind { ORDINARY, CHEST, BARREL, SHULKER, FURNACE, SMOKER, BLAST_FURNACE, CRAFTING, CARTOGRAPHY, STONECUTTER, ANVIL, SMITHING, LOOM, GRINDSTONE, ENCHANTING, BREWING, CAULDRON, COMPOSTER, ENDER_CHEST, LECTERN, BOOKSHELF, POT, STRAW_MAT, SLEEPING_BAG, STOOL }
     public final UUID id;
     public final ItemStack item;
     public BlockState state;
@@ -41,6 +41,8 @@ public final class CargoEntry {
     public int brewTime,brewFuel,page;
     public long compostReady=Long.MIN_VALUE;
     public UUID sleeper;
+    /** Head at the rear end; anchors always store the rearmost reserved cell. */
+    public boolean reversed;
     public net.minecraft.world.item.Item brewingIngredient=Items.AIR;
     private CargoLevel interactionLevel;
     public boolean opened;
@@ -79,13 +81,15 @@ public final class CargoEntry {
     public CargoEntry(CargoHold hold,UUID id,ItemStack stack,BlockState state) {
         this.hold=hold;this.id=id;item=stack.copyWithCount(1);this.state=state;var detected=kind(state);
         if((detected==Kind.CHEST||detected==Kind.BARREL)&&CargoContainers.protectedContents(stack))detected=Kind.ORDINARY;
-        kind=stack.getItem() instanceof StrawMatItem?Kind.STRAW_MAT:stack.getItem() instanceof WagonStoolItem?Kind.STOOL:detected;
+        kind=stack.getItem() instanceof StrawMatItem?Kind.STRAW_MAT:stack.getItem() instanceof WagonStoolItem?Kind.STOOL:com.sange.tm_wagon.compat.BackpackCompat.sleepingBag(stack)?Kind.SLEEPING_BAG:detected;
         recipeCheck=RecipeManager.createCheck(recipeType());
         inventory=new Inventory(switch(kind) {
             case FURNACE,SMOKER,BLAST_FURNACE->3;case CHEST,BARREL,SHULKER->27;
             case BREWING->5;case LECTERN,POT->1;case BOOKSHELF->6;default->0;
         });
     }
+    public int footprintRows() { return kind==Kind.STRAW_MAT?3:kind==Kind.SLEEPING_BAG?2:1; }
+    public boolean sleepingSurface() { return kind==Kind.STRAW_MAT||kind==Kind.SLEEPING_BAG; }
     public static CargoEntry fromItem(CargoHold hold,ItemStack stack,BlockState state) {
         var lookup=hold.owner().cargoLevel().registryAccess();
         var entry=new CargoEntry(hold,UUID.randomUUID(),stack,state);entry.loading=true;
@@ -189,7 +193,7 @@ public final class CargoEntry {
         if(visual) { saved.remove(DataComponents.CONTAINER);saved.remove(DataComponents.BLOCK_ENTITY_DATA);com.sange.tm_wagon.compat.BackpackCompat.visual(saved); }
         tag.put("Item",saved.save(lookup));tag.put("State",NbtUtils.writeBlockState(state));
         tag.putBoolean("Opened",opened);tag.putLong("LidStart",lidStart);tag.putFloat("LidFrom",lidFrom);
-        tag.putBoolean("Visual",visual);
+        tag.putBoolean("Visual",visual);tag.putBoolean("Reversed",reversed);
         if(visual&&sleeper!=null)tag.putUUID("Sleeper",sleeper);
         if(!visual) {
             var contents=NonNullList.withSize(inventory.getContainerSize(),ItemStack.EMPTY);
@@ -206,7 +210,7 @@ public final class CargoEntry {
         var state=NbtUtils.readBlockState(lookup.lookupOrThrow(net.minecraft.core.registries.Registries.BLOCK),tag.getCompound("State"));
         if(!tag.hasUUID("Id"))return null;
         var entry=new CargoEntry(hold,tag.getUUID("Id"),item,state);
-        entry.loading=true;
+        entry.loading=true;entry.reversed=tag.getBoolean("Reversed");
         if(tag.getBoolean("Visual")&&tag.hasUUID("Sleeper"))entry.sleeper=tag.getUUID("Sleeper");
         var contents=NonNullList.withSize(entry.inventory.getContainerSize(),ItemStack.EMPTY);
         ContainerHelper.loadAllItems(tag,contents,lookup);

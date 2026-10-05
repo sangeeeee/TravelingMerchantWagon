@@ -46,10 +46,10 @@
   "message.tm_wagon.cargo_filtered": "El filtro de carga no permite este bloque.",
   "item.tm_wagon.wagon_straw_mat": "Estera de paja para carromato",
   "tooltip.tm_wagon.wagon_straw_mat": "Ocupa tres espacios libres consecutivos en una columna hacia delante. Clic derecho para dormir sin fijar el punto de reaparición; clic derecho agachado para retirar.",
-  "message.tm_wagon.mat_space": "Falta espacio: se necesitan tres espacios libres consecutivos hacia delante.",
-  "message.tm_wagon.mat_dimension": "No puedes dormir en una estera en esta dimensión.",
-  "message.tm_wagon.mat_unstable": "Detén y estabiliza el carromato antes de dormir.",
-  "message.tm_wagon.mat_unavailable": "Ahora no puedes dormir en la estera.",
+  "message.tm_wagon.mat_space": "Falta espacio: se necesitan tres espacios libres consecutivos en dirección opuesta a ti.",
+  "message.tm_wagon.mat_dimension": "No puedes dormir en esta dimensión.",
+  "message.tm_wagon.mat_unstable": "Detén y estabiliza la carreta antes de dormir.",
+  "message.tm_wagon.mat_unavailable": "No puedes dormir ahora.",
   "message.tm_wagon.cargo_occupied": "Este espacio de carga está ocupado.",
   "message.tm_wagon.cargo_blocked": "Un bloque o una entidad obstruye este espacio de carga.",
   "item.tm_wagon.wagon_stool": "Taburete de carromato",
@@ -125,5 +125,6 @@
   "book.tm_wagon.category.workshop": "El taller de carros",
   "book.tm_wagon.category.help": "Ayuda e integraciones",
   "book.tm_wagon.recipe": "Fabricación",
-  "book.tm_wagon.recipe_unavailable": "Esta receta no está disponible en este servidor."
+  "book.tm_wagon.recipe_unavailable": "Esta receta no está disponible en este servidor.",
+  "message.tm_wagon.sleeping_bag_space": "Falta espacio: se necesitan dos espacios libres consecutivos en dirección opuesta a ti."
 }

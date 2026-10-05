@@ -6,7 +6,7 @@
   "pages": [
     {
       "type": "patchouli:text",
-      "text": "A straw mat uses three consecutive slots in one column. Use an empty slot with a mat; it extends $(bold)toward the front$(reset). Use any part to try sleeping.$(br2)Stop the wagon in a reasonably level posture before sleeping. Players and maids stay asleep as the wagon moves afterward."
+      "text": "A straw mat uses three consecutive slots in one column. Use an empty slot with a mat; it extends $(bold)away from you, toward either end$(reset). Use any part to try sleeping.$(br2)Stop the wagon in a reasonably level posture before sleeping. Players and maids stay asleep as the wagon moves afterward."
     },
     {
       "type": "patchouli:text",

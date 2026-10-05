@@ -26,8 +26,24 @@ public final class CargoRenderer {
         for(int slot=0;slot<hold.capacity();slot++) {
             var entry=hold.entry(slot);if(entry==null||hold.anchorSlot(slot)!=slot)continue;var p=hold.centreAt(slot);
             if(entry.kind==CargoEntry.Kind.STRAW_MAT) {
-                poses.pushPose();poses.translate(p.x,CargoHold.FLOOR+1,p.z-.70);poses.scale(2,2,2);
+                poses.pushPose();poses.translate(p.x,CargoHold.FLOOR+1,p.z-.70);
+                if(entry.reversed)poses.mulPose(com.mojang.math.Axis.YP.rotationDegrees(180));
+                poses.scale(2,2,2);
                 mc.getItemRenderer().renderStatic(entry.item,ItemDisplayContext.NONE,light,overlay,poses,buffers,entry.holdOwnerLevel(),0);
+                poses.popPose();continue;
+            }
+            if(entry.kind==CargoEntry.Kind.SLEEPING_BAG) {
+                // Two native block models, one uniform transform around their shared centre.
+                poses.pushPose();poses.translate(p.x,CargoHold.FLOOR+.002,p.z-.35);
+                if(entry.reversed)poses.mulPose(com.mojang.math.Axis.YP.rotationDegrees(180));
+                poses.scale((float)CargoHold.SCALE,(float)CargoHold.SCALE,(float)CargoHold.SCALE);
+                poses.translate(-.5,0,0);
+                var foot=entry.state.setValue(net.minecraft.world.level.block.BedBlock.FACING,net.minecraft.core.Direction.NORTH)
+                    .setValue(net.minecraft.world.level.block.BedBlock.PART,net.minecraft.world.level.block.state.properties.BedPart.FOOT);
+                mc.getBlockRenderer().renderSingleBlock(foot,poses,buffers,light,overlay);
+                poses.translate(0,0,-1);
+                mc.getBlockRenderer().renderSingleBlock(foot.setValue(net.minecraft.world.level.block.BedBlock.PART,
+                    net.minecraft.world.level.block.state.properties.BedPart.HEAD),poses,buffers,light,overlay);
                 poses.popPose();continue;
             }
             if(entry.kind==CargoEntry.Kind.STOOL) {

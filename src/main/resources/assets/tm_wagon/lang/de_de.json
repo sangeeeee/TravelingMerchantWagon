@@ -46,10 +46,10 @@
   "message.tm_wagon.cargo_filtered": "Der Frachtfilter lässt diesen Block nicht zu.",
   "item.tm_wagon.wagon_straw_mat": "Strohmatte für Wagen",
   "tooltip.tm_wagon.wagon_straw_mat": "Belegt vom angeklickten Platz aus drei freie Plätze derselben Spalte nach vorn. Rechtsklick zum Schlafen ohne neuen Wiederbelebungspunkt; Schleich-Rechtsklick zum Entfernen.",
-  "message.tm_wagon.mat_space": "Zu wenig Platz: Drei aufeinanderfolgende freie Frachtplätze nach vorn werden benötigt.",
-  "message.tm_wagon.mat_dimension": "In dieser Dimension kannst du nicht auf einer Strohmatte schlafen.",
-  "message.tm_wagon.mat_unstable": "Halte den Wagen an und richte ihn aus, bevor du schläfst.",
-  "message.tm_wagon.mat_unavailable": "Du kannst die Strohmatte gerade nicht zum Schlafen nutzen.",
+  "message.tm_wagon.mat_space": "Zu wenig Platz: Drei aufeinanderfolgende freie Frachtplätze von dir weg werden benötigt.",
+  "message.tm_wagon.mat_dimension": "In dieser Dimension kannst du nicht schlafen.",
+  "message.tm_wagon.mat_unstable": "Halte den Wagen an und stabilisiere ihn vor dem Schlafen.",
+  "message.tm_wagon.mat_unavailable": "Du kannst jetzt nicht schlafen.",
   "message.tm_wagon.cargo_occupied": "Dieser Frachtplatz ist belegt.",
   "message.tm_wagon.cargo_blocked": "Ein Block oder Wesen versperrt diesen Frachtplatz.",
   "item.tm_wagon.wagon_stool": "Wagenhocker",
@@ -125,5 +125,6 @@
   "book.tm_wagon.category.workshop": "Die Wagenwerkstatt",
   "book.tm_wagon.category.help": "Hilfe und Integrationen",
   "book.tm_wagon.recipe": "Herstellung",
-  "book.tm_wagon.recipe_unavailable": "Dieses Rezept ist auf diesem Server nicht verfügbar."
+  "book.tm_wagon.recipe_unavailable": "Dieses Rezept ist auf diesem Server nicht verfügbar.",
+  "message.tm_wagon.sleeping_bag_space": "Zu wenig Platz: Zwei aufeinanderfolgende freie Frachtplätze von dir weg werden benötigt."
 }

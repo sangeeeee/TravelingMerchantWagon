@@ -41,7 +41,7 @@ public class CargoSpeedGameTests {
     @GameTest(template="assembly_test")
     public static void occupied_cells_count_mats_and_survive_transfer_and_reload(GameTestHelper h) {
         for(var body:new WagonPart[]{WagonPart.CARGO_BODY,WagonPart.LONG_CARGO_BODY,WagonPart.WIDE_CARGO_BODY}) {
-            var w=wagon(h,body);var hold=w.cargo();var p=h.makeMockPlayer(GameType.SURVIVAL);p.setPos(w.position().add(-4,0,0));
+            var w=wagon(h,body);var hold=w.cargo();var p=h.makeMockPlayer(GameType.SURVIVAL);p.setPos(w.position().add(-4,0,3));
             h.assertTrue(hold.place(2*hold.columns(),WagonContent.STRAW_MAT.get().getDefaultInstance(),p)==null,"Mat fixture failed");
             h.assertTrue(hold.place(1,Items.STONE.getDefaultInstance(),p)==null,"Block fixture failed");
             h.assertTrue(hold.place(3,WagonContent.STOOL.get().getDefaultInstance(),p)==null,"Stool fixture failed");

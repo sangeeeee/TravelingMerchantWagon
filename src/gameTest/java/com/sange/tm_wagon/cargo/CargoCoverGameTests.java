@@ -38,7 +38,7 @@ public class CargoCoverGameTests {
         for(var part:modules.entrySet())h.assertTrue(f.install(part.getKey(),part.getValue(),null,new ItemStack(WagonContent.PART_ITEMS.get(part.getValue()).get()))==null,"Module init failed");return f;
     }
     private static Player player(GameTestHelper h,CargoHold hold) {
-        var p=h.makeMockPlayer(GameType.SURVIVAL);p.setPos(hold.owner().cargoPose().point(new Vec3(-3,0,0)));return p;
+        var p=h.makeMockPlayer(GameType.SURVIVAL);p.setPos(hold.owner().cargoPose().point(new Vec3(-3,0,3)));return p;
     }
     private static void install(GameTestHelper h,CargoHold hold,Player p) {
         h.assertTrue(hold.cover().install(new ItemStack(WagonContent.CARGO_COVER.get()),p,SIDE)==null,"Cover install failed");

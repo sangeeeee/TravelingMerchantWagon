@@ -46,10 +46,10 @@
   "message.tm_wagon.cargo_filtered": "載貨規則不許此物。",
   "item.tm_wagon.wagon_straw_mat": "馬車草席",
   "tooltip.tm_wagon.wagon_straw_mat": "自所按處向車首，占同列相連空貨格三。右按可寢，不定重生之所；潛行右按可取。",
-  "message.tm_wagon.mat_space": "空位不足，向車首須有相連空貨格三。",
-  "message.tm_wagon.mat_dimension": "此界不可寢於草席。",
-  "message.tm_wagon.mat_unstable": "請先停車安穩，再寢。",
-  "message.tm_wagon.mat_unavailable": "此時不可寢於草席。",
+  "message.tm_wagon.mat_space": "空位不足，背離己身須有同列相連空貨格三。",
+  "message.tm_wagon.mat_dimension": "此界不可眠。",
+  "message.tm_wagon.mat_unstable": "先停車使穩，乃可眠。",
+  "message.tm_wagon.mat_unavailable": "此時不可眠。",
   "message.tm_wagon.cargo_occupied": "此貨格已有物。",
   "message.tm_wagon.cargo_blocked": "此貨格為方塊或實體所阻。",
   "item.tm_wagon.wagon_stool": "馬車木凳",
@@ -125,5 +125,6 @@
   "book.tm_wagon.category.workshop": "裝配改製",
   "book.tm_wagon.category.help": "兼容釋疑",
   "book.tm_wagon.recipe": "合成",
-  "book.tm_wagon.recipe_unavailable": "此伺服器無此方。"
+  "book.tm_wagon.recipe_unavailable": "此伺服器無此方。",
+  "message.tm_wagon.sleeping_bag_space": "空位不足，背離己身須有同列相連空貨格二。"
 }

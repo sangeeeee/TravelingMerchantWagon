@@ -32,7 +32,7 @@ public class CargoCanopyGameTests {
         var parts=WagonEntity.defaultParts();if(extended)parts.put(WagonSlot.BODY,WagonPart.LONG_CARGO_BODY);
         for(var part:parts.entrySet())h.assertTrue(f.install(part.getKey(),part.getValue(),null,new ItemStack(WagonContent.PART_ITEMS.get(part.getValue()).get()))==null,"Module failed");return f;
     }
-    private static Player player(GameTestHelper h,CargoHold hold) { var p=h.makeMockPlayer(GameType.SURVIVAL);p.setPos(hold.owner().cargoPose().point(new Vec3(-3,0,0)));return p; }
+    private static Player player(GameTestHelper h,CargoHold hold) { var p=h.makeMockPlayer(GameType.SURVIVAL);p.setPos(hold.owner().cargoPose().point(new Vec3(-3,0,3)));return p; }
     private static void install(GameTestHelper h,CargoHold hold,Player p) { h.assertTrue(hold.canopy().install(new ItemStack(WagonContent.CANOPY.get()),p,SIDE)==null,"Canopy install failed"); }
     private static void toggle(GameTestHelper h,CargoHold hold,Player p,boolean front) {
         double x=hold.canopy().closed(front)?0:.82;
@@ -57,7 +57,7 @@ public class CargoCanopyGameTests {
     @GameTest(template="assembly_test",timeoutTicks=55)
     public static void extended_canopy_has_clear_interior_and_native_independent_curtains(GameTestHelper h) { curtains(h,true); }
     private static void curtains(GameTestHelper h,boolean extended) {
-        var f=frame(h,extended);var hold=f.cargo();var p=h.makeMockServerPlayerInLevel();p.setNoGravity(true);p.getAbilities().instabuild=false;p.setPos(f.cargoPose().point(new Vec3(-3,0,0)));
+        var f=frame(h,extended);var hold=f.cargo();var p=h.makeMockServerPlayerInLevel();p.setNoGravity(true);p.getAbilities().instabuild=false;p.setPos(f.cargoPose().point(new Vec3(-3,0,3)));
         int slot=hold.capacity()-2;h.assertTrue(hold.place(slot,new ItemStack(Items.CHEST),p)==null,"Rear chest failed");var chest=hold.entry(slot);chest.inventory.setItem(0,new ItemStack(Items.DIAMOND,19));install(h,hold,p);
         AABB inside=p.getDimensions(Pose.STANDING).makeBoundingBox(f.cargoPose().point(new Vec3(0,1.51,0)));
         h.assertTrue(h.getLevel().noCollision(p,inside),"Player cannot stand below the canopy");
@@ -125,7 +125,7 @@ public class CargoCanopyGameTests {
             var collider=h.getLevel().clip(new net.minecraft.world.level.ClipContext(rayStart,rayEnd,net.minecraft.world.level.ClipContext.Block.COLLIDER,net.minecraft.world.level.ClipContext.Fluid.NONE,p));
             h.assertTrue(outline.getType()==net.minecraft.world.phys.HitResult.Type.BLOCK&&collider.getType()==net.minecraft.world.phys.HitResult.Type.MISS,"Block canopy rim lost selection or retained a solid collider");
             Vec3 before=p.position();p.move(MoverType.SELF,new Vec3(0,0,.65));h.assertTrue(p.getZ()>before.z+.6,"Block canopy arch trapped the player's head");
-            p.setPos(f.cargoPose().point(new Vec3(-3,0,0)));h.assertTrue(f.toggleFrame(null)==null,"Entity conversion failed");
+            p.setPos(f.cargoPose().point(new Vec3(-3,0,3)));h.assertTrue(f.toggleFrame(null)==null,"Entity conversion failed");
             var w=h.getLevel().getEntitiesOfClass(WagonEntity.class,new AABB(f.getBlockPos()).inflate(7)).getFirst();
             h.assertTrue(w.pick(w.pose().point(new Vec3(0,CargoCanopy.TOP-.25,rear+.3)),w.pose().point(new Vec3(0,CargoCanopy.TOP-.25,rear-.3))).isPresent(),"Entity decorative rim cannot be selected");
             p.setPos(w.pose().point(new Vec3(0,2.05,rear-.3)));before=p.position();p.move(MoverType.SELF,new Vec3(0,0,.65));

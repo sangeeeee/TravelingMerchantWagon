@@ -46,10 +46,10 @@
   "message.tm_wagon.cargo_filtered": "貨物フィルターがこのブロックを許可していません。",
   "item.tm_wagon.wagon_straw_mat": "馬車のわら敷き",
   "tooltip.tm_wagon.wagon_straw_mat": "クリックした位置から前方へ、同じ列の空きスロット3個を使います。右クリックで眠れますが、リスポーン地点は設定されません。スニークしながら右クリックで取り外します。",
-  "message.tm_wagon.mat_space": "空間が足りません。前方へ連続した空きスロット3個が必要です。",
-  "message.tm_wagon.mat_dimension": "このディメンションではわら敷きで眠れません。",
-  "message.tm_wagon.mat_unstable": "馬車を安定させて止めてから眠ってください。",
-  "message.tm_wagon.mat_unavailable": "今はわら敷きで眠れません。",
+  "message.tm_wagon.mat_space": "空間が足りません。自分から遠ざかる方向に同じ列の空きスロット3個が必要です。",
+  "message.tm_wagon.mat_dimension": "このディメンションでは眠れません。",
+  "message.tm_wagon.mat_unstable": "眠る前に馬車を止めて安定させてください。",
+  "message.tm_wagon.mat_unavailable": "今は眠れません。",
   "message.tm_wagon.cargo_occupied": "この貨物スロットは使用中です。",
   "message.tm_wagon.cargo_blocked": "ブロックかエンティティがこの貨物スロットを塞いでいます。",
   "item.tm_wagon.wagon_stool": "馬車の腰掛け",
@@ -125,5 +125,6 @@
   "book.tm_wagon.category.workshop": "馬車の工房",
   "book.tm_wagon.category.help": "ヘルプと連携",
   "book.tm_wagon.recipe": "クラフト",
-  "book.tm_wagon.recipe_unavailable": "このサーバーではこのレシピを利用できません。"
+  "book.tm_wagon.recipe_unavailable": "このサーバーではこのレシピを利用できません。",
+  "message.tm_wagon.sleeping_bag_space": "空間が足りません。自分から遠ざかる方向に同じ列の空きスロット2個が必要です。"
 }

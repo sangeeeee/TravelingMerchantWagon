@@ -46,10 +46,10 @@
   "message.tm_wagon.cargo_filtered": "Bộ lọc hàng không cho phép khối này.",
   "item.tm_wagon.wagon_straw_mat": "Chiếu rơm xe ngựa",
   "tooltip.tm_wagon.wagon_straw_mat": "Chiếm ba ô trống liên tiếp cùng cột về phía trước. Nhấp chuột phải để ngủ mà không đặt điểm hồi sinh; cúi người và nhấp chuột phải để tháo.",
-  "message.tm_wagon.mat_space": "Không đủ chỗ: cần ba ô trống liên tiếp về phía trước.",
-  "message.tm_wagon.mat_dimension": "Không thể ngủ trên chiếu trong chiều không gian này.",
-  "message.tm_wagon.mat_unstable": "Hãy dừng và giữ xe ổn định trước khi ngủ.",
-  "message.tm_wagon.mat_unavailable": "Hiện không thể ngủ trên chiếu.",
+  "message.tm_wagon.mat_space": "Không đủ chỗ: cần ba ô trống liên tiếp theo hướng ra xa bạn.",
+  "message.tm_wagon.mat_dimension": "Bạn không thể ngủ trong chiều không gian này.",
+  "message.tm_wagon.mat_unstable": "Dừng và giữ xe ổn định trước khi ngủ.",
+  "message.tm_wagon.mat_unavailable": "Bạn không thể ngủ lúc này.",
   "message.tm_wagon.cargo_occupied": "Ô hàng này đã được sử dụng.",
   "message.tm_wagon.cargo_blocked": "Khối hoặc thực thể đang chắn ô hàng này.",
   "item.tm_wagon.wagon_stool": "Ghế đẩu xe ngựa",
@@ -125,5 +125,6 @@
   "book.tm_wagon.category.workshop": "Xưởng xe ngựa",
   "book.tm_wagon.category.help": "Trợ giúp và tích hợp",
   "book.tm_wagon.recipe": "Chế tạo",
-  "book.tm_wagon.recipe_unavailable": "Công thức này không có trên máy chủ này."
+  "book.tm_wagon.recipe_unavailable": "Công thức này không có trên máy chủ này.",
+  "message.tm_wagon.sleeping_bag_space": "Không đủ chỗ: cần hai ô trống liên tiếp theo hướng ra xa bạn."
 }

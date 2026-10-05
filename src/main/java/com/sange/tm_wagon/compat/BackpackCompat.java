@@ -18,6 +18,9 @@ public final class BackpackCompat {
     public static boolean sophisticated(ItemStack stack) {
         return ModList.get().isLoaded("sophisticatedbackpacks") && com.sange.tm_wagon.compat.backpack.SophisticatedCargo.matches(stack);
     }
+    public static boolean sleepingBag(ItemStack stack) {
+        return ModList.get().isLoaded("travelersbackpack") && com.sange.tm_wagon.compat.backpack.TravelerCargo.sleepingBag(stack);
+    }
     public static boolean matches(ItemStack stack) { return traveler(stack)||sophisticated(stack); }
     public static Block block(ItemStack stack) {
         return sophisticated(stack)?com.sange.tm_wagon.compat.backpack.SophisticatedCargo.block(stack):null;

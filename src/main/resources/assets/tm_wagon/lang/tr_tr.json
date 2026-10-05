@@ -46,10 +46,10 @@
   "message.tm_wagon.cargo_filtered": "Yük filtresi bu bloğa izin vermiyor.",
   "item.tm_wagon.wagon_straw_mat": "At Arabası Hasırı",
   "tooltip.tm_wagon.wagon_straw_mat": "Aynı sütunda öne doğru art arda üç boş yuvayı kaplar. Yeniden doğma noktası belirlemeden uyumak için sağ tıkla; sökmek için eğilerek sağ tıkla.",
-  "message.tm_wagon.mat_space": "Yer yetersiz: öne doğru art arda üç boş yük yuvası gerekir.",
-  "message.tm_wagon.mat_dimension": "Bu boyutta hasırda uyuyamazsın.",
-  "message.tm_wagon.mat_unstable": "Uyumadan önce arabayı durdurup dengeli hâle getir.",
-  "message.tm_wagon.mat_unavailable": "Şu anda hasırda uyuyamazsın.",
+  "message.tm_wagon.mat_space": "Yer yetersiz: sizden uzaklaşan yönde art arda üç boş yük yuvası gerekir.",
+  "message.tm_wagon.mat_dimension": "Bu boyutta uyuyamazsınız.",
+  "message.tm_wagon.mat_unstable": "Uyumadan önce arabayı durdurup dengeleyin.",
+  "message.tm_wagon.mat_unavailable": "Şu anda uyuyamazsınız.",
   "message.tm_wagon.cargo_occupied": "Bu yük yuvası dolu.",
   "message.tm_wagon.cargo_blocked": "Bir blok veya varlık bu yük yuvasını engelliyor.",
   "item.tm_wagon.wagon_stool": "At Arabası Taburesi",
@@ -125,5 +125,6 @@
   "book.tm_wagon.category.workshop": "Araba atölyesi",
   "book.tm_wagon.category.help": "Yardım ve entegrasyonlar",
   "book.tm_wagon.recipe": "Üretim",
-  "book.tm_wagon.recipe_unavailable": "Bu tarif bu sunucuda kullanılamıyor."
+  "book.tm_wagon.recipe_unavailable": "Bu tarif bu sunucuda kullanılamıyor.",
+  "message.tm_wagon.sleeping_bag_space": "Yer yetersiz: sizden uzaklaşan yönde art arda iki boş yük yuvası gerekir."
 }

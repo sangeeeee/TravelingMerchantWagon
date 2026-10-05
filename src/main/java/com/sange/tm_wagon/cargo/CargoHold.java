@@ -54,10 +54,10 @@ public final class CargoHold {
     public CargoHold(CargoOwner owner) { this.owner=owner; }
     public CargoOwner owner() { return owner; }
     public int capacity() { return owner.cargoBody().cargoCapacity(); }
-    /** At most 32 references, no inventory/NBT inspection. Mats reserve three cells. */
+    /** At most 32 references, no inventory/NBT inspection. Sleeping surfaces reserve their full span. */
     public int occupiedSlots() {
         int count=0;
-        for(int i=0;i<capacity();i++)if(entries[i]!=null)count+=entries[i].kind==CargoEntry.Kind.STRAW_MAT?3:1;
+        for(int i=0;i<capacity();i++)if(entries[i]!=null)count+=entries[i].footprintRows();
         return count;
     }
     public int columns() { return owner.cargoBody().columns(); }
@@ -69,7 +69,7 @@ public final class CargoHold {
         if(slot<0||slot>=capacity())return -1;
         if(entries[slot]!=null)return slot;
         for(int anchor=slot+columns();anchor<capacity()&&anchor<=slot+2*columns();anchor+=columns())
-            if(entries[anchor]!=null&&entries[anchor].kind==CargoEntry.Kind.STRAW_MAT)return anchor;
+            if(entries[anchor]!=null&&(anchor-slot)/columns()<entries[anchor].footprintRows())return anchor;
         return -1;
     }
     public static AABB matBox(int anchor) { return matBox(anchor,WagonPart.CARGO_BODY); }
@@ -81,11 +81,18 @@ public final class CargoHold {
         var box=slotBox(slot,body);return new AABB(box.minX,box.minY,box.minZ,box.maxX,FLOOR+.5,box.maxZ);
     }
     public AABB entryBox(int anchor) { return switch(entries[anchor].kind) {
-        case STRAW_MAT->matBounds(anchor);case STOOL->stoolBounds(anchor);default->slotBounds(anchor);
+        case STRAW_MAT,SLEEPING_BAG->matBounds(anchor);case STOOL->stoolBounds(anchor);default->slotBounds(anchor);
     }; }
     public Vec3 centreAt(int slot) { return centre(slot,owner.cargoBody()); }
     public AABB slotBounds(int slot) { return slotBox(slot,owner.cargoBody()); }
-    public AABB matBounds(int slot) { return matBox(slot,owner.cargoBody()); }
+    public AABB matBounds(int slot) {
+        if(entries[slot]!=null&&entries[slot].kind==CargoEntry.Kind.SLEEPING_BAG) return sleepingBagBounds(slot);
+        return matBox(slot,owner.cargoBody());
+    }
+    private AABB sleepingBagBounds(int anchor) {
+        Vec3 p=centreAt(anchor);double z=p.z-.35;
+        return new AABB(p.x-SCALE/2,FLOOR+.002,z-SCALE,p.x+SCALE/2,FLOOR+.002+SCALE*2.5/16,z+SCALE);
+    }
     public AABB stoolBounds(int slot) { return stoolBox(slot,owner.cargoBody()); }
     public static Vec3 centre(int slot) { return centre(slot,WagonPart.CARGO_BODY); }
     public static Vec3 centre(int slot,WagonPart body) {
@@ -202,7 +209,7 @@ public final class CargoHold {
         }
         if(entries[slot]!=null) {
             if(com.sange.tm_wagon.compat.BackpackCompat.matches(entries[slot].item))com.sange.tm_wagon.compat.BackpackCompat.open(this,entries[slot],player);
-            else if(entries[slot].kind==CargoEntry.Kind.STRAW_MAT)message(player,StrawMatSleep.sleep(this,entries[slot],player,local));
+            else if(entries[slot].sleepingSurface())message(player,StrawMatSleep.sleep(this,entries[slot],player,local));
             else if(entries[slot].kind==CargoEntry.Kind.STOOL)message(player,seats.sit(slot,player));
             else if(entries[slot].kind!=CargoEntry.Kind.ORDINARY)CargoWorkBlocks.interact(this,entries[slot],player,hand,local);
             else if(stack.getItem() instanceof BlockItem)message(player,"message.tm_wagon.cargo_occupied");
@@ -225,7 +232,7 @@ public final class CargoHold {
         if(item.isEmpty()||item.is(DISALLOWED))return "message.tm_wagon.cargo_unsupported";
         Block block=item.getItem() instanceof BlockItem blockItem?blockItem.getBlock():com.sange.tm_wagon.compat.BackpackCompat.block(item);
         if(block==null)return "message.tm_wagon.cargo_unsupported";
-        if(block instanceof BedBlock||block instanceof DoorBlock||block instanceof DoublePlantBlock)return "message.tm_wagon.cargo_unsupported";
+        if((block instanceof BedBlock&&!com.sange.tm_wagon.compat.BackpackCompat.sleepingBag(item))||block instanceof DoorBlock||block instanceof DoublePlantBlock)return "message.tm_wagon.cargo_unsupported";
         return CargoConfig.allows(block)?null:"message.tm_wagon.cargo_filtered";
     }
     public String place(int slot,ItemStack stack,Player player) {
@@ -239,24 +246,32 @@ public final class CargoHold {
         if(!owner.cargoLive()||owner.cargoBusy()||slot<0||slot>=capacity())return "message.tm_wagon.assembly_busy";
         if(coverObstructed(slot,player))return ACCESS_BLOCKED;
         String restriction=placementRestriction(stack);if(restriction!=null)return restriction;
-        boolean mat=stack.getItem() instanceof StrawMatItem,stool=stack.getItem() instanceof WagonStoolItem;
-        if(mat) {
-            if(slot<2*columns()||entry(slot)!=null||entry(slot-columns())!=null||entry(slot-2*columns())!=null)return "message.tm_wagon.mat_space";
+        boolean mat=stack.getItem() instanceof StrawMatItem,bag=com.sange.tm_wagon.compat.BackpackCompat.sleepingBag(stack),stool=stack.getItem() instanceof WagonStoolItem;
+        int span=mat?3:bag?2:1;
+        // Place from the clicked foot cell toward the end farther from the player.
+        boolean reversed=span>1&&player!=null&&owner.cargoPose().local(player.position()).z<centreAt(slot).z-1e-6;
+        int clicked=slot;
+        if(reversed)slot+=(span-1)*columns();
+        if(span>1) {
+            if(slot>=capacity()||slot<(span-1)*columns())return bag?"message.tm_wagon.sleeping_bag_space":"message.tm_wagon.mat_space";
+            for(int i=0;i<span;i++)if(entry(slot-i*columns())!=null)return bag?"message.tm_wagon.sleeping_bag_space":"message.tm_wagon.mat_space";
         } else if(entry(slot)!=null)return "message.tm_wagon.cargo_occupied";
-        Vec3 point=owner.cargoPose().point(centreAt(slot));
+        Vec3 point=owner.cargoPose().point(centreAt(clicked));
         if(player==null||player.level()!=owner.cargoLevel()||player.distanceToSqr(point)>64
             ||!owner.cargoLevel().mayInteract(player,BlockPos.containing(point)))return "message.tm_wagon.protected";
-        var state=carriedState!=null?carriedState:mat?Blocks.HAY_BLOCK.defaultBlockState():stool?Blocks.OAK_PLANKS.defaultBlockState():CargoPlacement.state(this,slot,stack,player);
+        var state=carriedState!=null?carriedState:mat?Blocks.HAY_BLOCK.defaultBlockState():bag?((BlockItem)stack.getItem()).getBlock().defaultBlockState():stool?Blocks.OAK_PLANKS.defaultBlockState():CargoPlacement.state(this,slot,stack,player);
         var properties=stack.get(DataComponents.BLOCK_STATE);if(properties!=null)state=properties.apply(state);
         if(state.hasProperty(ChestBlock.TYPE))state=state.setValue(ChestBlock.TYPE,net.minecraft.world.level.block.state.properties.ChestType.SINGLE);
         if(state.getBlock() instanceof ShulkerBoxBlock)state=state.setValue(ShulkerBoxBlock.FACING,net.minecraft.core.Direction.UP);
-        if(mat)for(int cell=slot;cell>=slot-2*columns();cell-=columns())
+        if(bag)state=state.setValue(BedBlock.FACING,reversed?net.minecraft.core.Direction.SOUTH:net.minecraft.core.Direction.NORTH)
+            .setValue(BedBlock.PART,net.minecraft.world.level.block.state.properties.BedPart.FOOT).setValue(BedBlock.OCCUPIED,false);
+        if(span>1)for(int cell=slot;cell>=slot-(span-1)*columns();cell-=columns())
             if(!owner.cargoLevel().mayInteract(player,BlockPos.containing(owner.cargoPose().point(centreAt(cell)))))return "message.tm_wagon.protected";
         var storageKind=CargoEntry.kind(state);
         if((storageKind==CargoEntry.Kind.CHEST||storageKind==CargoEntry.Kind.BARREL)&&CargoContainers.protectedContents(stack))
             return "message.tm_wagon.cargo_container_protected";
-        if(!freeLocalVolume(mat?matBounds(slot):stool?stoolBounds(slot):slotBounds(slot)))return "message.tm_wagon.cargo_blocked";
-        CargoEntry entry=CargoEntry.fromItem(this,commitSource==null?com.sange.tm_wagon.compat.BackpackCompat.placementCopy(stack,player):stack,state);entries[slot]=entry;
+        if(!freeLocalVolume(mat?matBounds(slot):bag?sleepingBagBounds(slot):stool?stoolBounds(slot):slotBounds(slot)))return "message.tm_wagon.cargo_blocked";
+        CargoEntry entry=CargoEntry.fromItem(this,commitSource==null?com.sange.tm_wagon.compat.BackpackCompat.placementCopy(stack,player):stack,state);entry.reversed=reversed;entries[slot]=entry;
         try {
             String error=owner.cargoGeometryChanged();
             if(error!=null) { entries[slot]=null;return error; }
@@ -391,7 +406,9 @@ public final class CargoHold {
         for(var value:tag.getList("Entries",Tag.TAG_COMPOUND)) {
             var entry=(CompoundTag)value;int slot=entry.getInt("Slot");if(slot<0||slot>=capacity()||entry(slot)!=null)continue;
             var loaded=CargoEntry.load(this,entry,lookup);if(loaded==null)continue;
-            if(loaded.kind==CargoEntry.Kind.STRAW_MAT&&(slot<2*columns()||entry(slot-columns())!=null||entry(slot-2*columns())!=null))continue;
+            int span=loaded.footprintRows();boolean blocked=slot<(span-1)*columns();
+            for(int i=1;!blocked&&i<span;i++)blocked=entry(slot-i*columns())!=null;
+            if(blocked)continue;
             entries[slot]=loaded;
         }
         cover.load(tag.getCompound("Cover"));canopy.load(tag.getCompound("Canopy"));

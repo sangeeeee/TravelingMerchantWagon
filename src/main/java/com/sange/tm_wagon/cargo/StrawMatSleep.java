@@ -29,10 +29,11 @@ import net.neoforged.neoforge.network.PacketDistributor;
 /** Vanilla sleep counters and night skipping, without replacing the player's respawn location. */
 @EventBusSubscriber(modid=TravelingMerchantWagon.MODID)
 public final class StrawMatSleep {
-    private record Session(CargoHold hold,UUID mat,int anchor,WagonPose pose,Vec3 head,BlockPos bed,int wagonId,BlockPos frame) {
+    private record Session(CargoHold hold,UUID mat,int anchor,WagonPose pose,Vec3 head,BlockPos bed,int wagonId,BlockPos frame,boolean reversed) {
         Session(CargoHold hold,UUID mat,int anchor,WagonPose pose,Vec3 head,BlockPos bed) {
             this(hold,mat,anchor,pose,head,bed,hold!=null&&hold.owner() instanceof WagonEntity w?w.getId():-1,
-                hold!=null&&hold.owner() instanceof AssemblyFrameBlockEntity f?f.getBlockPos():BlockPos.ZERO);
+                hold!=null&&hold.owner() instanceof AssemblyFrameBlockEntity f?f.getBlockPos():BlockPos.ZERO,
+                hold!=null&&hold.entry(anchor)!=null&&hold.entry(anchor).reversed);
         }
         Vec3 localHead() { return pose.local(head); }
     }
@@ -48,7 +49,7 @@ public final class StrawMatSleep {
         CargoHold hold=null;
         if(s.wagonId>=0&&sleeper.level().getEntity(s.wagonId) instanceof WagonEntity w)hold=w.cargo();
         else if(s.wagonId<0&&sleeper.level().getBlockEntity(s.frame) instanceof AssemblyFrameBlockEntity f)hold=f.cargo();
-        if(hold!=null) { s=new Session(hold,s.mat,s.anchor,s.pose,s.head,s.bed);put(sleeper,s); }
+        if(hold!=null) { s=new Session(hold,s.mat,s.anchor,s.pose,s.head,s.bed,s.wagonId,s.frame,s.reversed);put(sleeper,s); }
         return s;
     }
     private static WagonPose pose(Session s) { return s.hold!=null&&s.hold.owner().cargoLive()?s.hold.owner().cargoPose():s.pose; }
@@ -83,7 +84,8 @@ public final class StrawMatSleep {
     public static Vec3 sleepingPoint(LivingEntity player,float partial) {
         Session s=resolved(player);return s==null?null:sleepingPose(player,partial).point(s.localHead());
     }
-    public static Direction direction(LivingEntity player) { var pose=sleepingPose(player);return pose==null?null:Direction.fromYRot(pose.yaw()); }
+    public static boolean reversed(LivingEntity player) { Session s=resolved(player);return s!=null&&s.reversed; }
+    public static Direction direction(LivingEntity player) { var pose=sleepingPose(player);return pose==null?null:Direction.fromYRot(pose.yaw()+(reversed(player)?180:0)); }
     /** Only active sleepers follow a mat; ordinary entities on deck still use normal world movement. */
     public static void follow(LivingEntity sleeper) {
         if(!sleeper.isSleeping())return;
@@ -121,7 +123,7 @@ public final class StrawMatSleep {
     }
     private static Vec3 head(CargoHold hold,int anchor) {
         AABB box=hold.matBounds(anchor);
-        return hold.owner().cargoPose().point(new Vec3((box.minX+box.maxX)/2,CargoHold.FLOOR+.16,box.minZ+.26));
+        return hold.owner().cargoPose().point(new Vec3((box.minX+box.maxX)/2,box.maxY+.035,hold.entry(anchor).reversed?box.maxZ-.26:box.minZ+.26));
     }
     private static boolean stable(CargoHold hold) {
         var pose=hold.owner().cargoPose();
@@ -138,7 +140,7 @@ public final class StrawMatSleep {
             &&hold.matBounds(slot).inflate(.04).contains(clicked)
             &&player.distanceToSqr(hold.owner().cargoPose().point(clicked))<=64
             &&!hold.cover().obstructs(hold.owner().cargoPose().local(player.getEyePosition()),clicked);
-        if(!(player instanceof ServerPlayer p)||!valid||mat.kind!=CargoEntry.Kind.STRAW_MAT)return "message.tm_wagon.assembly_busy";
+        if(!(player instanceof ServerPlayer p)||!valid||!mat.sleepingSurface())return "message.tm_wagon.assembly_busy";
         var level=p.serverLevel();
         if(!level.dimensionType().bedWorks()||!level.dimensionType().natural())return "message.tm_wagon.mat_dimension";
         if(p.isSleeping()||!p.isAlive()||p.isSpectator())return "message.tm_wagon.mat_unavailable";
@@ -253,11 +255,13 @@ public final class StrawMatSleep {
     }
     private static Vec3 standUp(LivingEntity player,Session s) {
         var pose=s.hold!=null&&s.hold.owner().cargoLive()?s.hold.owner().cargoPose():s.pose;
-        Vec3 centre=s.hold!=null?s.hold.centreAt(s.anchor).add(0,0,-.7):pose.local(s.head).add(0,-.16,.78);
+        AABB surface=s.hold!=null?s.hold.matBounds(s.anchor):null;
+        Vec3 centre=surface!=null?new Vec3((surface.minX+surface.maxX)/2,surface.maxY+.001,(surface.minZ+surface.maxZ)/2)
+            :pose.local(s.head).add(0,-.034,s.reversed?-.78:.78);
         // Standing boxes remain world-aligned. Raise above the actual tilted collision tops,
         // then check the full standing dimensions instead of reusing the tiny sleeping box.
         for(double dx:new double[]{0,-.18,.18})for(double dz:new double[]{0,-.5,.5}) {
-            Vec3 base=aboveCover(player,s.hold,pose,pose.point(centre.add(dx,.126,dz)));
+            Vec3 base=aboveCover(player,s.hold,pose,pose.point(centre.add(dx,0,dz)));
             for(double dy=0;dy<=2.5;dy+=.125) {
                 Vec3 point=base.add(0,dy,0);AABB box=player.getDimensions(Pose.STANDING).makeBoundingBox(point).deflate(.0001);
                 if(player.level().getWorldBorder().isWithinBounds(box)&&player.level().noCollision(player,box))return point;
@@ -293,7 +297,7 @@ public final class StrawMatSleep {
         int wagon=s.hold!=null&&s.hold.owner() instanceof WagonEntity w?w.getId():-1;
         BlockPos frame=s.hold!=null&&s.hold.owner() instanceof AssemblyFrameBlockEntity f?f.getBlockPos():BlockPos.ZERO;
         var now=pose(s);var point=now.point(s.localHead());
-        var packet=new WagonNetwork.MatSleep(player.getId(),wagon,frame,s.mat,s.anchor,now.position(),now.yaw(),now.pitch(),now.roll(),point,sleeping);
+        var packet=new WagonNetwork.MatSleep(player.getId(),wagon,frame,s.mat,s.anchor,now.position(),now.yaw(),now.pitch(),now.roll(),point,sleeping,s.reversed);
         if(player instanceof ServerPlayer p)PacketDistributor.sendToPlayersTrackingEntityAndSelf(p,packet);
         else PacketDistributor.sendToPlayersTrackingEntity(player,packet);
     }
@@ -303,7 +307,7 @@ public final class StrawMatSleep {
         CargoHold hold=null;
         if(packet.wagonId()>=0&&level.getEntity(packet.wagonId()) instanceof WagonEntity w)hold=w.cargo();
         else if(level.getBlockEntity(packet.frame()) instanceof AssemblyFrameBlockEntity f)hold=f.cargo();
-        put(p,new Session(hold,packet.mat(),packet.anchor(),new WagonPose(packet.position(),packet.yaw(),packet.pitch(),packet.roll()),packet.head(),BlockPos.containing(packet.head()),packet.wagonId(),packet.frame()));
+        put(p,new Session(hold,packet.mat(),packet.anchor(),new WagonPose(packet.position(),packet.yaw(),packet.pitch(),packet.roll()),packet.head(),BlockPos.containing(packet.head()),packet.wagonId(),packet.frame(),packet.reversed()));
         follow(p);
     }
     /** Late tracking sends the same one-shot session; no periodic sleep packet is necessary. */
@@ -312,7 +316,7 @@ public final class StrawMatSleep {
         int wagon=s.hold.owner() instanceof WagonEntity w?w.getId():-1;
         BlockPos frame=s.hold.owner() instanceof AssemblyFrameBlockEntity f?f.getBlockPos():BlockPos.ZERO;
         var now=pose(s);var point=now.point(s.localHead());
-        PacketDistributor.sendToPlayer(observer,new WagonNetwork.MatSleep(sleeper.getId(),wagon,frame,s.mat,s.anchor,now.position(),now.yaw(),now.pitch(),now.roll(),point,true));
+        PacketDistributor.sendToPlayer(observer,new WagonNetwork.MatSleep(sleeper.getId(),wagon,frame,s.mat,s.anchor,now.position(),now.yaw(),now.pitch(),now.roll(),point,true,s.reversed));
     }
     @SubscribeEvent public static void tracking(net.neoforged.neoforge.event.entity.player.PlayerEvent.StartTracking event) {
         if(event.getEntity() instanceof ServerPlayer observer&&event.getTarget() instanceof LivingEntity sleeper)track(observer,sleeper);

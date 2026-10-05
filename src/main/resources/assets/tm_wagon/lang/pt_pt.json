@@ -46,10 +46,10 @@
   "message.tm_wagon.cargo_filtered": "O filtro de carga não permite este bloco.",
   "item.tm_wagon.wagon_straw_mat": "Esteira de palha para carroça",
   "tooltip.tm_wagon.wagon_straw_mat": "Ocupa três espaços livres consecutivos na mesma coluna na direção da frente. Clique com o botão direito para dormir sem definir o ponto de reaparecimento; agachado para remover.",
-  "message.tm_wagon.mat_space": "Falta espaço: são necessários três espaços livres consecutivos na direção da frente.",
-  "message.tm_wagon.mat_dimension": "Não é possível dormir numa esteira nesta dimensão.",
-  "message.tm_wagon.mat_unstable": "Pare e estabilize a carroça antes de dormir.",
-  "message.tm_wagon.mat_unavailable": "Não é possível dormir na esteira agora.",
+  "message.tm_wagon.mat_space": "Falta espaço: são necessários três espaços livres consecutivos na direção oposta a ti.",
+  "message.tm_wagon.mat_dimension": "Não podes dormir nesta dimensão.",
+  "message.tm_wagon.mat_unstable": "Para e estabiliza a carroça antes de dormir.",
+  "message.tm_wagon.mat_unavailable": "Não podes dormir agora.",
   "message.tm_wagon.cargo_occupied": "Este espaço de carga está ocupado.",
   "message.tm_wagon.cargo_blocked": "Um bloco ou uma entidade bloqueia este espaço de carga.",
   "item.tm_wagon.wagon_stool": "Banco pequeno de carroça",
@@ -125,5 +125,6 @@
   "book.tm_wagon.category.workshop": "Oficina de carroças",
   "book.tm_wagon.category.help": "Ajuda e integrações",
   "book.tm_wagon.recipe": "Fabrico",
-  "book.tm_wagon.recipe_unavailable": "Esta receita não está disponível neste servidor."
+  "book.tm_wagon.recipe_unavailable": "Esta receita não está disponível neste servidor.",
+  "message.tm_wagon.sleeping_bag_space": "Falta espaço: são necessários dois espaços livres consecutivos na direção oposta a ti."
 }

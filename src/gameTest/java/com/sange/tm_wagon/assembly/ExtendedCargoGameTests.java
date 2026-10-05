@@ -38,7 +38,7 @@ public class ExtendedCargoGameTests {
         h.assertTrue(f.install(slot,part,null,new ItemStack(WagonContent.PART_ITEMS.get(part).get()))==null,"Module failed: "+slot);
     }
     private static Player player(GameTestHelper h,CargoHold hold) {
-        var p=h.makeMockPlayer(GameType.SURVIVAL);p.setPos(hold.owner().cargoPose().point(new Vec3(-3,0,0)));return p;
+        var p=h.makeMockPlayer(GameType.SURVIVAL);p.setPos(hold.owner().cargoPose().point(new Vec3(-3,0,3)));return p;
     }
     private static WagonEntity wagon(GameTestHelper h) {
         var w=WagonContent.WAGON.get().create(h.getLevel());var parts=WagonEntity.defaultParts();parts.put(WagonSlot.BODY,WagonPart.LONG_CARGO_BODY);
