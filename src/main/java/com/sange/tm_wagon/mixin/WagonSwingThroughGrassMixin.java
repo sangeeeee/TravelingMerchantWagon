@@ -12,9 +12,12 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-/** SwingThroughGrass otherwise redirects server mining into a no-op attack on the wagon's broad AABB. */
+/** SwingThroughGrass's own target search must exclude wagon bounds and respect its actual surfaces. */
 @Pseudo
-@Mixin(targets="dev.nikrecs.swingthroughgrass.SwingThroughGrassAttackHandler",remap=false)
+@Mixin(targets={
+    "dev.nikrecs.swingthroughgrass.attack.SwingTargetFinder", // SwingThroughGrass 1.1
+    "dev.nikrecs.swingthroughgrass.SwingThroughGrassAttackHandler" // SwingThroughGrass 1.0
+},remap=false)
 public abstract class WagonSwingThroughGrassMixin {
     @Inject(method="isAttackable",at=@At("HEAD"),cancellable=true,remap=false)
     private static void tm_wagon$notAnAttackTarget(Entity entity,CallbackInfoReturnable<Boolean> callback) {

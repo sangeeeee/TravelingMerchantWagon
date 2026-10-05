@@ -4,6 +4,7 @@ import com.sange.tm_wagon.assembly.WagonContent;
 import com.sange.tm_wagon.entity.WagonEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.network.protocol.game.ServerboundPlayerActionPacket;
 import net.minecraft.gametest.framework.*;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.player.Player;
@@ -28,10 +29,13 @@ public class SwingThroughGrassGameTests {
         var w=WagonContent.WAGON.get().create(h.getLevel());
         w.setPos(Vec3.atBottomCenterOf(h.absolutePos(new BlockPos(10,3,12))));h.getLevel().addFreshEntity(w);return w;
     }
-    private static Player player(GameTestHelper h,Vec3 eye,Vec3 target) {
-        var p=h.makeMockPlayer(GameType.SURVIVAL);p.setPos(eye.subtract(0,p.getEyeHeight(),0));
+    private static void aim(Player p,Vec3 eye,Vec3 target) {
+        p.setPos(eye.subtract(0,p.getEyeHeight(),0));
         Vec3 d=target.subtract(eye);p.setYRot((float)-Math.toDegrees(Math.atan2(d.x,d.z)));
-        p.setXRot((float)-Math.toDegrees(Math.atan2(d.y,Math.hypot(d.x,d.z))));p.setYHeadRot(p.getYRot());return p;
+        p.setXRot((float)-Math.toDegrees(Math.atan2(d.y,Math.hypot(d.x,d.z))));p.setYHeadRot(p.getYRot());
+    }
+    private static Player player(GameTestHelper h,Vec3 eye,Vec3 target) {
+        var p=h.makeMockPlayer(GameType.SURVIVAL);aim(p,eye,target);return p;
     }
     private static PlayerInteractEvent.LeftClickBlock click(Player p,BlockPos pos) {
         var event=new PlayerInteractEvent.LeftClickBlock(p,pos,Direction.UP,PlayerInteractEvent.LeftClickBlock.Action.START);
@@ -53,6 +57,26 @@ public class SwingThroughGrassGameTests {
         var protectedEvent=new PlayerInteractEvent.LeftClickBlock(p,block,Direction.UP,PlayerInteractEvent.LeftClickBlock.Action.START);
         protectedEvent.setCanceled(true);NeoForge.EVENT_BUS.post(protectedEvent);
         h.assertTrue(protectedEvent.isCanceled(),"Compatibility cleared another protection's cancellation");h.succeed();
+    }
+    @GameTest(template="assembly_test")
+    public static void swingthroughgrass_server_keeps_grass_broken_inside_rotated_wagon_bounds(GameTestHelper h) {
+        if(!enabled(h))return;
+        var w=wagon(h);var p=h.makeMockServerPlayerInLevel();p.setGameMode(GameType.SURVIVAL);
+        p.setNoGravity(true);p.setItemInHand(InteractionHand.MAIN_HAND,Items.IRON_AXE.getDefaultInstance());
+        Vec3 target=w.position().add(0,.6,0);var block=BlockPos.containing(target);
+        h.getLevel().setBlock(block.below(),Blocks.DIRT.defaultBlockState(),3);
+        for(int yaw:new int[]{0,45,90}) {
+            w.setYRot(yaw);Vec3 eye=w.pose().point(new Vec3(-2,.6,0));aim(p,eye,target);
+            h.assertTrue(w.getBoundingBox().contains(target)&&w.pick(eye,target).isEmpty(),"Grass is not visible through the wagon's empty space");
+            h.getLevel().setBlock(block,Blocks.SHORT_GRASS.defaultBlockState(),3);
+            p.gameMode.handleBlockBreakAction(block,ServerboundPlayerActionPacket.Action.START_DESTROY_BLOCK,
+                Direction.UP,h.getLevel().getMaxBuildHeight(),yaw);
+            h.assertTrue(h.getLevel().getBlockState(block).isAir(),"Server rejected grass break inside wagon bounds at yaw "+yaw);
+            h.assertTrue(!w.isRemoved(),"Mining grass removed the wagon");
+        }
+        h.runAfterDelay(2,()->{
+            h.assertTrue(h.getLevel().getBlockState(block).isAir(),"Server restored the broken grass");h.succeed();
+        });
     }
     @GameTest(template="assembly_test")
     public static void swingthroughgrass_still_hits_mobs_but_not_through_wagon_walls(GameTestHelper h) {
