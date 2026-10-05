@@ -23,7 +23,7 @@
   "message.tm_wagon.controller_unloaded": "須先載入升架所在區塊，方可拆卸。",
   "tooltip.tm_wagon.cargo_body": "右按升架之頂，置有足板及兩側踏階之車輿。可容貨十格。",
   "tooltip.tm_wagon.single_horse_shafts": "裝於車輿前端正中、足板之下。",
-  "tooltip.tm_wagon.double_horse_shafts": "裝於車輿前端正中、足板之下。",
+  "tooltip.tm_wagon.double_horse_shafts": "裝於車輿前端正中、足板之下。 繫兩畜則起行更疾，載貨之於疾馳，減速亦輕。",
   "tooltip.tm_wagon.single_seat": "裝於車首正中、足板之上。右按軟墊可坐。",
   "tooltip.tm_wagon.double_seat": "裝於車首正中、足板之上。右按軟墊可坐；左席司御。",
   "tooltip.tm_wagon.small_wheel": "小輪裝於前軸，左右各一。",

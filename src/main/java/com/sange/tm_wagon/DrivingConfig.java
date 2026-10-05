@@ -8,7 +8,9 @@ import net.neoforged.neoforge.common.ModConfigSpec;
 public final class DrivingConfig {
     public record Speed(double forward,double reverse) {}
     public record Band(int percent,double multiplier) {}
+    public record DraftTeam(double accelerationMultiplier,double cargoSpeedPenaltyMultiplier) {}
     public record Settings(Speed small,Speed longBody,Speed wide,double boost,double slotPenalty,double boostFloor,
+                           DraftTeam doubleTeam,
                            double forwardAcceleration,double reverseAcceleration,double coast,double brake,
                            double unloadedMultiplier,Band light,Band medium,Band full) {
         public Settings {
@@ -29,11 +31,12 @@ public final class DrivingConfig {
         public double maxReverse() { return Math.max(small.reverse(),Math.max(longBody.reverse(),wide.reverse())); }
     }
     public static final Settings DEFAULTS=new Settings(new Speed(5.616/20,1.404/20),new Speed(4.68/20,1.17/20),new Speed(3.744/20,.936/20),
-        1.8,.0117,1,.00975,.004875,.234/28,.234/7,1.3,new Band(30,1.1),new Band(60,.9),new Band(100,.6));
+        1.8,.0117,1,new DraftTeam(1.2,.85),.00975,.004875,.234/28,.234/7,1.3,new Band(30,1.1),new Band(60,.9),new Band(100,.6));
     private static volatile Settings settings=DEFAULTS;
     public static Settings get() { return settings; }
     private static final ModConfigSpec.DoubleValue[] FORWARD=new ModConfigSpec.DoubleValue[3],REVERSE=new ModConfigSpec.DoubleValue[3];
     private static ModConfigSpec.DoubleValue BOOST,PENALTY,FLOOR,ACCEL,REVERSE_ACCEL,COAST,BRAKE,UNLOADED;
+    private static ModConfigSpec.DoubleValue TEAM_ACCEL,TEAM_PENALTY;
     private static final ModConfigSpec.IntValue[] THRESHOLDS=new ModConfigSpec.IntValue[3];
     private static final ModConfigSpec.DoubleValue[] MULTIPLIERS=new ModConfigSpec.DoubleValue[3];
     static void define(ModConfigSpec.Builder b) {
@@ -46,19 +49,32 @@ public final class DrivingConfig {
             REVERSE[i]=b.comment("Maximum reverse speed, in blocks per second. Sprint never increases reverse speed.").defineInRange("reverse",defaults[i].reverse()*20,.05,4);
             b.pop();
         }b.pop();
-        b.comment("Sprint limit = max(base * minimumMultiplier, base * multiplier - occupiedSlots * penaltyPerOccupiedSlot).",
-            "A straw mat occupies three slots; a stool or cargo block occupies one. Container contents and passengers add no slots.").push("boost");
+        b.comment("Sprint limit = max(base * minimumMultiplier, base * multiplier - occupiedSlots * penaltyPerOccupiedSlot * teamPenalty).",
+            "teamPenalty is draftTeam.cargoSpeedPenaltyMultiplier with two attached draft animals, otherwise 1.",
+            "A straw mat occupies three slots; a sleeping bag occupies two; a stool or cargo block occupies one.",
+            "Container contents and passengers add no slots.").push("boost");
         BOOST=b.comment("Empty-wagon sprint multiplier relative to this body's ordinary forward limit.").defineInRange("multiplier",1.8,1,2.5);
         PENALTY=b.comment("Absolute sprint speed penalty per occupied slot, in blocks per second; equal for every body size.",
-            "Default 0.234 gives a full 12-slot long wagon a 1.2x sprint limit. Zero disables this penalty.").defineInRange("penaltyPerOccupiedSlot",.234,0,2.5);
+            "With one draft animal, default 0.234 gives a full 12-slot long wagon a 1.2x sprint limit.",
+            "Two attached draft animals scale this deduction by draftTeam.cargoSpeedPenaltyMultiplier. Zero disables the penalty.").defineInRange("penaltyPerOccupiedSlot",.234,0,2.5);
         FLOOR=b.comment("Minimum sprint multiplier; cannot reduce speed below ordinary speed.",
             "Values above multiplier are effectively clamped to multiplier.").defineInRange("minimumMultiplier",1,1,2.5);b.pop();
+        b.comment("Benefits for a double-horse hitch with both living draft animals actually attached.",
+            "The shafts alone grant no bonus. Cargo changes and horse detachment take effect on the next driving tick.",
+            "Ordinary speeds, empty-wagon sprint limits, braking, coasting and manual pushing remain unchanged.").push("draftTeam");
+        TEAM_ACCEL=b.comment("Multiplier of forward and reverse propulsion acceleration after applying the cargo occupancy tier.",
+            "Default 1.2 gives a two-animal team 20 percent more acceleration. Set to 1 to disable.")
+            .defineInRange("accelerationMultiplier",DEFAULTS.doubleTeam().accelerationMultiplier(),1,2);
+        TEAM_PENALTY=b.comment("Multiplier of the per-occupied-slot sprint speed deduction for a two-animal team.",
+            "Default 0.85 reduces the deduction by 15 percent, rather than increasing the total speed by 15 percent.",
+            "The ordinary-speed floor still applies. Set to 1 to disable the reduction.")
+            .defineInRange("cargoSpeedPenaltyMultiplier",DEFAULTS.doubleTeam().cargoSpeedPenaltyMultiplier(),.5,1);b.pop();
         b.comment("Propulsion reference acceleration in blocks per second squared; shared by all body sizes.",
             "Each occupancy tier multiplies this reference directly, not the unloaded acceleration.",
             "Cargo does not weaken coasting deceleration or the reverse-key brake.").push("acceleration");
         ACCEL=b.comment("Forward reference acceleration before applying the occupancy multiplier.").defineInRange("forwardReference",3.9,.1,20);
         REVERSE_ACCEL=b.comment("Reverse reference acceleration before applying the same occupancy multiplier.").defineInRange("reverseReference",1.95,.1,10);
-        UNLOADED=b.comment("Reference multiplier below the first occupancy threshold. Default is 1.3x the previous acceleration.").defineInRange("unloadedMultiplier",1.3,.05,3);
+        UNLOADED=b.comment("Reference multiplier below the first cargo occupancy threshold.").defineInRange("unloadedMultiplier",1.3,.05,3);
         COAST=b.comment("Deceleration when coasting or exceeding a reduced speed limit, in blocks per second squared.").defineInRange("coastingDeceleration",DEFAULTS.coast()*400,.2,40);
         BRAKE=b.comment("Deceleration when pressing the opposite direction, in blocks per second squared; stop before reversing.").defineInRange("brakingDeceleration",DEFAULTS.brake()*400,.5,80);
         String[] tiers={"lightLoad","mediumLoad","fullLoad"};Band[] bands={DEFAULTS.light(),DEFAULTS.medium(),DEFAULTS.full()};
@@ -78,6 +94,7 @@ public final class DrivingConfig {
     }
     static void refresh() {
         settings=new Settings(speed(0),speed(1),speed(2),BOOST.get(),PENALTY.get()/20,FLOOR.get(),
+            new DraftTeam(TEAM_ACCEL.get(),TEAM_PENALTY.get()),
             ACCEL.get()/400,REVERSE_ACCEL.get()/400,COAST.get()/400,BRAKE.get()/400,UNLOADED.get(),band(0),band(1),band(2));
     }
     public static void unload(ModConfigEvent.Unloading event) { if(event.getConfig().getSpec()==ServerConfig.SPEC)settings=DEFAULTS; }

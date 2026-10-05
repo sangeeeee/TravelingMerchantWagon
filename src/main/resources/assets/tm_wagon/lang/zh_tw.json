@@ -23,7 +23,7 @@
   "message.tm_wagon.controller_unloaded": "必須先載入裝配架所在區塊才能拆卸。",
   "tooltip.tm_wagon.cargo_body": "右鍵點擊裝配架頂面，放置帶腳踏板與兩側踏階的貨物車廂，共 10 個貨位。",
   "tooltip.tm_wagon.single_horse_shafts": "安裝於貨物車廂前方正中央、腳踏板下方。",
-  "tooltip.tm_wagon.double_horse_shafts": "安裝於貨物車廂前方正中央、腳踏板下方。",
+  "tooltip.tm_wagon.double_horse_shafts": "安裝於貨物車廂前方正中央、腳踏板下方。 實際拴上兩匹拉車動物後，加速更快，貨物對衝刺速度的扣減更小。",
   "tooltip.tm_wagon.single_seat": "安裝於車頭中央的腳踏板上方。右鍵點擊坐墊即可入座。",
   "tooltip.tm_wagon.double_seat": "安裝於車頭中央的腳踏板上方。右鍵點擊坐墊即可入座；左座為駕駛位。",
   "tooltip.tm_wagon.small_wheel": "安裝於前輪軸。每輛馬車需要兩個小前輪。",

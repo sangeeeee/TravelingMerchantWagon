@@ -23,7 +23,7 @@
   "message.tm_wagon.controller_unloaded": "Chunk tempat dongkrak berada harus dimuat sebelum pembongkaran.",
   "tooltip.tm_wagon.cargo_body": "Klik kanan bagian atas dongkrak untuk memasang bak dengan pijakan kaki dan tangga di kedua sisi. 10 slot muatan.",
   "tooltip.tm_wagon.single_horse_shafts": "Pasang di tengah bagian depan bak, di bawah pijakan kaki kusir.",
-  "tooltip.tm_wagon.double_horse_shafts": "Pasang di tengah bagian depan bak, di bawah pijakan kaki kusir.",
+  "tooltip.tm_wagon.double_horse_shafts": "Pasang di tengah bagian depan bak, di bawah pijakan kaki kusir. Dua hewan penarik yang terikat mempercepat akselerasi dan mengurangi penalti muatan pada kecepatan sprint.",
   "tooltip.tm_wagon.single_seat": "Pasang di tengah bagian depan, di atas pijakan kaki. Klik kanan bantalan untuk duduk.",
   "tooltip.tm_wagon.double_seat": "Pasang di tengah bagian depan, di atas pijakan kaki. Klik kanan bantalan untuk duduk; posisi kiri mengendalikan pedati.",
   "tooltip.tm_wagon.small_wheel": "Pasang pada poros depan. Diperlukan dua roda depan kecil.",

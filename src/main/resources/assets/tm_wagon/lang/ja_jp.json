@@ -23,7 +23,7 @@
   "message.tm_wagon.controller_unloaded": "取り外す前にジャッキのあるチャンクを読み込んでください。",
   "tooltip.tm_wagon.cargo_body": "ジャッキの上面を右クリックして、足置きと左右のステップが付いた荷台を設置します。貨物スロットは10個です。",
   "tooltip.tm_wagon.single_horse_shafts": "荷台の前方中央、足置きの下に取り付けます。",
-  "tooltip.tm_wagon.double_horse_shafts": "荷台の前方中央、足置きの下に取り付けます。",
+  "tooltip.tm_wagon.double_horse_shafts": "荷台の前方中央、足置きの下に取り付けます。 2頭をつなぐと加速が速くなり、積荷による疾走速度の低下が軽減されます。",
   "tooltip.tm_wagon.single_seat": "前方中央の足置きの上に取り付けます。クッションを右クリックすると座れます。",
   "tooltip.tm_wagon.double_seat": "前方中央の足置きの上に取り付けます。クッションを右クリックすると座れます。左席が操縦席です。",
   "tooltip.tm_wagon.small_wheel": "前車軸に取り付けます。馬車には小さな前輪が2個必要です。",

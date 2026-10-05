@@ -46,15 +46,18 @@
 		# Range: 0.05 ~ 4.0
 		reverse = 0.936
 
-#Sprint limit = max(base * minimumMultiplier, base * multiplier - occupiedSlots * penaltyPerOccupiedSlot).
-#A straw mat occupies three slots; a stool or cargo block occupies one. Container contents and passengers add no slots.
+#Sprint limit = max(base * minimumMultiplier, base * multiplier - occupiedSlots * penaltyPerOccupiedSlot * teamPenalty).
+#teamPenalty is draftTeam.cargoSpeedPenaltyMultiplier with two attached draft animals, otherwise 1.
+#A straw mat occupies three slots; a sleeping bag occupies two; a stool or cargo block occupies one.
+#Container contents and passengers add no slots.
 [boost]
 	#Empty-wagon sprint multiplier relative to this body's ordinary forward limit.
 	# Default: 1.8
 	# Range: 1.0 ~ 2.5
 	multiplier = 1.8
 	#Absolute sprint speed penalty per occupied slot, in blocks per second; equal for every body size.
-	#Default 0.234 gives a full 12-slot long wagon a 1.2x sprint limit. Zero disables this penalty.
+	#With one draft animal, default 0.234 gives a full 12-slot long wagon a 1.2x sprint limit.
+	#Two attached draft animals scale this deduction by draftTeam.cargoSpeedPenaltyMultiplier. Zero disables the penalty.
 	# Default: 0.234
 	# Range: 0.0 ~ 2.5
 	penaltyPerOccupiedSlot = 0.234
@@ -63,6 +66,22 @@
 	# Default: 1.0
 	# Range: 1.0 ~ 2.5
 	minimumMultiplier = 1.0
+
+#Benefits for a double-horse hitch with both living draft animals actually attached.
+#The shafts alone grant no bonus. Cargo changes and horse detachment take effect on the next driving tick.
+#Ordinary speeds, empty-wagon sprint limits, braking, coasting and manual pushing remain unchanged.
+[draftTeam]
+	#Multiplier of forward and reverse propulsion acceleration after applying the cargo occupancy tier.
+	#Default 1.2 gives a two-animal team 20 percent more acceleration. Set to 1 to disable.
+	# Default: 1.2
+	# Range: 1.0 ~ 2.0
+	accelerationMultiplier = 1.2
+	#Multiplier of the per-occupied-slot sprint speed deduction for a two-animal team.
+	#Default 0.85 reduces the deduction by 15 percent, rather than increasing the total speed by 15 percent.
+	#The ordinary-speed floor still applies. Set to 1 to disable the reduction.
+	# Default: 0.85
+	# Range: 0.5 ~ 1.0
+	cargoSpeedPenaltyMultiplier = 0.85
 
 #Propulsion reference acceleration in blocks per second squared; shared by all body sizes.
 #Each occupancy tier multiplies this reference directly, not the unloaded acceleration.
@@ -76,7 +95,7 @@
 	# Default: 1.95
 	# Range: 0.1 ~ 10.0
 	reverseReference = 1.95
-	#Reference multiplier below the first occupancy threshold. Default is 1.3x the previous acceleration.
+	#Reference multiplier below the first cargo occupancy threshold.
 	# Default: 1.3
 	# Range: 0.05 ~ 3.0
 	unloadedMultiplier = 1.3
@@ -127,3 +146,11 @@
 		# Default: 0.6
 		# Range: 0.05 ~ 3.0
 		multiplier = 0.6
+
+#Coachman's Handbook settings.
+[handbook]
+	#Give each player a handbook when they log in without a recorded previous gift.
+	#Requires Patchouli. Players in existing worlds also receive one after the mod is added.
+	#Reconnects and respawns never grant another copy after receipt.
+	#Disabled logins do not count as receipt; enabling this option later permits the gift.
+	giveOnFirstJoin = true

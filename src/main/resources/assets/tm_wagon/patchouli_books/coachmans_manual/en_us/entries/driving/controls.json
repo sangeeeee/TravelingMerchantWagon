@@ -14,7 +14,7 @@
     },
     {
       "type": "patchouli:text",
-      "text": "The server configuration controls speeds and cargo penalties. Loading or unloading while driving updates the speed limit.$(br2)Before departure, assemble the wagon entity, fill the required hitches and take the driver’s position."
+      "text": "Speed, cargo penalties and two-animal team benefits are set by the server. Loading or unloading updates driving performance immediately.$(br2)Before departure, assemble the wagon entity, fill the required hitches and take the driver's position."
     }
   ]
 }

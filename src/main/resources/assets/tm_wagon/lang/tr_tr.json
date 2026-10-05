@@ -23,7 +23,7 @@
   "message.tm_wagon.controller_unloaded": "Sökmeden önce krikonun bulunduğu yığın yüklenmelidir.",
   "tooltip.tm_wagon.cargo_body": "Ayak tahtası ve iki yanda basamakları olan kasayı yerleştirmek için krikonun üstüne sağ tıkla. 10 yük yuvası.",
   "tooltip.tm_wagon.single_horse_shafts": "Kasanın ön ortasına, ayak tahtasının altına takılır.",
-  "tooltip.tm_wagon.double_horse_shafts": "Kasanın ön ortasına, ayak tahtasının altına takılır.",
+  "tooltip.tm_wagon.double_horse_shafts": "Kasanın ön ortasına, ayak tahtasının altına takılır. Koşulan iki hayvan daha hızlı ivmelenir ve yükün depar hızına uyguladığı cezayı azaltır.",
   "tooltip.tm_wagon.single_seat": "Ön ortada, ayak tahtasının üstüne takılır. Oturmak için mindere sağ tıkla.",
   "tooltip.tm_wagon.double_seat": "Ön ortada, ayak tahtasının üstüne takılır. Oturmak için mindere sağ tıkla; arabayı sol koltuk yönetir.",
   "tooltip.tm_wagon.small_wheel": "Ön dingile takılır. İki küçük ön tekerlek gerekir.",

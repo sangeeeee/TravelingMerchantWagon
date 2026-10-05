@@ -23,7 +23,7 @@
   "message.tm_wagon.controller_unloaded": "Il chunk del martinetto deve essere caricato prima dello smontaggio.",
   "tooltip.tm_wagon.cargo_body": "Clic destro sulla sommità del martinetto per posare un cassone con poggiapiedi e predellini su entrambi i lati. 10 spazi di carico.",
   "tooltip.tm_wagon.single_horse_shafts": "Si monta al centro della parte anteriore del cassone, sotto il poggiapiedi.",
-  "tooltip.tm_wagon.double_horse_shafts": "Si monta al centro della parte anteriore del cassone, sotto il poggiapiedi.",
+  "tooltip.tm_wagon.double_horse_shafts": "Si monta al centro della parte anteriore del cassone, sotto il poggiapiedi. Due animali da tiro imbrigliati accelerano più rapidamente e riducono la penalità del carico sulla velocità di sprint.",
   "tooltip.tm_wagon.single_seat": "Si monta davanti al centro, sopra il poggiapiedi. Clic destro sul cuscino per sedersi.",
   "tooltip.tm_wagon.double_seat": "Si monta davanti al centro, sopra il poggiapiedi. Clic destro su un cuscino per sedersi; il posto a sinistra comanda il carro.",
   "tooltip.tm_wagon.small_wheel": "Si monta sull'assale anteriore. Servono due ruote anteriori piccole.",

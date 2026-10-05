@@ -19,6 +19,8 @@ public class DrivingConfigGameTests {
         var parser=new com.electronwill.nightconfig.toml.TomlParser();
         var fresh=parser.parse(java.nio.file.Files.readString(target));
         h.assertTrue(ServerConfig.SPEC.isCorrect(fresh)&&fresh.contains("cargo.blacklist")&&fresh.contains("speed.small.forward"),"Fresh file does not contain both sections");
+        close(h,fresh.<Number>get("draftTeam.accelerationMultiplier").doubleValue(),1.2,"Fresh config omitted team acceleration");
+        close(h,fresh.<Number>get("draftTeam.cargoSpeedPenaltyMultiplier").doubleValue(),.85,"Fresh config omitted team load relief");
         try(var files=java.nio.file.Files.list(directory)) { h.assertTrue(files.count()==1,"Startup generated multiple files"); }
         java.nio.file.Files.writeString(target,"[cargo]\nlistMode = \"WHITELIST\"\nwhitelist = [\"minecraft:stone\"]\n[speed.small]\nforward = 7.0\n");
         var legacy=directory.resolve("tm_wagon-driving-server.toml");
@@ -49,21 +51,21 @@ public class DrivingConfigGameTests {
         for(int i=0;i<bodies.length;i++)for(int used=0;used<=bodies[i].cargoCapacity();used++) {
             double multiplier=used>=boundaries[i][2]?.6:used>=boundaries[i][1]?.9:used>=boundaries[i][0]?1.1:1.3;
             var drive=new WagonDrive();int capacity=bodies[i].cargoCapacity();
-            close(h,drive.tick(1,WagonSpeed.forward(bodies[i],used,false),used,capacity),.00975*multiplier,"Forward tier for "+bodies[i]+" / "+used);
+            close(h,drive.tick(1,WagonSpeed.forward(bodies[i],used,false,false),used,capacity,false),.00975*multiplier,"Forward tier for "+bodies[i]+" / "+used);
             drive.reset();
-            close(h,drive.tick(-1,WagonSpeed.reverse(bodies[i]),used,capacity),-.004875*multiplier,"Reverse tier for "+bodies[i]+" / "+used);
+            close(h,drive.tick(-1,WagonSpeed.reverse(bodies[i]),used,capacity,false),-.004875*multiplier,"Reverse tier for "+bodies[i]+" / "+used);
         }
         h.succeed();
     }
     @GameTest(template="assembly_test")
     public static void loading_changes_acceleration_without_weakening_brakes(GameTestHelper h) {
-        var drive=new WagonDrive();drive.tick(1,.234,0,12);double previous=drive.speed();
-        drive.tick(1,.234,12,12);close(h,drive.speed()-previous,.00585,"Full load did not apply immediately");
-        previous=drive.speed();drive.tick(1,.234,0,12);close(h,drive.speed()-previous,.012675,"Unloading did not restore acceleration immediately");
-        drive.load(.234);double emptyBrake=drive.tick(-1,.0585,0,12);
-        drive.load(.234);close(h,drive.tick(-1,.0585,12,12),emptyBrake,"Cargo weakened braking");
-        drive.load(.234);double emptyCoast=drive.tick(0,.234,0,12);
-        drive.load(.234);close(h,drive.tick(0,.234,12,12),emptyCoast,"Cargo weakened coasting deceleration");h.succeed();
+        var drive=new WagonDrive();drive.tick(1,.234,0,12,false);double previous=drive.speed();
+        drive.tick(1,.234,12,12,false);close(h,drive.speed()-previous,.00585,"Full load did not apply immediately");
+        previous=drive.speed();drive.tick(1,.234,0,12,false);close(h,drive.speed()-previous,.012675,"Unloading did not restore acceleration immediately");
+        drive.load(.234);double emptyBrake=drive.tick(-1,.0585,0,12,false);
+        drive.load(.234);close(h,drive.tick(-1,.0585,12,12,false),emptyBrake,"Cargo weakened braking");
+        drive.load(.234);double emptyCoast=drive.tick(0,.234,0,12,false);
+        drive.load(.234);close(h,drive.tick(0,.234,12,12,false),emptyCoast,"Cargo weakened coasting deceleration");h.succeed();
     }
     @SuppressWarnings("unchecked")
     private static ModConfigSpec.ConfigValue<Object> value(String path) { return ServerConfig.SPEC.getValues().get(path); }
@@ -75,6 +77,7 @@ public class DrivingConfigGameTests {
             {"speed.long.forward",5.0},{"speed.long.reverse",1.5},
             {"speed.wide.forward",4.0},{"speed.wide.reverse",1.0},
             {"boost.multiplier",2.0},{"boost.penaltyPerOccupiedSlot",.1},{"boost.minimumMultiplier",1.1},
+            {"draftTeam.accelerationMultiplier",1.35},{"draftTeam.cargoSpeedPenaltyMultiplier",.7},
             {"acceleration.forwardReference",4.0},{"acceleration.reverseReference",2.0},
             {"acceleration.unloadedMultiplier",1.5},{"acceleration.coastingDeceleration",4.0},{"acceleration.brakingDeceleration",12.0},
             {"acceleration.lightLoad.thresholdPercent",25},{"acceleration.lightLoad.multiplier",1.2},
@@ -90,15 +93,19 @@ public class DrivingConfigGameTests {
             DrivingConfig.refresh();
             var bodies=new WagonPart[]{WagonPart.CARGO_BODY,WagonPart.LONG_CARGO_BODY,WagonPart.WIDE_CARGO_BODY};
             for(int i=0;i<3;i++) {
-                close(h,WagonSpeed.forward(bodies[i],0,false),(6-i)/20.0,"Configured forward speed");
+                close(h,WagonSpeed.forward(bodies[i],0,false,false),(6-i)/20.0,"Configured forward speed");
                 close(h,WagonSpeed.reverse(bodies[i]),(2-i*.5)/20,"Configured reverse speed");
-                close(h,WagonSpeed.forward(bodies[i],3,true),(6-i)/10.0-.015,"Configured absolute slot penalty");
-                close(h,WagonSpeed.forward(bodies[i],100,true),(6-i)/20.0*1.1,"Configured boost floor");
+                close(h,WagonSpeed.forward(bodies[i],3,true,false),(6-i)/10.0-.015,"Configured absolute slot penalty");
+                close(h,WagonSpeed.forward(bodies[i],3,true,true),(6-i)/10.0-.0105,"Configured team slot penalty");
+                close(h,WagonSpeed.forward(bodies[i],100,true,false),(6-i)/20.0*1.1,"Configured boost floor");
+                close(h,WagonSpeed.forward(bodies[i],100,true,true),(6-i)/20.0*1.1,"Configured team boost floor");
             }
-            var drive=new WagonDrive();close(h,drive.tick(1,.3,0,12),.015,"Configured empty acceleration");
-            drive.reset();close(h,drive.tick(1,.3,3,12),.012,"Configured first tier");
-            drive.reset();close(h,drive.tick(-1,.1,6,12),-.004,"Configured reverse tier");
-            drive.reset();close(h,drive.tick(1,.3,11,12),.004,"Configured final threshold");
+            var drive=new WagonDrive();close(h,drive.tick(1,.3,0,12,false),.015,"Configured empty acceleration");
+            drive.reset();close(h,drive.tick(1,.3,3,12,false),.012,"Configured first tier");
+            drive.reset();close(h,drive.tick(-1,.1,6,12,false),-.004,"Configured reverse tier");
+            drive.reset();close(h,drive.tick(1,.3,11,12,false),.004,"Configured final threshold");
+            drive.reset();close(h,drive.tick(1,.3,0,12,true),.015*1.35,"Configured team forward acceleration");
+            drive.reset();close(h,drive.tick(-1,.1,6,12,true),-.004*1.35,"Configured team reverse acceleration");
             drive.load(.2);close(h,drive.tick(0,.3),.19,"Configured coasting");
             drive.load(.2);close(h,drive.tick(-1,.1),.17,"Configured braking");
             drive.load(100);close(h,drive.speed(),.6,"Configured saved forward cap");
@@ -110,9 +117,32 @@ public class DrivingConfigGameTests {
         h.succeed();
     }
     @GameTest(template="assembly_test")
+    public static void double_team_acceleration_scales_every_load_tier_but_not_brakes(GameTestHelper h) {
+        for(var body:new WagonPart[]{WagonPart.CARGO_BODY,WagonPart.LONG_CARGO_BODY,WagonPart.WIDE_CARGO_BODY}) {
+            for(int occupied=0;occupied<=body.cargoCapacity();occupied++) {
+                for(int input:new int[]{1,-1}) {
+                    var single=new WagonDrive();var pair=new WagonDrive();
+                    double a=single.tick(input,.3,occupied,body.cargoCapacity(),false);
+                    double b=pair.tick(input,.3,occupied,body.cargoCapacity(),true);
+                    close(h,b,a*1.2,"Team acceleration at "+body+" / "+occupied+" / "+input);
+                }
+            }
+        }
+        var drive=new WagonDrive();
+        drive.load(.2);double brake=drive.tick(-1,.1,12,12,false);
+        drive.load(.2);close(h,drive.tick(-1,.1,12,12,true),brake,"Team altered braking");
+        drive.load(.2);double coast=drive.tick(0,.3,12,12,false);
+        drive.load(.2);close(h,drive.tick(0,.3,12,12,true),coast,"Team altered coasting");
+        drive.load(.3);double overspeed=drive.tick(1,.2,12,12,false);
+        drive.load(.3);close(h,drive.tick(1,.2,12,12,true),overspeed,"Team altered reduced-limit deceleration");
+        drive.reset();drive.tick(1,.3,0,12,true);double before=drive.speed();
+        drive.tick(1,.3,0,12,false);close(h,drive.speed()-before,.012675,"Team state change did not affect the next propulsion tick");
+        h.succeed();
+    }
+    @GameTest(template="assembly_test")
     public static void conflicting_tiers_are_ordered_and_cannot_accelerate_under_load(GameTestHelper h) {
         var d=DrivingConfig.DEFAULTS;
-        var s=new DrivingConfig.Settings(d.small(),d.longBody(),d.wide(),1.2,d.slotPenalty(),2,
+        var s=new DrivingConfig.Settings(d.small(),d.longBody(),d.wide(),1.2,d.slotPenalty(),2,d.doubleTeam(),
             d.forwardAcceleration(),d.reverseAcceleration(),d.coast(),d.brake(),1.3,
             new DrivingConfig.Band(50,2),new DrivingConfig.Band(20,1.1),new DrivingConfig.Band(10,1.2));
         close(h,s.boostFloor(),1.2,"Boost floor exceeded empty cap");

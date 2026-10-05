@@ -23,7 +23,7 @@
   "message.tm_wagon.controller_unloaded": "Cần tải đoạn chứa kích trước khi tháo dỡ.",
   "tooltip.tm_wagon.cargo_body": "Nhấp chuột phải lên mặt kích để đặt thùng xe có chỗ để chân và bậc lên xuống hai bên. 10 ô hàng.",
   "tooltip.tm_wagon.single_horse_shafts": "Lắp ở chính giữa phía trước thùng xe, bên dưới chỗ để chân.",
-  "tooltip.tm_wagon.double_horse_shafts": "Lắp ở chính giữa phía trước thùng xe, bên dưới chỗ để chân.",
+  "tooltip.tm_wagon.double_horse_shafts": "Lắp ở chính giữa phía trước thùng xe, bên dưới chỗ để chân. Hai con vật được buộc kéo giúp tăng tốc nhanh hơn và giảm mức giảm tốc độ chạy nhanh do hàng hóa.",
   "tooltip.tm_wagon.single_seat": "Lắp ở chính giữa phía trước, trên chỗ để chân. Nhấp chuột phải vào đệm để ngồi.",
   "tooltip.tm_wagon.double_seat": "Lắp ở chính giữa phía trước, trên chỗ để chân. Nhấp chuột phải vào đệm để ngồi; chỗ bên trái điều khiển xe.",
   "tooltip.tm_wagon.small_wheel": "Lắp vào trục trước. Mỗi xe cần hai bánh trước nhỏ.",

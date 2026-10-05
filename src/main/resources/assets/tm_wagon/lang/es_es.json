@@ -23,7 +23,7 @@
   "message.tm_wagon.controller_unloaded": "El chunk del gato debe estar cargado antes de desmontar.",
   "tooltip.tm_wagon.cargo_body": "Haz clic derecho sobre el gato para colocar una caja con reposapiés y estribos a ambos lados. 10 espacios de carga.",
   "tooltip.tm_wagon.single_horse_shafts": "Se monta en el centro del frente de la caja, bajo el reposapiés.",
-  "tooltip.tm_wagon.double_horse_shafts": "Se monta en el centro del frente de la caja, bajo el reposapiés.",
+  "tooltip.tm_wagon.double_horse_shafts": "Se monta en el centro del frente de la caja, bajo el reposapiés. Dos animales enganchados aceleran más rápido y reducen la penalización de la carga sobre la velocidad de sprint.",
   "tooltip.tm_wagon.single_seat": "Se monta sobre el reposapiés, centrado delante. Haz clic derecho en el cojín para sentarte.",
   "tooltip.tm_wagon.double_seat": "Se monta sobre el reposapiés, centrado delante. Haz clic derecho en un cojín para sentarte; el asiento izquierdo controla el carromato.",
   "tooltip.tm_wagon.small_wheel": "Se monta en el eje delantero. Se necesitan dos ruedas delanteras pequeñas.",

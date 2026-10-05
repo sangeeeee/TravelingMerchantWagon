@@ -14,6 +14,22 @@ import net.neoforged.neoforge.gametest.*;
 @GameTestHolder("tm_wagon")
 @PrefixGameTestTemplate(false)
 public class CargoSpeedGameTests {
+    @GameTest(template="assembly_test")
+    public static void double_team_reduces_only_loaded_sprint_deductions(GameTestHelper h) {
+        for(var body:new WagonPart[]{WagonPart.CARGO_BODY,WagonPart.LONG_CARGO_BODY,WagonPart.WIDE_CARGO_BODY}) {
+            double base=WagonSpeed.forward(body,0,false,false),empty=WagonSpeed.forward(body,0,true,false);
+            h.assertTrue(empty==WagonSpeed.forward(body,0,true,true),"Team raised the empty sprint limit");
+            for(int occupied=0;occupied<=body.cargoCapacity();occupied++) {
+                double single=WagonSpeed.forward(body,occupied,true,false),pair=WagonSpeed.forward(body,occupied,true,true);
+                double expected=Math.max(base,empty-occupied*.0117*.85);
+                h.assertTrue(Math.abs(pair-expected)<1e-10&&pair>=single&&pair>=base&&pair<=empty,"Team cargo penalty or speed floor incorrect");
+                h.assertTrue(WagonSpeed.forward(body,occupied,false,true)==base,"Team changed ordinary forward speed");
+            }
+        }
+        h.assertTrue(Math.abs(WagonSpeed.forward(WagonPart.LONG_CARGO_BODY,12,true,true)/(4.68/20)-1.29)<1e-10,"Full long pair is not 1.29x");
+        h.assertTrue(WagonSpeed.forward(WagonPart.WIDE_CARGO_BODY,32,true,true)==WagonSpeed.forward(WagonPart.WIDE_CARGO_BODY,0,false,false),"Full wide pair bypassed the ordinary-speed floor");
+        h.succeed();
+    }
     private static WagonEntity wagon(GameTestHelper h,WagonPart body) {
         var w=WagonContent.WAGON.get().create(h.getLevel());var parts=WagonEntity.defaultParts();parts.put(WagonSlot.BODY,body);
         w.configure(parts,Direction.NORTH);w.setPos(Vec3.atBottomCenterOf(h.absolutePos(new BlockPos(11,4,17))));return w;
@@ -23,18 +39,18 @@ public class CargoSpeedGameTests {
         double reference=WagonPhysics.FORWARD_SPEED;
         for(var body:new WagonPart[]{WagonPart.CARGO_BODY,WagonPart.LONG_CARGO_BODY,WagonPart.WIDE_CARGO_BODY}) {
             double factor=body==WagonPart.CARGO_BODY?1.2:body==WagonPart.LONG_CARGO_BODY?1:.8;
-            double base=WagonSpeed.forward(body,0,false),empty=WagonSpeed.forward(body,0,true);
+            double base=WagonSpeed.forward(body,0,false,false),empty=WagonSpeed.forward(body,0,true,false);
             h.assertTrue(Math.abs(base-reference*factor)<1e-10&&Math.abs(empty/base-1.8)<1e-10,"Incorrect size/empty boost limit");
-            h.assertTrue(Math.abs(empty-WagonSpeed.forward(body,1,true)-.0117)<1e-10,"Slot penalty must be absolute, equal across sizes");
+            h.assertTrue(Math.abs(empty-WagonSpeed.forward(body,1,true,false)-.0117)<1e-10,"Slot penalty must be absolute, equal across sizes");
             double previous=empty;
             for(int used=0;used<=body.cargoCapacity();used++) {
-                double limit=WagonSpeed.forward(body,used,true);
-                h.assertTrue(limit>=base&&limit<=previous&&WagonSpeed.forward(body,used,false)==base,"Cargo lowered ordinary speed or raised boosted cap");previous=limit;
+                double limit=WagonSpeed.forward(body,used,true,false);
+                h.assertTrue(limit>=base&&limit<=previous&&WagonSpeed.forward(body,used,false,false)==base,"Cargo lowered ordinary speed or raised boosted cap");previous=limit;
             }
             h.assertTrue(Math.abs(WagonSpeed.reverse(body)-WagonPhysics.REVERSE_SPEED*factor)<1e-10,"Reverse size limit incorrect");
         }
-        h.assertTrue(Math.abs(WagonSpeed.forward(WagonPart.LONG_CARGO_BODY,12,true)/reference-1.2)<1e-10,"Full long wagon is not 1.2x");
-        h.assertTrue(WagonSpeed.forward(WagonPart.WIDE_CARGO_BODY,32,true)==WagonSpeed.forward(WagonPart.WIDE_CARGO_BODY,0,false),"Full wide wagon fell below ordinary speed");
+        h.assertTrue(Math.abs(WagonSpeed.forward(WagonPart.LONG_CARGO_BODY,12,true,false)/reference-1.2)<1e-10,"Full long wagon is not 1.2x");
+        h.assertTrue(WagonSpeed.forward(WagonPart.WIDE_CARGO_BODY,32,true,false)==WagonSpeed.forward(WagonPart.WIDE_CARGO_BODY,0,false,false),"Full wide wagon fell below ordinary speed");
         var drive=new WagonDrive();drive.load(WagonSpeed.maxForward());
         h.assertTrue(drive.speed()==WagonSpeed.maxForward(),"Save/load truncated new top speed");h.succeed();
     }

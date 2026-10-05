@@ -23,7 +23,7 @@
   "message.tm_wagon.controller_unloaded": "Le tronçon contenant le cric doit être chargé avant le démontage.",
   "tooltip.tm_wagon.cargo_body": "Clic droit sur le dessus du cric pour poser une caisse avec repose-pieds et marchepieds des deux côtés. 10 emplacements de chargement.",
   "tooltip.tm_wagon.single_horse_shafts": "À fixer au centre de l'avant de la caisse, sous le repose-pieds.",
-  "tooltip.tm_wagon.double_horse_shafts": "À fixer au centre de l'avant de la caisse, sous le repose-pieds.",
+  "tooltip.tm_wagon.double_horse_shafts": "À fixer au centre de l'avant de la caisse, sous le repose-pieds. Deux animaux attelés accélèrent plus vite et réduisent la pénalité de la cargaison sur la vitesse de sprint.",
   "tooltip.tm_wagon.single_seat": "À fixer au centre, au-dessus du repose-pieds. Clic droit sur le coussin pour s'asseoir.",
   "tooltip.tm_wagon.double_seat": "À fixer au centre, au-dessus du repose-pieds. Clic droit sur un coussin pour s'asseoir ; la place de gauche permet de conduire.",
   "tooltip.tm_wagon.small_wheel": "À monter sur l'essieu avant. Il faut deux petites roues avant.",

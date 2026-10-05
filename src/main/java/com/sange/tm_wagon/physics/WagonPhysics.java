@@ -140,11 +140,13 @@ public final class WagonPhysics {
         float steer=Mth.lerp(.28F,wagon.steering(),steering*(float)Math.toRadians(25));
         wagon.setSteering(steer);
         int occupied=wagon.cargo().occupiedSlots();
+        // 'powered' already verifies both live horses; no extra entity lookup or packet is needed.
+        boolean doubleTeam=powered&&wagon.horseCapacity()==2;
         double limit=input<0?WagonSpeed.reverse(wagon.cargoBody()):WagonSpeed.forward(wagon.cargoBody(),
-            occupied,wagon.boostedDrive());
+            occupied,wagon.boostedDrive(),doubleTeam);
         // A stranded driver can still rock a tipped wagon after its horses detach.
         if(driverRecovery&&!powered)limit*=.35;
-        double speed=drive.tick(powered||driverRecovery?input:0,limit,occupied,wagon.cargo().capacity());
+        double speed=drive.tick(powered||driverRecovery?input:0,limit,occupied,wagon.cargo().capacity(),doubleTeam);
         if(manualPush) { speed=PUSH_SPEED*pushing;drive.reset(); }
         float yaw=old.yaw()+(float)Math.toDegrees(speed*Math.tan(steer)/wagon.wheelbase());
         Vec3 direction=new WagonPose(old.position(),yaw,0,0).forward();

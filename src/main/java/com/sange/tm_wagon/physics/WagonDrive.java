@@ -11,8 +11,8 @@ public final class WagonDrive {
     public void load(double value) {
         speed=Double.isFinite(value)?Math.clamp(value,-WagonSpeed.maxReverse(),WagonSpeed.maxForward()):0;
     }
-    public double tick(int input,double limit) { return tick(input,limit,0,1); }
-    public double tick(int input,double limit,int occupied,int capacity) {
+    public double tick(int input,double limit) { return tick(input,limit,0,1,false); }
+    public double tick(int input,double limit,int occupied,int capacity,boolean doubleTeam) {
         var config=DrivingConfig.get();
         if(input==0||limit==0) speed=approach(speed,0,config.coast());
         // Always spend one tick stopped before applying power in the opposite direction.
@@ -20,7 +20,7 @@ public final class WagonDrive {
         else {
             double target=input>0?limit:-limit;
             double rate=Math.abs(speed)>limit?config.coast():(input>0?config.forwardAcceleration():config.reverseAcceleration())
-                *config.accelerationMultiplier(occupied,capacity);
+                *config.accelerationMultiplier(occupied,capacity)*(doubleTeam?config.doubleTeam().accelerationMultiplier():1);
             speed=approach(speed,target,rate);
         }
         return speed;

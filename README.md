@@ -7,7 +7,7 @@ TravelingMerchantWagon adds customizable wooden wagons to Minecraft. Build a wag
 ## What can you do?
 
 - **Build your own wagon.** Choose a standard, extended or wide cargo box, single- or double-horse shafts, and a one-, two- or three-person driver's bench. Mix wooden parts and choose colours for cushions and fabric.
-- **Drive or push it.** Hitch horses, donkeys, skeleton horses or zombie horses with leads. Drive from the driver's position, build up speed, brake and reverse. Push an unhitched wagon to reposition it or help it out of a difficult spot.
+- **Drive or push it.** Hitch horses, donkeys, skeleton horses or zombie horses with leads. Drive from the driver's position, build up speed, brake and reverse. A pair of hitched animals accelerates faster and softens cargo's effect on sprint speed. Push an unhitched wagon to reposition it or help it out of a difficult spot.
 - **Carry useful cargo.** Place permitted blocks in cargo slots. Open supported containers and use workstations directly on board. Cargo and stored items stay with the wagon when it changes form.
 - **Make room for companions.** Add cargo stools for passengers, or straw mats for sleeping through the night. Sleeping players and maids stay with a moving wagon.
 - **Fit optional equipment.** Add an under-seat cabinet, a rollable cargo cover, or a canvas canopy with opening curtains. Covers and canopies adapt to your cargo box.
@@ -41,6 +41,8 @@ Supported vanilla-style modded chests and barrels also work as interactive cargo
 For either backpack mod, sneak-right-click an empty slot to load a held backpack, right-click the loaded backpack to open it, and sneak-right-click it to unload. Carry On takes priority when its pickup conditions are met.
 
 **[GeckoLib](https://modrinth.com/mod/geckolib) is required** for wagon animations. Server owners can customize cargo rules, driving behaviour and handbook gifts in `tm_wagon-server.toml`.
+
+By default, two hitched draft animals provide **20% more forward and reverse acceleration**, and reduce the cargo deduction from sprint speed by **15%**. Server owners can adjust both benefits in the `draftTeam` section of the same configuration file.
 
 ## License
 

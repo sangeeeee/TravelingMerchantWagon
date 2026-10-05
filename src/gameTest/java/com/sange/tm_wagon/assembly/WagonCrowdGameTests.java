@@ -66,8 +66,11 @@ public class WagonCrowdGameTests {
         T e=type.create(h.getLevel());e.setNoAi(true);e.setPos(w.pose().point(local));e.setOnGround(true);h.getLevel().addFreshEntity(e);return e;
     }
     private static double travel(int ticks,int direction) {
+        return travel(ticks,direction,false);
+    }
+    private static double travel(int ticks,int direction,boolean doubleTeam) {
         double maximum=(direction>0?WagonPhysics.FORWARD_SPEED:-WagonPhysics.REVERSE_SPEED)*1.2;
-        double step=1.3*(direction>0?.00975:-.004875);
+        double step=1.3*(direction>0?.00975:-.004875)*(doubleTeam?1.2:1);
         int ramp=(int)Math.ceil(maximum/step),n=Math.min(ticks,ramp-1);
         return step*n*(n+1)/2+maximum*Math.max(0,ticks-n);
     }
@@ -144,7 +147,7 @@ public class WagonCrowdGameTests {
         h.assertTrue(w.attachHorse(f.driver,donkey,1)==null,"Double horse fixture failed");
         var left=mob(h,w,EntityType.PIG,new Vec3(-1.05,0,-5.8));var right=mob(h,w,EntityType.WOLF,new Vec3(1.05,0,-5.8));
         Vec3 start=w.position();drive(f,1,0,24);
-        h.assertTrue(Math.abs(start.z-w.getZ()-travel(24,1))<.01,"Double horse road crowd slowed wagon");
+        h.assertTrue(Math.abs(start.z-w.getZ()-travel(24,1,true))<.01,"Double horse road crowd slowed wagon");
         h.assertTrue(w.pose().local(left.position()).x<-1.65&&w.pose().local(right.position()).x>1.65,"Double horse lanes did not clear small mobs");
         h.assertTrue(w.hasHorse(f.horse.getUUID())&&w.hasHorse(donkey.getUUID()),"Crowd clearing detached a pulling animal");h.succeed();
     }

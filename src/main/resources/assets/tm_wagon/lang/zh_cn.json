@@ -23,7 +23,7 @@
   "message.tm_wagon.controller_unloaded": "装配架所在区块未加载，暂时无法拆除。",
   "tooltip.tm_wagon.cargo_body": "右键装配架顶面，放置带脚板及两侧踏板的货物车厢，共 10 个货位。",
   "tooltip.tm_wagon.single_horse_shafts": "安装于货物车厢前方正中间、车夫脚板下方。",
-  "tooltip.tm_wagon.double_horse_shafts": "安装于货物车厢前方正中间、车夫脚板下方。",
+  "tooltip.tm_wagon.double_horse_shafts": "安装于货物车厢前方正中间、车夫脚板下方。 实际拴上两匹拉车动物后，加速更快，货物对冲刺速度的扣减更小。",
   "tooltip.tm_wagon.single_seat": "安装于车头正中间的脚板上方；右键坐垫入座。",
   "tooltip.tm_wagon.double_seat": "安装于车头正中间的脚板上方；右键坐垫入座，左侧为驾驶位。",
   "tooltip.tm_wagon.small_wheel": "安装于前轮轴；每辆马车需要两个小前轮。",

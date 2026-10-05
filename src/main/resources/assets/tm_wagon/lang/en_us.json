@@ -23,7 +23,7 @@
   "message.tm_wagon.controller_unloaded": "Load the area containing the assembly jack before dismantling.",
   "tooltip.tm_wagon.cargo_body": "Right-click the top of the jack to place a wagon box with a footboard and steps on both sides. 10 cargo slots.",
   "tooltip.tm_wagon.single_horse_shafts": "Mount at the front center of the wagon box, below the footboard.",
-  "tooltip.tm_wagon.double_horse_shafts": "Mount at the front center of the wagon box, below the footboard.",
+  "tooltip.tm_wagon.double_horse_shafts": "Mount at the front center of the wagon box, below the footboard. Two hitched animals accelerate faster and reduce the cargo penalty on sprint speed.",
   "tooltip.tm_wagon.single_seat": "Mount above the footboard at the front center. Right-click the cushion to sit.",
   "tooltip.tm_wagon.double_seat": "Mount above the footboard at the front center. Right-click a cushion to sit; the left seat controls the wagon.",
   "tooltip.tm_wagon.small_wheel": "Fit to the front axle. A wagon requires two small front wheels.",

@@ -23,7 +23,7 @@
   "message.tm_wagon.controller_unloaded": "분해하려면 잭이 있는 청크를 먼저 로드해야 합니다.",
   "tooltip.tm_wagon.cargo_body": "잭 윗면을 우클릭하면 발판과 양쪽 승차 계단이 달린 적재함을 놓습니다. 화물칸 10개입니다.",
   "tooltip.tm_wagon.single_horse_shafts": "적재함 앞쪽 중앙, 마부 발판 아래에 장착합니다.",
-  "tooltip.tm_wagon.double_horse_shafts": "적재함 앞쪽 중앙, 마부 발판 아래에 장착합니다.",
+  "tooltip.tm_wagon.double_horse_shafts": "적재함 앞쪽 중앙, 마부 발판 아래에 장착합니다. 두 마리를 연결하면 가속이 빨라지고 화물로 인한 질주 속도 감소가 완화됩니다.",
   "tooltip.tm_wagon.single_seat": "앞쪽 중앙의 발판 위에 장착합니다. 쿠션을 우클릭하면 앉습니다.",
   "tooltip.tm_wagon.double_seat": "앞쪽 중앙의 발판 위에 장착합니다. 쿠션을 우클릭하면 앉으며, 왼쪽 자리가 운전석입니다.",
   "tooltip.tm_wagon.small_wheel": "앞 차축에 장착합니다. 작은 앞바퀴 2개가 필요합니다.",

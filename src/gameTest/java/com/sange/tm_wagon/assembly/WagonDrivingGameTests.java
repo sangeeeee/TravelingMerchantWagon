@@ -67,6 +67,24 @@ public class WagonDrivingGameTests {
         var horse=(slot==0?EntityType.HORSE:EntityType.DONKEY).create(h.getLevel());horse.setNoAi(true);horse.setPos(w.horsePosition(slot));
         h.getLevel().addFreshEntity(horse);horse.setLeashedTo(p,true);return horse;
     }
+    @GameTest(template="assembly_test",timeoutTicks=40)
+    public static void double_team_requires_two_live_animals_and_applies_cargo_acceleration(GameTestHelper h) {
+        var w=wagon(h,false,true);var p=driver(h,w);attach(h,w,p,0);
+        Vec3 start=w.position();drive(w,p,1,0,1);
+        h.assertTrue(!w.readyToPull()&&w.position().distanceToSqr(start)<1e-8,"Incomplete hitch applied propulsion");
+        var second=attach(h,w,p,1);drive(w,p,1,0,1);
+        h.assertTrue(Math.abs(w.getDeltaMovement().horizontalDistance()-.01521)<1e-6,"Two actual animals did not give 20 percent acceleration");
+        var loader=h.makeMockPlayer(GameType.CREATIVE);loader.setPos(w.position().add(-4,1,0));
+        for(int slot=0;slot<w.cargo().capacity();slot++) {
+            String error=w.cargo().place(slot,Items.STONE.getDefaultInstance(),loader);
+            h.assertTrue(error==null,"Loading fixture failed: "+error);
+        }
+        double before=w.getDeltaMovement().horizontalDistance();drive(w,p,1,0,1);
+        h.assertTrue(Math.abs(w.getDeltaMovement().horizontalDistance()-before-.00702)<1e-6,"Team did not apply the live full-load acceleration tier");
+        second.setHealth(0);before=w.getDeltaMovement().horizontalDistance();drive(w,p,1,0,1);
+        h.assertTrue(!w.readyToPull()&&w.getDeltaMovement().horizontalDistance()<before,"Dead second animal continued providing propulsion");
+        h.succeed();
+    }
     @GameTest(template="assembly_test",timeoutTicks=35)
     public static void undead_horses_use_native_leads_drive_and_refund_once(GameTestHelper h) {
         var w=wagon(h,true,true);var p=driver(h,w);
@@ -381,7 +399,7 @@ public class WagonDrivingGameTests {
         for(int x=1;x<24;x++)for(int z=1;z<=8;z++)for(int y=2;y<2+Math.min(3,9-z);y++)h.setBlock(new BlockPos(x,y,z),Blocks.STONE);
         var expected=new WagonDrive();int tick=0;double goal=h.absolutePos(new BlockPos(0,0,6)).getZ();
         while(w.getZ()>goal&&tick++<180) {
-            double speed=expected.tick(1,WagonSpeed.forward(w.cargoBody(),w.cargo().occupiedSlots(),!wide),w.cargo().occupiedSlots(),w.cargo().capacity());
+            double speed=expected.tick(1,WagonSpeed.forward(w.cargoBody(),w.cargo().occupiedSlots(),!wide,false),w.cargo().occupiedSlots(),w.cargo().capacity(),false);
             w.acceptInput(p,1,0,!wide);w.tick();
             h.assertTrue(Math.abs(w.getDeltaMovement().horizontalDistance()-speed)<.0001,"Legal stairs clipped drive speed at "+tick+": "+w.getDeltaMovement().horizontalDistance()+" expected "+speed);
             h.assertTrue(!w.falling(),"Legal staircase lost wheel support");

@@ -23,7 +23,7 @@
   "message.tm_wagon.controller_unloaded": "Sectio machinae oneranda est antequam partes removes.",
   "tooltip.tm_wagon.cargo_body": "Ictu dextro summam machinam tange ut corbem cum tabula pedum et gradibus utrinque ponas. Decem loci mercium.",
   "tooltip.tm_wagon.single_horse_shafts": "Ante corbem in medio, sub tabula pedum, apta.",
-  "tooltip.tm_wagon.double_horse_shafts": "Ante corbem in medio, sub tabula pedum, apta.",
+  "tooltip.tm_wagon.double_horse_shafts": "Ante corbem in medio, sub tabula pedum, apta. Duo animalia iuncta celerius accelerant et detrimentum celeritatis ex onere minuunt.",
   "tooltip.tm_wagon.single_seat": "Ante in medio, super tabulam pedum, apta. Ictu dextro pulvinar tange ut sedeas.",
   "tooltip.tm_wagon.double_seat": "Ante in medio, super tabulam pedum, apta. Ictu dextro pulvinar tange ut sedeas; sella sinistra plaustrum regit.",
   "tooltip.tm_wagon.small_wheel": "Axi anteriori apta. Duae rotae parvae anteriores requiruntur.",

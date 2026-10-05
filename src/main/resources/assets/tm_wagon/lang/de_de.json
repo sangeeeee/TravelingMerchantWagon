@@ -23,7 +23,7 @@
   "message.tm_wagon.controller_unloaded": "Vor dem Zerlegen muss der Chunk des Montagehebers geladen sein.",
   "tooltip.tm_wagon.cargo_body": "Rechtsklicke auf die Oberseite des Hebers, um einen Wagenkasten mit Fußbrett und beidseitigen Trittstufen zu setzen. 10 Frachtplätze.",
   "tooltip.tm_wagon.single_horse_shafts": "Vorn mittig am Wagenkasten unter dem Fußbrett montieren.",
-  "tooltip.tm_wagon.double_horse_shafts": "Vorn mittig am Wagenkasten unter dem Fußbrett montieren.",
+  "tooltip.tm_wagon.double_horse_shafts": "Vorn mittig am Wagenkasten unter dem Fußbrett montieren. Zwei angeschnallte Zugtiere beschleunigen schneller und verringern den Einfluss der Ladung auf die Sprintgeschwindigkeit.",
   "tooltip.tm_wagon.single_seat": "Vorn mittig über dem Fußbrett montieren. Rechtsklicke zum Hinsetzen auf das Polster.",
   "tooltip.tm_wagon.double_seat": "Vorn mittig über dem Fußbrett montieren. Rechtsklicke auf ein Polster zum Hinsetzen; gesteuert wird vom linken Sitz.",
   "tooltip.tm_wagon.small_wheel": "An der Vorderachse montieren. Ein Wagen benötigt zwei kleine Vorderräder.",

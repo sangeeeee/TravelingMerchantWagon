@@ -23,7 +23,7 @@
   "message.tm_wagon.controller_unloaded": "O chunk do macaco deve estar carregado antes da desmontagem.",
   "tooltip.tm_wagon.cargo_body": "Clique com o botão direito no topo do macaco para colocar uma caixa com apoio para os pés e estribos dos dois lados. 10 espaços de carga.",
   "tooltip.tm_wagon.single_horse_shafts": "Instale no centro da frente da caixa, abaixo do apoio para os pés.",
-  "tooltip.tm_wagon.double_horse_shafts": "Instale no centro da frente da caixa, abaixo do apoio para os pés.",
+  "tooltip.tm_wagon.double_horse_shafts": "Instale no centro da frente da caixa, abaixo do apoio para os pés. Dois animais atrelados aceleram mais depressa e reduzem a penalização da carga na velocidade de corrida.",
   "tooltip.tm_wagon.single_seat": "Instale na frente, ao centro, acima do apoio para os pés. Clique com o botão direito na almofada para sentar.",
   "tooltip.tm_wagon.double_seat": "Instale na frente, ao centro, acima do apoio para os pés. Clique com o botão direito na almofada para sentar; o lugar da esquerda controla a carroça.",
   "tooltip.tm_wagon.small_wheel": "Instale no eixo dianteiro. São necessárias duas rodas dianteiras pequenas.",

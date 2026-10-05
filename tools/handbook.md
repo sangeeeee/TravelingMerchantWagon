@@ -11,6 +11,11 @@ by their installed-mod flags. Modded storage, including BetterEnd/BCLib barrels,
 Patchouli's handbook delivery is explained in Troubleshooting.
 Keep unconditional links pointed at unconditional entries.
 
+Driving / Hitching explains the default two-animal team benefits: 20% more forward and reverse
+propulsion acceleration and a 15% reduction of the cargo deduction from sprint speed. Driving / Controls
+points to the server settings. Keep these defaults in sync with `DrivingConfig` and the `draftTeam`
+section of `tm_wagon-server.toml`; the benefits require both living animals to be attached.
+
 The handbook item and its recipe exist only when Patchouli is installed. Login gifts are controlled by the server option.
 Each player's persisted data records actual receipt, rather than the first login: existing-world players also receive a book,
 and disabled gifts or missing Patchouli do not consume eligibility. Receipt survives reconnects, respawns and saves.
