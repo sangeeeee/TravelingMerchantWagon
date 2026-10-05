@@ -1,0 +1,17 @@
+{
+  "name": "Sable 兼容",
+  "icon": "minecraft:oak_planks",
+  "category": "tm_wagon:help",
+  "sortnum": 3,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "实体马车可以与 Sable 物理结构发生碰撞。检查入座空间和乘客通行高度时，也考虑外部物理结构。马车仍使用自己的移动与碰撞系统，并不会变成 Sable 结构。"
+    },
+    {
+      "type": "patchouli:text",
+      "text": "方块形态的装配架与任何马车组件都$(bold)不能物理化$(reset)。某个组成方块被物理化，会回收整个对应组件，防止重复掉落。车厢或装配架被物理化时，还会联动回收附着零件、货物和内容。$(br2)在物理结构上放置这些方块也会被立即拆掉并掉落。请使用实体马车，不要把装配架当成物理结构的一部分。"
+    }
+  ],
+  "flag": "mod:sable"
+}

@@ -1,0 +1,27 @@
+{
+  "name": "The Carpenter’s Hammer",
+  "icon": "tm_wagon:dismantling_hammer",
+  "category": "tm_wagon:workshop",
+  "sortnum": 4,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "Entity wagons resist ordinary attacks, weapons and environmental damage. $(bold)Hit an actual wagon part with a carpenter’s hammer$(reset) to dismantle it in one strike. Intact parts retain wood and cloth colours. Cargo follows normal unloading rules, and riders and animals are released."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "The hammer also chops wood like an iron axe, with equivalent durability and axe enchantments.$(br2)Other tools can break directly targeted world blocks, including grass inside the wagon’s broad bounds. They cannot mine through actual sideboards or the deck."
+    },
+    {
+      "type": "tm_wagon:component_recipe",
+      "recipe": "tm_wagon:dismantling_hammer",
+      "alternative": 0,
+      "heading": "book.tm_wagon.recipe",
+      "text": "Four iron ingots, two logs or stripped logs of any type, and one stick.",
+      "anchor": "dismantling_hammer"
+    }
+  ],
+  "extra_recipe_mappings": {
+    "tm_wagon:dismantling_hammer": 2
+  }
+}

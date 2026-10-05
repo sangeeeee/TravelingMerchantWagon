@@ -114,5 +114,16 @@
   "task.tm_wagon.wagon_companion.desc": "Tempore laboris sedem vacuam iuxta aurigam in plaustro proximo composito petit.",
   "task.tm_wagon.wagon_passenger": "Vectrix Plaustri",
   "task.tm_wagon.wagon_passenger.desc": "Tempore laboris scabellum vacuum cum spatio capiti satis amplo in plaustro proximo composito quaerit.",
-  "item.tm_wagon.dismantling_hammer": "Malleus Fabri Lignarii"
+  "item.tm_wagon.dismantling_hammer": "Malleus Fabri Lignarii",
+  "item.tm_wagon.coachmans_manual": "Enchiridion aurigae",
+  "message.tm_wagon.handbook_requires_patchouli": "Patchouli institue ut hoc enchiridion legas.",
+  "book.tm_wagon.handbook.landing": "Salve in Traveling Merchant Wagon. Hoc enchiridion te docebit quomodo plaustrum componas atque eo utaris.$(br2)$(l:tm_wagon:start/assembly)Primus currus$(/l)$(br)$(l:tm_wagon:help/troubleshooting)Auxilium et coniunctiones$(/l)",
+  "book.tm_wagon.category.start": "Primus currus",
+  "book.tm_wagon.category.driving": "Agitatio et iter",
+  "book.tm_wagon.category.cargo": "Merces et vectores",
+  "book.tm_wagon.category.equipment": "Instrumenta addenda",
+  "book.tm_wagon.category.workshop": "Officina curruum",
+  "book.tm_wagon.category.help": "Auxilium et coniunctiones",
+  "book.tm_wagon.recipe": "Fabricatio",
+  "book.tm_wagon.recipe_unavailable": "Haec formula in hoc ministro non praesto est."
 }

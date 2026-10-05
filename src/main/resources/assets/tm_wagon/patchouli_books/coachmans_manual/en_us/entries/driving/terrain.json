@@ -1,0 +1,16 @@
+{
+  "name": "Slopes & Clearance",
+  "icon": "minecraft:stone",
+  "category": "tm_wagon:driving",
+  "sortnum": 2,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "The wagon can climb successive one-block steps, but not taller obstacles or fences. Uneven wheel heights tilt it.$(br2)Allow room for the whole wagon and its turns. Canopies, cargo and seated passengers count toward clearance. A low tunnel stops the wagon rather than forcing a passenger’s head into blocks."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "Cliffs and steep slopes remain dangerous. Losing front-wheel support can make the wagon slide, tilt or overturn. The driver can still try moving and steering to recover, but escape is not guaranteed.$(br2)Hand pushing requires a reasonable posture. For difficult overturns, recover the parts with a carpenter’s hammer and rebuild."
+    }
+  ]
+}

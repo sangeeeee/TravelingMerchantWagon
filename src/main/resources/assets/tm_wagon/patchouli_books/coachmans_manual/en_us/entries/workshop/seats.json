@@ -1,0 +1,84 @@
+{
+  "name": "Driver’s Seats & Shafts",
+  "icon": "tm_wagon:triple_seat",
+  "category": "tm_wagon:workshop",
+  "sortnum": 1,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "Wooden and upholstered seats both satisfy the required seat component. Fit exactly one, and add a cabinet beneath either style.$(br2)Standard and extended boxes accept one or two seats. Wide boxes also accept three. Three-seat benches are exclusive to wide boxes. Two-seat benches drive from the left; three-seat benches from the middle."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "Board by clicking the $(bold)visible upper cushion or wooden seat surface$(reset). Backs, supports and obscured surfaces do not board. Riders need sufficient clearance.$(br2)Make a two-seat bench from matching single seats. Make a three-seat bench from three singles, or a double and a single, all of the same wood."
+    },
+    {
+      "type": "tm_wagon:component_recipe",
+      "recipe": "tm_wagon:double_wooden_seat",
+      "alternative": 0,
+      "heading": "book.tm_wagon.recipe",
+      "text": "Two matching single wooden seats. Shapeless recipe.",
+      "anchor": "double_wooden_seat"
+    },
+    {
+      "type": "tm_wagon:component_recipe",
+      "recipe": "tm_wagon:triple_wooden_seat",
+      "alternative": 0,
+      "heading": "book.tm_wagon.recipe",
+      "text": "One double and one single wooden seat of matching wood. Shapeless recipe.",
+      "anchor": "triple_wooden_seat"
+    },
+    {
+      "type": "tm_wagon:component_recipe",
+      "recipe": "tm_wagon:triple_wooden_seat",
+      "alternative": 1,
+      "heading": "book.tm_wagon.recipe",
+      "text": "Alternatively, use three matching single wooden seats. Shapeless recipe.",
+      "anchor": "triple_wooden_seat_alternative"
+    },
+    {
+      "type": "tm_wagon:component_recipe",
+      "recipe": "tm_wagon:single_seat",
+      "alternative": 0,
+      "heading": "book.tm_wagon.recipe",
+      "text": "Inherits the wooden seat’s wood. Wool colours the cushion; the upper plank may be any wood.",
+      "anchor": "single_seat"
+    },
+    {
+      "type": "tm_wagon:component_recipe",
+      "recipe": "tm_wagon:double_seat",
+      "alternative": 0,
+      "heading": "book.tm_wagon.recipe",
+      "text": "Inherits the wooden bench’s wood. The three wool blocks must match; planks may be any wood.",
+      "anchor": "double_seat"
+    },
+    {
+      "type": "tm_wagon:component_recipe",
+      "recipe": "tm_wagon:triple_seat",
+      "alternative": 0,
+      "heading": "book.tm_wagon.recipe",
+      "text": "Inherits the wooden bench’s wood. The three wool blocks must match; planks may be any wood.",
+      "anchor": "triple_seat"
+    },
+    {
+      "type": "patchouli:text",
+      "text": "Both shaft types fit every box. Craft double-horse shafts from two single-horse sets. Both animals must be hitched to drive.$(br2)Shafts have no wood variants. Hitch choice sets the number of draft animals, rather than the wagon’s base speed."
+    },
+    {
+      "type": "tm_wagon:component_recipe",
+      "recipe": "tm_wagon:double_horse_shafts",
+      "alternative": 0,
+      "heading": "book.tm_wagon.recipe",
+      "text": "Two sets of single-horse shafts. Shapeless recipe.",
+      "anchor": "double_horse_shafts"
+    }
+  ],
+  "extra_recipe_mappings": {
+    "tm_wagon:double_wooden_seat": 2,
+    "tm_wagon:triple_wooden_seat": 3,
+    "tm_wagon:single_seat": 5,
+    "tm_wagon:double_seat": 6,
+    "tm_wagon:triple_seat": 7,
+    "tm_wagon:double_horse_shafts": 9
+  }
+}

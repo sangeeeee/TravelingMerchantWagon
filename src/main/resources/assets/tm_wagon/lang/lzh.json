@@ -114,5 +114,16 @@
   "task.tm_wagon.wagon_companion.desc": "當值時，尋鄰近成車之御者旁空席而坐。",
   "task.tm_wagon.wagon_passenger": "乘車",
   "task.tm_wagon.wagon_passenger.desc": "當值時，尋鄰近成車中無人且上方無礙之木凳而坐。",
-  "item.tm_wagon.dismantling_hammer": "木工錘"
+  "item.tm_wagon.dismantling_hammer": "木工錘",
+  "item.tm_wagon.coachmans_manual": "御車手冊",
+  "message.tm_wagon.handbook_requires_patchouli": "欲閱此冊，須裝 Patchouli。",
+  "book.tm_wagon.handbook.landing": "歡迎使用行商馬車。此冊將述車之裝配與用法。$(br2)$(l:tm_wagon:start/assembly)初製馬車$(/l)$(br)$(l:tm_wagon:help/troubleshooting)兼容釋疑$(/l)",
+  "book.tm_wagon.category.start": "初製馬車",
+  "book.tm_wagon.category.driving": "御車行旅",
+  "book.tm_wagon.category.cargo": "貨物與乘客",
+  "book.tm_wagon.category.equipment": "選裝配件",
+  "book.tm_wagon.category.workshop": "裝配改製",
+  "book.tm_wagon.category.help": "兼容釋疑",
+  "book.tm_wagon.recipe": "合成",
+  "book.tm_wagon.recipe_unavailable": "此伺服器無此方。"
 }

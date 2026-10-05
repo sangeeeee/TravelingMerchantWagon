@@ -1,0 +1,20 @@
+{
+  "name": "Controls & Acceleration",
+  "icon": "tm_wagon:single_wooden_seat",
+  "category": "tm_wagon:driving",
+  "sortnum": 0,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "The wagon moves forward or backward, without strafing. Hold forward to accelerate; release it to coast to a stop. Backward brakes first, then reverses if held.$(br2)Left and right steer. Only the driver controls it: the single seat, the left position of a two-seat bench, or the middle of a three-seat bench."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "While moving forward, tap $(k:sprint) to raise the speed limit. The boost lasts until forward is released; it does not apply in reverse.$(br2)Standard boxes are fastest; wide boxes are slowest. Occupied cargo slots reduce boost and acceleration. A mat occupies three slots; a stool occupies one. Items inside containers add no extra slots."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "The server configuration controls speeds and cargo penalties, so this handbook does not prescribe fixed values. Loading or unloading while driving updates the limit.$(br2)If controls fail, check the driver’s position, entity assembly and every required hitch."
+    }
+  ]
+}

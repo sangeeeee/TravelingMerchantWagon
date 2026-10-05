@@ -1,0 +1,17 @@
+{
+  "name": "車萬女僕兼容",
+  "icon": "tm_wagon:maid_wagon_companion_icon",
+  "category": "tm_wagon:help",
+  "sortnum": 2,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "$(bold)馬車副駕駛$(reset)任務會尋找雙人或三人車伕座位，並坐到非操控位。$(bold)乘坐馬車$(reset)任務會尋找空閒且空間足夠的馬車木凳。改爲其他任務時，女僕會離座。$(br2)通過拴繩或 Carry On 讓女僕入座，也要滿足她的任務規則，否則會立即離開。"
+    },
+    {
+      "type": "patchouli:text",
+      "text": "休息時間，無論當前任務是什麼，女僕都可按原版優先級尋找女僕牀或馬車草蓆。睡着時隨馬車移動，移除草蓆會正常醒來，不額外添加好感度懲罰。$(br2)裝有女僕的照片或魂符可優先在馬車上釋放女僕。收納仍遵循原模組限制；相機不會額外允許收納睡着的女僕。"
+    }
+  ],
+  "flag": "mod:touhou_little_maid"
+}

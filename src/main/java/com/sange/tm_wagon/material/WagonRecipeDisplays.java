@@ -21,25 +21,36 @@ public final class WagonRecipeDisplays {
         for(var wood:WagonMaterial.wooden(recipe.output())?WoodMaterial.values():new WoodMaterial[]{WoodMaterial.OAK})
             for(var colour:WagonMaterial.dyed(recipe.output())?DyeColor.values():new DyeColor[]{DyeColor.WHITE}) {
                 var material=new WagonMaterial(wood,colour);
-                var output=material.stack(recipe.output());output.setCount(recipe.count());
-                String suffix=wood.getSerializedName()+"/"+colour.getName();
-                if(recipe.pattern().isEmpty()) {
-                    var single=component(recipe.component().equals("double_horse_shafts")?WagonPart.SINGLE_HORSE_SHAFTS:WagonPart.SINGLE_WOODEN_SEAT,wood);
-                    var inputs=NonNullList.<Ingredient>create();inputs.add(single);inputs.add(single);
-                    if(recipe.component().equals("triple_wooden_seat")) {
-                        inputs.add(single);
-                        add(result,source,suffix+"/double_single",new ShapelessRecipe("",CraftingBookCategory.MISC,output,
-                            NonNullList.of(Ingredient.EMPTY,component(WagonPart.DOUBLE_WOODEN_SEAT,wood),single)));
-                    }
-                    add(result,source,suffix,new ShapelessRecipe("",CraftingBookCategory.MISC,output,inputs));
-                } else {
-                    var key=new HashMap<Character,Ingredient>();
-                    for(String row:recipe.pattern())for(char token:row.toCharArray())if(token!=' ')
-                        key.computeIfAbsent(token,t->ingredient(recipe,t,material));
-                    add(result,source,suffix,new ShapedRecipe("",CraftingBookCategory.MISC,ShapedRecipePattern.of(key,recipe.pattern()),output));
-                }
+                append(result,source,recipe,material);
             }
         return List.copyOf(result);
+    }
+    /** One handbook example, without generating hundreds of unrelated material variants. */
+    public static List<RecipeHolder<CraftingRecipe>> create(RecipeHolder<CraftingRecipe> source,WagonMaterial material) {
+        if(!(source.value() instanceof WagonComponentRecipe recipe))return List.of();
+        var result=new ArrayList<RecipeHolder<CraftingRecipe>>();
+        append(result,source,recipe,material);
+        return List.copyOf(result);
+    }
+    private static void append(List<RecipeHolder<CraftingRecipe>> result,RecipeHolder<CraftingRecipe> source,WagonComponentRecipe recipe,WagonMaterial material) {
+        var wood=material.wood();var colour=material.colour();
+        var output=material.stack(recipe.output());output.setCount(recipe.count());
+        String suffix=wood.getSerializedName()+"/"+colour.getName();
+        if(recipe.pattern().isEmpty()) {
+            var single=component(recipe.component().equals("double_horse_shafts")?WagonPart.SINGLE_HORSE_SHAFTS:WagonPart.SINGLE_WOODEN_SEAT,wood);
+            var inputs=NonNullList.<Ingredient>create();inputs.add(single);inputs.add(single);
+            if(recipe.component().equals("triple_wooden_seat")) {
+                inputs.add(single);
+                add(result,source,suffix+"/double_single",new ShapelessRecipe("",CraftingBookCategory.MISC,output,
+                    NonNullList.of(Ingredient.EMPTY,component(WagonPart.DOUBLE_WOODEN_SEAT,wood),single)));
+            }
+            add(result,source,suffix,new ShapelessRecipe("",CraftingBookCategory.MISC,output,inputs));
+        } else {
+            var key=new HashMap<Character,Ingredient>();
+            for(String row:recipe.pattern())for(char token:row.toCharArray())if(token!=' ')
+                key.computeIfAbsent(token,t->ingredient(recipe,t,material));
+            add(result,source,suffix,new ShapedRecipe("",CraftingBookCategory.MISC,ShapedRecipePattern.of(key,recipe.pattern()),output));
+        }
     }
     private static void add(List<RecipeHolder<CraftingRecipe>> result,RecipeHolder<CraftingRecipe> source,String suffix,CraftingRecipe display) {
         result.add(new RecipeHolder<>(ResourceLocation.fromNamespaceAndPath("tm_wagon","jei/"+source.id().getNamespace()+"/"+source.id().getPath()+"/"+suffix),display));

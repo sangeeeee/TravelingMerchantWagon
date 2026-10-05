@@ -1,0 +1,17 @@
+{
+  "name": "车万女仆兼容",
+  "icon": "tm_wagon:maid_wagon_companion_icon",
+  "category": "tm_wagon:help",
+  "sortnum": 2,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "$(bold)马车副驾驶$(reset)任务会寻找双人或三人车夫座位，并坐到非操控位。$(bold)乘坐马车$(reset)任务会寻找空闲且空间足够的马车木凳。改为其他任务时，女仆会离座。$(br2)通过拴绳或 Carry On 让女仆入座，也要满足她的任务规则，否则会立即离开。"
+    },
+    {
+      "type": "patchouli:text",
+      "text": "休息时间，无论当前任务是什么，女仆都可按原版优先级寻找女仆床或马车草席。睡着时随马车移动，移除草席会正常醒来，不额外添加好感度惩罚。$(br2)装有女仆的照片或魂符可优先在马车上释放女仆。收纳仍遵循原模组限制；相机不会额外允许收纳睡着的女仆。"
+    }
+  ],
+  "flag": "mod:touhou_little_maid"
+}

@@ -1,0 +1,27 @@
+{
+  "name": "Canopies & Curtains",
+  "icon": "tm_wagon:wagon_canopy",
+  "category": "tm_wagon:equipment",
+  "sortnum": 2,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "Use a wooden box side with a canopy to install it; sneak-use the side to remove it. Both forms are supported and dimensions adapt to the box. A cover cannot be fitted at the same time.$(br2)Use the front or rear curtains to toggle them independently. Sneaking is unnecessary."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "The roof, sides and closed curtains have thin collision surfaces and block interactions through fabric. Open curtains for access to cargo. Stools and mats remain usable with sufficient clearance.$(br2)Interior ribs and decorative entrance rims do not block entities. The actual roof and sides still stop the wagon in passages that are too low or narrow."
+    },
+    {
+      "type": "tm_wagon:component_recipe",
+      "recipe": "tm_wagon:wagon_canopy",
+      "alternative": 0,
+      "heading": "book.tm_wagon.recipe",
+      "text": "The top row uses matching wool, which determines the canopy and curtain colour.",
+      "anchor": "wagon_canopy"
+    }
+  ],
+  "extra_recipe_mappings": {
+    "tm_wagon:wagon_canopy": 2
+  }
+}

@@ -114,5 +114,16 @@
   "task.tm_wagon.wagon_companion.desc": "Во время работы занимает свободное место рядом с кучером в ближайшей собранной повозке.",
   "task.tm_wagon.wagon_passenger": "Пассажирка повозки",
   "task.tm_wagon.wagon_passenger.desc": "Во время работы ищет свободный табурет с достаточным пространством над головой в ближайшей собранной повозке.",
-  "item.tm_wagon.dismantling_hammer": "Плотницкий молоток"
+  "item.tm_wagon.dismantling_hammer": "Плотницкий молоток",
+  "item.tm_wagon.coachmans_manual": "Руководство возницы",
+  "message.tm_wagon.handbook_requires_patchouli": "Установите Patchouli, чтобы прочитать это руководство.",
+  "book.tm_wagon.handbook.landing": "Добро пожаловать в Traveling Merchant Wagon. Это руководство расскажет о сборке и использовании вашей повозки.$(br2)$(l:tm_wagon:start/assembly)Ваша первая повозка$(/l)$(br)$(l:tm_wagon:help/troubleshooting)Помощь и интеграции$(/l)",
+  "book.tm_wagon.category.start": "Ваша первая повозка",
+  "book.tm_wagon.category.driving": "Управление и поездки",
+  "book.tm_wagon.category.cargo": "Грузы и пассажиры",
+  "book.tm_wagon.category.equipment": "Дополнительное оснащение",
+  "book.tm_wagon.category.workshop": "Мастерская повозок",
+  "book.tm_wagon.category.help": "Помощь и интеграции",
+  "book.tm_wagon.recipe": "Создание",
+  "book.tm_wagon.recipe_unavailable": "Этот рецепт недоступен на этом сервере."
 }

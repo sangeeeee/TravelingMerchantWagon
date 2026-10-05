@@ -114,5 +114,16 @@
   "task.tm_wagon.wagon_companion.desc": "Saat bekerja, duduk di tempat kosong di samping kusir pada pedati terakit di sekitar.",
   "task.tm_wagon.wagon_passenger": "Penumpang Pedati",
   "task.tm_wagon.wagon_passenger.desc": "Saat bekerja, mencari bangku kosong dengan ruang kepala yang cukup pada pedati terakit di sekitar.",
-  "item.tm_wagon.dismantling_hammer": "Palu Tukang Kayu"
+  "item.tm_wagon.dismantling_hammer": "Palu Tukang Kayu",
+  "item.tm_wagon.coachmans_manual": "Buku Panduan Kusir",
+  "message.tm_wagon.handbook_requires_patchouli": "Pasang Patchouli untuk membaca buku panduan ini.",
+  "book.tm_wagon.handbook.landing": "Selamat datang di Traveling Merchant Wagon. Buku ini akan memandu perakitan dan penggunaan gerobakmu.$(br2)$(l:tm_wagon:start/assembly)Kereta pertamamu$(/l)$(br)$(l:tm_wagon:help/troubleshooting)Bantuan dan integrasi$(/l)",
+  "book.tm_wagon.category.start": "Kereta pertamamu",
+  "book.tm_wagon.category.driving": "Mengemudi dan bepergian",
+  "book.tm_wagon.category.cargo": "Muatan dan penumpang",
+  "book.tm_wagon.category.equipment": "Perlengkapan opsional",
+  "book.tm_wagon.category.workshop": "Bengkel kereta",
+  "book.tm_wagon.category.help": "Bantuan dan integrasi",
+  "book.tm_wagon.recipe": "Pembuatan",
+  "book.tm_wagon.recipe_unavailable": "Resep ini tidak tersedia di server ini."
 }

@@ -1,0 +1,72 @@
+{
+  "name": "Prepare the Parts",
+  "icon": "tm_wagon:wagon_assembly_frame",
+  "category": "tm_wagon:start",
+  "sortnum": 0,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "For your first wagon, choose a standard wagon box, a single wooden driver’s seat and single-horse shafts.$(br2)You need:$(li)1 assembly jack$(li)1 wagon box$(li)1 driver’s seat$(li)1 set of shafts$(li)2 small and 2 large wheels$(br2)Bring an adult horse or donkey and a lead."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "One small-wheel recipe makes two wheels. Upgrade small wheels to make large ones. Parts on the same wagon may use different woods.$(br2)Recipes below show oak examples; their captions explain material rules. Continue with $(l:tm_wagon:start/assembly)Six-Step Assembly$(/l)."
+    },
+    {
+      "type": "tm_wagon:component_recipe",
+      "recipe": "tm_wagon:wagon_assembly_frame",
+      "alternative": 0,
+      "heading": "book.tm_wagon.recipe",
+      "text": "Use any planks, including modded planks. The jack has no wood variants.",
+      "anchor": "wagon_assembly_frame"
+    },
+    {
+      "type": "tm_wagon:component_recipe",
+      "recipe": "tm_wagon:cargo_body",
+      "alternative": 0,
+      "heading": "book.tm_wagon.recipe",
+      "text": "Planks, logs or stripped logs, and the trapdoor must all match. Vanilla woods only; bamboo is excluded.",
+      "anchor": "cargo_body"
+    },
+    {
+      "type": "tm_wagon:component_recipe",
+      "recipe": "tm_wagon:single_wooden_seat",
+      "alternative": 0,
+      "heading": "book.tm_wagon.recipe",
+      "text": "Matching planks determine the seat’s wood.",
+      "anchor": "single_wooden_seat"
+    },
+    {
+      "type": "tm_wagon:component_recipe",
+      "recipe": "tm_wagon:single_horse_shafts",
+      "alternative": 0,
+      "heading": "book.tm_wagon.recipe",
+      "text": "Use any log or stripped log in the middle. Shafts have no wood variants.",
+      "anchor": "single_horse_shafts"
+    },
+    {
+      "type": "tm_wagon:component_recipe",
+      "recipe": "tm_wagon:small_wheel",
+      "alternative": 0,
+      "heading": "book.tm_wagon.recipe",
+      "text": "The log or stripped log determines the wood. Produces two wheels.",
+      "anchor": "small_wheel"
+    },
+    {
+      "type": "tm_wagon:component_recipe",
+      "recipe": "tm_wagon:large_wheel",
+      "alternative": 0,
+      "heading": "book.tm_wagon.recipe",
+      "text": "Inherits the small wheel’s wood. The surrounding planks may be any wood.",
+      "anchor": "large_wheel"
+    }
+  ],
+  "extra_recipe_mappings": {
+    "tm_wagon:wagon_assembly_frame": 2,
+    "tm_wagon:cargo_body": 3,
+    "tm_wagon:single_wooden_seat": 4,
+    "tm_wagon:single_horse_shafts": 5,
+    "tm_wagon:small_wheel": 6,
+    "tm_wagon:large_wheel": 7
+  }
+}

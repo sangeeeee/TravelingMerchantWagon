@@ -1,0 +1,27 @@
+{
+  "name": "马车木凳与乘客",
+  "icon": "tm_wagon:wagon_stool",
+  "category": "tm_wagon:cargo",
+  "sortnum": 3,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "马车木凳是专用配件，占一个货位，只能放在马车上。方块和实体形态都可乘坐；右键凳面入座，潜行离座或取下凳子。$(br2)入座前会检查占用和乘客完整碰撞箱。上方的货物、盖布、世界方块或 Sable 结构挡住空间时，不能坐下。凳子不能操控马车。"
+    },
+    {
+      "type": "patchouli:text",
+      "text": "合适的生物走到空凳上方时，可以自动入座。玩家不会自动坐下。也可以牵住生物，手持拴绳右键空凳，让它入座并返还拴绳。$(br2)没有坐下的实体不会随移动马车保持同步，可能滑落。女仆还需要相应的乘坐任务；否则会主动离座。"
+    },
+    {
+      "type": "tm_wagon:component_recipe",
+      "recipe": "tm_wagon:wagon_stool",
+      "alternative": 0,
+      "heading": "book.tm_wagon.recipe",
+      "text": "上排木板必须同木质，决定凳子的木材。",
+      "anchor": "wagon_stool"
+    }
+  ],
+  "extra_recipe_mappings": {
+    "tm_wagon:wagon_stool": 2
+  }
+}

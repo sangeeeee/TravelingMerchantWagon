@@ -1,0 +1,6 @@
+{
+  "name": "book.tm_wagon.category.help",
+  "description": "常見問題和已安裝模組的兼容功能。",
+  "icon": "tm_wagon:coachmans_manual",
+  "sortnum": 5
+}

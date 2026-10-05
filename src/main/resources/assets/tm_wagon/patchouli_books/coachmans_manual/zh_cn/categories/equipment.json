@@ -1,0 +1,6 @@
+{
+  "name": "book.tm_wagon.category.equipment",
+  "description": "安装马车柜、货箱罩或车蓬，打造适合旅途的马车。",
+  "icon": "tm_wagon:wagon_canopy",
+  "sortnum": 3
+}

@@ -114,5 +114,16 @@
   "task.tm_wagon.wagon_companion.desc": "工作时寻找附近已实体化马车上驾驶员旁的空座位并入座。",
   "task.tm_wagon.wagon_passenger": "乘坐马车",
   "task.tm_wagon.wagon_passenger.desc": "工作时寻找附近实体马车中未被占用且空间充足的木凳入座。",
-  "item.tm_wagon.dismantling_hammer": "木工锤"
+  "item.tm_wagon.dismantling_hammer": "木工锤",
+  "item.tm_wagon.coachmans_manual": "马车夫手册",
+  "message.tm_wagon.handbook_requires_patchouli": "安装 Patchouli 后即可阅读这本手册。",
+  "book.tm_wagon.handbook.landing": "欢迎使用旅行商人马车模组。这本手册将介绍马车的装配与使用。$(br2)$(l:tm_wagon:start/assembly)第一辆马车$(/l)$(br)$(l:tm_wagon:help/troubleshooting)兼容与排障$(/l)",
+  "book.tm_wagon.category.start": "第一辆马车",
+  "book.tm_wagon.category.driving": "驾驶与旅行",
+  "book.tm_wagon.category.cargo": "货物与乘客",
+  "book.tm_wagon.category.equipment": "可选配件",
+  "book.tm_wagon.category.workshop": "装配与改造",
+  "book.tm_wagon.category.help": "兼容与排障",
+  "book.tm_wagon.recipe": "合成",
+  "book.tm_wagon.recipe_unavailable": "此服务器未提供这个配方。"
 }

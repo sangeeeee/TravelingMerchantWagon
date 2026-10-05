@@ -1,0 +1,36 @@
+{
+  "name": "三种货物车厢",
+  "icon": "tm_wagon:wide_cargo_body",
+  "category": "tm_wagon:workshop",
+  "sortnum": 0,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "普通货物车厢：2 列 × 5 行，10 个槽位。$(br2)加长货物车厢：2 列 × 6 行，12 个槽位。$(br2)加宽货物车厢：4 列 × 8 行，32 个槽位，横向货位更紧凑。$(br2)三者是必选组件中的三选一。车轮、马辕、货箱罩和车蓬道具可以通用，安装后会适应车厢。"
+    },
+    {
+      "type": "patchouli:text",
+      "text": "加长车厢由普通车厢合成；加宽车厢由加长车厢合成。升级保留原车厢木质，附加木板等材料可以任意木质。$(br2)升级是在合成界面完成，不是右键已经安装的车厢。请先卸货并回收原车厢，完成合成后重新安装。"
+    },
+    {
+      "type": "tm_wagon:component_recipe",
+      "recipe": "tm_wagon:long_cargo_body",
+      "alternative": 0,
+      "heading": "book.tm_wagon.recipe",
+      "text": "继承普通车厢木质；附加木板、原木或去皮原木、活版门可以任意木质。",
+      "anchor": "long_cargo_body"
+    },
+    {
+      "type": "tm_wagon:component_recipe",
+      "recipe": "tm_wagon:wide_cargo_body",
+      "alternative": 0,
+      "heading": "book.tm_wagon.recipe",
+      "text": "继承加长车厢木质。六块附加木板可以任意木质。",
+      "anchor": "wide_cargo_body"
+    }
+  ],
+  "extra_recipe_mappings": {
+    "tm_wagon:long_cargo_body": 2,
+    "tm_wagon:wide_cargo_body": 3
+  }
+}

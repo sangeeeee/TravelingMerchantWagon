@@ -1,0 +1,16 @@
+{
+  "name": "Chests & Containers",
+  "icon": "minecraft:chest",
+  "category": "tm_wagon:cargo",
+  "sortnum": 1,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "Chests, barrels, shulker boxes and ender chests open their usual screens on the wagon. Adjacent cargo chests do not merge.$(br2)Conversion between blocks and an entity preserves cargo positions and container contents. Menus may close during conversion; reopen them afterward."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "Unloading or destroying an ordinary container drops its block and contents separately. Shulker boxes retain their contents; ender chests still access your personal storage.$(br2)Some modded chests and barrels also work. Custom containers are not universally supported, and locked or unresolved loot containers may reject interaction."
+    }
+  ]
+}

@@ -187,6 +187,12 @@ neoForge {
             systemProperty 'tm_wagon.jeiSmokeTest', 'true'
             programArguments.addAll '--width', '1000', '--height', '700'
         }
+        handbookSmokeTest {
+            client()
+            gameDirectory = project.file('build/handbook-client')
+            systemProperty 'tm_wagon.handbookSmokeTest', 'true'
+            programArguments.addAll '--width', '1000', '--height', '700'
+        }
 
         server {
             server()
@@ -306,6 +312,9 @@ dependencies {
 
     // Official Patchouli API only; do not bundle the mod or add it to development runtime.
     compileOnly("vazkii.patchouli:Patchouli:${patchouli_version}:api") { transitive = false }
+    if (providers.gradleProperty('patchouliTestJar').isPresent()) {
+        localRuntime files(providers.gradleProperty('patchouliTestJar').get())
+    }
 
     // Optional compatibility API. Pin the NeoForge release ID to avoid selecting
     // the Fabric artifact with the same version number. Never bundle or run it by default.

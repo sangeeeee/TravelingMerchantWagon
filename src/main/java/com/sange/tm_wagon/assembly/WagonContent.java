@@ -3,6 +3,7 @@ package com.sange.tm_wagon.assembly;
 import com.sange.tm_wagon.TravelingMerchantWagon;
 import java.util.EnumMap;
 import java.util.Map;
+import java.util.Optional;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.BlockItem;
@@ -15,6 +16,7 @@ import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.level.material.PushReaction;
 import net.minecraft.world.level.block.SoundType;
 import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.ModList;
 import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredItem;
@@ -25,6 +27,10 @@ public final class WagonContent {
     public static final DeferredHolder<net.minecraft.sounds.SoundEvent,net.minecraft.sounds.SoundEvent> ROLL=SOUNDS.register("wagon_roll",()->net.minecraft.sounds.SoundEvent.createVariableRangeEvent(net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(TravelingMerchantWagon.MODID,"wagon_roll")));
     public static final DeferredRegister.Blocks BLOCKS = DeferredRegister.createBlocks(TravelingMerchantWagon.MODID);
     public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(TravelingMerchantWagon.MODID);
+    public static final Optional<DeferredItem<com.sange.tm_wagon.handbook.CoachmansManualItem>> MANUAL =
+        ModList.get().isLoaded("patchouli")
+            ? Optional.of(ITEMS.register("coachmans_manual",com.sange.tm_wagon.handbook.CoachmansManualItem::new))
+            : Optional.empty();
     public static final DeferredItem<DismantlingHammerItem> DISMANTLING_HAMMER = ITEMS.register("dismantling_hammer",DismantlingHammerItem::new);
     public static final DeferredItem<com.sange.tm_wagon.cargo.WagonCabinetItem> CABINET = ITEMS.register("wagon_cabinet",()->new com.sange.tm_wagon.cargo.WagonCabinetItem(new Item.Properties().stacksTo(16)));
     public static final DeferredItem<com.sange.tm_wagon.cargo.StrawMatItem> STRAW_MAT = ITEMS.register("wagon_straw_mat",()->new com.sange.tm_wagon.cargo.StrawMatItem(new Item.Properties().stacksTo(16)));
@@ -65,6 +71,7 @@ public final class WagonContent {
         .title(Component.translatable("itemGroup.tm_wagon"))
         .icon(() -> ICON.get().getDefaultInstance())
         .displayItems((parameters, output) -> {
+            MANUAL.ifPresent(manual->output.accept(manual.get()));
             output.accept(FRAME_ITEM.get());
             output.accept(DISMANTLING_HAMMER.get());
             for (WagonPart part : new WagonPart[]{

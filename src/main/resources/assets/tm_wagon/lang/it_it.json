@@ -114,5 +114,16 @@
   "task.tm_wagon.wagon_companion.desc": "Durante il lavoro, occupa un posto libero accanto al cocchiere su un carro assemblato vicino.",
   "task.tm_wagon.wagon_passenger": "Passeggera del carro",
   "task.tm_wagon.wagon_passenger.desc": "Durante il lavoro, cerca uno sgabello libero con spazio sufficiente sopra la testa su un carro assemblato vicino.",
-  "item.tm_wagon.dismantling_hammer": "Martello da carpentiere"
+  "item.tm_wagon.dismantling_hammer": "Martello da carpentiere",
+  "item.tm_wagon.coachmans_manual": "Manuale del cocchiere",
+  "message.tm_wagon.handbook_requires_patchouli": "Installa Patchouli per leggere questo manuale.",
+  "book.tm_wagon.handbook.landing": "Benvenuto in Traveling Merchant Wagon. Questo manuale ti guiderà nel montaggio e nell’uso del tuo carro.$(br2)$(l:tm_wagon:start/assembly)Il tuo primo carro$(/l)$(br)$(l:tm_wagon:help/troubleshooting)Aiuto e integrazioni$(/l)",
+  "book.tm_wagon.category.start": "Il tuo primo carro",
+  "book.tm_wagon.category.driving": "Guida e viaggi",
+  "book.tm_wagon.category.cargo": "Carico e passeggeri",
+  "book.tm_wagon.category.equipment": "Accessori opzionali",
+  "book.tm_wagon.category.workshop": "Officina dei carri",
+  "book.tm_wagon.category.help": "Aiuto e integrazioni",
+  "book.tm_wagon.recipe": "Fabbricazione",
+  "book.tm_wagon.recipe_unavailable": "Questa ricetta non è disponibile su questo server."
 }

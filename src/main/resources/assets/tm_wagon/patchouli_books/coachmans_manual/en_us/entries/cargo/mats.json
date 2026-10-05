@@ -1,0 +1,27 @@
+{
+  "name": "Straw Mats & Sleeping",
+  "icon": "tm_wagon:wagon_straw_mat",
+  "category": "tm_wagon:cargo",
+  "sortnum": 4,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "A mat occupies three consecutive slots in one column. Use an empty slot with a mat; it extends $(bold)toward the front$(reset) and requires three clear slots. Use any part of the mat to try sleeping.$(br2)Stop the wagon and avoid excessive tilt before entering sleep. Moving afterward does not wake sleeping players or maids."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "Mats follow normal sleeping conditions but $(bold)do not set a respawn point$(reset). They only work in bed-compatible dimensions. The Nether and End reject use without an explosion.$(br2)Sneak-use to remove a mat. Removal wakes its sleeper safely. Block-to-entity conversion preserves sleep; sleepers may still obstruct conversion back to blocks."
+    },
+    {
+      "type": "tm_wagon:component_recipe",
+      "recipe": "tm_wagon:wagon_straw_mat",
+      "alternative": 0,
+      "heading": "book.tm_wagon.recipe",
+      "text": "Use any planks, including modded planks. Mats have no wood variants.",
+      "anchor": "wagon_straw_mat"
+    }
+  ],
+  "extra_recipe_mappings": {
+    "tm_wagon:wagon_straw_mat": 2
+  }
+}

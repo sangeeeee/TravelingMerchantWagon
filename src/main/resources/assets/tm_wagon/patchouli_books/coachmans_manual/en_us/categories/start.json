@@ -1,0 +1,6 @@
+{
+  "name": "book.tm_wagon.category.start",
+  "description": "Turn a pile of parts into your first wagon. Gather materials, follow six assembly diagrams, then hitch up and depart.",
+  "icon": "tm_wagon:wagon_assembly_frame",
+  "sortnum": 0
+}

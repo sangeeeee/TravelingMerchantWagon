@@ -1,0 +1,17 @@
+{
+  "name": "Carry On",
+  "icon": "minecraft:chest",
+  "category": "tm_wagon:help",
+  "sortnum": 1,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "Carry On cannot pick up an entire entity wagon, wagon stools or straw mats. Normal wagon interactions remain available.$(br2)Picking up ordinary cargo follows Carry On’s current configuration. If its default sneak-use gesture conflicts with unloading, permitted cargo is picked up first; otherwise normal unloading applies."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "Use an empty cargo slot while carrying a permitted block to load it with its contents. Wagon placement rules still apply. Use an empty stool while carrying an entity to seat it if clearance allows.$(br2)Custom Carry On keys remain separate from sneak-unloading. Maids still follow their riding-task rules."
+    }
+  ],
+  "flag": "mod:carryon"
+}

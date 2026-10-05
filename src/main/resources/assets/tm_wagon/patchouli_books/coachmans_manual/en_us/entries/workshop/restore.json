@@ -1,0 +1,16 @@
+{
+  "name": "Docking & Restoration",
+  "icon": "tm_wagon:wagon_assembly_frame",
+  "category": "tm_wagon:workshop",
+  "sortnum": 3,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "Park roughly above a $(bold)folded jack$(reset), then use it. The platform rises and checks space at the end of the animation. Success restores the wagon to blocks.$(br2)If space is blocked, the wagon remains an entity and the jack folds again. Nearby blocks, standing entities or sleepers may obstruct restoration."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "Restoration preserves cargo, contents, materials and equipment states. Seated riders dismount; draft animals detach and return leads.$(br2)In block form, breaking any component cell recovers that entire part. Breaking the box or jack cascades through attached parts and cargo. Axes are effective on wooden parts."
+    }
+  ]
+}

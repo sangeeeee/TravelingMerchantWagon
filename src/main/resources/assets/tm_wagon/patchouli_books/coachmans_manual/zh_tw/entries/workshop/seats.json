@@ -1,0 +1,84 @@
+{
+  "name": "車伕座椅與馬轅",
+  "icon": "tm_wagon:triple_seat",
+  "category": "tm_wagon:workshop",
+  "sortnum": 1,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "純木製與帶靠背座椅都是合法的必需組件，每輛車只能安裝一種。所有車伕座椅都能裝馬車櫃。$(br2)普通和加長車廂可裝單人或雙人座；加寬車廂還可裝三人座。三人座僅允許加寬車廂。雙人座駕駛位在左，三人座在中間。"
+    },
+    {
+      "type": "patchouli:text",
+      "text": "入座要點擊$(bold)可見的坐墊或木製坐面上表面$(reset)。點擊靠背、支撐板或被遮擋的坐面不會入座。乘客必須有足夠空間。$(br2)雙人木座使用同木質單人座；三人木座使用三個單人座，或一個雙人座加一個單人座，木質必須一致。"
+    },
+    {
+      "type": "tm_wagon:component_recipe",
+      "recipe": "tm_wagon:double_wooden_seat",
+      "alternative": 0,
+      "heading": "book.tm_wagon.recipe",
+      "text": "兩個單人木製座椅，必須同木質。亂序合成。",
+      "anchor": "double_wooden_seat"
+    },
+    {
+      "type": "tm_wagon:component_recipe",
+      "recipe": "tm_wagon:triple_wooden_seat",
+      "alternative": 0,
+      "heading": "book.tm_wagon.recipe",
+      "text": "一個雙人和一個單人木製座椅，必須同木質。亂序合成。",
+      "anchor": "triple_wooden_seat"
+    },
+    {
+      "type": "tm_wagon:component_recipe",
+      "recipe": "tm_wagon:triple_wooden_seat",
+      "alternative": 1,
+      "heading": "book.tm_wagon.recipe",
+      "text": "也可以使用三個同木質單人木製座椅。亂序合成。",
+      "anchor": "triple_wooden_seat_alternative"
+    },
+    {
+      "type": "tm_wagon:component_recipe",
+      "recipe": "tm_wagon:single_seat",
+      "alternative": 0,
+      "heading": "book.tm_wagon.recipe",
+      "text": "繼承單人木製座椅木質。羊毛決定坐墊顏色，上方木板可以任意木質。",
+      "anchor": "single_seat"
+    },
+    {
+      "type": "tm_wagon:component_recipe",
+      "recipe": "tm_wagon:double_seat",
+      "alternative": 0,
+      "heading": "book.tm_wagon.recipe",
+      "text": "繼承雙人木製座椅木質。三塊羊毛必須同色；木板可以任意木質。",
+      "anchor": "double_seat"
+    },
+    {
+      "type": "tm_wagon:component_recipe",
+      "recipe": "tm_wagon:triple_seat",
+      "alternative": 0,
+      "heading": "book.tm_wagon.recipe",
+      "text": "繼承三人木製座椅木質。三塊羊毛必須同色；木板可以任意木質。",
+      "anchor": "triple_seat"
+    },
+    {
+      "type": "patchouli:text",
+      "text": "單馬轅和雙馬轅可用於所有車廂。雙馬轅由兩套單馬轅亂序合成。需要兩匹動物全部拴好才能駕駛，並不是只拴一匹也可以。$(br2)馬轅不分木質。選擇轅的類型主要決定拉車動物數量，不改變馬車基礎速度。"
+    },
+    {
+      "type": "tm_wagon:component_recipe",
+      "recipe": "tm_wagon:double_horse_shafts",
+      "alternative": 0,
+      "heading": "book.tm_wagon.recipe",
+      "text": "兩套單馬轅，亂序合成。",
+      "anchor": "double_horse_shafts"
+    }
+  ],
+  "extra_recipe_mappings": {
+    "tm_wagon:double_wooden_seat": 2,
+    "tm_wagon:triple_wooden_seat": 3,
+    "tm_wagon:single_seat": 5,
+    "tm_wagon:double_seat": 6,
+    "tm_wagon:triple_seat": 7,
+    "tm_wagon:double_horse_shafts": 9
+  }
+}

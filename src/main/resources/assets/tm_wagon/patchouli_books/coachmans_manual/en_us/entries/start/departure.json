@@ -1,0 +1,23 @@
+{
+  "name": "Your First Journey",
+  "icon": "minecraft:lead",
+  "category": "tm_wagon:start",
+  "sortnum": 2,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "Lead an adult horse or donkey to the shafts. With a lead in hand, use any part of the shafts to hitch it. Its existing lead secures it; no extra lead is charged.$(br2)Single shafts need one animal. Both positions on double shafts must be occupied before driving."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "Use the seat’s $(bold)visible upper surface$(reset) to board. The left seat drives a two-seat bench; the middle seat drives a three-seat bench.$(br2)$(k:forward) moves forward; $(k:back) brakes or reverses; $(k:left) and $(k:right) steer. $(k:sneak) dismounts.$(br2)Try an empty wagon first, then learn $(l:tm_wagon:cargo/loading)cargo handling$(/l)."
+    },
+    {
+      "type": "patchouli:relations",
+      "entries": [
+        "tm_wagon:driving/controls",
+        "tm_wagon:cargo/loading"
+      ]
+    }
+  ]
+}

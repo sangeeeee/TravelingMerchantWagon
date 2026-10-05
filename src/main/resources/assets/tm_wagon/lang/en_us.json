@@ -114,5 +114,16 @@
   "task.tm_wagon.wagon_companion.desc": "During work, takes a free seat beside the driver on a nearby assembled wagon.",
   "task.tm_wagon.wagon_passenger": "Wagon Passenger",
   "task.tm_wagon.wagon_passenger.desc": "During work, finds a free stool with enough headroom in a nearby assembled wagon.",
-  "item.tm_wagon.dismantling_hammer": "Carpenter's Hammer"
+  "item.tm_wagon.dismantling_hammer": "Carpenter's Hammer",
+  "item.tm_wagon.coachmans_manual": "Coachman's Handbook",
+  "message.tm_wagon.handbook_requires_patchouli": "Install Patchouli to read this handbook.",
+  "book.tm_wagon.handbook.landing": "Welcome to Traveling Merchant Wagon. This handbook will guide you through assembling and using your wagon.$(br2)$(l:tm_wagon:start/assembly)Your First Wagon$(/l)$(br)$(l:tm_wagon:help/troubleshooting)Help & Integrations$(/l)",
+  "book.tm_wagon.category.start": "Your First Wagon",
+  "book.tm_wagon.category.driving": "Driving & Travel",
+  "book.tm_wagon.category.cargo": "Cargo & Passengers",
+  "book.tm_wagon.category.equipment": "Optional Equipment",
+  "book.tm_wagon.category.workshop": "The Wagon Workshop",
+  "book.tm_wagon.category.help": "Help & Integrations",
+  "book.tm_wagon.recipe": "Crafting",
+  "book.tm_wagon.recipe_unavailable": "This recipe is unavailable on this server."
 }

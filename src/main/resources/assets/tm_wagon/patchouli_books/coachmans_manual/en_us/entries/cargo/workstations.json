@@ -1,0 +1,16 @@
+{
+  "name": "Workstations on the Road",
+  "icon": "minecraft:crafting_table",
+  "category": "tm_wagon:cargo",
+  "sortnum": 2,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "Supported workstations include crafting tables, cartography tables, stonecutters, anvils, smithing tables, looms, grindstones and enchanting tables.$(br2)Cargo enchanting tables work without bookshelf bonuses. Anvils can still wear out. Unadapted modded workstations may be transported but are not guaranteed to function."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "Furnaces, smokers, blast furnaces and brewing stands process their contents. Cauldrons, composters, lecterns, chiseled bookshelves and decorated pots have supported interactions.$(br2)Cargo is not a normal world block. Do not rely on redstone, hoppers, external input/output or arbitrary modded machinery."
+    }
+  ]
+}

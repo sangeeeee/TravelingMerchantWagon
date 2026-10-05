@@ -132,3 +132,11 @@ config="${mod_id}.mixins.json"
     versionRange="[19.39.0,)"
     ordering="AFTER"
     side="CLIENT"
+
+# Optional handbook reader; the handbook item and recipe require Patchouli.
+[[dependencies.${mod_id}]]
+    modId="patchouli"
+    type="optional"
+    versionRange="*"
+    ordering="AFTER"
+    side="BOTH"

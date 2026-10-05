@@ -114,5 +114,16 @@
   "task.tm_wagon.wagon_companion.desc": "일하는 동안 근처의 조립된 마차에서 마부 옆의 빈자리를 찾아 앉습니다.",
   "task.tm_wagon.wagon_passenger": "마차 승객",
   "task.tm_wagon.wagon_passenger.desc": "일하는 동안 근처의 조립된 마차에서 머리 위 공간이 충분한 빈 걸상을 찾아 앉습니다.",
-  "item.tm_wagon.dismantling_hammer": "목공 망치"
+  "item.tm_wagon.dismantling_hammer": "목공 망치",
+  "item.tm_wagon.coachmans_manual": "마부 안내서",
+  "message.tm_wagon.handbook_requires_patchouli": "이 안내서를 읽으려면 Patchouli를 설치하세요.",
+  "book.tm_wagon.handbook.landing": "Traveling Merchant Wagon에 오신 것을 환영합니다. 이 안내서는 마차의 조립과 사용 방법을 소개합니다.$(br2)$(l:tm_wagon:start/assembly)첫 마차$(/l)$(br)$(l:tm_wagon:help/troubleshooting)도움말과 연동$(/l)",
+  "book.tm_wagon.category.start": "첫 마차",
+  "book.tm_wagon.category.driving": "운전과 여행",
+  "book.tm_wagon.category.cargo": "화물과 승객",
+  "book.tm_wagon.category.equipment": "선택 장비",
+  "book.tm_wagon.category.workshop": "마차 작업장",
+  "book.tm_wagon.category.help": "도움말과 연동",
+  "book.tm_wagon.recipe": "제작",
+  "book.tm_wagon.recipe_unavailable": "이 서버에서는 이 제작법을 사용할 수 없습니다."
 }

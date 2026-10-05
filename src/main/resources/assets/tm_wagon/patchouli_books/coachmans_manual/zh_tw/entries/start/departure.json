@@ -1,0 +1,23 @@
+{
+  "name": "第一次出行",
+  "icon": "minecraft:lead",
+  "category": "tm_wagon:start",
+  "sortnum": 2,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "先用拴繩牽住成年馬或驢，帶到馬轅旁。手持拴繩右鍵馬轅任意部位，動物會移動到拉車位置。原先拴住它的繩子用於固定，不另收一根。$(br2)單馬轅需要一匹，雙馬轅的兩個位置都要有馬或驢，才能駕駛。"
+    },
+    {
+      "type": "patchouli:text",
+      "text": "右鍵座位$(bold)可見的上表面$(reset)入座。雙人座左邊駕駛，三人座中間駕駛。$(br2)按$(k:forward)前進，$(k:back)剎車或倒車，$(k:left)和$(k:right)轉向。按$(k:sneak)離座。$(br2)第一次出行建議先空車試駕，再學習$(l:tm_wagon:cargo/loading)裝卸貨物$(/l)。"
+    },
+    {
+      "type": "patchouli:relations",
+      "entries": [
+        "tm_wagon:driving/controls",
+        "tm_wagon:cargo/loading"
+      ]
+    }
+  ]
+}

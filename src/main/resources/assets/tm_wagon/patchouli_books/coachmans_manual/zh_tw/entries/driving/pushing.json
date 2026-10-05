@@ -1,0 +1,22 @@
+{
+  "name": "手推與停靠",
+  "icon": "minecraft:stick",
+  "category": "tm_wagon:driving",
+  "sortnum": 3,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "馬車$(bold)沒有連接任何馬匹$(reset)時，站在地面的玩家可以沿車身縱向擠壓它：從後方推會緩慢前進，從前方推會緩慢後退。車廂或輪軸附近都可嘗試。$(br2)站在車上、懸空或飛行時不會觸發推車。側向擠壓不會讓馬車橫着平移，姿態嚴重異常時也推不動。"
+    },
+    {
+      "type": "patchouli:text",
+      "text": "如果車伕位有人，他可以在推車過程中控制轉向。手推速度很慢，適合將空車移到裝配架上方，不能替代拉車馬。$(br2)恢復爲方塊時，裝配架應先收縮，馬車只需大致停在合理位置，不必逐像素對準。"
+    },
+    {
+      "type": "patchouli:relations",
+      "entries": [
+        "tm_wagon:workshop/restore"
+      ]
+    }
+  ]
+}

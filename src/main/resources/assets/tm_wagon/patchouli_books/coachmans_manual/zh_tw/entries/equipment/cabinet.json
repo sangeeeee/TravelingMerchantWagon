@@ -1,0 +1,27 @@
+{
+  "name": "座椅下的馬車櫃",
+  "icon": "tm_wagon:wagon_cabinet",
+  "category": "tm_wagon:equipment",
+  "sortnum": 0,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "手持馬車櫃，右鍵車伕座位下方的側面安裝，方塊與實體形態都支持。木櫃會自動適應單人、雙人或三人座位的寬度。$(br2)單人座下有小箱子容量；雙人和三人座下都是大箱子容量。三人座只讓櫃體更長，不會增加儲物格數。"
+    },
+    {
+      "type": "patchouli:text",
+      "text": "右鍵兩端帶把手的抽屜面打開界面，不必空手。抽屜會快速拉出，關閉界面後縮回。潛行右鍵可拆下木櫃，內部物品另行掉出。$(br2)轉換馬車形態會保留櫃中物品。方塊狀態破壞座椅時，座椅、木櫃與內容分別掉落；木工錘拆卸實體馬車時也會回收木櫃。"
+    },
+    {
+      "type": "tm_wagon:component_recipe",
+      "recipe": "tm_wagon:wagon_cabinet",
+      "alternative": 0,
+      "heading": "book.tm_wagon.recipe",
+      "text": "六塊木板必須同木質，決定木櫃材質；中間是木桶。",
+      "anchor": "wagon_cabinet"
+    }
+  ],
+  "extra_recipe_mappings": {
+    "tm_wagon:wagon_cabinet": 2
+  }
+}

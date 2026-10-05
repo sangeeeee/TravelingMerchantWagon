@@ -1,0 +1,17 @@
+{
+  "name": "Touhou Little Maid",
+  "icon": "tm_wagon:maid_wagon_companion_icon",
+  "category": "tm_wagon:help",
+  "sortnum": 2,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "The $(bold)Wagon Companion$(reset) task finds a non-driving position on a two- or three-seat bench. $(bold)Wagon Passenger$(reset) finds a free cargo stool with clearance. Changing tasks makes the maid dismount.$(br2)Lead and Carry On boarding also follow her task rules; otherwise she leaves immediately."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "At rest time, any task can seek maid beds or wagon mats using the original priorities. Sleep follows a moving wagon; removing the mat wakes her without an added affection penalty.$(br2)Filled photos or soul talismans can release a maid on the wagon. Capture keeps the original restrictions, including the camera’s sleeping-maid rules."
+    }
+  ],
+  "flag": "mod:touhou_little_maid"
+}

@@ -1,0 +1,27 @@
+{
+  "name": "貨箱罩",
+  "icon": "tm_wagon:wagon_cargo_cover",
+  "category": "tm_wagon:equipment",
+  "sortnum": 1,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "手持貨箱罩，右鍵貨箱木質側面安裝，初始完全鋪開。方塊與實體形態都可安裝或拆下。貨箱罩與車蓬互斥。$(br2)右鍵布面或捲起的布卷，每次從車頭向車尾捲起一行。潛行右鍵布或布卷，每次鋪開一行。完全捲起時仍可點布卷重新鋪開。"
+    },
+    {
+      "type": "patchouli:text",
+      "text": "要拆下整個貨箱罩，請潛行右鍵$(bold)木質側板$(reset)，而不是布面。$(br2)鋪開的布可以站立，會阻擋穿過布的貨物交互和凳子上方的空間。貨物仍然正常渲染。打開尾門，從後方沒有布遮擋的方向也能操作貨物。"
+    },
+    {
+      "type": "tm_wagon:component_recipe",
+      "recipe": "tm_wagon:wagon_cargo_cover",
+      "alternative": 0,
+      "heading": "book.tm_wagon.recipe",
+      "text": "羊毛必須同色。四角可以使用拴繩或藤蔓，決定顏色的只有羊毛。",
+      "anchor": "wagon_cargo_cover"
+    }
+  ],
+  "extra_recipe_mappings": {
+    "tm_wagon:wagon_cargo_cover": 2
+  }
+}

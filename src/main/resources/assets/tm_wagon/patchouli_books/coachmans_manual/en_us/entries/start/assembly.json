@@ -1,0 +1,106 @@
+{
+  "name": "Six-Step Assembly",
+  "icon": "tm_wagon:cargo_body",
+  "category": "tm_wagon:start",
+  "sortnum": 1,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "The diagrams look down from the wagon’s front left. Cyan outlines mark new parts; dashed lines indicate hidden wheels on the far side.$(br2)Fit the jack, box, driver’s seat, shafts, front wheels and rear wheels in order. Each step’s right-hand page shows the result."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "Leave room around the jack. Fit required parts while it is $(bold)extended$(reset).$(br2)Placing a part once creates its complete multiblock component. Incorrect mounting positions or blocked space prevent installation.",
+      "title": "Before Building"
+    },
+    {
+      "type": "patchouli:text",
+      "text": "Place the jack normally to start extended. Sneak-place it to start folded; extend it before building. Wait for the animation to finish.",
+      "title": "Step 1: The Jack"
+    },
+    {
+      "type": "patchouli:image",
+      "images": [
+        "tm_wagon:textures/gui/handbook/assembly/01_frame.png"
+      ],
+      "border": false,
+      "text": "The extended jack supports the deck."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "Use the wagon box on the jack’s $(bold)upper platform$(reset). The deck, sideboards, tailgate, footboard and steps are placed together. Do not build it block by block.",
+      "title": "Step 2: The Box"
+    },
+    {
+      "type": "patchouli:image",
+      "images": [
+        "tm_wagon:textures/gui/handbook/assembly/02_body.png"
+      ],
+      "border": false,
+      "text": "Place the whole box at once."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "Fit a driver’s seat at the front centre, above the footboard. Choose a wooden or upholstered seat. A cargo stool cannot replace the required driver’s seat.",
+      "title": "Step 3: The Seat"
+    },
+    {
+      "type": "patchouli:image",
+      "images": [
+        "tm_wagon:textures/gui/handbook/assembly/03_seat.png"
+      ],
+      "border": false,
+      "text": "Fit the seat above the front footboard."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "Fit shafts at the $(bold)front centre$(reset) of the box, below the footboard. Single shafts need one animal; double shafts need two. Hitch animals after assembly creates the wagon entity.",
+      "title": "Step 4: The Shafts"
+    },
+    {
+      "type": "patchouli:image",
+      "images": [
+        "tm_wagon:textures/gui/handbook/assembly/04_shafts.png"
+      ],
+      "border": false,
+      "text": "The shafts project from the front."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "Fit two $(bold)small wheels$(reset), one at each end of the front axle. Walk around to fit the far wheel. Large wheels do not belong on the front axle.",
+      "title": "Step 5: Front Wheels"
+    },
+    {
+      "type": "patchouli:image",
+      "images": [
+        "tm_wagon:textures/gui/handbook/assembly/05_front_wheels.png"
+      ],
+      "border": false,
+      "text": "One small wheel at each front axle end."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "Fit two $(bold)large wheels$(reset), one at each end of the rear axle. Check that all four wheels are present. Cabinets, cargo covers and canopies are optional.",
+      "title": "Step 6: Rear Wheels"
+    },
+    {
+      "type": "patchouli:image",
+      "images": [
+        "tm_wagon:textures/gui/handbook/assembly/06_rear_wheels.png"
+      ],
+      "border": false,
+      "text": "One large wheel at each rear axle end."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "Use the jack. If required parts are complete and correctly fitted, it folds and the wagon becomes an entity immediately. Missing parts produce a message and prevent folding.$(br2)Clicks during the animation are ignored. An empty jack can still extend and fold normally."
+    },
+    {
+      "type": "patchouli:relations",
+      "entries": [
+        "tm_wagon:start/departure",
+        "tm_wagon:workshop/restore"
+      ]
+    }
+  ]
+}

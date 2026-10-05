@@ -1,0 +1,27 @@
+{
+  "name": "Under-seat Cabinets",
+  "icon": "tm_wagon:wagon_cabinet",
+  "category": "tm_wagon:equipment",
+  "sortnum": 0,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "Fit a cabinet by using the side below the driver’s seat. Both wagon forms support installation, and its width adapts to the seat.$(br2)A single seat provides single-chest capacity. Two- and three-seat benches both provide double-chest capacity; the wider cabinet adds no extra slots."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "Use either handled end to open a drawer, even while holding an item. It slides out and returns when the menu closes. Sneak-use to remove the cabinet; contents drop separately.$(br2)Conversion preserves storage. Breaking a block-form seat drops the seat, cabinet and contents separately. Hammer dismantling also recovers the cabinet."
+    },
+    {
+      "type": "tm_wagon:component_recipe",
+      "recipe": "tm_wagon:wagon_cabinet",
+      "alternative": 0,
+      "heading": "book.tm_wagon.recipe",
+      "text": "Use six matching planks around a barrel. The planks determine the cabinet’s wood.",
+      "anchor": "wagon_cabinet"
+    }
+  ],
+  "extra_recipe_mappings": {
+    "tm_wagon:wagon_cabinet": 2
+  }
+}

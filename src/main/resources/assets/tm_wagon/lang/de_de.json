@@ -114,5 +114,16 @@
   "task.tm_wagon.wagon_companion.desc": "Sucht während der Arbeit einen freien Platz neben dem Kutscher auf einem montierten Wagen in der Nähe.",
   "task.tm_wagon.wagon_passenger": "Wagenpassagier",
   "task.tm_wagon.wagon_passenger.desc": "Sucht während der Arbeit einen freien Hocker mit genügend Kopffreiheit auf einem montierten Wagen in der Nähe.",
-  "item.tm_wagon.dismantling_hammer": "Zimmermannshammer"
+  "item.tm_wagon.dismantling_hammer": "Zimmermannshammer",
+  "item.tm_wagon.coachmans_manual": "Handbuch für Kutscher",
+  "message.tm_wagon.handbook_requires_patchouli": "Installiere Patchouli, um dieses Handbuch zu lesen.",
+  "book.tm_wagon.handbook.landing": "Willkommen bei Traveling Merchant Wagon. Dieses Handbuch führt dich durch den Zusammenbau und die Nutzung deines Wagens.$(br2)$(l:tm_wagon:start/assembly)Dein erster Wagen$(/l)$(br)$(l:tm_wagon:help/troubleshooting)Hilfe und Integrationen$(/l)",
+  "book.tm_wagon.category.start": "Dein erster Wagen",
+  "book.tm_wagon.category.driving": "Fahren und Reisen",
+  "book.tm_wagon.category.cargo": "Fracht und Passagiere",
+  "book.tm_wagon.category.equipment": "Optionale Ausstattung",
+  "book.tm_wagon.category.workshop": "Die Wagenwerkstatt",
+  "book.tm_wagon.category.help": "Hilfe und Integrationen",
+  "book.tm_wagon.recipe": "Herstellung",
+  "book.tm_wagon.recipe_unavailable": "Dieses Rezept ist auf diesem Server nicht verfügbar."
 }

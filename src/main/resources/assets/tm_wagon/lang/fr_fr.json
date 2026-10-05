@@ -114,5 +114,16 @@
   "task.tm_wagon.wagon_companion.desc": "Pendant le travail, prend une place libre à côté du cocher dans un chariot assemblé à proximité.",
   "task.tm_wagon.wagon_passenger": "Passagère du chariot",
   "task.tm_wagon.wagon_passenger.desc": "Pendant le travail, cherche un tabouret libre avec assez de place au-dessus dans un chariot assemblé à proximité.",
-  "item.tm_wagon.dismantling_hammer": "Marteau de charpentier"
+  "item.tm_wagon.dismantling_hammer": "Marteau de charpentier",
+  "item.tm_wagon.coachmans_manual": "Manuel du cocher",
+  "message.tm_wagon.handbook_requires_patchouli": "Installez Patchouli pour lire ce manuel.",
+  "book.tm_wagon.handbook.landing": "Bienvenue dans Traveling Merchant Wagon. Ce manuel vous guidera dans le montage et l’utilisation de votre chariot.$(br2)$(l:tm_wagon:start/assembly)Votre premier chariot$(/l)$(br)$(l:tm_wagon:help/troubleshooting)Aide et intégrations$(/l)",
+  "book.tm_wagon.category.start": "Votre premier chariot",
+  "book.tm_wagon.category.driving": "Conduite et voyages",
+  "book.tm_wagon.category.cargo": "Marchandises et passagers",
+  "book.tm_wagon.category.equipment": "Équipement facultatif",
+  "book.tm_wagon.category.workshop": "Atelier du chariot",
+  "book.tm_wagon.category.help": "Aide et intégrations",
+  "book.tm_wagon.recipe": "Fabrication",
+  "book.tm_wagon.recipe_unavailable": "Cette recette est indisponible sur ce serveur."
 }

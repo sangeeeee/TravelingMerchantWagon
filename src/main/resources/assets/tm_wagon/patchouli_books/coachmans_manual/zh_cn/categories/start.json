@@ -1,0 +1,6 @@
+{
+  "name": "book.tm_wagon.category.start",
+  "description": "从一堆零件到第一次出行。先准备材料，再按六张示意图完成装配。",
+  "icon": "tm_wagon:wagon_assembly_frame",
+  "sortnum": 0
+}

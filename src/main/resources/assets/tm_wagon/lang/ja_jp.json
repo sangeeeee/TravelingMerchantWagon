@@ -114,5 +114,16 @@
   "task.tm_wagon.wagon_companion.desc": "仕事中、近くの組み立て済み馬車で御者の隣の空席に座ります。",
   "task.tm_wagon.wagon_passenger": "馬車に乗る",
   "task.tm_wagon.wagon_passenger.desc": "仕事中、近くの組み立て済み馬車で頭上に十分な空間がある空いた腰掛けを探して座ります。",
-  "item.tm_wagon.dismantling_hammer": "木工用の金槌"
+  "item.tm_wagon.dismantling_hammer": "木工用の金槌",
+  "item.tm_wagon.coachmans_manual": "御者の手引き",
+  "message.tm_wagon.handbook_requires_patchouli": "この手引きを読むには Patchouli を導入してください。",
+  "book.tm_wagon.handbook.landing": "Traveling Merchant Wagon へようこそ。この手引きでは馬車の組み立て方と使い方を紹介します。$(br2)$(l:tm_wagon:start/assembly)初めての馬車$(/l)$(br)$(l:tm_wagon:help/troubleshooting)ヘルプと連携$(/l)",
+  "book.tm_wagon.category.start": "初めての馬車",
+  "book.tm_wagon.category.driving": "運転と旅",
+  "book.tm_wagon.category.cargo": "荷物と乗客",
+  "book.tm_wagon.category.equipment": "追加装備",
+  "book.tm_wagon.category.workshop": "馬車の工房",
+  "book.tm_wagon.category.help": "ヘルプと連携",
+  "book.tm_wagon.recipe": "クラフト",
+  "book.tm_wagon.recipe_unavailable": "このサーバーではこのレシピを利用できません。"
 }

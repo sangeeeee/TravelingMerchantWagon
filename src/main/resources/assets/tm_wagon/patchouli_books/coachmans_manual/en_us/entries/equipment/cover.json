@@ -1,0 +1,27 @@
+{
+  "name": "Cargo Covers",
+  "icon": "tm_wagon:wagon_cargo_cover",
+  "category": "tm_wagon:equipment",
+  "sortnum": 1,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "Use the wooden side of the box with a cargo cover to install it fully spread. Both forms support fitting and removal. Covers and canopies are mutually exclusive.$(br2)Use cloth or its roll to uncover one row, front to rear. Sneak-use cloth or the roll to spread one row, even when fully rolled up."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "To remove the entire cover, sneak-use the $(bold)wooden sideboard$(reset), not the cloth.$(br2)Spread cloth supports standing entities and blocks interactions through it. It can also prevent stool boarding. Cargo remains visible. Open the tailgate to access cargo from behind when the cloth does not block the path."
+    },
+    {
+      "type": "tm_wagon:component_recipe",
+      "recipe": "tm_wagon:wagon_cargo_cover",
+      "alternative": 0,
+      "heading": "book.tm_wagon.recipe",
+      "text": "All wool must match. Corners accept leads or vines; wool determines the colour.",
+      "anchor": "wagon_cargo_cover"
+    }
+  ],
+  "extra_recipe_mappings": {
+    "tm_wagon:wagon_cargo_cover": 2
+  }
+}

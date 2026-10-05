@@ -1,0 +1,17 @@
+{
+  "name": "Carry On 兼容",
+  "icon": "minecraft:chest",
+  "category": "tm_wagon:help",
+  "sortnum": 1,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "Carry On 不能搬起整輛實體馬車，也不能搬起馬車專用的木凳和草蓆。馬車自己的交互繼續生效。$(br2)普通容器貨物能否搬起，動態遵循 Carry On 的配置。默認潛行右鍵與卸貨衝突時，允許搬運的貨物優先搬起；不能搬運的則走正常卸貨邏輯。"
+    },
+    {
+      "type": "patchouli:text",
+      "text": "抱着方塊右鍵空貨位，可以直接裝貨並保留內容，但仍受馬車的單格結構與黑白名單規則限制。抱着實體右鍵空凳，可以在空間足夠時讓它入座。$(br2)如果自定義 Carry On 搬運鍵，它與潛行卸貨各按自己的鍵位執行。女僕還要滿足相應的乘坐任務規則。"
+    }
+  ],
+  "flag": "mod:carryon"
+}

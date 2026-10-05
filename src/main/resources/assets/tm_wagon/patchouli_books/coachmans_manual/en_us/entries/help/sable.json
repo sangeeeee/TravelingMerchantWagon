@@ -1,0 +1,17 @@
+{
+  "name": "Sable",
+  "icon": "minecraft:oak_planks",
+  "category": "tm_wagon:help",
+  "sortnum": 3,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "Entity wagons collide with Sable structures. Boarding clearance and seated-passenger passage checks also consider external physical structures. Wagons retain their own movement and collision system; they do not become Sable structures."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "Block-form jacks and wagon parts $(bold)cannot be physicalized$(reset). Physicalizing any component cell recovers that whole part without duplicate drops. A box or jack also releases attached parts and cargo.$(br2)Placing such blocks on a physical structure immediately breaks and drops them. Use entity wagons instead of embedding a jack in a structure."
+    }
+  ],
+  "flag": "mod:sable"
+}

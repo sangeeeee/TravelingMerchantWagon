@@ -114,5 +114,16 @@
   "task.tm_wagon.wagon_companion.desc": "工作時尋找附近已組裝馬車上駕駛旁的空位入座。",
   "task.tm_wagon.wagon_passenger": "乘坐馬車",
   "task.tm_wagon.wagon_passenger.desc": "工作時尋找附近已組裝馬車上未被占用、頭頂空間足夠的木凳入座。",
-  "item.tm_wagon.dismantling_hammer": "木工錘"
+  "item.tm_wagon.dismantling_hammer": "木工錘",
+  "item.tm_wagon.coachmans_manual": "馬車夫手冊",
+  "message.tm_wagon.handbook_requires_patchouli": "安裝 Patchouli 後即可閱讀這本手冊。",
+  "book.tm_wagon.handbook.landing": "歡迎使用旅行商人馬車模組。這本手冊將介紹馬車的組裝與使用。$(br2)$(l:tm_wagon:start/assembly)第一輛馬車$(/l)$(br)$(l:tm_wagon:help/troubleshooting)相容與疑難排解$(/l)",
+  "book.tm_wagon.category.start": "第一輛馬車",
+  "book.tm_wagon.category.driving": "駕駛與旅行",
+  "book.tm_wagon.category.cargo": "貨物與乘客",
+  "book.tm_wagon.category.equipment": "可選配件",
+  "book.tm_wagon.category.workshop": "裝配與改造",
+  "book.tm_wagon.category.help": "相容與疑難排解",
+  "book.tm_wagon.recipe": "合成",
+  "book.tm_wagon.recipe_unavailable": "此伺服器未提供這個配方。"
 }

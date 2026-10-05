@@ -1,0 +1,36 @@
+{
+  "name": "三種貨物車廂",
+  "icon": "tm_wagon:wide_cargo_body",
+  "category": "tm_wagon:workshop",
+  "sortnum": 0,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "普通貨物車廂：2 列 × 5 行，10 個槽位。$(br2)加長貨物車廂：2 列 × 6 行，12 個槽位。$(br2)加寬貨物車廂：4 列 × 8 行，32 個槽位，橫向貨位更緊湊。$(br2)三者是必選組件中的三選一。車輪、馬轅、貨箱罩和車蓬道具可以通用，安裝後會適應車廂。"
+    },
+    {
+      "type": "patchouli:text",
+      "text": "加長車廂由普通車廂合成；加寬車廂由加長車廂合成。升級保留原車廂木質，附加木板等材料可以任意木質。$(br2)升級是在合成界面完成，不是右鍵已經安裝的車廂。請先卸貨並回收原車廂，完成合成後重新安裝。"
+    },
+    {
+      "type": "tm_wagon:component_recipe",
+      "recipe": "tm_wagon:long_cargo_body",
+      "alternative": 0,
+      "heading": "book.tm_wagon.recipe",
+      "text": "繼承普通車廂木質；附加木板、原木或去皮原木、活版門可以任意木質。",
+      "anchor": "long_cargo_body"
+    },
+    {
+      "type": "tm_wagon:component_recipe",
+      "recipe": "tm_wagon:wide_cargo_body",
+      "alternative": 0,
+      "heading": "book.tm_wagon.recipe",
+      "text": "繼承加長車廂木質。六塊附加木板可以任意木質。",
+      "anchor": "wide_cargo_body"
+    }
+  ],
+  "extra_recipe_mappings": {
+    "tm_wagon:long_cargo_body": 2,
+    "tm_wagon:wide_cargo_body": 3
+  }
+}

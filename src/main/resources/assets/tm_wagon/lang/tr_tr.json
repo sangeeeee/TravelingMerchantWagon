@@ -114,5 +114,16 @@
   "task.tm_wagon.wagon_companion.desc": "Çalışırken yakındaki monte edilmiş bir arabada arabacının yanındaki boş koltuğa oturur.",
   "task.tm_wagon.wagon_passenger": "At Arabası Yolcusu",
   "task.tm_wagon.wagon_passenger.desc": "Çalışırken yakındaki monte edilmiş bir arabada baş mesafesi yeterli, boş bir tabure arar.",
-  "item.tm_wagon.dismantling_hammer": "Marangoz Çekici"
+  "item.tm_wagon.dismantling_hammer": "Marangoz Çekici",
+  "item.tm_wagon.coachmans_manual": "Arabacı El Kitabı",
+  "message.tm_wagon.handbook_requires_patchouli": "Bu el kitabını okumak için Patchouli kurun.",
+  "book.tm_wagon.handbook.landing": "Traveling Merchant Wagon’a hoş geldiniz. Bu el kitabı, arabanızın montajı ve kullanımı konusunda size yol gösterecek.$(br2)$(l:tm_wagon:start/assembly)İlk arabanız$(/l)$(br)$(l:tm_wagon:help/troubleshooting)Yardım ve entegrasyonlar$(/l)",
+  "book.tm_wagon.category.start": "İlk arabanız",
+  "book.tm_wagon.category.driving": "Sürüş ve yolculuk",
+  "book.tm_wagon.category.cargo": "Yük ve yolcular",
+  "book.tm_wagon.category.equipment": "İsteğe bağlı donanım",
+  "book.tm_wagon.category.workshop": "Araba atölyesi",
+  "book.tm_wagon.category.help": "Yardım ve entegrasyonlar",
+  "book.tm_wagon.recipe": "Üretim",
+  "book.tm_wagon.recipe_unavailable": "Bu tarif bu sunucuda kullanılamıyor."
 }

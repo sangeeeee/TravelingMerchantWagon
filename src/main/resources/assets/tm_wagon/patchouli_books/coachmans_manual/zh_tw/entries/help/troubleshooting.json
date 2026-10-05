@@ -1,0 +1,35 @@
+{
+  "name": "常見問題",
+  "icon": "minecraft:paper",
+  "category": "tm_wagon:help",
+  "sortnum": 0,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "$(bold)裝配架不收縮？$(reset)檢查車廂、車伕座位、馬轅、前小輪兩個和後大輪兩個。組件要在展開狀態安裝，動畫期間點擊無效。$(br2)$(bold)零件放不上？$(reset)檢查安裝區域、周圍空間和車廂類型。三人座僅適配加寬車廂。"
+    },
+    {
+      "type": "patchouli:text",
+      "text": "$(bold)馬車不聽控制？$(reset)先實體化並拴滿所需馬匹，再坐到操控位。雙人座左邊駕駛，三人座中間駕駛。$(br2)$(bold)木凳無法入座？$(reset)檢查是否有人佔用，以及頭頂是否被貨物、布、世界方塊或物理結構擋住。高個子實體需要更多餘裕。"
+    },
+    {
+      "type": "patchouli:text",
+      "text": "$(bold)貨物不能操作？$(reset)可能被布擋住、正在轉換、服務器不允許放置，或該功能方塊未適配。先從無遮擋方向嘗試。$(br2)$(bold)草蓆鋪不下？$(reset)它沿同一列向車頭佔三格。點擊位置後方的空位不能代替前方所需的空間。睡覺前還要停穩馬車。"
+    },
+    {
+      "type": "patchouli:text",
+      "text": "伺服器規則位於 $(bold)tm_wagon-server.toml$(reset)，包括貨物黑白名單、速度、載荷影響和手冊贈送。$(br2)安裝 Patchouli 並開啟贈送後，尚未領取的玩家登入時會獲得一本，包括既有世界的玩家。未安裝 Patchouli 時，不提供手冊物品和合成配方。"
+    },
+    {
+      "type": "tm_wagon:component_recipe",
+      "recipe": "tm_wagon:coachmans_manual",
+      "alternative": 0,
+      "heading": "book.tm_wagon.recipe",
+      "text": "書、拴繩與任意木板，亂序合成。",
+      "anchor": "coachmans_manual"
+    }
+  ],
+  "extra_recipe_mappings": {
+    "tm_wagon:coachmans_manual": 4
+  }
+}

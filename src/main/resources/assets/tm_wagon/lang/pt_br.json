@@ -114,5 +114,16 @@
   "task.tm_wagon.wagon_companion.desc": "Durante o trabalho, ocupa um lugar livre ao lado do cocheiro em uma carroça montada próxima.",
   "task.tm_wagon.wagon_passenger": "Passageira da carroça",
   "task.tm_wagon.wagon_passenger.desc": "Durante o trabalho, procura um banquinho livre com espaço suficiente para a cabeça em uma carroça montada próxima.",
-  "item.tm_wagon.dismantling_hammer": "Martelo de carpinteiro"
+  "item.tm_wagon.dismantling_hammer": "Martelo de carpinteiro",
+  "item.tm_wagon.coachmans_manual": "Manual do cocheiro",
+  "message.tm_wagon.handbook_requires_patchouli": "Instale Patchouli para ler este manual.",
+  "book.tm_wagon.handbook.landing": "Bem-vindo ao Traveling Merchant Wagon. Este manual vai orientar você na montagem e no uso da sua carroça.$(br2)$(l:tm_wagon:start/assembly)Sua primeira carroça$(/l)$(br)$(l:tm_wagon:help/troubleshooting)Ajuda e integrações$(/l)",
+  "book.tm_wagon.category.start": "Sua primeira carroça",
+  "book.tm_wagon.category.driving": "Condução e viagens",
+  "book.tm_wagon.category.cargo": "Carga e passageiros",
+  "book.tm_wagon.category.equipment": "Equipamentos opcionais",
+  "book.tm_wagon.category.workshop": "Oficina de carroças",
+  "book.tm_wagon.category.help": "Ajuda e integrações",
+  "book.tm_wagon.recipe": "Fabricação",
+  "book.tm_wagon.recipe_unavailable": "Esta receita não está disponível neste servidor."
 }

@@ -1,0 +1,27 @@
+{
+  "name": "車蓬與布簾",
+  "icon": "tm_wagon:wagon_canopy",
+  "category": "tm_wagon:equipment",
+  "sortnum": 2,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "手持車蓬，右鍵貨箱木質側面安裝；潛行右鍵側面拆下。兩種形態都支持，尺寸會自動適應車廂。不能與貨箱罩同時安裝。$(br2)前後各有一對布簾，右鍵對應簾子即可開關，不必潛行。兩端的簾子可以獨立控制。"
+    },
+    {
+      "type": "patchouli:text",
+      "text": "篷頂、側布與關閉的簾子都有薄碰撞箱，並阻擋穿過布的貨物交互。打開簾子後可從出入口操作內部貨物。凳子和草蓆仍可正常使用，但必須留出乘客空間。$(br2)內部木條和裝飾性入口邊緣不阻擋實體；真正的篷頂與側布仍會卡住過低或過窄的通道。"
+    },
+    {
+      "type": "tm_wagon:component_recipe",
+      "recipe": "tm_wagon:wagon_canopy",
+      "alternative": 0,
+      "heading": "book.tm_wagon.recipe",
+      "text": "上排羊毛必須同色，決定篷布和簾子的顏色。",
+      "anchor": "wagon_canopy"
+    }
+  ],
+  "extra_recipe_mappings": {
+    "tm_wagon:wagon_canopy": 2
+  }
+}

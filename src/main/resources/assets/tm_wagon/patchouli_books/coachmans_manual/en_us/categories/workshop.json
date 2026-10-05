@@ -1,0 +1,6 @@
+{
+  "name": "book.tm_wagon.category.workshop",
+  "description": "Choose a box, seats and materials; dock at a jack or recover your parts.",
+  "icon": "tm_wagon:dismantling_hammer",
+  "sortnum": 4
+}

@@ -1,0 +1,72 @@
+{
+  "name": "準備零件",
+  "icon": "tm_wagon:wagon_assembly_frame",
+  "category": "tm_wagon:start",
+  "sortnum": 0,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "第一輛馬車建議使用普通貨物車廂、單人木製車伕座椅和單馬轅。$(br2)必須準備：$(li)1 個馬車裝配架$(li)1 個貨物車廂$(li)1 個車伕座椅$(li)1 套馬轅$(li)2 個小車輪和 2 個大車輪$(br2)另帶一匹成年馬或驢，以及拴繩。"
+    },
+    {
+      "type": "patchouli:text",
+      "text": "小車輪一次合成兩個；大車輪由小車輪升級而來。木製組件可以選擇不同木材，整輛馬車不必同一種木質。$(br2)以下配方以橡木爲例，材料規則寫在配方下面。準備完成後，繼續閱讀$(l:tm_wagon:start/assembly)六步裝配$(/l)。"
+    },
+    {
+      "type": "tm_wagon:component_recipe",
+      "recipe": "tm_wagon:wagon_assembly_frame",
+      "alternative": 0,
+      "heading": "book.tm_wagon.recipe",
+      "text": "木板可以使用任意木質，包括模組木板。裝配架不分木材變種。",
+      "anchor": "wagon_assembly_frame"
+    },
+    {
+      "type": "tm_wagon:component_recipe",
+      "recipe": "tm_wagon:cargo_body",
+      "alternative": 0,
+      "heading": "book.tm_wagon.recipe",
+      "text": "木板、原木或去皮原木、活版門必須同木質。只支持原版木材，不含竹子。",
+      "anchor": "cargo_body"
+    },
+    {
+      "type": "tm_wagon:component_recipe",
+      "recipe": "tm_wagon:single_wooden_seat",
+      "alternative": 0,
+      "heading": "book.tm_wagon.recipe",
+      "text": "木板必須同木質，決定座椅的木材。",
+      "anchor": "single_wooden_seat"
+    },
+    {
+      "type": "tm_wagon:component_recipe",
+      "recipe": "tm_wagon:single_horse_shafts",
+      "alternative": 0,
+      "heading": "book.tm_wagon.recipe",
+      "text": "中間使用任意原木或去皮原木。馬轅沒有木材變種。",
+      "anchor": "single_horse_shafts"
+    },
+    {
+      "type": "tm_wagon:component_recipe",
+      "recipe": "tm_wagon:small_wheel",
+      "alternative": 0,
+      "heading": "book.tm_wagon.recipe",
+      "text": "原木或去皮原木決定木質。一次合成兩個。",
+      "anchor": "small_wheel"
+    },
+    {
+      "type": "tm_wagon:component_recipe",
+      "recipe": "tm_wagon:large_wheel",
+      "alternative": 0,
+      "heading": "book.tm_wagon.recipe",
+      "text": "繼承小車輪的木質；周圍的木板可以是任意木質。",
+      "anchor": "large_wheel"
+    }
+  ],
+  "extra_recipe_mappings": {
+    "tm_wagon:wagon_assembly_frame": 2,
+    "tm_wagon:cargo_body": 3,
+    "tm_wagon:single_wooden_seat": 4,
+    "tm_wagon:single_horse_shafts": 5,
+    "tm_wagon:small_wheel": 6,
+    "tm_wagon:large_wheel": 7
+  }
+}

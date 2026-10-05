@@ -1,0 +1,6 @@
+{
+  "name": "book.tm_wagon.category.workshop",
+  "description": "选择车厢、座位和材质，停靠装配架，或拆卸回收零件。",
+  "icon": "tm_wagon:dismantling_hammer",
+  "sortnum": 4
+}

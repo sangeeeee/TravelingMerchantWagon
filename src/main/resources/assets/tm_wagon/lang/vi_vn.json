@@ -114,5 +114,16 @@
   "task.tm_wagon.wagon_companion.desc": "Trong giờ làm, tìm chỗ trống cạnh xà ích trên xe ngựa đã lắp ráp ở gần.",
   "task.tm_wagon.wagon_passenger": "Hành khách xe ngựa",
   "task.tm_wagon.wagon_passenger.desc": "Trong giờ làm, tìm ghế đẩu trống với đủ khoảng trống phía trên đầu trên xe ngựa đã lắp ráp ở gần.",
-  "item.tm_wagon.dismantling_hammer": "Búa thợ mộc"
+  "item.tm_wagon.dismantling_hammer": "Búa thợ mộc",
+  "item.tm_wagon.coachmans_manual": "Sổ tay người đánh xe",
+  "message.tm_wagon.handbook_requires_patchouli": "Cài Patchouli để đọc sổ tay này.",
+  "book.tm_wagon.handbook.landing": "Chào mừng đến với Traveling Merchant Wagon. Sổ tay này sẽ hướng dẫn bạn lắp ráp và sử dụng xe ngựa.$(br2)$(l:tm_wagon:start/assembly)Xe ngựa đầu tiên$(/l)$(br)$(l:tm_wagon:help/troubleshooting)Trợ giúp và tích hợp$(/l)",
+  "book.tm_wagon.category.start": "Xe ngựa đầu tiên",
+  "book.tm_wagon.category.driving": "Lái xe và du hành",
+  "book.tm_wagon.category.cargo": "Hàng hóa và hành khách",
+  "book.tm_wagon.category.equipment": "Phụ kiện tùy chọn",
+  "book.tm_wagon.category.workshop": "Xưởng xe ngựa",
+  "book.tm_wagon.category.help": "Trợ giúp và tích hợp",
+  "book.tm_wagon.recipe": "Chế tạo",
+  "book.tm_wagon.recipe_unavailable": "Công thức này không có trên máy chủ này."
 }
