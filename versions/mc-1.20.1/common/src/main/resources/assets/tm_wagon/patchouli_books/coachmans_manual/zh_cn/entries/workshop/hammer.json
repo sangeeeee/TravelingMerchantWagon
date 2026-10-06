@@ -1,0 +1,27 @@
+{
+  "name": "木工锤",
+  "icon": "tm_wagon:dismantling_hammer",
+  "category": "tm_wagon:workshop",
+  "sortnum": 4,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "回收实体马车时，使用$(bold)木工锤左键命中马车实际部位$(reset)，一次即可拆成完整零件。组件保留木材和布料颜色，货物与容器内容按正常卸载规则掉出，乘客和拉车动物会释放。"
+    },
+    {
+      "type": "patchouli:text",
+      "text": "木工锤也能像铁斧一样砍木头，耐久和可用附魔与铁斧相当。$(br2)挖掘马车附近的世界方块时，将光标放在露出的方块表面。车厢内部出现的草等方块也可以这样处理。"
+    },
+    {
+      "type": "tm_wagon:component_recipe",
+      "recipe": "tm_wagon:dismantling_hammer",
+      "alternative": 0,
+      "heading": "book.tm_wagon.recipe",
+      "text": "四个铁锭、两个任意原木或去皮原木，以及一根木棍。",
+      "anchor": "dismantling_hammer"
+    }
+  ],
+  "extra_recipe_mappings": {
+    "tm_wagon:dismantling_hammer": 2
+  }
+}

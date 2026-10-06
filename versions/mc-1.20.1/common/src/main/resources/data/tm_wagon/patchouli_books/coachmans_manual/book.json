@@ -1,0 +1,12 @@
+{
+  "name": "item.tm_wagon.coachmans_manual",
+  "landing_text": "book.tm_wagon.handbook.landing",
+  "version": 0,
+  "use_resource_pack": true,
+  "dont_generate_book": true,
+  "custom_book_item": "tm_wagon:coachmans_manual",
+  "book_texture": "patchouli:textures/gui/book_brown.png",
+  "show_progress": false,
+  "show_toasts": false,
+  "i18n": true
+}

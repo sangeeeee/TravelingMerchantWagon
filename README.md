@@ -4,6 +4,9 @@
 
 TravelingMerchantWagon adds customizable wooden wagons to Minecraft. Build a wagon from individual parts, hitch your horses, and take your supplies and companions on the road. Whether you are moving house or setting out as a travelling merchant, your wagon can be a storehouse, workshop and place to rest.
 
+
+Available for NeoForge/Fabric 1.21.1 and Forge 1.20.1. Sable integration is available on the 1.21.1 targets.
+
 ## What can you do?
 
 - **Build your own wagon.** Choose a standard, extended or wide cargo box, single- or double-horse shafts, and a one-, two- or three-person driver's bench. Mix wooden parts and choose colours for cushions and fabric.

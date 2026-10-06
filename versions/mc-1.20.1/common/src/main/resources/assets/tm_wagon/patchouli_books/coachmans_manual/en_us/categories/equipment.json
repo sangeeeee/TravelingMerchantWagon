@@ -1,0 +1,6 @@
+{
+  "name": "book.tm_wagon.category.equipment",
+  "description": "Fit a cabinet, cargo cover or canopy to prepare for your journey.",
+  "icon": "tm_wagon:wagon_canopy",
+  "sortnum": 3
+}

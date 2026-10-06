@@ -1,0 +1,9 @@
+{
+  "type": "tm_wagon:component",
+  "component": "single_seat",
+  "pattern": [
+    "P",
+    "W",
+    "E"
+  ]
+}

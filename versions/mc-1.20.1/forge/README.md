@@ -1,9 +1,8 @@
-# Forge 1.20.1 port foundation
+# Forge 1.20.1 target
 
-This target currently provides the Forge bootstrap, shared-core integration,
-version-specific source/resource directories and dependency setup. Wagon gameplay
-and compatibility adapters have **not yet been ported**. Its current JAR is a
-development scaffold, not a playable release.
+This target ports the wagon gameplay, rendering, recipes and optional integrations
+to Forge 1.20.1. It shares the Java-only core with the other targets and owns its
+Minecraft 1.20.1 sources, data formats, networking and compatibility adapters.
 
 ## Dependencies
 
@@ -34,20 +33,20 @@ wagon JAR. The dependency remapper is deliberately non-transitive, so required
 mods such as Sophisticated Core and MezzConfig are listed explicitly.
 
 Carry On uses the 2.1.x series on this game version. The previous 1.21.1 minimum
-of 2.2.4 cannot be reused here; the port must implement the 2.1.x API separately.
+of 2.2.4 cannot be reused here; this target uses a separate adapter for the 2.1.x API.
 The original Forge TACZ release replaces the 1.21.1-specific TACZ ports.
-Oculus/Embeddium supply the shader development environment; this setup alone
-does not implement wagon shader compatibility.
+Oculus/Embeddium supply the shader development environment. The optional Oculus
+shadow hook includes the wagon assembly models in block-entity shadow rendering.
 
 Sable is deliberately excluded, including its helper libraries. The 1.20.1 port
-must use the wagon's own collision system and omit Sable integration code.
+uses the wagon's own collision system and contains no Sable integration code.
 Official Lithium has no Forge 1.20.1 release and is also excluded. No substitute
 physics or optimization mod is introduced automatically.
 
 ## Development
 
 Run Gradle itself with JDK 21, as required by the other version targets. This
-target compiles and runs Minecraft with a separate **Java 17 toolchain**.
+target emits **Java 17 bytecode** and runs Minecraft with a **Java 17 toolchain**.
 ModDevGradle's Legacy Forge plugin remaps dependency archives to Mojang mappings
 and reobfuscates the output JAR to Forge's SRG mappings.
 
@@ -58,6 +57,8 @@ From the repository root:
 .\gradlew.bat :mc-1.20.1:forge:verifyCompatibilityDependencies
 .\gradlew.bat :mc-1.20.1:forge:runClient
 .\gradlew.bat :mc-1.20.1:forge:runServer
+.\gradlew.bat :mc-1.20.1:forge:runGameTestServer
+.\gradlew.bat :mc-1.20.1:forge:runPortClientSmoke
 ```
 
 The Gradle IDE launcher is `mc-1.20.1 > forge > Tasks > minecraft > runClient`
@@ -78,6 +79,16 @@ Available profile suffixes: `Maid`, `CarryOn`, `Backpacks`, `Patchouli`, `Guns`,
 `SwingThrough`, `Jei`, `Shaders`. These properties affect only this Forge target.
 Dependency resolution checks verify API availability, not gameplay integration.
 
-The 1.20.1 common module starts with empty version-specific source and resource
-directories. It reuses Java-only `core` code, but does not import incompatible
-1.21.1 gameplay classes, item components, recipe formats or loader mixins.
+The 1.20.1 common module contains its own geometry, shared gameplay and runtime
+resources. Native item NBT, recipe serializers, Forge events, SimpleChannel
+networking and GeckoLib 4 rendering replace the corresponding 1.21.1 APIs.
+
+The server GameTests cover assembly conversion, capacities and material variants,
+container ownership, offline block-entity NBT loading, rotated collision, seating,
+both backpack inventory round trips, recipe/task registration, moving mat sleep
+and hitched-horse driving.
+The client smoke run creates an isolated flat world, verifies player mat sleep
+through a real connection (movement, wake and unchanged respawn), renders items and three sizes
+of block/entity wagons with optional equipment, saves a screenshot and exits.
+Client-only Oculus/Embeddium are excluded from dedicated-server classpaths.
+Test and preview sources are never included in the release JAR.

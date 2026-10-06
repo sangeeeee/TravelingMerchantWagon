@@ -1,0 +1,19 @@
+{
+  "name": "精妙背包",
+  "icon": "sophisticatedbackpacks:backpack",
+  "category": "tm_wagon:help",
+  "sortnum": 5,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "title": "裝載與儲存",
+      "text": "手持背包，潛行右鍵空貨位即可放置。右鍵已裝載的背包可以開啟它原本的儲存和設定介面，手上可以拿著任意物品。$(br2)潛行右鍵已放置的背包，會將它取回物品欄；物品欄已滿時，會掉落在馬車旁邊。"
+    },
+    {
+      "type": "patchouli:text",
+      "title": "帶著背包旅行",
+      "text": "馬車轉換形態、背包被取下或馬車被拆卸時，背包中的物品和背包設定都會保留。$(br2)同時安裝 Carry On 時，符合規則的搬運操作優先使用其目前鍵位。用 Carry On 抱著背包時，也可以右鍵空貨位將它放到車上。"
+    }
+  ],
+  "flag": "mod:sophisticatedbackpacks"
+}

@@ -1,0 +1,84 @@
+{
+  "name": "车夫座椅与马辕",
+  "icon": "tm_wagon:triple_seat",
+  "category": "tm_wagon:workshop",
+  "sortnum": 1,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "为每辆车选择一套纯木制或带靠背车夫座椅，两种都能安装马车柜。$(br2)普通和加长车厢使用单人或双人座；加宽车厢还可选择三人座。双人座左侧是驾驶位，三人座在中间，其余位置供乘客使用。"
+    },
+    {
+      "type": "patchouli:text",
+      "text": "右键$(bold)可见的坐垫或木制坐面上表面$(reset)入座，并为乘客留出足够空间。$(br2)双人木座由同木质单人座合成。三人木座使用三个单人座，或一个双人座加一个单人座，木质保持一致。"
+    },
+    {
+      "type": "tm_wagon:component_recipe",
+      "recipe": "tm_wagon:double_wooden_seat",
+      "alternative": 0,
+      "heading": "book.tm_wagon.recipe",
+      "text": "两个单人木制座椅，必须同木质。乱序合成。",
+      "anchor": "double_wooden_seat"
+    },
+    {
+      "type": "tm_wagon:component_recipe",
+      "recipe": "tm_wagon:triple_wooden_seat",
+      "alternative": 0,
+      "heading": "book.tm_wagon.recipe",
+      "text": "一个双人和一个单人木制座椅，必须同木质。乱序合成。",
+      "anchor": "triple_wooden_seat"
+    },
+    {
+      "type": "tm_wagon:component_recipe",
+      "recipe": "tm_wagon:triple_wooden_seat",
+      "alternative": 1,
+      "heading": "book.tm_wagon.recipe",
+      "text": "也可以使用三个同木质单人木制座椅。乱序合成。",
+      "anchor": "triple_wooden_seat_alternative"
+    },
+    {
+      "type": "tm_wagon:component_recipe",
+      "recipe": "tm_wagon:single_seat",
+      "alternative": 0,
+      "heading": "book.tm_wagon.recipe",
+      "text": "继承单人木制座椅木质。羊毛决定坐垫颜色，上方木板可以任意木质。",
+      "anchor": "single_seat"
+    },
+    {
+      "type": "tm_wagon:component_recipe",
+      "recipe": "tm_wagon:double_seat",
+      "alternative": 0,
+      "heading": "book.tm_wagon.recipe",
+      "text": "继承双人木制座椅木质。三块羊毛必须同色；木板可以任意木质。",
+      "anchor": "double_seat"
+    },
+    {
+      "type": "tm_wagon:component_recipe",
+      "recipe": "tm_wagon:triple_seat",
+      "alternative": 0,
+      "heading": "book.tm_wagon.recipe",
+      "text": "继承三人木制座椅木质。三块羊毛必须同色；木板可以任意木质。",
+      "anchor": "triple_seat"
+    },
+    {
+      "type": "patchouli:text",
+      "text": "单马辕和双马辕适用于所有车厢。两套单马辕乱序合成双马辕。出发前，为单马辕拴好一匹动物，或为双马辕拴好两匹。$(br2)马辕使用统一的木制外观，选择类型时按希望使用的拉车动物数量决定。"
+    },
+    {
+      "type": "tm_wagon:component_recipe",
+      "recipe": "tm_wagon:double_horse_shafts",
+      "alternative": 0,
+      "heading": "book.tm_wagon.recipe",
+      "text": "两套单马辕，乱序合成。",
+      "anchor": "double_horse_shafts"
+    }
+  ],
+  "extra_recipe_mappings": {
+    "tm_wagon:double_wooden_seat": 2,
+    "tm_wagon:triple_wooden_seat": 3,
+    "tm_wagon:single_seat": 5,
+    "tm_wagon:double_seat": 6,
+    "tm_wagon:triple_seat": 7,
+    "tm_wagon:double_horse_shafts": 9
+  }
+}

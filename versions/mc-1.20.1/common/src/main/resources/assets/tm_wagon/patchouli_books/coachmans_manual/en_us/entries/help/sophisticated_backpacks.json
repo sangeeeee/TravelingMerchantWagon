@@ -1,0 +1,19 @@
+{
+  "name": "Sophisticated Backpacks",
+  "icon": "sophisticatedbackpacks:backpack",
+  "category": "tm_wagon:help",
+  "sortnum": 5,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "title": "Loading & Storage",
+      "text": "Hold a backpack and sneak-use an empty cargo slot to place it. Use a loaded backpack to open its own storage and settings screens, with any item in your hand.$(br2)Sneak-use the loaded backpack to return it to your inventory; overflow drops beside the wagon."
+    },
+    {
+      "type": "patchouli:text",
+      "title": "Travelling with a Backpack",
+      "text": "Stored items and backpack settings remain with the backpack when the wagon changes form, the backpack is unloaded, or the wagon is dismantled.$(br2)With Carry On installed, allowed pickup attempts use its configured gesture first. Carrying a backpack with Carry On also lets you place it into an empty cargo slot."
+    }
+  ],
+  "flag": "mod:sophisticatedbackpacks"
+}

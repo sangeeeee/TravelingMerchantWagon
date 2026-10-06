@@ -1,0 +1,6 @@
+{
+  "name": "book.tm_wagon.category.driving",
+  "description": "Hitching, controls, pushing and travelling over uneven ground.",
+  "icon": "tm_wagon:single_seat",
+  "sortnum": 1
+}

@@ -9,7 +9,7 @@ java.toolchain.languageVersion = JavaLanguageVersion.of(java_version.toInteger()
 legacyForge {
     enable {
         mcpVersion = minecraft_version
-        disableRecompilation = true
+        disableRecompilation = false
     }
 }
 dependencies { api project(':core') }

@@ -1,0 +1,35 @@
+{
+  "name": "Troubleshooting",
+  "icon": "minecraft:paper",
+  "category": "tm_wagon:help",
+  "sortnum": 0,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "$(bold)Jack will not fold?$(reset) Check the box, driver’s seat, shafts, two small front wheels and two large rear wheels. Install while extended; clicks during animation are ignored.$(br2)$(bold)Part will not fit?$(reset) Check its mounting area, space and box size. Three-seat benches require a wide box."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "$(bold)Controls do nothing?$(reset) Assemble an entity, fill all required hitches and take the driver’s position: left on a double bench, middle on a triple.$(br2)$(bold)Cannot board a stool?$(reset) Check occupancy and clearance above it. Cargo, fabric, world blocks or physical structures may block a rider; tall entities need more room."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "$(bold)Cargo access$(reset): Open curtains or the tailgate, or roll back the cover. Use a clear path after conversion finishes, with permitted cargo and supported workstations.$(br2)$(bold)Mat placement$(reset): Leave three consecutive slots in one column away from you, starting at your target. Stop before sleeping."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "Server rules live in $(bold)tm_wagon-server.toml$(reset), including cargo lists, speed, load effects and handbook gifts.$(br2)With Patchouli installed and gifts enabled, any player without a recorded gift receives one on login, including in existing worlds. The handbook item and recipe are unavailable without Patchouli."
+    },
+    {
+      "type": "tm_wagon:component_recipe",
+      "recipe": "tm_wagon:coachmans_manual",
+      "alternative": 0,
+      "heading": "book.tm_wagon.recipe",
+      "text": "A book, lead and any planks. Shapeless recipe.",
+      "anchor": "coachmans_manual"
+    }
+  ],
+  "extra_recipe_mappings": {
+    "tm_wagon:coachmans_manual": 4
+  }
+}

@@ -44,6 +44,7 @@ repo/
 /publishing/
 
 ### Multi-version development ###
+/gradle-local.properties
 /shared-assets/
 **/libs/
 **/run-*/

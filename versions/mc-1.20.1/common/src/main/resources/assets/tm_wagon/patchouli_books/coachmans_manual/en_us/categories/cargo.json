@@ -1,0 +1,6 @@
+{
+  "name": "book.tm_wagon.category.cargo",
+  "description": "Load cargo, use workstations, carry passengers and sleep on the road.",
+  "icon": "minecraft:chest",
+  "sortnum": 2
+}

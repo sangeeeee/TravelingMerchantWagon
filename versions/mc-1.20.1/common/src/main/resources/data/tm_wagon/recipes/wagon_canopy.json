@@ -1,0 +1,9 @@
+{
+  "type": "tm_wagon:component",
+  "component": "wagon_canopy",
+  "pattern": [
+    "WWW",
+    "S S",
+    "I I"
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "name": "Controls & Acceleration",
+  "icon": "tm_wagon:single_wooden_seat",
+  "category": "tm_wagon:driving",
+  "sortnum": 0,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "Hold forward to accelerate; release it to coast. Backward brakes first, then reverses if held. Left and right steer.$(br2)Drive from the single seat, the left position of a two-seat bench, or the middle of a three-seat bench. Other seats carry passengers."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "While moving forward, tap $(k:sprint) to raise the speed limit until forward is released.$(br2)Standard boxes are fastest; extended boxes are intermediate; wide boxes are slower. More occupied slots reduce boost and acceleration. Load is counted by slots: a mat occupies three; a stool occupies one."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "Speed, cargo penalties and two-animal team benefits are set by the server. Loading or unloading updates driving performance immediately.$(br2)Before departure, assemble the wagon entity, fill the required hitches and take the driver's position."
+    }
+  ]
+}

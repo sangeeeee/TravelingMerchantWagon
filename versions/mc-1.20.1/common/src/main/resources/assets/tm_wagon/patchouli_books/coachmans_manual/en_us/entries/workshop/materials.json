@@ -1,0 +1,16 @@
+{
+  "name": "Wood & Cloth Colours",
+  "icon": "minecraft:oak_planks",
+  "category": "tm_wagon:workshop",
+  "sortnum": 2,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "Choose oak, spruce, birch, jungle, acacia, dark oak, mangrove, cherry, crimson or warped wood.$(br2)Boxes, driver’s seats, wheels, stools and cabinets have wood variants. Mix different woods on one wagon; conversion and recovery preserve each part’s material."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "Upholstered cushions, covers and canopies support sixteen wool colours. Use matching wool in each recipe.$(br2)Wood-determining materials use supported vanilla species; auxiliary “any planks” may be modded. Replace the oak and white examples with your preferred wood and wool."
+    }
+  ]
+}

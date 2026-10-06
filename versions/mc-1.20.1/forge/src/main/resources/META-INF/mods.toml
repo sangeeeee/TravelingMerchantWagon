@@ -6,7 +6,8 @@ license="${mod_license}"
 modId="${mod_id}"
 version="${mod_version}"
 displayName="${mod_name}"
-description='''Modular wooden wagons for travelling merchants. Forge 1.20.1 port in preparation.'''
+logoFile="tm_wagon.png"
+description='''Build wooden wagons, hitch draft animals, and travel with cargo and companions.'''
 
 [[dependencies.${mod_id}]]
 modId="forge"

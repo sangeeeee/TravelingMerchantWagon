@@ -27,24 +27,36 @@ configurations {
     commonJava { canBeConsumed = false; canBeResolved = true }
     commonGameplayJava { canBeConsumed = false; canBeResolved = true }
     commonResources { canBeConsumed = false; canBeResolved = true }
+    clientRuntime { canBeConsumed = false; canBeResolved = true }
     localRuntime { canBeConsumed = false; canBeResolved = false }
     runtimeClasspath.extendsFrom localRuntime
 }
-obfuscation { createRemappingConfiguration(configurations.localRuntime) }
+obfuscation { createRemappingConfiguration(configurations.localRuntime); createRemappingConfiguration(configurations.clientRuntime) }
+
+sourceSets {
+    clientDevelopment { runtimeClasspath += sourceSets.main.runtimeClasspath + configurations.clientRuntime }
+    gameTest {
+        compileClasspath += sourceSets.main.output + sourceSets.main.compileClasspath
+        runtimeClasspath += sourceSets.main.output + sourceSets.main.runtimeClasspath
+    }
+}
 
 legacyForge {
     enable {
         forgeVersion = "${minecraft_version}-${forge_version}"
-        disableRecompilation = true
+        disableRecompilation = false
     }
     validateAccessTransformers = true
     runs {
         client { client(); gameDirectory = file('run') }
+        portClientSmoke { client(); gameDirectory = file('build/client-smoke'); systemProperty 'tm_wagon.portSmoke', 'true'; programArguments.addAll '--width','1200','--height','800' }
+        gameTestServer { type = 'gameTestServer'; gameDirectory = file('build/game-test-server'); systemProperty 'forge.enabledGameTestNamespaces','tm_wagon' }
         server { server(); gameDirectory = file('run-server') }
     }
     mods {
         tm_wagon {
             sourceSet sourceSets.main
+            sourceSet sourceSets.gameTest
             sourceSet project(':core').sourceSets.main
         }
     }
@@ -81,6 +93,13 @@ runtimeProfiles.each { name, mods ->
     }
 }
 dependencies {
+    annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
+    annotationProcessor 'io.github.llamalad7:mixinextras-common:0.5.0'
+    implementation 'io.github.llamalad7:mixinextras-forge:0.5.0'
+    compileOnly 'io.github.llamalad7:mixinextras-common:0.5.0'
+    jarJar('io.github.llamalad7:mixinextras-forge:0.5.0') {
+        version { strictly '[0.5.0,0.6)'; prefer '0.5.0' }
+    }
     commonJava project(path: ':mc-1.20.1:common', configuration: 'commonJava')
     commonGameplayJava project(path: ':mc-1.20.1:common', configuration: 'commonGameplayJava')
     commonResources project(path: ':mc-1.20.1:common', configuration: 'commonResources')
@@ -89,7 +108,10 @@ dependencies {
     compatibilityMods.findAll { name, coordinate -> name != 'geckolib' }.each { name, coordinate ->
         modCompileOnly(coordinate) { transitive = false }
     }
-    selectedRuntimeMods.each { name -> modLocalRuntime(compatibilityMods[name]) { transitive = false } }
+    selectedRuntimeMods.each { name ->
+        if (name in ['oculus','embeddium']) modClientRuntime(compatibilityMods[name]) { transitive = false }
+        else modLocalRuntime(compatibilityMods[name]) { transitive = false }
+    }
 }
 
 sourceSets.main.java.srcDir(configurations.commonJava)
@@ -98,18 +120,33 @@ sourceSets.main.resources {
     srcDir configurations.commonResources
     exclude '**/*.bbmodel', '**/.cache/**', '**/.gitkeep'
 }
-tasks.withType(JavaCompile).configureEach { options.encoding = 'UTF-8' }
+legacyForge.runs.configureEach {
+    jvmArgument '-Xmx3G'
+    if (type.get() == 'client') sourceSet = sourceSets.clientDevelopment
+}
+
+tasks.withType(JavaCompile).configureEach { options.encoding = 'UTF-8'; options.release = 17; javaCompiler = javaToolchains.compilerFor { languageVersion = JavaLanguageVersion.of(21) } }
+mixin {
+    add sourceSets.main, 'tm_wagon.refmap.json'
+    config 'tm_wagon.mixins.json'
+}
+tasks.withType(JavaCompile).configureEach { options.compilerArgs += ['-Xmaxerrs', '1000'] }
 def metadataProperties = [
     mod_id: mod_id, mod_name: mod_name, mod_version: project.version,
     mod_license: mod_license, minecraft_version_range: minecraft_version_range,
     forge_version_range: forge_version_range, geckolib_version_range: geckolib_version_range
 ]
 tasks.named('processResources') {
+    dependsOn tasks.named('compileJava')
+    from(layout.buildDirectory.dir('mixin')) { include 'tm_wagon.refmap.json' }
     inputs.properties metadataProperties
     filesMatching('META-INF/mods.toml') { expand(metadataProperties) }
 }
 def licenseName = "LICENSE_${mod_id}"
 tasks.named('jar') {
+    // MixinGradle adds the same generated refmap that development resources use.
+    filesMatching('tm_wagon.refmap.json') { duplicatesStrategy = DuplicatesStrategy.EXCLUDE }
+    manifest.attributes('MixinConfigs': 'tm_wagon.mixins.json')
     from project(':core').sourceSets.main.output
     from(rootProject.file('LICENSE')) { rename { licenseName } }
 }
@@ -118,10 +155,30 @@ tasks.matching { it.name in ['runClient', 'runServer'] }.configureEach {
     description = "Launch Minecraft ${minecraft_version} on Forge (${name == 'runClient' ? 'client' : 'server'})."
 }
 
+// A successful launcher exit alone does not prove that a development test ran.
+def smokeLog = layout.buildDirectory.file('client-smoke/logs/latest.log').get().asFile
+tasks.named('runPortClientSmoke') {
+    doLast {
+        def report = smokeLog.exists() ? smokeLog.getText('UTF-8') : ''
+        if (!report.contains('FORGE_PORT_PLAYER_SLEEP_PASSED') || !report.contains('FORGE_PORT_CLIENT_RENDER_PASSED')
+            || !report.contains('FORGE_PORT_BREAK_EFFECTS_PASSED')) {
+            throw new GradleException('Forge client smoke checks did not complete; inspect client-smoke/logs/latest.log.')
+        }
+    }
+}
+def gameTestLog = layout.buildDirectory.file('game-test-server/logs/latest.log').get().asFile
+tasks.named('runGameTestServer') {
+    doLast {
+        if (!gameTestLog.exists() || !gameTestLog.getText('UTF-8').contains('required tests passed')) {
+            throw new GradleException('Forge GameTests did not pass; inspect game-test-server/logs/latest.log.')
+        }
+    }
+}
+
 tasks.register('verifyCompatibilityDependencies') {
     group = 'verification'
     description = 'Resolve and verify the Forge 1.20.1 compatibility APIs and selected runtime mods.'
-    inputs.files(configurations.compileClasspath, configurations.runtimeClasspath)
+    inputs.files(configurations.compileClasspath, configurations.runtimeClasspath, configurations.clientRuntime)
     inputs.property('expectedModIds', ['geckolib', 'touhou_little_maid', 'carryon',
         'travelersbackpack', 'sophisticatedbackpacks', 'sophisticatedcore', 'patchouli',
         'tacz', 'cleanswing', 'jei', 'mezz_config', 'oculus', 'embeddium'])

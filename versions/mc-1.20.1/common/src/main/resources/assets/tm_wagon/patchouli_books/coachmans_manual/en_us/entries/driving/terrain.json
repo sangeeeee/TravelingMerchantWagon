@@ -1,0 +1,16 @@
+{
+  "name": "Slopes & Clearance",
+  "icon": "minecraft:stone",
+  "category": "tm_wagon:driving",
+  "sortnum": 2,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "The wagon climbs successive one-block steps and tilts with uneven wheel heights. Choose gentle routes with room for its width and turns.$(br2)Clearance includes canopies, cargo and seated passengers. Leave enough height in tunnels; obstacles stop the wagon."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "Take care on steep slopes and cliffs. Losing front-wheel support can make the wagon slide or overturn. Try moving and steering to recover.$(br2)Hand pushing works with a reasonable posture. For a difficult recovery, dismantle with a carpenter’s hammer and rebuild on clear, level ground."
+    }
+  ]
+}

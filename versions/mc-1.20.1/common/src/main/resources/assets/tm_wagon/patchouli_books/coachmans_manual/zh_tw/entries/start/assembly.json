@@ -1,0 +1,106 @@
+{
+  "name": "六步裝配",
+  "icon": "tm_wagon:cargo_body",
+  "category": "tm_wagon:start",
+  "sortnum": 1,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "示意圖從馬車左前上方觀察。青色輪廓表示本步新裝上的零件；被車身遮住的遠側車輪用虛線標出。$(br2)按順序安裝：裝配架、車廂、車伕座位、馬轅、前輪和後輪。每一步的右頁都展示安裝後的樣子。"
+    },
+    {
+      "type": "patchouli:text",
+      "text": "放下裝配架，留出車前、車後與兩側空間。在$(bold)展開的裝配架$(reset)上安裝零件。$(br2)每個零件放置一次，就會生成完整的多方塊組件。對準規定的安裝區域，併爲整個組件留出空間。",
+      "title": "開始之前"
+    },
+    {
+      "type": "patchouli:text",
+      "text": "普通右鍵放置裝配架，初始爲展開狀態。潛行放置則是收縮狀態，需要先右鍵展開。等待動畫結束，再進行下一步。",
+      "title": "第一步：裝配架"
+    },
+    {
+      "type": "patchouli:image",
+      "images": [
+        "tm_wagon:textures/gui/handbook/assembly/01_frame.png"
+      ],
+      "border": false,
+      "text": "展開的裝配架支撐貨臺。"
+    },
+    {
+      "type": "patchouli:text",
+      "text": "手持貨物車廂，右鍵裝配架$(bold)上方平臺$(reset)。貨臺、側板、尾門、車伕腳板和上下車踏板會一起放好。",
+      "title": "第二步：貨物車廂"
+    },
+    {
+      "type": "patchouli:image",
+      "images": [
+        "tm_wagon:textures/gui/handbook/assembly/02_body.png"
+      ],
+      "border": false,
+      "text": "貨物車廂一次放置成型。"
+    },
+    {
+      "type": "patchouli:text",
+      "text": "手持車伕座椅，右鍵車廂前方正中間、腳板上方的安裝位置。選擇木製或帶靠背座椅，爲車伕準備駕駛位置。",
+      "title": "第三步：車伕座位"
+    },
+    {
+      "type": "patchouli:image",
+      "images": [
+        "tm_wagon:textures/gui/handbook/assembly/03_seat.png"
+      ],
+      "border": false,
+      "text": "座位安裝在前方腳板上方。"
+    },
+    {
+      "type": "patchouli:text",
+      "text": "手持馬轅，右鍵車廂主體$(bold)前方正中間$(reset)的安裝區域，位於腳板下方。單馬轅需要一匹馬，雙馬轅需要兩匹。先裝轅，等馬車實體化之後再拴馬。",
+      "title": "第四步：馬轅"
+    },
+    {
+      "type": "patchouli:image",
+      "images": [
+        "tm_wagon:textures/gui/handbook/assembly/04_shafts.png"
+      ],
+      "border": false,
+      "text": "馬轅從車廂前方伸出。"
+    },
+    {
+      "type": "patchouli:text",
+      "text": "將兩個$(bold)小車輪$(reset)安裝到前輪軸兩側的正確位置。走到另一側，安裝遠側的小車輪。",
+      "title": "第五步：前輪"
+    },
+    {
+      "type": "patchouli:image",
+      "images": [
+        "tm_wagon:textures/gui/handbook/assembly/05_front_wheels.png"
+      ],
+      "border": false,
+      "text": "前軸兩端各一個小車輪。"
+    },
+    {
+      "type": "patchouli:text",
+      "text": "將兩個$(bold)大車輪$(reset)安裝到後輪軸兩側。檢查前後共四個車輪。基本裝配完成後，還可以選擇馬車櫃、貨箱罩或車蓬等配件。",
+      "title": "第六步：後輪"
+    },
+    {
+      "type": "patchouli:image",
+      "images": [
+        "tm_wagon:textures/gui/handbook/assembly/06_rear_wheels.png"
+      ],
+      "border": false,
+      "text": "後軸兩端各一個大車輪。"
+    },
+    {
+      "type": "patchouli:text",
+      "text": "零件齊全、位置正確後，右鍵裝配架。平臺開始收縮，馬車立即變爲實體。等待動畫結束，再操作裝配架。$(br2)需要調整裝配時，按提示補齊零件。空裝配架可以直接右鍵伸縮。接下來拴馬並上車。"
+    },
+    {
+      "type": "patchouli:relations",
+      "entries": [
+        "tm_wagon:start/departure",
+        "tm_wagon:workshop/restore"
+      ]
+    }
+  ]
+}

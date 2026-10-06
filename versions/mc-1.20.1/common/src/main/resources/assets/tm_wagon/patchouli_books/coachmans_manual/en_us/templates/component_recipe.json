@@ -1,0 +1,24 @@
+{
+  "components": [
+    {
+      "type": "patchouli:header",
+      "text": "#heading",
+      "x": -1,
+      "y": 0
+    },
+    {
+      "type": "patchouli:custom",
+      "class": "com.sange.tm_wagon.handbook.client.WagonRecipeComponent",
+      "recipe": "#recipe",
+      "alternative": "#alternative",
+      "x": 4,
+      "y": 23
+    },
+    {
+      "type": "patchouli:text",
+      "text": "#text",
+      "x": 0,
+      "y": 94
+    }
+  ]
+}

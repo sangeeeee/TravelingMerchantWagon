@@ -1,0 +1,8 @@
+{
+  "type": "tm_wagon:component",
+  "component": "single_wooden_seat",
+  "pattern": [
+    "SPS",
+    "P P"
+  ]
+}

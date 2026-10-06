@@ -29,12 +29,35 @@ tasks.named('clean') {
 }
 
 // Gradle otherwise selects every matching child task for a bare root runClient.
-// Require a loader path without exposing any game-launch task on aggregators.
-def aggregateDirectories = [rootProject.projectDir] + versionProjects.collect { it.projectDir }
-if (gradle.startParameter.currentDir in aggregateDirectories
-        && gradle.startParameter.taskNames.any { !it.contains(':') && it.startsWith('run') }) {
-    throw new GradleException('Select a version and loader, for example :mc-1.21.1:fabric:runClient or :mc-1.21.1:neoforge:runServer.')
-}
+// Resolve old IDE configurations using an explicit workstation preference,
+// without registering game-launch tasks on aggregate projects.
+def aggregatePaths = [rootProject.path] + versionProjects.collect { it.path }
+def selectedProjectDirectory = gradle.startParameter.projectDir ?: gradle.startParameter.currentDir
+def selectedProjectPath = allprojects.find { it.projectDir == selectedProjectDirectory }?.path ?: rootProject.path
+def localRunProperties = new Properties()
+def localRunFile = file('gradle-local.properties')
+if (localRunFile.isFile()) localRunFile.withReader('UTF-8') { localRunProperties.load(it) }
+def defaultRunTarget = providers.gradleProperty('runTarget')
+    .getOrElse(localRunProperties.getProperty('runTarget', '')).trim()
+gradle.startParameter.setTaskRequests(gradle.startParameter.taskRequests.collect { request ->
+    def scope = request.projectPath ?: selectedProjectPath
+    def resolvedArgs = request.args.collect { argument ->
+        if (!(scope in aggregatePaths) || !(argument in ['runClient', 'runServer'])) return argument
+        def target = defaultRunTarget ? findProject(defaultRunTarget) : null
+        if (target == null || !(target.name in ['forge', 'neoforge', 'fabric'])
+            || !versionProjects.contains(target.parent)
+            || (scope != ':' && target.parent.path != scope)) {
+            throw new GradleException('Select a loader task, for example :mc-1.20.1:forge:' + argument
+                + ', or set runTarget=:mc-1.20.1:forge in gradle-local.properties (or with -PrunTarget).')
+        }
+        def resolved = "${target.path}:${argument}".toString()
+        logger.lifecycle("Development launch: ${argument} -> ${resolved}")
+        return resolved
+    }
+    // Keep the scope carried by IDE Tooling API requests for all other tasks.
+    resolvedArgs == request.args ? request :
+        new org.gradle.internal.DefaultTaskExecutionRequest(resolvedArgs, request.projectPath, request.rootDir)
+})
 
 tasks.named('wrapper', Wrapper) {
     distributionType = Wrapper.DistributionType.BIN

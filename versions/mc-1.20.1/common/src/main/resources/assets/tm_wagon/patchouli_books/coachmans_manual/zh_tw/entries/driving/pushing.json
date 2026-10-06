@@ -1,0 +1,22 @@
+{
+  "name": "手推與停靠",
+  "icon": "minecraft:stick",
+  "category": "tm_wagon:driving",
+  "sortnum": 3,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "先解縛所有拉車動物，再站在地面上沿車身縱向擠壓車輛。從後方推會緩慢前進，從前方推會緩慢後退；車廂或輪軸附近都可以推。$(br2)保持雙腳着地。車輪懸空或車身翻倒時，也可以手推解困；持續擠壓有助於馬車恢復正常姿態。"
+    },
+    {
+      "type": "patchouli:text",
+      "text": "如果車伕位有人，他可以在推車過程中控制轉向。$(br2)將空車移到收縮的裝配架上方，大致停在平臺中心，再右鍵裝配架進行還原。"
+    },
+    {
+      "type": "patchouli:relations",
+      "entries": [
+        "tm_wagon:workshop/restore"
+      ]
+    }
+  ]
+}
