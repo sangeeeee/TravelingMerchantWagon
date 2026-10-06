@@ -12,7 +12,7 @@ import net.minecraft.world.level.GameType;
 /** Verify the real Fabric creative inventory, including tab pagination and search. */
 public final class CreativeInventoryClientSmoke {
     private static boolean opened;
-    private static int ticks,loading;
+    private static int ticks,loading,wagonPage;
 
     public static void tick() throws ReflectiveOperationException {
         var mc=Minecraft.getInstance();
@@ -47,15 +47,16 @@ public final class CreativeInventoryClientSmoke {
             var screen=(CreativeModeInventoryScreen)mc.screen;
             var currentPage=screen.getClass().getMethod("getCurrentPage");
             if((int)currentPage.invoke(screen)!=0)throw new IllegalStateException("Unexpected initial creative page");
-            screen.getClass().getMethod("switchToNextPage").invoke(screen);
-            if((int)currentPage.invoke(screen)!=1)throw new IllegalStateException("Fabric creative page switch failed");
+            wagonPage=(int)screen.getClass().getMethod("getPage",CreativeModeTab.class).invoke(screen,tab);
+            for(int page=0;page<wagonPage;page++)screen.getClass().getMethod("switchToNextPage").invoke(screen);
+            if((int)currentPage.invoke(screen)!=wagonPage)throw new IllegalStateException("Fabric creative page switch failed");
             var select=CreativeModeInventoryScreen.class.getDeclaredMethod("selectTab",CreativeModeTab.class);
             select.setAccessible(true);select.invoke(screen,tab);
             if(screen.getMenu().getSlot(0).getItem().isEmpty())throw new IllegalStateException("Wagon creative grid is empty");
         }
         if(ticks==40){
             Screenshot.grab(mc.gameDirectory,"fabric-wagon-creative-tab.png",mc.getMainRenderTarget(),message->{});
-            com.mojang.logging.LogUtils.getLogger().info("CREATIVE_INVENTORY_PASS: wagon tab visible on page 2, {} variants and items available in search",WagonContent.TAB.get().getDisplayItems().size());
+            com.mojang.logging.LogUtils.getLogger().info("CREATIVE_INVENTORY_PASS: wagon tab visible on page {}, {} variants and items available in search",wagonPage+1,WagonContent.TAB.get().getDisplayItems().size());
         }
         if(ticks==50)mc.stop();
     }

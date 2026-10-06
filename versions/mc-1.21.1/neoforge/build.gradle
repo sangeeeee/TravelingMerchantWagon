@@ -1,8 +1,43 @@
+import org.gradle.api.artifacts.transform.TransformAction
+import org.gradle.api.artifacts.transform.TransformOutputs
+import org.gradle.api.artifacts.transform.TransformParameters
+import org.gradle.api.artifacts.transform.InputArtifact
+import org.gradle.api.artifacts.type.ArtifactTypeDefinition
+import org.gradle.api.file.FileSystemLocation
+import org.gradle.api.provider.Provider
+import java.util.zip.ZipFile
+import java.util.zip.ZipOutputStream
+import java.util.zip.ZipEntry
+
 plugins {
     id 'java-library'
     id 'maven-publish'
     id 'net.neoforged.moddev'
     id 'idea'
+}
+
+// Sodium 0.8's launcher declares the same mod ID as its nested implementation.
+// FML 4 selects the launcher in place of the implementation on a dev classpath.
+// Retain its library/services and JarJar metadata, removing only the duplicate
+// root mod declaration so normal JarJar discovery loads the real Sodium mod.
+abstract class PrepareSodiumDevelopmentJar implements TransformAction<TransformParameters.None> {
+    @InputArtifact abstract Provider<FileSystemLocation> getInputArtifact()
+    @Override void transform(TransformOutputs outputs) {
+        def source = inputArtifact.get().asFile
+        def destination = outputs.file(source.name.replace('.jar', '-development.jar'))
+        new ZipFile(source).withCloseable { archive ->
+            boolean wrapper = archive.entries().any { it.name.startsWith('META-INF/jarjar/net.caffeinemc.sodium-') }
+            new ZipOutputStream(new FileOutputStream(destination)).withCloseable { output ->
+                archive.entries().each { entry ->
+                    if (!(wrapper && entry.name == 'META-INF/neoforge.mods.toml')) {
+                        output.putNextEntry(new ZipEntry(entry.name))
+                        archive.getInputStream(entry).withCloseable { it.transferTo(output) }
+                        output.closeEntry()
+                    }
+                }
+            }
+        }
+    }
 }
 
 apply from: rootProject.file('gradle/load-target-properties.gradle')
@@ -64,6 +99,7 @@ repositories {
         }
         filter {
             includeModule('curse.maven', 'touhou-little-maid-355044')
+            includeModule('curse.maven', 'swing-through-grass-1477279')
         }
     }
     exclusiveContent {
@@ -79,6 +115,11 @@ repositories {
             includeModule('maven.modrinth', 'travelersbackpack')
             includeModule('maven.modrinth', 'sophisticated-backpacks')
             includeModule('maven.modrinth', 'sophisticated-core')
+            includeModule('maven.modrinth', 'tacz-1.21.1')
+            includeModule('maven.modrinth', 'lithium')
+            includeModule('maven.modrinth', 'iris')
+            includeModule('maven.modrinth', 'sodium')
+            includeModule('maven.modrinth', 'architectury-api')
         }
     }
     maven {
@@ -315,6 +356,7 @@ configurations {
     runtimeClasspath.extendsFrom localRuntime
     sableApi
     compileOnly.extendsFrom sableApi
+    sodiumDevelopmentArchive { canBeConsumed = false; canBeResolved = true }
 }
 
 // The published Sable mod embeds its companion API rather than declaring it in its POM.
@@ -331,9 +373,6 @@ def extractSableCompanionApi = tasks.register('extractSableCompanionApi', Sync) 
 dependencies {
     // Optional recipe viewer API; never bundle JEI or require it on a server.
     compileOnly 'mezz.jei:jei-1.21.1-common-api:19.39.0.372'
-    if (providers.gradleProperty('jeiTestJar').isPresent()) {
-        localRuntime files(providers.gradleProperty('jeiTestJar').get())
-    }
     implementation "software.bernie.geckolib:geckolib-neoforge-${minecraft_version}:${geckolib_version}"
 
     // Compile against the minimum supported NeoForge version; do not bundle Carry On.
@@ -347,40 +386,60 @@ dependencies {
     compileOnly("maven.modrinth:travelersbackpack:${travelers_backpack_neoforge_version_id}") { transitive = false }
     compileOnly("maven.modrinth:sophisticated-backpacks:${sophisticated_backpacks_neoforge_version_id}") { transitive = false }
     compileOnly("maven.modrinth:sophisticated-core:${sophisticated_core_neoforge_version_id}") { transitive = false }
-    if (providers.gradleProperty('withBackpacks').getOrElse('false').toBoolean()) {
-        localRuntime("maven.modrinth:travelersbackpack:${travelers_backpack_neoforge_version_id}") { transitive = false }
-        localRuntime("maven.modrinth:sophisticated-backpacks:${sophisticated_backpacks_neoforge_version_id}") { transitive = false }
-        localRuntime("maven.modrinth:sophisticated-core:${sophisticated_core_neoforge_version_id}") { transitive = false }
-    }
-    if (providers.gradleProperty('withCarryOn').getOrElse('false').toBoolean()) {
-        localRuntime('maven.modrinth:carry-on:cgZi7nC7') { transitive = false }
-    }
 
-    // Official Patchouli API only; do not bundle the mod or add it to development runtime.
+    // Official Patchouli API; the optional mod is never bundled.
     compileOnly("vazkii.patchouli:Patchouli:${patchouli_version}:api") { transitive = false }
-    if (providers.gradleProperty('patchouliTestJar').isPresent()) {
-        localRuntime files(providers.gradleProperty('patchouliTestJar').get())
-    }
 
     // Optional compatibility API. Pin the NeoForge release ID to avoid selecting
-    // the Fabric artifact with the same version number. Never bundle or run it by default.
+    // the Fabric artifact with the same version number. Never bundle it.
     sableApi("maven.modrinth:sable:${sable_neoforge_version_id}") {
         transitive = false
     }
     compileOnly files(extractSableCompanionApi.map { it.destinationDir.toPath().resolve('sable-companion-common-1.21.1-1.6.0.jar').toFile() })
-    if (providers.gradleProperty('withSable').getOrElse('false').toBoolean()) {
-        localRuntime("maven.modrinth:sable:${sable_neoforge_version_id}") { transitive = false }
-    }
-    // Optional local optimizer JAR for compatibility regression runs only.
-    if (providers.gradleProperty('lithiumTestJar').isPresent()) {
-        localRuntime files(providers.gradleProperty('lithiumTestJar').get())
-    }
-    // Optional pack-exact SwingThroughGrass JAR for server mining regression runs.
-    if (providers.gradleProperty('swingThroughGrassTestJar').isPresent()) {
-        localRuntime files(providers.gradleProperty('swingThroughGrassTestJar').get())
-    }
+}
 
-
+// Load integrations in development by default without publishing runtime
+// dependencies or bundling third-party mods into the wagon JAR.
+def runtimeProfiles = [
+    Maid: ["curse.maven:touhou-little-maid-355044:${maid_neoforge_file_id}"],
+    CarryOn: ["maven.modrinth:carry-on:${carry_on_neoforge_version_id}"],
+    Backpacks: ["maven.modrinth:travelersbackpack:${travelers_backpack_neoforge_version_id}",
+                "maven.modrinth:sophisticated-backpacks:${sophisticated_backpacks_neoforge_version_id}",
+                "maven.modrinth:sophisticated-core:${sophisticated_core_neoforge_version_id}"],
+    Sable: ["maven.modrinth:sable:${sable_neoforge_version_id}"],
+    Patchouli: ["vazkii.patchouli:Patchouli:${patchouli_version}"],
+    Guns: ["maven.modrinth:tacz-1.21.1:${tacz_neoforge_version_id}"],
+    Lithium: ["maven.modrinth:lithium:${lithium_neoforge_version_id}"],
+    SwingThrough: ["curse.maven:swing-through-grass-1477279:${swing_through_grass_neoforge_file_id}",
+                   "maven.modrinth:architectury-api:${architectury_neoforge_version_id}"],
+    Iris: ["maven.modrinth:iris:${iris_neoforge_version_id}",
+           "maven.modrinth:sodium:${sodium_neoforge_version_id}"],
+    Jei: ["mezz.jei:jei-${minecraft_version}-neoforge:${jei_neoforge_version}"]
+]
+def runtimeJarOverrides = [Patchouli: 'patchouliTestJar', Lithium: 'lithiumTestJar',
+                           SwingThrough: 'swingThroughGrassTestJar', Jei: 'jeiTestJar']
+def withAllCompat = providers.gradleProperty('withAllCompat').getOrElse('true').toBoolean()
+dependencies {
+    registerTransform(PrepareSodiumDevelopmentJar) {
+        from.attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, 'jar')
+        to.attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, 'tm-wagon-sodium-development')
+    }
+    runtimeProfiles.each { name, coordinates ->
+        def override = runtimeJarOverrides[name] == null ? null : providers.gradleProperty(runtimeJarOverrides[name])
+        if (override != null && override.isPresent()) {
+            localRuntime files(override.get())
+            // Local SwingThroughGrass builds still need Architectury.
+            if (name == 'SwingThrough') localRuntime(coordinates.last()) { transitive = false }
+        } else if (providers.gradleProperty("with${name}").getOrElse(withAllCompat.toString()).toBoolean()) {
+            coordinates.each { coordinate ->
+                if (coordinate.startsWith('maven.modrinth:sodium:')) sodiumDevelopmentArchive(coordinate) { transitive = false }
+                else localRuntime(coordinate) { transitive = false }
+            }
+        }
+    }
+    localRuntime configurations.sodiumDevelopmentArchive.incoming.artifactView {
+        attributes { attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, 'tm-wagon-sodium-development') }
+    }.files
 }
 
 // This block of code expands all declared replace properties in the specified resource targets.

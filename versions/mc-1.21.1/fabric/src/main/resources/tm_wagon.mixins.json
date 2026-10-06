@@ -30,6 +30,8 @@
     "WagonSleepValidationMixin"
   ],
   "client": [
+    "WagonKeyMappingAccess",
+    "WagonVanillaInputMixin",
     "WagonWorldBlockPickingMixin",
     "WagonSleepCameraMixin",
     "WagonSleepRendererMixin",

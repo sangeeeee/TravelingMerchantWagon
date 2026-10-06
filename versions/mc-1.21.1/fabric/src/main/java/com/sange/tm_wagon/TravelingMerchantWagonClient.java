@@ -35,6 +35,7 @@ public final class TravelingMerchantWagonClient implements ClientModInitializer 
                 String preview=switch(System.getProperty("tm_wagon.fabricSmokeMode","models")){
                     case "backpacks"->"BackpackClientSmoke";
                     case "creative"->"CreativeInventoryClientSmoke";
+                    case "interactions"->"WorldInteractionClientSmoke";
                     default->"StageOneClientSmoke";
                 };
                 try {Class.forName("com.sange.tm_wagon.client."+preview).getMethod("tick").invoke(null);}

@@ -111,9 +111,21 @@ Each loader's own properties and build script define its compatibility versions
 and dependencies. `gradle/load-target-properties.gradle` explicitly loads those
 target settings; another Minecraft target does not inherit them.
 
-Optional APIs remain compile-only in the NeoForge target. Development runtime
-flags such as `withSable`, `withBackpacks`, and `withCarryOn`, and existing local
-test-JAR properties, are still available on that target. Local JAR paths should
+Compatibility APIs remain compile-only; both loaders' development runs load all
+integrations and their required libraries by default. Normal `runClient` needs
+no extra arguments. The NeoForge runtime includes Touhou Little Maid, Carry On,
+both backpacks and Sophisticated Core, Sable, Patchouli, TACZ, JEI, Lithium,
+SwingThroughGrass and Architectury, and Iris/Sodium. Each target pins its own
+versions. The Iris 1.8.14-beta.1 / Sodium 0.8.13 pair allows graphics
+integration and Sable to coexist.
+
+Use `-PwithAllCompat=false` (NeoForge) or `-PfabricWithAllCompat=false` (Fabric)
+to select a minimal runtime. Individual `with<Name>` / `fabricWith<Name>` flags
+override the default; for example `-PwithIris=false` disables Iris/Sodium only.
+The available profile names are `Maid`, `Backpacks`, `CarryOn`, `Sable`,
+`Patchouli`, `Guns`, `SwingThrough`, `Lithium`, `Iris`, and `Jei`.
+Existing NeoForge local test-JAR properties replace the corresponding downloaded
+mod, avoiding duplicates. Local JAR paths should
 be absolute, and local dependency files belong in the target's ignored `libs/`.
 The shared Gradle download cache is safe to reuse: target classpaths remain
 separate.

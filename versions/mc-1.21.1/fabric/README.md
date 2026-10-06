@@ -23,8 +23,9 @@ task category contains tooling tasks, not a second Fabric project. Reload the
 Gradle project to refresh task categories after build-script changes.
 
 Fabric places custom creative inventory tabs on additional pages. Click the
-small right arrow at the upper right of the creative inventory to reach the
-second page, then select the wagon icon. Wagon items also appear in creative
+small right arrow at the upper right of the creative inventory to browse the
+additional pages, then select the wagon icon. Its page depends on the other
+loaded mods; the full development profile places it on page 4. Wagon items also appear in creative
 search. There is no numbered page indicator: the arrows are inside the inventory
 panel, beside the category title. The optional Mod Menu mod supplies a main-menu mod list; Fabric does
 not provide that screen by itself.
@@ -54,7 +55,7 @@ NeoForge artifact. Their compatibility adapters are implemented in this target o
 | [TaCZ: Refabricated](https://modrinth.com/mod/tacz-refabricated) | 0.7.1-forge1.1.8-hotfix2 | Unofficial beta port; Forge Config API Port; embeds Cardinal Components |
 | [SwingThrough](https://modrinth.com/mod/swingthrough) | 1.0.5+1.21 | Fabric counterpart, with different hooks from SwingThroughGrass |
 | [Lithium](https://modrinth.com/mod/lithium) | 0.15.4 | Fabric artifact |
-| [Iris](https://modrinth.com/mod/iris) | 1.8.8 | Sodium **0.6.x**; pinned to 0.6.13 |
+| [Iris](https://modrinth.com/mod/iris) | 1.8.14-beta.1 | Sodium **0.8.x**; pinned to 0.8.13 for Sable coexistence |
 | [JEI](https://modrinth.com/mod/jei) | 19.51.0.418 | Fabric API |
 
 External support libraries are pinned to Forge Config API Port 21.1.6, Cloth
@@ -79,7 +80,12 @@ From the repository root:
 .\gradlew.bat :mc-1.21.1:fabric:verifyCompatibilityDependencies -PfabricWithAllCompat=true
 ```
 
-The first command builds the release JAR and runs the base gameplay tests. The
+Development runs load every listed integration and its required libraries by
+default, including Sable, Iris and Sodium together. No extra property is needed
+when launching `runClient` from the Gradle task tree. Optional integrations are
+never bundled into the release JAR or made required dependencies for players.
+
+The first command builds the release JAR and runs gameplay and integration tests. The
 second checks the API and optional runtime classpaths. For actual integration tests
 and renderer previews:
 
@@ -89,6 +95,7 @@ and renderer previews:
 .\gradlew.bat :mc-1.21.1:fabric:runClient -PfabricSmoke=true -PfabricWithIris=true
 .\gradlew.bat :mc-1.21.1:fabric:runClient -PfabricSmoke=true -PfabricSmokeMode=backpacks -PfabricWithBackpacks=true
 .\gradlew.bat :mc-1.21.1:fabric:runClient -PfabricSmoke=true -PfabricSmokeMode=creative
+.\gradlew.bat :mc-1.21.1:fabric:runClient -PfabricSmoke=true -PfabricSmokeMode=interactions -PfabricSmokeWorld=<disposable-save-folder>
 .\gradlew.bat :mc-1.21.1:fabric:runClientSmokeTest
 ```
 
@@ -100,19 +107,35 @@ The creative preview can use a disposable save in the selected run's `saves` wit
 `-PfabricSmokeWorld=<folder-name>`; it opens and saves that world. Use a copy
 when investigating an existing save.
 
-Sable 2.0.6 declares an incompatibility with the Sodium 0.6.x required by Iris
-1.8.8. The all-compatibility development profile therefore uses Sable without
-Iris/Sodium; the separate Iris profile validates those graphics dependencies.
-This profile choice does not restrict which optional mods the release JAR detects.
+The development profile uses Iris 1.8.14-beta.1 and Sodium 0.8.13, satisfying
+Sable 2.0.6's Sodium requirement. Iris is a beta release; dependency versions
+are pinned for reproducibility. A development-only artifact transform completes
+incomplete injection selectors using Iris's own unique method signatures. All refmaps remain
+intact. The original
+downloaded dependency and the released wagon JAR are not modified.
 
 Individual development profiles use `-PfabricWith<Name>=true`: `Maid`,
 `Backpacks`, `CarryOn`, `Sable`, `Patchouli`, `Guns`, `SwingThrough`, `Lithium`,
-`Iris`, or `Jei`. These flags affect only the Fabric target. Optional mods remain
-compile-only by default and are never bundled into the wagon mod.
+`Iris`, or `Jei`. Set one to `false` to disable that integration, or use
+`-PfabricWithAllCompat=false` for the minimal runtime and explicitly enable
+individual profiles. These flags affect only the Fabric target. Compatibility
+APIs remain compile-only, with integrations supplied only to development runtime.
 
 The `backpacks` preview mode opens the isolated `run/saves/repro` fixture world
 and validates native menus and networked slot/settings edits. Supply a disposable
 fixture save before that run; it never targets an external modpack world.
 
 The `creative` preview uses the same disposable fixture save to check the real
-creative inventory, its second-page wagon tab, and inclusion in creative search.
+creative inventory, the wagon tab's current page, and inclusion in creative search.
+
+The `interactions` mode tests real mouse input, block placement and breaking,
+bow use, and chest menus, with server-side assertions. It modifies the selected
+test save. This covers a shared-key conflict in TACZ Refabricated: its default
+mouse bindings occupy Fabric's single-binding key map. The Fabric wagon adapter
+forwards matching vanilla use/attack input as well, while retaining TACZ's bindings
+and its existing gun interaction cancellation. Rebound keys are matched dynamically.
+
+Minecraft's `No data fixer registered for ...` messages mean a custom entity has
+no vanilla DataFixer schema for upgrading older save data. They do not prevent
+entity registration or normal item/block interactions; other loaded mods may
+produce these messages independently of the wagon mod.

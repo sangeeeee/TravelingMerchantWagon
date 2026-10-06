@@ -7,7 +7,15 @@ import org.gradle.api.file.FileSystemLocation
 import org.gradle.api.provider.Provider
 import java.util.zip.ZipFile
 import java.util.zip.ZipInputStream
+import java.util.zip.ZipOutputStream
+import java.util.zip.ZipEntry
 import groovy.json.JsonSlurper
+import org.objectweb.asm.ClassReader
+import org.objectweb.asm.ClassWriter
+import org.objectweb.asm.ClassVisitor
+import org.objectweb.asm.MethodVisitor
+import org.objectweb.asm.AnnotationVisitor
+import org.objectweb.asm.Opcodes
 
 plugins {
     id 'java-library'
@@ -52,6 +60,67 @@ abstract class ExtractEmbeddedFabricApis implements TransformAction<TransformPar
     }
 }
 
+// Complete descriptorless selectors in Iris beta's development copy using its
+// own refmap's unique signatures. No shader or
+// rendering behavior changes, and all other refmaps remain intact.
+abstract class PrepareIrisDevelopmentJar implements TransformAction<TransformParameters.None> {
+    @InputArtifact abstract Provider<FileSystemLocation> getInputArtifact()
+    @Override void transform(TransformOutputs outputs) {
+        def source = inputArtifact.get().asFile
+        def destination = outputs.file(source.name.replace('.jar', '-development.jar'))
+        new ZipFile(source).withCloseable { archive ->
+            def refmap = archive.getInputStream(archive.getEntry('iris.refmap.json')).withCloseable {
+                new JsonSlurper().parse(it, 'UTF-8')
+            }
+            def candidates = refmap.mappings.values().collectMany { it.values().toList() }
+                .findAll { it instanceof String && it.startsWith('L') && it.contains('(') }
+                .groupBy { it.substring(0, it.indexOf('(')) }
+            def selectors = candidates.collectEntries { prefix, values ->
+                def unique = values.toSet()
+                unique.size() == 1 ? [(prefix): unique.first()] : [:]
+            }
+            new ZipOutputStream(new FileOutputStream(destination)).withCloseable { output ->
+                archive.entries().each { entry ->
+                    byte[] bytes = archive.getInputStream(entry).withCloseable { it.readAllBytes() }
+                    if (entry.name.startsWith('net/irisshaders/') && entry.name.endsWith('.class')) bytes = completeSelectors(bytes, selectors)
+                    output.putNextEntry(new ZipEntry(entry.name))
+                    output.write(bytes)
+                    output.closeEntry()
+                }
+            }
+        }
+    }
+
+    static byte[] completeSelectors(byte[] bytes, Map<String, String> selectors) {
+        def writer = new ClassWriter(0)
+        new ClassReader(bytes).accept(new ClassVisitor(Opcodes.ASM9, writer) {
+            @Override MethodVisitor visitMethod(int access, String name, String descriptor, String signature, String[] exceptions) {
+                def method = super.visitMethod(access, name, descriptor, signature, exceptions)
+                return new MethodVisitor(Opcodes.ASM9, method) {
+                    @Override AnnotationVisitor visitAnnotation(String annotationDescriptor, boolean visible) {
+                        def annotation = super.visitAnnotation(annotationDescriptor, visible)
+                        if (!annotationDescriptor.startsWith('Lorg/spongepowered/asm/mixin/injection/')
+                                && !annotationDescriptor.startsWith('Lcom/llamalad7/mixinextras/injector/')) return annotation
+                        return new AnnotationVisitor(Opcodes.ASM9, annotation) {
+                            @Override AnnotationVisitor visitArray(String arrayName) {
+                                def array = super.visitArray(arrayName)
+                                if (arrayName != 'method') return array
+                                return new AnnotationVisitor(Opcodes.ASM9, array) {
+                                    @Override void visit(String valueName, Object value) {
+                                        if (value instanceof String && selectors.containsKey(value)) value = selectors[value]
+                                        super.visit(valueName, value)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }, 0)
+        return writer.toByteArray()
+    }
+}
+
 apply from: rootProject.file('gradle/load-target-properties.gradle')
 
 description = 'TravelingMerchantWagon for Fabric 1.21.1.'
@@ -78,6 +147,7 @@ configurations {
     commonResources { canBeConsumed = false; canBeResolved = true }
     embeddedCompatibilityArchives { canBeConsumed = false; canBeResolved = true }
     embeddedRuntimeArchives { canBeConsumed = false; canBeResolved = true }
+    irisDevelopmentArchive { canBeConsumed = false; canBeResolved = true }
 }
 
 // Version IDs select Fabric artifacts unambiguously, including unofficial ports.
@@ -139,8 +209,8 @@ def embeddedCompatibilityApis = configurations.embeddedCompatibilityArchives.inc
 }.files
 dependencies { modCompileOnly embeddedCompatibilityApis }
 
-// Only explicit development profiles install optional mods. Published mod JARs
-// will not bundle any of these mods; each loader owns its own runtime classpath.
+// Development runs load all integrations by default. Published mod JARs never
+// bundle them; each loader owns its runtime and individual opt-out profiles.
 def runtimeProfiles = [
     Maid: ['maid', 'forgeConfigApiPort'],
     Backpacks: ['travelersBackpack', 'sophisticatedBackpacks', 'sophisticatedCore',
@@ -154,19 +224,25 @@ def runtimeProfiles = [
     Iris: ['iris', 'sodium'],
     Jei: ['jei']
 ]
-def withAllCompat = providers.gradleProperty('fabricWithAllCompat').getOrElse('false').toBoolean()
+def withAllCompat = providers.gradleProperty('fabricWithAllCompat').getOrElse('true').toBoolean()
 def selectedRuntimeMods = new LinkedHashSet<String>()
 runtimeProfiles.each { name, mods ->
-    if (withAllCompat || providers.gradleProperty("fabricWith${name}").getOrElse('false').toBoolean()) {
+    if (providers.gradleProperty("fabricWith${name}").getOrElse(withAllCompat.toString()).toBoolean()) {
         selectedRuntimeMods.addAll(mods)
     }
 }
-// Sable 2.0.6 requires experimental Sodium, incompatible with Iris 1.8.8.
-if (selectedRuntimeMods.contains('sable')) selectedRuntimeMods.removeAll(['iris', 'sodium'])
 dependencies {
-    selectedRuntimeMods.each { name ->
-        modLocalRuntime(compatibilityMods[name]) { transitive = false }
+    registerTransform(PrepareIrisDevelopmentJar) {
+        from.attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, 'jar')
+        to.attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, 'tm-wagon-iris-development')
     }
+    selectedRuntimeMods.each { name ->
+        if (name == 'iris') irisDevelopmentArchive(compatibilityMods[name]) { transitive = false }
+        else modLocalRuntime(compatibilityMods[name]) { transitive = false }
+    }
+    modLocalRuntime configurations.irisDevelopmentArchive.incoming.artifactView {
+        attributes { attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, 'tm-wagon-iris-development') }
+    }.files
 }
 
 // Loom strips nested archives from remapped development mods. Restore their
