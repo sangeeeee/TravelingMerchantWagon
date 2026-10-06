@@ -111,7 +111,7 @@
   "tooltip.tm_wagon.triple_wooden_seat": "Solo per cassoni larghi. Il posto centrale comanda il carro.",
   "message.tm_wagon.cargo_container_protected": "Questo contenitore è chiuso a chiave o contiene bottino non ancora generato e non può essere usato come carico interattivo.",
   "task.tm_wagon.wagon_companion": "Compagna del cocchiere",
-  "task.tm_wagon.wagon_companion.desc": "Durante il lavoro, occupa un posto libero accanto al cocchiere su un carro assemblato vicino.",
+  "task.tm_wagon.wagon_companion.desc": "Durante il lavoro, occupa un posto libero accanto al cocchiere su un carro assemblato vicino. Da seduta, con arco, balestra o arma TACZ nella mano principale, attacca i nemici vicini senza scendere. Fornisci le munizioni delle sue normali attività con le armi.",
   "task.tm_wagon.wagon_passenger": "Passeggera del carro",
   "task.tm_wagon.wagon_passenger.desc": "Durante il lavoro, cerca uno sgabello libero con spazio sufficiente sopra la testa su un carro assemblato vicino.",
   "item.tm_wagon.dismantling_hammer": "Martello da carpentiere",

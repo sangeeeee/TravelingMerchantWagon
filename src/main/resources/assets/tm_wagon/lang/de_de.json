@@ -111,7 +111,7 @@
   "tooltip.tm_wagon.triple_wooden_seat": "Nur für breite Wagenkästen. Gesteuert wird vom mittleren Sitz.",
   "message.tm_wagon.cargo_container_protected": "Dieser Behälter ist verschlossen oder enthält noch nicht erzeugte Beute und kann nicht als bedienbare Fracht geladen werden.",
   "task.tm_wagon.wagon_companion": "Wagenbegleitung",
-  "task.tm_wagon.wagon_companion.desc": "Sucht während der Arbeit einen freien Platz neben dem Kutscher auf einem montierten Wagen in der Nähe.",
+  "task.tm_wagon.wagon_companion.desc": "Sucht während der Arbeit einen freien Platz neben dem Kutscher auf einem montierten Wagen in der Nähe. Mit Bogen, Armbrust oder TACZ-Waffe in der Haupthand greift sie vom Sitz aus Gegner an. Gib ihr die Munition ihrer normalen Waffenaufgaben.",
   "task.tm_wagon.wagon_passenger": "Wagenpassagier",
   "task.tm_wagon.wagon_passenger.desc": "Sucht während der Arbeit einen freien Hocker mit genügend Kopffreiheit auf einem montierten Wagen in der Nähe.",
   "item.tm_wagon.dismantling_hammer": "Zimmermannshammer",

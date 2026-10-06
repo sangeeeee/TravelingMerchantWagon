@@ -233,7 +233,7 @@ neoForge {
         maidGameTestServer {
             type = "gameTestServer"
             gameDirectory = project.file('build/maid-server')
-            systemProperty 'neoforge.enabledGameTestNamespaces', 'tm_wagon_maid'
+            systemProperty 'neoforge.enabledGameTestNamespaces', 'tm_wagon_maid,tm_wagon_maid_combat'
         }
         maidClientSmokeTest {
             client()

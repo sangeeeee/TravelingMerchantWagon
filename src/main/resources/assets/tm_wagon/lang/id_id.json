@@ -111,7 +111,7 @@
   "tooltip.tm_wagon.triple_wooden_seat": "Hanya untuk bak lebar. Posisi tengah mengendalikan pedati.",
   "message.tm_wagon.cargo_container_protected": "Wadah ini terkunci atau memiliki jarahan yang belum dihasilkan, sehingga tidak dapat digunakan sebagai muatan interaktif.",
   "task.tm_wagon.wagon_companion": "Pendamping Kusir",
-  "task.tm_wagon.wagon_companion.desc": "Saat bekerja, duduk di tempat kosong di samping kusir pada pedati terakit di sekitar.",
+  "task.tm_wagon.wagon_companion.desc": "Saat bekerja, duduk di tempat kosong di samping kusir pada pedati terakit di sekitar. Saat duduk dengan busur, busur silang, atau senjata TACZ di tangan utama, ia menyerang musuh terdekat tanpa turun. Berikan amunisi seperti pada tugas senjata biasanya.",
   "task.tm_wagon.wagon_passenger": "Penumpang Pedati",
   "task.tm_wagon.wagon_passenger.desc": "Saat bekerja, mencari bangku kosong dengan ruang kepala yang cukup pada pedati terakit di sekitar.",
   "item.tm_wagon.dismantling_hammer": "Palu Tukang Kayu",

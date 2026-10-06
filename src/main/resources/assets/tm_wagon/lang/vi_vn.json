@@ -111,7 +111,7 @@
   "tooltip.tm_wagon.triple_wooden_seat": "Chỉ dành cho thùng xe rộng. Chỗ giữa điều khiển xe.",
   "message.tm_wagon.cargo_container_protected": "Vật chứa bị khóa hoặc có chiến lợi phẩm chưa tạo, nên không thể dùng làm hàng có tương tác.",
   "task.tm_wagon.wagon_companion": "Bạn đồng hành của xà ích",
-  "task.tm_wagon.wagon_companion.desc": "Trong giờ làm, tìm chỗ trống cạnh xà ích trên xe ngựa đã lắp ráp ở gần.",
+  "task.tm_wagon.wagon_companion.desc": "Trong giờ làm, tìm chỗ trống cạnh xà ích trên xe ngựa đã lắp ráp ở gần. Khi ngồi và cầm cung, nỏ hoặc súng TACZ ở tay chính, cô ấy tấn công kẻ địch gần đó mà không xuống xe. Cung cấp đạn như các nhiệm vụ vũ khí thông thường.",
   "task.tm_wagon.wagon_passenger": "Hành khách xe ngựa",
   "task.tm_wagon.wagon_passenger.desc": "Trong giờ làm, tìm ghế đẩu trống với đủ khoảng trống phía trên đầu trên xe ngựa đã lắp ráp ở gần.",
   "item.tm_wagon.dismantling_hammer": "Búa thợ mộc",

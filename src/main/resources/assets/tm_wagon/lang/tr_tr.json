@@ -111,7 +111,7 @@
   "tooltip.tm_wagon.triple_wooden_seat": "Yalnızca geniş kasaya takılır. Arabayı ortadaki koltuk yönetir.",
   "message.tm_wagon.cargo_container_protected": "Bu kap kilitli veya henüz oluşturulmamış ganimet içeriyor; etkileşimli yük olarak kullanılamaz.",
   "task.tm_wagon.wagon_companion": "Arabacı Yoldaşı",
-  "task.tm_wagon.wagon_companion.desc": "Çalışırken yakındaki monte edilmiş bir arabada arabacının yanındaki boş koltuğa oturur.",
+  "task.tm_wagon.wagon_companion.desc": "Çalışırken yakındaki monte edilmiş bir arabada arabacının yanındaki boş koltuğa oturur. Otururken ana elinde yay, arbalet veya TACZ silahı tutarsa inmeden yakındaki düşmanlara saldırır. Normal silah görevlerinde kullandığı mühimmatı sağlayın.",
   "task.tm_wagon.wagon_passenger": "At Arabası Yolcusu",
   "task.tm_wagon.wagon_passenger.desc": "Çalışırken yakındaki monte edilmiş bir arabada baş mesafesi yeterli, boş bir tabure arar.",
   "item.tm_wagon.dismantling_hammer": "Marangoz Çekici",

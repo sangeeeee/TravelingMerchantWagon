@@ -33,7 +33,7 @@ These integrations are optional; install the ones you want to use.
 | [Traveler's Backpack](https://modrinth.com/mod/travelersbackpack) | Load backpacks, open their own storage screens on board, and retain their contents. Separate sleeping bags fit across two cargo slots for player sleep without changing the respawn point. |
 | [Sophisticated Backpacks](https://www.curseforge.com/minecraft/mc-mods/sophisticated-backpacks) | Transport backpacks and use their storage and settings screens while they are on the wagon. |
 | [Carry On](https://modrinth.com/mod/carry-on) | Move permitted cargo onto and off the wagon, or seat a carried entity on a cargo stool. Pickup follows your Carry On key and configuration. |
-| [Touhou Little Maid](https://www.curseforge.com/minecraft/mc-mods/touhou-little-maid) | Wagon Companion and Wagon Passenger tasks, straw-mat sleep during rest time, and maid release/capture interactions with the original tools. |
+| [Touhou Little Maid](https://www.curseforge.com/minecraft/mc-mods/touhou-little-maid) | Wagon Companion and Wagon Passenger tasks, mounted bow/crossbow/TACZ combat for the companion, straw-mat sleep during rest time, and maid release/capture interactions with the original tools. |
 | [Sable](https://modrinth.com/mod/sable) | Wagons and their passengers account for physical structures when moving or boarding. Assemble block-form components in the normal world before travelling around structures. |
 
 Supported vanilla-style modded chests and barrels also work as interactive cargo, including **[BetterEnd](https://modrinth.com/mod/betterend) barrels that use BCLib**. Compatibility depends on the container's storage behaviour.

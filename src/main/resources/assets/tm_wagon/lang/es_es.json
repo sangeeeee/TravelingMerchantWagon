@@ -111,7 +111,7 @@
   "tooltip.tm_wagon.triple_wooden_seat": "Solo para cajas anchas. El asiento central controla el carromato.",
   "message.tm_wagon.cargo_container_protected": "Este contenedor está cerrado con llave o tiene botín sin generar y no puede cargarse como contenedor interactivo.",
   "task.tm_wagon.wagon_companion": "Acompañante del cochero",
-  "task.tm_wagon.wagon_companion.desc": "Durante el trabajo, ocupa un asiento libre junto al cochero en un carromato ensamblado cercano.",
+  "task.tm_wagon.wagon_companion.desc": "Durante el trabajo, ocupa un asiento libre junto al cochero en un carromato ensamblado cercano. Sentada y con un arco, ballesta o arma TACZ en la mano principal, ataca a enemigos cercanos sin bajarse. Dale la munición de sus tareas de armas habituales.",
   "task.tm_wagon.wagon_passenger": "Pasajera del carromato",
   "task.tm_wagon.wagon_passenger.desc": "Durante el trabajo, busca un taburete libre con suficiente espacio para la cabeza en un carromato ensamblado cercano.",
   "item.tm_wagon.dismantling_hammer": "Martillo de carpintero",

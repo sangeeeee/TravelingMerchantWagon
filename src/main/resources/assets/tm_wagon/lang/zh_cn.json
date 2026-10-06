@@ -111,7 +111,7 @@
   "tooltip.tm_wagon.triple_wooden_seat": "仅适用于加宽货物车厢；中间为驾驶位。",
   "message.tm_wagon.cargo_container_protected": "此容器带有锁或尚未生成的战利品，无法作为可交互货物装载。",
   "task.tm_wagon.wagon_companion": "马车副驾驶",
-  "task.tm_wagon.wagon_companion.desc": "工作时寻找附近已实体化马车上驾驶员旁的空座位并入座。",
+  "task.tm_wagon.wagon_companion.desc": "工作时寻找附近已实体化马车上驾驶员旁的空座位并入座。 入座后，主手持弓、弩或 TACZ 枪械时会自动攻击附近敌对实体，并保持乘坐。请按女仆原版武器任务的方式提供弹药。",
   "task.tm_wagon.wagon_passenger": "乘坐马车",
   "task.tm_wagon.wagon_passenger.desc": "工作时寻找附近实体马车中未被占用且空间充足的木凳入座。",
   "item.tm_wagon.dismantling_hammer": "木工锤",

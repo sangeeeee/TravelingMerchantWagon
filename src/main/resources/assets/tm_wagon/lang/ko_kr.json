@@ -111,7 +111,7 @@
   "tooltip.tm_wagon.triple_wooden_seat": "넓은 적재함에만 설치할 수 있으며, 가운데 자리가 운전석입니다.",
   "message.tm_wagon.cargo_container_protected": "잠겨 있거나 아직 생성되지 않은 전리품이 있는 용기는 상호작용 가능한 화물로 실을 수 없습니다.",
   "task.tm_wagon.wagon_companion": "마차 동승",
-  "task.tm_wagon.wagon_companion.desc": "일하는 동안 근처의 조립된 마차에서 마부 옆의 빈자리를 찾아 앉습니다.",
+  "task.tm_wagon.wagon_companion.desc": "일하는 동안 근처의 조립된 마차에서 마부 옆의 빈자리를 찾아 앉습니다. 착석 후 주 손에 활, 쇠뇌 또는 TACZ 총기를 들면 내리지 않고 근처의 적을 공격합니다. 기존 무기 작업과 같은 방식으로 탄약을 공급하세요.",
   "task.tm_wagon.wagon_passenger": "마차 승객",
   "task.tm_wagon.wagon_passenger.desc": "일하는 동안 근처의 조립된 마차에서 머리 위 공간이 충분한 빈 걸상을 찾아 앉습니다.",
   "item.tm_wagon.dismantling_hammer": "목공 망치",

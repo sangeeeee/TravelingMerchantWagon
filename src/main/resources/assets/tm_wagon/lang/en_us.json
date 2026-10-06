@@ -111,7 +111,7 @@
   "tooltip.tm_wagon.triple_wooden_seat": "Fits wide wagon boxes only. The middle seat controls the wagon.",
   "message.tm_wagon.cargo_container_protected": "This container is locked or has ungenerated loot and cannot be used as interactive cargo.",
   "task.tm_wagon.wagon_companion": "Wagon Companion",
-  "task.tm_wagon.wagon_companion.desc": "During work, takes a free seat beside the driver on a nearby assembled wagon.",
+  "task.tm_wagon.wagon_companion.desc": "During work, takes a free seat beside the driver on a nearby assembled wagon. While seated, holding a bow, crossbow or TACZ gun lets her attack nearby hostiles without dismounting. Supply the ammunition used by her normal weapon tasks.",
   "task.tm_wagon.wagon_passenger": "Wagon Passenger",
   "task.tm_wagon.wagon_passenger.desc": "During work, finds a free stool with enough headroom in a nearby assembled wagon.",
   "item.tm_wagon.dismantling_hammer": "Carpenter's Hammer",

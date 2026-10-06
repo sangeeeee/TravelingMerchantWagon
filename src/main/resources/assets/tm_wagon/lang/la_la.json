@@ -111,7 +111,7 @@
   "tooltip.tm_wagon.triple_wooden_seat": "Corbibus latis tantum convenit. Locus medius plaustrum regit.",
   "message.tm_wagon.cargo_container_protected": "Hoc receptaculum clausum est aut praedam nondum creatam continet; pro merce utenda onerari non potest.",
   "task.tm_wagon.wagon_companion": "Comes Aurigae",
-  "task.tm_wagon.wagon_companion.desc": "Tempore laboris sedem vacuam iuxta aurigam in plaustro proximo composito petit.",
+  "task.tm_wagon.wagon_companion.desc": "Tempore laboris sedem vacuam iuxta aurigam in plaustro proximo composito petit. Sedens, arcu, manuballista vel telo TACZ in manu principali hostes propinquos aggreditur nec descendit. Munitionem more munerum armorum ordinariorum praebe.",
   "task.tm_wagon.wagon_passenger": "Vectrix Plaustri",
   "task.tm_wagon.wagon_passenger.desc": "Tempore laboris scabellum vacuum cum spatio capiti satis amplo in plaustro proximo composito quaerit.",
   "item.tm_wagon.dismantling_hammer": "Malleus Fabri Lignarii",

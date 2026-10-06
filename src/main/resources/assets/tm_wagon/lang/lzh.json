@@ -111,7 +111,7 @@
   "tooltip.tm_wagon.triple_wooden_seat": "惟廣輿可裝，中席司御。",
   "message.tm_wagon.cargo_container_protected": "此器已鎖，或內藏未生之寶物，不可作可用貨物。",
   "task.tm_wagon.wagon_companion": "伴御",
-  "task.tm_wagon.wagon_companion.desc": "當值時，尋鄰近成車之御者旁空席而坐。",
+  "task.tm_wagon.wagon_companion.desc": "當值時，尋鄰近成車之御者旁空席而坐。 既坐，主手執弓、弩或 TACZ 火器，則攻近敵而不離車。彈矢依女僕原有武事之法備之。",
   "task.tm_wagon.wagon_passenger": "乘車",
   "task.tm_wagon.wagon_passenger.desc": "當值時，尋鄰近成車中無人且上方無礙之木凳而坐。",
   "item.tm_wagon.dismantling_hammer": "木工錘",

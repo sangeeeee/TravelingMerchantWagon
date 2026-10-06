@@ -33,7 +33,7 @@ TravelingMerchantWagon 为 Minecraft 添加了可以自由搭配的木制马车�
 | [旅行者背包](https://modrinth.com/mod/travelersbackpack) | 将背包装到货位上，直接打开原本的存储界面并保留其中物品。独立睡袋占两个货位，供玩家睡觉且不改变重生点。 |
 | [精妙背包](https://www.curseforge.com/minecraft/mc-mods/sophisticated-backpacks) | 运输背包，并在车上打开它原本的存储和设置界面。 |
 | [Carry On](https://modrinth.com/mod/carry-on) | 将允许搬运的货物抱上车或抱下车，也可以将抱着的实体放到马车木凳上入座。使用当前设置的搬运键和搬运规则。 |
-| [车万女仆](https://www.curseforge.com/minecraft/mc-mods/touhou-little-maid) | 提供“马车副驾驶”和“乘坐马车”任务，休息时可以睡在草席上；原本的照片、魂符和相机也能按各自规则配合马车使用。 |
+| [车万女仆](https://www.curseforge.com/minecraft/mc-mods/touhou-little-maid) | 提供“马车副驾驶”和“乘坐马车”任务；副驾驶可以在座位上使用弓、弩或 TACZ 枪械攻击敌对实体，休息时可以睡在草席上；原本的照片、魂符和相机也能按各自规则配合马车使用。 |
 | [Sable](https://modrinth.com/mod/sable) | 马车移动与乘客入座时会考虑外部物理结构。先在普通世界中完成方块组件装配，再驾驶实体马车到结构附近。 |
 
 采用兼容原版存储方式的模组箱子、木桶，也能作为可交互货物使用，包括 **[BetterEnd](https://modrinth.com/mod/betterend) 中使用 BCLib 的木桶**。具体兼容情况取决于容器的存储方式。

@@ -158,7 +158,7 @@ public class WagonMaidGameTests {
         h.getLevel().addFreshEntity(maid);return maid;
     }
     private static void mat(GameTestHelper h,CargoHold hold) {
-        var p=h.makeMockPlayer(net.minecraft.world.level.GameType.CREATIVE);p.setPos(hold.owner().cargoPose().point(new Vec3(-2,1,0)));
+        var p=h.makeMockPlayer(net.minecraft.world.level.GameType.CREATIVE);p.setPos(hold.owner().cargoPose().point(new Vec3(-2,1,3)));
         h.assertTrue(hold.place(8,new ItemStack(WagonContent.STRAW_MAT.get()),p)==null,"Mat placement failed");
     }
     private static AssemblyFrameBlockEntity frame(GameTestHelper h) {

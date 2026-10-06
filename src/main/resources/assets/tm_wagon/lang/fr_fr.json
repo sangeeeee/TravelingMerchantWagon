@@ -111,7 +111,7 @@
   "tooltip.tm_wagon.triple_wooden_seat": "Uniquement pour les caisses élargies. La place centrale permet de conduire.",
   "message.tm_wagon.cargo_container_protected": "Ce conteneur est verrouillé ou contient un butin non généré ; il ne peut pas servir de chargement interactif.",
   "task.tm_wagon.wagon_companion": "Compagne du cocher",
-  "task.tm_wagon.wagon_companion.desc": "Pendant le travail, prend une place libre à côté du cocher dans un chariot assemblé à proximité.",
+  "task.tm_wagon.wagon_companion.desc": "Pendant le travail, prend une place libre à côté du cocher dans un chariot assemblé à proximité. Assise avec un arc, une arbalète ou une arme TACZ en main principale, elle attaque les ennemis proches sans descendre. Fournissez les munitions de ses tâches d’armes habituelles.",
   "task.tm_wagon.wagon_passenger": "Passagère du chariot",
   "task.tm_wagon.wagon_passenger.desc": "Pendant le travail, cherche un tabouret libre avec assez de place au-dessus dans un chariot assemblé à proximité.",
   "item.tm_wagon.dismantling_hammer": "Marteau de charpentier",

@@ -111,7 +111,7 @@
   "tooltip.tm_wagon.triple_wooden_seat": "Apenas para caçambas largas. O lugar central controla a carroça.",
   "message.tm_wagon.cargo_container_protected": "Este recipiente está trancado ou contém saque ainda não gerado e não pode ser usado como carga interativa.",
   "task.tm_wagon.wagon_companion": "Companheira do cocheiro",
-  "task.tm_wagon.wagon_companion.desc": "Durante o trabalho, ocupa um lugar livre ao lado do cocheiro em uma carroça montada próxima.",
+  "task.tm_wagon.wagon_companion.desc": "Durante o trabalho, ocupa um lugar livre ao lado do cocheiro em uma carroça montada próxima. Sentada com arco, besta ou arma TACZ na mão principal, ataca inimigos próximos sem descer. Forneça a munição usada nas tarefas normais de armas.",
   "task.tm_wagon.wagon_passenger": "Passageira da carroça",
   "task.tm_wagon.wagon_passenger.desc": "Durante o trabalho, procura um banquinho livre com espaço suficiente para a cabeça em uma carroça montada próxima.",
   "item.tm_wagon.dismantling_hammer": "Martelo de carpinteiro",

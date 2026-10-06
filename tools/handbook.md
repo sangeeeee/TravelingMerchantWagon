@@ -32,6 +32,10 @@ Caption text describes material restrictions. A missing server recipe displays a
 The second triple wooden bench recipe uses `alternative: 1`. `extra_recipe_mappings` enables item-to-entry lookup.
 Recipe examples never enter the authoritative recipe manager.
 
+The maid compatibility entry explains mounted bow, crossbow and TACZ combat for Wagon Companion.
+Weapon selection delegates to Little Maid’s native riding tasks; document its ammunition, targeting and enchantment rules.
+Wagon Passenger remains a transport task.
+
 Resource checks:
 
 ```powershell

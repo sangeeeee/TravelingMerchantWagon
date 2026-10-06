@@ -10,6 +10,11 @@
     },
     {
       "type": "patchouli:text",
+      "title": "Mounted Ranged Combat",
+      "text": "While seated, holding a bow, crossbow or TACZ gun lets her attack nearby hostiles without dismounting. Supply the ammunition used by her normal weapon tasks.$(br2)Weapon swapping selects the matching native attack behavior. Target selection, ammunition and weapon enchantments follow Touhou Little Maid’s normal rules. The maid keeps her passenger seat while attacking."
+    },
+    {
+      "type": "patchouli:text",
       "text": "At rest time, maids seek beds or wagon mats using the original priorities. Sleep follows a moving wagon; mat removal wakes them with the original affection rules.$(br2)Filled photos or soul talismans release maids on the wagon. Capture uses the original tools and conditions, including their sleeping-maid rules."
     }
   ],

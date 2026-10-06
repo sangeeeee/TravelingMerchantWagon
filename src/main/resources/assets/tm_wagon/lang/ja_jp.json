@@ -111,7 +111,7 @@
   "tooltip.tm_wagon.triple_wooden_seat": "幅広の荷台にのみ取り付けられます。中央席が操縦席です。",
   "message.tm_wagon.cargo_container_protected": "この容器は施錠されているか未生成の戦利品を含むため、使用可能な貨物として積めません。",
   "task.tm_wagon.wagon_companion": "馬車の同乗者",
-  "task.tm_wagon.wagon_companion.desc": "仕事中、近くの組み立て済み馬車で御者の隣の空席に座ります。",
+  "task.tm_wagon.wagon_companion.desc": "仕事中、近くの組み立て済み馬車で御者の隣の空席に座ります。 着席後、メインハンドに弓、クロスボウ、TACZの銃を持つと、降りずに近くの敵を攻撃します。通常の武器タスクと同じように弾薬を用意してください。",
   "task.tm_wagon.wagon_passenger": "馬車に乗る",
   "task.tm_wagon.wagon_passenger.desc": "仕事中、近くの組み立て済み馬車で頭上に十分な空間がある空いた腰掛けを探して座ります。",
   "item.tm_wagon.dismantling_hammer": "木工用の金槌",
