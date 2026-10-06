@@ -53,3 +53,5 @@ repo/
 **/crash-reports/
 __pycache__/
 *.pyc
+/tools/
+/config-examples/
