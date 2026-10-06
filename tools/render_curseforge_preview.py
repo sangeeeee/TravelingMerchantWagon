@@ -17,7 +17,7 @@ import render_assembly_guide as r
 ROOT = r.ROOT
 ASSETS = r.ASSETS
 DEST = ROOT / 'publishing'
-VARIANTS = ROOT / 'modeling/open_cargo_wagon/variants'
+VARIANTS = ROOT / 'shared-assets/modeling/open_cargo_wagon/variants'
 LIMIT = 2_000_000
 EXAMPLES = [
     dict(body='standard', seat='single_wooden_seat', horses='single', wood='oak', roof='none',

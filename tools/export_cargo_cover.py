@@ -11,8 +11,8 @@ sys.dont_write_bytecode = True
 from prepare_component_materials import cover_hem
 
 ROOT = Path(__file__).resolve().parents[1]
-ASSETS = ROOT / "src/main/resources/assets/tm_wagon"
-PROJECT = ROOT / "modeling/wagon_cargo_cover"
+ASSETS = ROOT / "versions/mc-1.21.1/common/src/main/resources/assets/tm_wagon"
+PROJECT = ROOT / "shared-assets/modeling/wagon_cargo_cover"
 PROJECT.mkdir(parents=True, exist_ok=True)
 TEXTURES = {"fabric": "tm_wagon:component/dye/cargo_cover_fabric", "rope": "tm_wagon:block/cargo_cover_rope", "spiral": "tm_wagon:component/dye/cargo_cover_spiral", "hem": "tm_wagon:component/dye/cargo_cover_hem"}
 
@@ -118,7 +118,7 @@ write(PROJECT / "cargo_cover_item.bbmodel",item_bb)
 # No generated project is required to build the mod: only the exported resources above are consumed.
 for size,rows,width_scale,front_offset,extension in [("standard",5,1,0,0),("extended",6,1,0,.7),("wide",8,1.75,-1.4,.65)]:
     prefix={"standard":"","extended":"long_","wide":"wide_"}[size]
-    source=ROOT / f"modeling/open_cargo_wagon/variants/{prefix}single_seat_single_horse/wagon.bbmodel"
+    source=ROOT / f"shared-assets/modeling/open_cargo_wagon/variants/{prefix}single_seat_single_horse/wagon.bbmodel"
     base=json.loads(source.read_text(encoding="utf-8"))
     half_width=19*width_scale;back=2.34375+extension
     def boundary(row):return -1.34375+front_offset if row==0 else back if row==rows else (-2.45-.35 if size=="wide" else -1.31)+row*.7

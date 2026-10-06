@@ -4,9 +4,9 @@ import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-ASSETS = ROOT / 'src/main/resources/assets'
+ASSETS = ROOT / 'versions/mc-1.21.1/common/src/main/resources/assets'
 BOOK = ASSETS / 'tm_wagon/patchouli_books/coachmans_manual'
-RECIPES = ROOT / 'src/main/resources/data/tm_wagon/recipe'
+RECIPES = ROOT / 'versions/mc-1.21.1/common/src/main/resources/data/tm_wagon/recipe'
 
 def read(path):
     return json.loads(path.read_text(encoding='utf-8'))

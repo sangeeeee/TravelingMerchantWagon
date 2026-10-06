@@ -1,0 +1,11 @@
+plugins {
+    id 'java-library'
+}
+
+base.archivesName = "${mod_id}-core"
+java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+tasks.withType(JavaCompile).configureEach {
+    // The core has no Minecraft dependencies and remains usable by Java 17 targets.
+    options.release = 17
+    options.encoding = 'UTF-8'
+}

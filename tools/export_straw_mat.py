@@ -5,7 +5,7 @@ import random
 from PIL import Image, ImageDraw
 
 ROOT = Path(__file__).resolve().parents[1]
-ASSETS = ROOT / "src/main/resources/assets/tm_wagon"
+ASSETS = ROOT / "versions/mc-1.21.1/common/src/main/resources/assets/tm_wagon"
 rng = random.Random(317064)
 palette = [(181, 151, 68), (197, 168, 79), (211, 183, 94), (224, 199, 117), (234, 210, 136), (162, 132, 58)]
 texture = Image.new("RGB", (64, 64))

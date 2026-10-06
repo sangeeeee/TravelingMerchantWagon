@@ -4,8 +4,8 @@ from PIL import Image
 import copy,json
 
 ROOT=Path(__file__).resolve().parents[1]
-ASSETS=ROOT/'src/main/resources/assets/tm_wagon'
-DATA=ROOT/'src/main/resources/data/tm_wagon'
+ASSETS=ROOT/'versions/mc-1.21.1/common/src/main/resources/assets/tm_wagon'
+DATA=ROOT/'versions/mc-1.21.1/common/src/main/resources/data/tm_wagon'
 manifest=json.loads((ASSETS/'component_materials.json').read_text(encoding='utf-8'))
 woods=list(manifest['wood_sources'])
 manifest['status']='active'
@@ -26,7 +26,7 @@ atlas.save(ASSETS/'textures/entity/component_atlas.png',optimize=True)
 write(ASSETS/'component_materials.json',manifest)
 
 # Vanilla's block atlas scans block/ and item/ only; add our native model textures.
-write(ROOT/'src/main/resources/assets/minecraft/atlases/blocks.json',{'sources':[
+write(ROOT/'versions/mc-1.21.1/common/src/main/resources/assets/minecraft/atlases/blocks.json',{'sources':[
     {'type':'minecraft:directory','source':'component/'+name,'prefix':'component/'+name+'/'}
     for name in ['wagon_stool','wagon_cabinet','dye']]})
 

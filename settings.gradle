@@ -9,3 +9,15 @@ plugins {
 }
 
 rootProject.name = 'TravelingMerchantWagon'
+
+include 'core', 'mc-1.21.1:common', 'mc-1.21.1:neoforge', 'mc-1.21.1:fabric'
+project(':mc-1.21.1').projectDir = file('versions/mc-1.21.1')
+['common', 'neoforge', 'fabric'].each { platform ->
+    project(":mc-1.21.1:${platform}").projectDir = file("versions/mc-1.21.1/${platform}")
+}
+
+include 'core', 'mc-1.21.1:common', 'mc-1.21.1:neoforge', 'mc-1.21.1:fabric'
+project(':mc-1.21.1').projectDir = file('versions/mc-1.21.1')
+['common', 'neoforge', 'fabric'].each { platform ->
+    project(":mc-1.21.1:${platform}").projectDir = file("versions/mc-1.21.1/${platform}")
+}

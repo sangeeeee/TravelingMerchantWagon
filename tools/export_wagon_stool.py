@@ -6,8 +6,8 @@ import zipfile
 import base64
 
 ROOT = Path(__file__).resolve().parents[1]
-ASSETS = ROOT / "src/main/resources/assets/tm_wagon"
-PROJECT = ROOT / "modeling/wagon_stool"
+ASSETS = ROOT / "versions/mc-1.21.1/common/src/main/resources/assets/tm_wagon"
+PROJECT = ROOT / "shared-assets/modeling/wagon_stool"
 PROJECT.mkdir(parents=True, exist_ok=True)
 
 def box(name, start, end):

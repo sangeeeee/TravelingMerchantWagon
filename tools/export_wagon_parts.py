@@ -14,9 +14,9 @@ from wooden_seat_models import generate_wooden_seats
 from wide_wagon_models import generate_wide_variants, SEATS, HORSES
 
 ROOT = Path(__file__).resolve().parents[1]
-RES = ROOT / 'src/main/resources'
+RES = ROOT / 'versions/mc-1.21.1/common/src/main/resources'
 ASSETS = RES / 'assets/tm_wagon'
-VARIANTS = ROOT / 'modeling/open_cargo_wagon/variants'
+VARIANTS = ROOT / 'shared-assets/modeling/open_cargo_wagon/variants'
 
 
 def write(path, value):
@@ -89,7 +89,7 @@ def main():
     generate_long_variants()
     generate_wide_variants()
     collision = volumes()
-    rig = ROOT/'modeling/wagon_assembly_frame/exports/assets/tm_wagon'
+    rig = ROOT/'shared-assets/modeling/wagon_assembly_frame/exports/assets/tm_wagon'
     frame_geo = json.loads((rig/'geo/wagon_assembly_frame.geo.json').read_text())
     frame_bones = frame_geo['minecraft:geometry'][0]['bones']
     frame_animations = json.loads((rig/'animations/wagon_assembly_frame.animation.json').read_text())
@@ -191,7 +191,7 @@ def main():
         write(ASSETS/'geo/assembly'/f'{variant}.geo.json',geo)
     write(ASSETS/'animations/assembly.animation.json',frame_animations)
     # Model/texture remain editable in their dedicated modeling subproject.
-    rig = ROOT/'modeling/wagon_assembly_frame/exports/assets/tm_wagon'
+    rig = ROOT/'shared-assets/modeling/wagon_assembly_frame/exports/assets/tm_wagon'
     for folder in ('models/block','models/item','textures/block'):
         (ASSETS/folder).mkdir(parents=True,exist_ok=True)
         for file in (rig/folder).iterdir(): shutil.copyfile(file,ASSETS/folder/file.name)

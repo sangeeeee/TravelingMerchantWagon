@@ -4,7 +4,7 @@ from pathlib import Path
 from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[1]
-image = Image.open(ROOT/'run/screenshots/stage-one-items.png').convert('RGB')
+image = Image.open(ROOT/'versions/mc-1.21.1/neoforge/run/screenshots/stage-one-items.png').convert('RGB')
 assert image.size == (1200,800), 'Run the smoke client with its default window size'
 background = {(237,230,215),(208,197,175),(92,76,56)}
 names = ['frame','cargo_body','single_horse_shafts','double_horse_shafts',
@@ -27,7 +27,7 @@ for index,name in enumerate(names):
         assert max(map(abs,offset))<.16, f'{name} is visibly off-center: {offset}'
         report.append({'item':name,'scale':kind,'pixel_bounds':bounds,'center_offset_fraction':offset})
 # The new compartment is previewed separately to keep the original nine-cell grid stable.
-extended = Image.open(ROOT/'run/screenshots/wagon-extended-cargo.png').convert('RGB')
+extended = Image.open(ROOT/'versions/mc-1.21.1/neoforge/run/screenshots/wagon-extended-cargo.png').convert('RGB')
 assert extended.size == (1200,800)
 for kind,rect in [('enlarged',(552,80,648,176)),('normal',(660,112,692,144))]:
     left,top,right,bottom = rect

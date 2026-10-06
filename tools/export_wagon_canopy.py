@@ -3,8 +3,8 @@ from pathlib import Path
 from PIL import Image, ImageDraw
 import base64, copy, json, math, random, uuid
 ROOT=Path(__file__).resolve().parents[1]
-ASSETS=ROOT/'src/main/resources/assets/tm_wagon'
-PROJECT=ROOT/'modeling/wagon_canopy'
+ASSETS=ROOT/'versions/mc-1.21.1/common/src/main/resources/assets/tm_wagon'
+PROJECT=ROOT/'shared-assets/modeling/wagon_canopy'
 BASE=2.28125; THICK=1/64; FRONT=-1.34375; REAR=2.203125; REAR_CURTAIN_INSET=5/1024
 # Align to the side-rail planks with a tiny outward offset to avoid coplanar faces.
 SIDE_PLANK_OUTER=17.75/16
@@ -127,7 +127,7 @@ def rect_box(p):
 open_boxes=[[a,1.5,0,b,roof(FOLD_OUTER)-.04,THICK*.75] for a,b in [(-FOLD_OUTER,-FOLD_INNER),(FOLD_INNER,FOLD_OUTER)]]
 # End fabric hides the folded curtains but remains their outside click handle.
 handles=[[a,1.5,0,b,roof(FOLD_OUTER)-.04,THICK] for a,b in [(-HALF,-HALF+BORDER),(HALF-BORDER,HALF)]]
-write(ROOT/'src/main/resources/data/tm_wagon/canopy_geometry.json',{'shell':shell_boxes,'end':end_boxes,'curtain_closed':closed_boxes,'curtain_open':open_boxes,'curtain_handles':handles})
+write(ROOT/'versions/mc-1.21.1/common/src/main/resources/data/tm_wagon/canopy_geometry.json',{'shell':shell_boxes,'end':end_boxes,'curtain_closed':closed_boxes,'curtain_open':open_boxes,'curtain_handles':handles})
 def textures(offset=0):
  result=[]
  for i,name in enumerate(TEX):
@@ -146,7 +146,7 @@ def actual(p,z0,depth=1,prefix=''):
   x,y,z=q['rotation']['origin'];q['rotation']['origin']=[x*2-16,y*2+BASE*16,z*depth+z0*16]
  return q
 for extended in [False,True]:
- prefix='long_' if extended else '';source=ROOT/f'modeling/open_cargo_wagon/variants/{prefix}single_seat_single_horse/wagon.bbmodel';base=json.loads(source.read_text(encoding='utf-8'))
+ prefix='long_' if extended else '';source=ROOT/f'shared-assets/modeling/open_cargo_wagon/variants/{prefix}single_seat_single_horse/wagon.bbmodel';base=json.loads(source.read_text(encoding='utf-8'))
  rows=6 if extended else 5;back=REAR+(.7 if extended else 0)
  def boundary(row):return FRONT if row==0 else back if row==rows else -1.31+row*.7
  for front_closed in [False,True]:

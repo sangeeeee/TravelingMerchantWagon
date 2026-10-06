@@ -3,8 +3,8 @@ from pathlib import Path
 import base64, copy, json, uuid, zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
-ASSETS = ROOT / 'src/main/resources/assets/tm_wagon'
-PROJECT = ROOT / 'modeling/wagon_cabinet'
+ASSETS = ROOT / 'versions/mc-1.21.1/common/src/main/resources/assets/tm_wagon'
+PROJECT = ROOT / 'shared-assets/modeling/wagon_cabinet'
 TEX = {'wood': 'minecraft:block/oak_planks', 'end': 'minecraft:block/stripped_oak_log', 'iron': 'minecraft:block/black_concrete'}
 FACES = ['north', 'south', 'east', 'west', 'up', 'down']
 
@@ -82,7 +82,7 @@ for size, half in [('single', 8.5), ('double', 15.5), ('single_wooden', 8.5), ('
             write(ASSETS / f'models/block/cabinet_{size}_{label}.json', model(baked))
     for extended in [False, True]:
         prefix = 'long_' if extended else ''
-        source = ROOT / f'modeling/open_cargo_wagon/variants/{prefix}{size}_seat_single_horse/wagon.bbmodel'
+        source = ROOT / f'shared-assets/modeling/open_cargo_wagon/variants/{prefix}{size}_seat_single_horse/wagon.bbmodel'
         for opened in [False, True]:
             name = f'{prefix}{size}_cabinet_{"open" if opened else "closed"}'
             proj = json.loads(source.read_text(encoding='utf-8'))

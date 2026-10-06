@@ -6,7 +6,7 @@ import shutil
 import uuid
 
 ROOT=Path(__file__).resolve().parents[1]
-VARIANTS=ROOT/'modeling/open_cargo_wagon/variants'
+VARIANTS=ROOT/'shared-assets/modeling/open_cargo_wagon/variants'
 
 def write(path,data):
     path.write_text(json.dumps(data,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')

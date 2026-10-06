@@ -1,7 +1,7 @@
 # Coachman's Handbook
 
-The book definition is `src/main/resources/data/tm_wagon/patchouli_books/coachmans_manual/book.json`.
-Chapter content lives in `src/main/resources/assets/tm_wagon/patchouli_books/coachmans_manual/`.
+The book definition is `versions/mc-1.21.1/common/src/main/resources/data/tm_wagon/patchouli_books/coachmans_manual/book.json`.
+Chapter content lives in `versions/mc-1.21.1/common/src/main/resources/assets/tm_wagon/patchouli_books/coachmans_manual/`.
 Edit the native JSON files directly. English, Simplified Chinese and Traditional Chinese have full chapters.
 Other languages use Patchouli's English content fallback, with translated category names, landing links and recipe headings.
 
@@ -46,7 +46,7 @@ python tools/validate_localizations.py
 Client smoke test (requires a disposable `build/handbook-client/saves/repro` world with a handbook in its hotbar):
 
 ```powershell
-.\gradlew.bat runHandbookSmokeTest '-PpatchouliTestJar=<absolute path to Patchouli 1.21.1-93-NEOFORGE.jar>'
+.\gradlew.bat :mc-1.21.1:neoforge:runHandbookSmokeTest '-PpatchouliTestJar=<absolute path to Patchouli 1.21.1-93-NEOFORGE.jar>'
 ```
 
 The test verifies the native book, installed-mod gates, every visible spread, nonempty recipe outputs and text bounds.

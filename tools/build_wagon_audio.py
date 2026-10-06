@@ -31,7 +31,7 @@ def build(source):
     peak = max(abs(loop))
     if peak > .85:
         loop *= .85/peak
-    output = ROOT / 'src/main/resources/assets/tm_wagon/sounds/wagon_roll.ogg'
+    output = ROOT / 'versions/mc-1.21.1/common/src/main/resources/assets/tm_wagon/sounds/wagon_roll.ogg'
     sf.write(output, loop, rate, format='OGG', subtype='VORBIS')
     decoded, decoded_rate = sf.read(output)
     assert decoded_rate == rate and decoded.ndim == 1 and len(decoded) == length

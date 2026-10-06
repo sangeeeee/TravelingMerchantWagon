@@ -6,7 +6,7 @@ import shutil
 import uuid
 
 ROOT=Path(__file__).resolve().parents[1]
-VARIANTS=ROOT/'modeling/open_cargo_wagon/variants'
+VARIANTS=ROOT/'shared-assets/modeling/open_cargo_wagon/variants'
 SEATS=['single_seat','double_seat','single_wooden_seat','double_wooden_seat','triple_seat','triple_wooden_seat']
 HORSES=['single_horse','double_horse']
 WIDTH=1.75

@@ -27,7 +27,7 @@ can be explained separately.
 
 - `assembly_overview_zh_cn.png`: Chinese overview for review, 1440 x 1160.
 - Individual images in `docs/handbook/assembly/`: transparent 800 x 800 renders.
-- `src/main/resources/assets/tm_wagon/textures/gui/handbook/assembly/`: six
+- `versions/mc-1.21.1/common/src/main/resources/assets/tm_wagon/textures/gui/handbook/assembly/`: six
   transparent 256 x 256 Patchouli textures; the illustration occupies the
   upper-left 200 x 200 area. They contain no embedded text, so titles and
   explanations can be localized separately.

@@ -42,3 +42,13 @@ repo/
 /docs/
 /reports/
 /publishing/
+
+### Multi-version development ###
+/shared-assets/
+**/libs/
+**/run-*/
+**/logs/
+**/screenshots/
+**/crash-reports/
+__pycache__/
+*.pyc

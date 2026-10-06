@@ -46,4 +46,6 @@ By default, two hitched draft animals provide **20% more forward and reverse acc
 
 ## License
 
+For source builds and the multi-version project layout, see [BUILDING.md](BUILDING.md).
+
 TravelingMerchantWagon is licensed under the **GNU General Public License, version 2 only (GPL-2.0-only)**. See [LICENSE](LICENSE) for the full terms and [NOTICE](NOTICE) for attribution. The original NeoForged MDK template retains its [MIT license notice](TEMPLATE_LICENSE.txt).

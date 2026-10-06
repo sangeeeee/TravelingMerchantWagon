@@ -1,0 +1,9 @@
+// Target settings stay outside root properties so future Minecraft and loader
+// projects cannot accidentally inherit another target's dependency versions.
+[file('../gradle.properties'), file('gradle.properties')].each { propertyFile ->
+    if (propertyFile.isFile()) {
+        def values = new Properties()
+        propertyFile.withReader('UTF-8') { values.load(it) }
+        values.each { key, value -> project.ext.set(key.toString(), value.toString()) }
+    }
+}

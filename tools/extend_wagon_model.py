@@ -8,7 +8,7 @@ from pathlib import Path
 import shutil
 
 ROOT = Path(__file__).resolve().parents[1]
-VARIANTS = ROOT / 'modeling/open_cargo_wagon/variants'
+VARIANTS = ROOT / 'shared-assets/modeling/open_cargo_wagon/variants'
 EXTENSION = 11.2
 
 

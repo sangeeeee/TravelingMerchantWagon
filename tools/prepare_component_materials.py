@@ -12,9 +12,9 @@ from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 
 ROOT = Path(__file__).resolve().parents[1]
-ASSETS = ROOT / 'src/main/resources/assets/tm_wagon'
+ASSETS = ROOT / 'versions/mc-1.21.1/common/src/main/resources/assets/tm_wagon'
 DEST = ASSETS / 'textures/component'
-PREVIEW = ROOT / 'modeling/materials'
+PREVIEW = ROOT / 'shared-assets/modeling/materials'
 ART = json.loads((ROOT / 'tools/materials/wood_art.json').read_text(encoding='utf-8'))
 COMPONENTS = {
     'cargo_body': ('货物车厢', 'Cargo Body', 'wagon_atlas', 0),

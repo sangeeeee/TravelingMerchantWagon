@@ -1,0 +1,44 @@
+plugins {
+    id 'java-library'
+    id 'net.neoforged.moddev'
+}
+
+apply from: rootProject.file('gradle/load-target-properties.gradle')
+base.archivesName = "${mod_id}-common-${minecraft_version}"
+java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+
+// Compile shared game code against vanilla Minecraft, never loader patches or
+// optional compatibility mods. Loader projects compile these sources themselves.
+neoForge {
+    neoFormVersion = neo_form_version
+    parchment {
+        minecraftVersion = parchment_minecraft_version
+        mappingsVersion = parchment_mappings_version
+    }
+}
+
+dependencies {
+    api project(':core')
+}
+
+sourceSets.main.resources {
+    exclude '**/*.bbmodel', '**/.cache/**'
+}
+
+configurations {
+    commonJava {
+        canBeConsumed = true
+        canBeResolved = false
+    }
+    commonResources {
+        canBeConsumed = true
+        canBeResolved = false
+    }
+}
+artifacts {
+    commonJava file('src/main/java')
+    commonResources file('src/main/resources')
+}
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}

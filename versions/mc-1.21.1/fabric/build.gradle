@@ -1,0 +1,10 @@
+plugins {
+    id 'base'
+}
+
+description = 'Reserved Fabric 1.21.1 target; loader implementation is not available yet.'
+tasks.named('build') {
+    doLast {
+        logger.lifecycle('Fabric 1.21.1: scaffold only; no distributable JAR is produced.')
+    }
+}

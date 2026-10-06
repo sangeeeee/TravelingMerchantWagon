@@ -46,4 +46,6 @@ TravelingMerchantWagon 为 Minecraft 添加了可以自由搭配的木制马车�
 
 ## 许可证
 
+源码构建方式及多版本项目结构见 [BUILDING.md](BUILDING.md)。
+
 TravelingMerchantWagon 使用 **GNU 通用公共许可证第 2 版，仅限该版本（GPL-2.0-only）**。完整条款见 [LICENSE](LICENSE)，版权说明见 [NOTICE](NOTICE)。原始 NeoForged MDK 模板的 [MIT 许可声明](TEMPLATE_LICENSE.txt) 予以保留。

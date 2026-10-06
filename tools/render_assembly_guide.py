@@ -11,11 +11,11 @@ import math
 from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageChops
 
 ROOT = Path(__file__).resolve().parents[1]
-ASSETS = ROOT / 'src/main/resources/assets/tm_wagon'
+ASSETS = ROOT / 'versions/mc-1.21.1/common/src/main/resources/assets/tm_wagon'
 OUTPUT = ROOT / 'docs/handbook/assembly'
 BOOK = ASSETS / 'textures/gui/handbook/assembly'
-MODEL = ROOT / 'modeling/open_cargo_wagon/variants/single_wooden_seat_single_horse/wagon.bbmodel'
-FRAME = ROOT / 'modeling/wagon_assembly_frame/wagon_assembly_frame.bbmodel'
+MODEL = ROOT / 'shared-assets/modeling/open_cargo_wagon/variants/single_wooden_seat_single_horse/wagon.bbmodel'
+FRAME = ROOT / 'shared-assets/modeling/wagon_assembly_frame/wagon_assembly_frame.bbmodel'
 SIZE = 800
 CYAN = (30, 164, 190, 255)
 

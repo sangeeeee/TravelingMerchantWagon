@@ -10,7 +10,7 @@ import sys
 import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
-LANG = ROOT / "src/main/resources/assets/tm_wagon/lang"
+LANG = ROOT / "versions/mc-1.21.1/common/src/main/resources/assets/tm_wagon/lang"
 # Language resources shipped by the compile-time Touhou Little Maid 1.5.3 dependency.
 LOCALES = set("de_de en_us es_es fr_fr id_id it_it ja_jp ko_kr la_la lzh pt_br pt_pt ru_ru tr_tr vi_vn zh_cn zh_tw".split())
 TOKEN = re.compile(r"%(?:(\d+)\$)?s|%%")
