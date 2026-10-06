@@ -1,0 +1,43 @@
+{
+  "required": true,
+  "package": "com.sange.tm_wagon.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "WagonCollisionMixin",
+    "WagonCarryOnPickupMixin",
+    "WagonSophisticatedContextMixin",
+    "WagonTravelerActionsMixin",
+    "WagonMaidFollowVehicleMixin",
+    "WagonMaidTaskMixin",
+    "WagonMaidBedMixin",
+    "WagonMaidSleepMixin",
+    "WagonMovementMixin",
+    "WagonLithiumMovementMixin",
+    "WagonLithiumClearanceMixin",
+    "WagonSableAssemblyMixin",
+    "WagonClearanceMixin",
+    "WagonPlayerCollisionMixin",
+    "WagonPickingMixin",
+    "WagonQueryMixin",
+    "WagonSupportPlayerMixin",
+    "WagonSleepLivingMixin",
+    "WagonSleepServerPlayerMixin",
+    "HorseTravelMixin",
+    "HorseAnimationMixin",
+    "HorseLeashMixin",
+    "WagonEntityDataMixin",
+    "WagonHammerAttackMixin",
+    "WagonSleepValidationMixin"
+  ],
+  "client": [
+    "WagonWorldBlockPickingMixin",
+    "WagonSleepCameraMixin",
+    "WagonSleepRendererMixin",
+    "WagonChestLidMixin",
+    "WagonIrisShadowMixin",
+    "WagonClientInputMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

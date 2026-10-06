@@ -1,9 +1,8 @@
 # Building and maintaining the version targets
 
 The repository uses one Gradle build with a shared core, Minecraft-version
-modules, and loader-specific targets. The maintained target is NeoForge 1.21.1.
-Fabric 1.21.1 has a dependency environment; its gameplay port is pending and it
-does not produce a mod JAR yet.
+modules, and loader-specific targets. The maintained targets are NeoForge 1.21.1 and Fabric 1.21.1.
+Both targets produce independently installable mod JARs.
 
 ```text
 core/
@@ -25,14 +24,17 @@ shared-assets/                 ignored, local editable master assets
   collision boxes, pose transforms, wood registry helpers, and dye palette. Its
   independent build compiles against vanilla Minecraft through NeoForm, so
   accidental NeoForge API references fail compilation. Runtime assets and data
-  are also stored here.
+  are also stored here. `src/gameplay/java` holds shared gameplay and rendering
+  sources that require platform bindings or optional APIs. Both loaders compile
+  these sources against their own dependencies; they are excluded from the
+  standalone vanilla-only common compilation.
 - `mc-1.21.1:neoforge` owns registrations, events, networking, configuration
   bindings, rendering integration, game tests and optional mod compatibility.
-  Gameplay modules still coupled to those bindings remain here until the Fabric
-  port introduces the relevant platform interfaces.
+  Loader-independent gameplay is exported by the common module.
 - `mc-1.21.1:fabric` compiles common sources through Fabric Loom using official
   Mojang mappings. It owns its Fabric compatibility APIs and development runtime
-  profiles. Its build deliberately produces no JAR until gameplay is ported.
+  profiles, registrations, network payloads, events, configuration bindings and
+  native Fabric compatibility adapters.
 
 Common sources are exported as Gradle artifacts and compiled again by each
 loader target against its own game environment. The shared core classes are
@@ -45,12 +47,14 @@ Use JDK 21 for this build. From the repository root on Windows:
 
 ```powershell
 .\gradlew.bat build
-.\gradlew.bat runClient
-.\gradlew.bat runGameTestServer
-.\gradlew.bat runClient -PclientSmoke=true
+.\gradlew.bat :mc-1.21.1:fabric:runClient
+.\gradlew.bat :mc-1.21.1:neoforge:runClient
+.\gradlew.bat :mc-1.21.1:fabric:runGameTest
+.\gradlew.bat :mc-1.21.1:neoforge:runGameTestServer
+.\gradlew.bat :mc-1.21.1:neoforge:runClient -PclientSmoke=true
 ```
 
-The last command uses an isolated client directory, renders the existing model
+The last command uses an isolated NeoForge client directory, renders the existing model
 and animation previews, checks audio loading, and exits automatically. It does
 not alter the regular development world's settings or saves.
 
@@ -59,12 +63,45 @@ To build only the loader target or use its other development runs:
 ```powershell
 .\gradlew.bat :mc-1.21.1:neoforge:build
 .\gradlew.bat :mc-1.21.1:neoforge:runMaidGameTestServer
+.\gradlew.bat :mc-1.21.1:build
 ```
 
-The installable JAR is written to
-`versions/mc-1.21.1/neoforge/build/libs/tm_wagon-neoforge-1.21.1-<mod-version>.jar`.
-The root `build` aggregates every current project's build, including the Fabric
-dependency environment. It does not copy target artifacts to a common directory.
+In IntelliJ's Gradle tool window, select `mc-1.21.1 > fabric > Tasks > minecraft >
+runClient` or the corresponding `neoforge` loader. Launch and test tasks belong
+only to loader projects. The root and version parents expose aggregate build
+tasks, with no game-launch aliases. Reload the Gradle project after changing
+build scripts. From an aggregate directory, launch commands must specify the
+version and loader path. The Fabric client uses
+`versions/mc-1.21.1/fabric/run`; NeoForge uses its own run directory.
+
+Installable JARs are written to each loader target:
+
+- `versions/mc-1.21.1/neoforge/build/libs/tm_wagon-neoforge-1.21.1-<mod-version>.jar`
+- `versions/mc-1.21.1/fabric/build/libs/tm_wagon-fabric-1.21.1-<mod-version>.jar`
+
+Settings automatically discover `versions/mc-*` directories and their `common`,
+`fabric`, `neoforge`, and `forge` modules that have a Gradle build script. The
+root `build` aggregates the core and every discovered version; each version's
+`build` aggregates its own modules. New targets require no root launcher or
+build-list edits. It does not copy
+target artifacts to a common directory. Fabric verification includes its game
+tests; test classes and preview tools are excluded from release JARs.
+
+For Fabric development:
+
+```powershell
+.\gradlew.bat :mc-1.21.1:fabric:build
+.\gradlew.bat :mc-1.21.1:fabric:runClient
+.\gradlew.bat :mc-1.21.1:fabric:runGameTest -PfabricWithAllCompat=true
+.\gradlew.bat :mc-1.21.1:fabric:runClient -PfabricSmoke=true -PfabricWithAllCompat=true
+```
+
+Fabric preview sources compile in a separate `clientSmoke` source set and never
+enter release JARs. `:mc-1.21.1:fabric:runClientSmokeTest` uses `fabric/build/client-smoke`;
+the `fabricSmoke` property on `runClient` uses the normal Fabric run directory.
+Preview screenshots are saved in the selected run directory.
+See the [Fabric target notes](versions/mc-1.21.1/fabric/README.md)
+for required libraries and individual compatibility profiles.
 
 ## Dependencies and properties
 

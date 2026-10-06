@@ -44,6 +44,8 @@ TravelingMerchantWagon 为 Minecraft 添加了可以自由搭配的木制马车�
 
 默认情况下，实际拴上两匹拉车动物后，**前进和倒车加速度提高 20%**，货物对冲刺速度的扣减**减少 15%**。这两项加成均可在同一配置文件的 `draftTeam` 分组中调整。
 
+Fabric 版本还需要 Fabric API 与 [Forge Config API Port](https://modrinth.com/mod/forge-config-api-port)。可选兼容模组使用对应 Fabric 版本，其中女仆使用 Orihime 移植版，Sophisticated Backpacks/Core 和 TaCZ 使用 Fabric 移植版。
+
 ## 许可证
 
 源码构建方式及多版本项目结构见 [BUILDING.md](BUILDING.md)。

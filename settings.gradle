@@ -11,8 +11,22 @@ plugins {
 
 rootProject.name = 'TravelingMerchantWagon'
 
-include 'core', 'mc-1.21.1:common', 'mc-1.21.1:neoforge', 'mc-1.21.1:fabric'
-project(':mc-1.21.1').projectDir = file('versions/mc-1.21.1')
-['common', 'neoforge', 'fabric'].each { platform ->
-    project(":mc-1.21.1:${platform}").projectDir = file("versions/mc-1.21.1/${platform}")
+include 'core'
+
+// Each version owns its loader modules. New targets are discovered on Gradle
+// reload without adding aliases or a hard-coded build list at the root.
+file('versions').listFiles().findAll { it.isDirectory() && it.name.startsWith('mc-') }
+    .sort { it.name }.each { versionDirectory ->
+        def versionPath = ":${versionDirectory.name}"
+        include versionPath
+        project(versionPath).projectDir = versionDirectory
+        ['common', 'fabric', 'neoforge', 'forge'].each { platform ->
+            def moduleDirectory = new File(versionDirectory, platform)
+            if (new File(moduleDirectory, 'build.gradle').isFile()
+                    || new File(moduleDirectory, 'build.gradle.kts').isFile()) {
+                def modulePath = "${versionPath}:${platform}"
+                include modulePath
+                project(modulePath).projectDir = moduleDirectory
+            }
+        }
 }

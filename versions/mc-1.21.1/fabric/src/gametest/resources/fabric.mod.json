@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "id": "tm_wagon_tests",
+  "version": "1.0.0",
+  "name": "Wagon Fabric Tests",
+  "entrypoints": {
+    "fabric-gametest": [
+      "com.sange.tm_wagon.assembly.AssemblyGameTests",
+      "com.sange.tm_wagon.assembly.FramePlacementGameTests",
+      "com.sange.tm_wagon.assembly.OrientedCollisionGameTests",
+      "com.sange.tm_wagon.assembly.WagonEntityGameTests",
+      "com.sange.tm_wagon.cargo.CargoGameTests",
+      "com.sange.tm_wagon.material.WagonMaterialGameTests",
+      "com.sange.tm_wagon.material.WagonRecipeDisplayGameTests",
+      "com.sange.tm_wagon.assembly.WagonDrivingGameTests"${compatTestEntrypoints}
+    ]
+  }
+}

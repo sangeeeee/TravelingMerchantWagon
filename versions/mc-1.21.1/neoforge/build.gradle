@@ -24,14 +24,17 @@ sourceSets.main.resources {
 
 configurations {
     commonJava { canBeConsumed = false; canBeResolved = true }
+    commonGameplayJava { canBeConsumed = false; canBeResolved = true }
     commonResources { canBeConsumed = false; canBeResolved = true }
 }
 dependencies {
     compileOnly project(':core')
     commonJava project(path: ':mc-1.21.1:common', configuration: 'commonJava')
+    commonGameplayJava project(path: ':mc-1.21.1:common', configuration: 'commonGameplayJava')
     commonResources project(path: ':mc-1.21.1:common', configuration: 'commonResources')
 }
 sourceSets.main.java.srcDir(configurations.commonJava)
+sourceSets.main.java.srcDir(configurations.commonGameplayJava)
 sourceSets.main.resources.srcDir(configurations.commonResources)
 
 // Real-world placement tests are available in development runs, excluded from
@@ -427,6 +430,11 @@ publishing {
 
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8' // Use the UTF-8 charset for Java compilation
+}
+
+tasks.matching { it.name in ['runClient', 'runServer'] }.configureEach {
+    group = 'minecraft'
+    description = "Launch Minecraft ${minecraft_version} on NeoForge with tm_wagon (${name == 'runClient' ? 'client' : 'server'})."
 }
 
 // IDEA no longer automatically downloads sources/javadoc jars for dependencies, so we need to explicitly enable the behavior.

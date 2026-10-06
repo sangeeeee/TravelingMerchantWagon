@@ -1,0 +1,29 @@
+package com.sange.tm_wagon.assembly;
+
+import com.sange.tm_wagon.compat.StructureCollision;
+import net.minecraft.gametest.framework.GameTest;
+import net.minecraft.gametest.framework.GameTestHelper;
+
+public class SableCompatGameTests implements net.fabricmc.fabric.api.gametest.v1.FabricGameTest {
+    @GameTest(template="tm_wagon:assembly_test",timeoutTicks=100)
+    public void sable_cached_surfaces_keep_sweeps_and_refresh_between_scopes(GameTestHelper h) {
+        if(StructureCollision.available())SableCompatFixtures.cachedSurfaces(h);h.succeed();
+    }
+    @GameTest(template="tm_wagon:assembly_test",timeoutTicks=100)
+    public void sable_passenger_clearance_blocks_boarding_and_driving(GameTestHelper h) {
+        if(StructureCollision.available())SableCompatFixtures.riderClearance(h);h.succeed();
+    }
+    private static void run(GameTestHelper h,int scenario) {
+        if(StructureCollision.available())SableCompatFixtures.run(h,scenario);
+        h.succeed();
+    }
+    @GameTest(template="tm_wagon:assembly_test",timeoutTicks=100)
+    public void sable_rotated_platform_support(GameTestHelper h) { run(h,0); }
+    @GameTest(template="tm_wagon:assembly_test",timeoutTicks=100)
+    public void sable_structure_blocks_driving(GameTestHelper h) { run(h,1); }
+    @GameTest(template="tm_wagon:assembly_test",timeoutTicks=100)
+    public void sable_moving_platform_carries_wagon(GameTestHelper h) { run(h,2); }
+    @GameTest(template="tm_wagon:assembly_test",timeoutTicks=100)
+    public void sable_moving_wall_pushes_wagon(GameTestHelper h) { run(h,3); }    @GameTest(template="tm_wagon:assembly_test",timeoutTicks=100)
+    public void sable_rotating_platform_carries_position_and_heading(GameTestHelper h) { run(h,4); }
+}

@@ -54,9 +54,11 @@ abstract class ExtractEmbeddedFabricApis implements TransformAction<TransformPar
 
 apply from: rootProject.file('gradle/load-target-properties.gradle')
 
-description = 'Fabric 1.21.1 dependency environment; gameplay port is pending.'
+description = 'TravelingMerchantWagon for Fabric 1.21.1.'
 base.archivesName = "${mod_id}-fabric-${minecraft_version}"
 java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+evaluationDependsOn(':core')
+def coreOutput = project(':core').sourceSets.main.output
 
 repositories {
     exclusiveContent {
@@ -72,8 +74,10 @@ repositories {
 
 configurations {
     commonJava { canBeConsumed = false; canBeResolved = true }
+    commonGameplayJava { canBeConsumed = false; canBeResolved = true }
     commonResources { canBeConsumed = false; canBeResolved = true }
     embeddedCompatibilityArchives { canBeConsumed = false; canBeResolved = true }
+    embeddedRuntimeArchives { canBeConsumed = false; canBeResolved = true }
 }
 
 // Version IDs select Fabric artifacts unambiguously, including unofficial ports.
@@ -106,9 +110,16 @@ dependencies {
     modImplementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
     modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_api_version}"
     modImplementation("maven.modrinth:8BmcQJ2H:${geckolib_fabric_version_id}") { transitive = false }
+    modImplementation("maven.modrinth:ohNO6lps:${forge_config_api_port_fabric_version_id}") { transitive = false }
+    implementation 'com.electronwill.night-config:core:3.8.0'
+    implementation 'com.electronwill.night-config:toml:3.8.0'
 
     compileOnly project(':core')
+    // Bind the core's compiled classes to tm_wagon in development, just as in
+    // the release JAR. A separate core JAR is not a Fabric mod.
+    runtimeOnly files(coreOutput)
     commonJava project(path: ':mc-1.21.1:common', configuration: 'commonJava')
+    commonGameplayJava project(path: ':mc-1.21.1:common', configuration: 'commonGameplayJava')
     commonResources project(path: ':mc-1.21.1:common', configuration: 'commonResources')
 
     compatibilityMods.values().each { coordinate ->
@@ -150,23 +161,110 @@ runtimeProfiles.each { name, mods ->
         selectedRuntimeMods.addAll(mods)
     }
 }
+// Sable 2.0.6 requires experimental Sodium, incompatible with Iris 1.8.8.
+if (selectedRuntimeMods.contains('sable')) selectedRuntimeMods.removeAll(['iris', 'sodium'])
 dependencies {
     selectedRuntimeMods.each { name ->
         modLocalRuntime(compatibilityMods[name]) { transitive = false }
     }
 }
 
+// Loom strips nested archives from remapped development mods. Restore their
+// actual shipped runtime libraries separately; release artifacts do not bundle them.
+abstract class ExtractEmbeddedFabricRuntime implements TransformAction<TransformParameters.None> {
+    @InputArtifact abstract Provider<FileSystemLocation> getInputArtifact()
+    @Override void transform(TransformOutputs outputs) {
+        new ZipFile(inputArtifact.get().asFile).withCloseable { archive ->
+            archive.entries().findAll { it.name.startsWith('META-INF/jars/') && it.name.endsWith('.jar') }.each { entry ->
+                expand(archive.getInputStream(entry).readAllBytes(), new File(entry.name).name, outputs)
+            }
+        }
+    }
+    static void expand(byte[] bytes, String name, TransformOutputs outputs) {
+        def nested = new LinkedHashMap<String, byte[]>()
+        def id = null
+        new ZipInputStream(new ByteArrayInputStream(bytes)).withCloseable { stream ->
+            java.util.zip.ZipEntry entry
+            while ((entry = stream.nextEntry) != null) {
+                if (entry.name == 'fabric.mod.json') id = new JsonSlurper().parseText(new String(stream.readAllBytes(), 'UTF-8')).id
+                else if (entry.name.startsWith('META-INF/jars/') && entry.name.endsWith('.jar')) nested[entry.name] = stream.readAllBytes()
+            }
+        }
+        if (!(id in ['fabric-api', 'fabricloader', 'mixinextras', 'forgeconfigapiport'])) {
+            outputs.file(name).bytes = bytes
+            nested.each { path, content -> expand(content, new File(path).name, outputs) }
+        }
+    }
+}
+dependencies {
+    registerTransform(ExtractEmbeddedFabricRuntime) {
+        from.attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, 'jar')
+        to.attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, 'tm-wagon-fabric-runtime-libraries')
+    }
+    selectedRuntimeMods.each { name ->
+        embeddedRuntimeArchives(compatibilityMods[name]) { transitive = false }
+    }
+    modLocalRuntime configurations.embeddedRuntimeArchives.incoming.artifactView {
+        attributes { attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, 'tm-wagon-fabric-runtime-libraries') }
+    }.files
+}
+
 sourceSets.main.java.srcDir(configurations.commonJava)
+sourceSets.main.java.srcDir(configurations.commonGameplayJava)
 sourceSets.main.resources {
     srcDir configurations.commonResources
     exclude '**/*.bbmodel', '**/.cache/**'
 }
+sourceSets {
+    clientSmoke {
+        java.srcDir 'src/smoke/java'
+        compileClasspath += sourceSets.main.output + sourceSets.main.compileClasspath
+        runtimeClasspath += sourceSets.main.output + sourceSets.main.runtimeClasspath
+    }
+}
 tasks.withType(JavaCompile).configureEach { options.encoding = 'UTF-8' }
 
-// Dependency preparation must not publish an apparently functional Fabric mod.
-// Enable these packaging tasks when registrations and loader metadata are ported.
-tasks.named('jar') { enabled = false }
-tasks.named('remapJar') { enabled = false }
+def fabricSmokeEnabled = providers.gradleProperty('fabricSmoke').getOrElse('false').toBoolean()
+loom {
+    mods {
+        tm_wagon {
+            sourceSet sourceSets.main
+            sourceSet project(':core').sourceSets.main
+            sourceSet sourceSets.clientSmoke
+        }
+    }
+    runs {
+        client {
+            runDir 'run'
+            if (fabricSmokeEnabled) source sourceSets.clientSmoke
+            vmArg '-Dtm_wagon.fabricSmoke=' + providers.gradleProperty('fabricSmoke').getOrElse('false')
+            vmArg '-Dtm_wagon.fabricSmokeMode=' + providers.gradleProperty('fabricSmokeMode').getOrElse('models')
+            vmArg '-Dtm_wagon.fabricSmokeWorld=' + providers.gradleProperty('fabricSmokeWorld').getOrElse('repro')
+        }
+        server { runDir 'run-server' }
+        clientSmokeTest {
+            client()
+            source sourceSets.clientSmoke
+            runDir 'build/client-smoke'
+            vmArg '-Dtm_wagon.fabricSmoke=true'
+            vmArg '-Dtm_wagon.fabricSmokeMode=' + providers.gradleProperty('fabricSmokeMode').getOrElse('models')
+            vmArg '-Dtm_wagon.fabricSmokeWorld=' + providers.gradleProperty('fabricSmokeWorld').getOrElse('repro')
+            ideConfigGenerated false
+        }
+    }
+}
+def fabricResourceVersion = project.version.toString()
+tasks.named('processResources') {
+    inputs.property('version', project.version)
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    filesMatching('fabric.mod.json') { expand(version: fabricResourceVersion) }
+}
+def fabricLicenseName = "LICENSE_${mod_id}"
+tasks.named('jar') {
+    from project(':core').sourceSets.main.output
+    from(rootProject.file('LICENSE')) { rename { fabricLicenseName } }
+}
+tasks.withType(JavaCompile).configureEach { options.compilerArgs += ['-Xmaxerrs', '500'] }
 tasks.register('verifyCompatibilityDependencies') {
     group = 'verification'
     description = 'Resolve Fabric compatibility APIs, nested APIs and selected runtime profiles.'
@@ -197,8 +295,37 @@ tasks.register('verifyCompatibilityDependencies') {
     }
 }
 tasks.named('check') { dependsOn tasks.named('verifyCompatibilityDependencies') }
-tasks.named('build') {
-    doLast {
-        logger.lifecycle('Fabric 1.21.1: dependencies prepared; gameplay port pending; no distributable JAR.')
-    }
+
+fabricApi.configureTests {
+    createSourceSet = true
+    modId = 'tm_wagon_tests'
+    enableGameTests = true
+    enableClientGameTests = false
+    eula = true
+    clearRunDirectory = false
+}
+
+// Loom's default "fabric" group is a task category, not another subproject.
+// Both loaders expose their interactive runs under the same clear category.
+tasks.matching { it.name in ['runClient', 'runServer'] }.configureEach {
+    group = 'minecraft'
+    description = "Launch Minecraft ${minecraft_version} on Fabric with tm_wagon (${name == 'runClient' ? 'client' : 'server'})."
+}
+tasks.named('runGameTest') {
+    group = 'verification'
+    description = 'Run Fabric 1.21.1 wagon gameplay tests.'
+}
+tasks.named('runClientSmokeTest') {
+    group = 'verification'
+    description = 'Check Fabric wagon rendering or inventory in an isolated client directory.'
+}
+
+def fabricCompatTestEntries = []
+if (selectedRuntimeMods.contains('maid')) fabricCompatTestEntries.add('com.sange.tm_wagon.compat.maid.WagonMaidGameTests')
+if (selectedRuntimeMods.contains('travelersBackpack') && selectedRuntimeMods.contains('sophisticatedBackpacks')) fabricCompatTestEntries.add('com.sange.tm_wagon.cargo.BackpackGameTests')
+if (selectedRuntimeMods.contains('sable')) fabricCompatTestEntries.add('com.sange.tm_wagon.assembly.SableCompatGameTests')
+def fabricCompatTestJson = fabricCompatTestEntries.collect { ', "' + it + '"' }.join('')
+tasks.named('processGametestResources') {
+    inputs.property('compatTestEntrypoints', fabricCompatTestJson)
+    filesMatching('fabric.mod.json') { expand(compatTestEntrypoints: fabricCompatTestJson) }
 }

@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "id": "tm_wagon",
+  "version": "${version}",
+  "name": "TravelingMerchantWagon",
+  "description": "Build modular wagons, haul cargo and travel with horses.",
+  "authors": [
+    "Sange"
+  ],
+  "license": "GPL-2.0-only",
+  "icon": "icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "com.sange.tm_wagon.TravelingMerchantWagon"
+    ],
+    "client": [
+      "com.sange.tm_wagon.TravelingMerchantWagonClient"
+    ],
+    "little_maid_extension": [
+      "com.sange.tm_wagon.compat.maid.WagonMaidExtension"
+    ],
+    "jei_mod_plugin": [
+      "com.sange.tm_wagon.compat.jei.WagonJeiPlugin"
+    ]
+  },
+  "mixins": [
+    "tm_wagon.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.18.4",
+    "minecraft": "~1.21.1",
+    "java": ">=21",
+    "fabric-api": "*",
+    "geckolib": ">=4.9.3 <5",
+    "forgeconfigapiport": ">=21.1.6"
+  },
+  "breaks": {
+    "carryon": "<2.2.4"
+  },
+  "suggests": {
+    "carryon": ">=2.2.4",
+    "patchouli": "*",
+    "sable": "*",
+    "touhou_little_maid": "*",
+    "travelersbackpack": "*",
+    "sophisticatedbackpacks": "*"
+  }
+}

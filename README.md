@@ -40,7 +40,7 @@ Supported vanilla-style modded chests and barrels also work as interactive cargo
 
 For either backpack mod, sneak-right-click an empty slot to load a held backpack, right-click the loaded backpack to open it, and sneak-right-click it to unload. Carry On takes priority when its pickup conditions are met.
 
-**[GeckoLib](https://modrinth.com/mod/geckolib) is required** for wagon animations. Server owners can customize cargo rules, driving behaviour and handbook gifts in `tm_wagon-server.toml`.
+**[GeckoLib](https://modrinth.com/mod/geckolib) is required** for wagon animations. The Fabric version also requires **Fabric API** and **[Forge Config API Port](https://modrinth.com/mod/forge-config-api-port)**. Fabric integrations use the corresponding Fabric releases, including the Orihime maid port and the Sophisticated Backpacks/Core and TaCZ ports. Server owners can customize cargo rules, driving behaviour and handbook gifts in `tm_wagon-server.toml`.
 
 By default, two hitched draft animals provide **20% more forward and reverse acceleration**, and reduce the cargo deduction from sprint speed by **15%**. Server owners can adjust both benefits in the `draftTeam` section of the same configuration file.
 

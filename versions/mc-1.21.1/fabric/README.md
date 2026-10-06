@@ -1,14 +1,33 @@
 # Fabric 1.21.1
 
-This target has a Fabric Loom development environment and isolated Fabric
-compatibility dependencies. Gameplay registrations, platform bindings and
-compatibility implementations have not been ported yet. Packaging tasks remain
-disabled, so this preparation does not produce an installable Fabric mod.
+This target implements wagon assembly, driving, rotated collisions, cargo, seats,
+sleeping, optional equipment, materials, recipes, sounds and the handbook on Fabric.
+Platform events, networking and native menus use Fabric APIs. Shared gameplay
+and assets are compiled with each loader's own compatibility dependencies.
+
+Players need **Fabric API**, **GeckoLib**, and **Forge Config API Port**. Optional
+integrations work with the Fabric releases listed below. Server configuration
+uses `tm_wagon-server.toml`, generated at startup.
 
 The build compiles the sibling `common` sources with official Mojang mappings
 and consumes the Java-only `core`. NeoForge artifacts are never used on this
 target's compatibility classpath. Local development JARs belong in this target's
 ignored `libs/` directory.
+
+## Finding wagon items in game
+
+Launch from `mc-1.21.1 > fabric > Tasks > minecraft > runClient`.
+The root project aggregates builds across versions and has no game-launch tasks.
+Loom's remaining `fabric`
+task category contains tooling tasks, not a second Fabric project. Reload the
+Gradle project to refresh task categories after build-script changes.
+
+Fabric places custom creative inventory tabs on additional pages. Click the
+small right arrow at the upper right of the creative inventory to reach the
+second page, then select the wagon icon. Wagon items also appear in creative
+search. There is no numbered page indicator: the arrows are inside the inventory
+panel, beside the category title. The optional Mod Menu mod supplies a main-menu mod list; Fabric does
+not provide that screen by itself.
 
 ## Required development dependencies
 
@@ -21,7 +40,7 @@ ignored `libs/` directory.
 The following Fabric 1.21.1 releases were checked against their published
 `fabric.mod.json` and project metadata. Exact Modrinth version IDs are pinned in
 `gradle.properties`; a shared release number cannot accidentally select a
-NeoForge artifact. Adding a dependency does not itself port a compatibility hook.
+NeoForge artifact. Their compatibility adapters are implemented in this target or shared gameplay sources.
 
 | Compatibility target | Selected Fabric version | Required support libraries / port notes |
 | --- | --- | --- |
@@ -42,7 +61,8 @@ External support libraries are pinned to Forge Config API Port 21.1.6, Cloth
 Config 15.0.140 and Cardinal Components 6.1.3. Only required external libraries
 are added to the corresponding development runtime. Embedded Porting Lib,
 Energy, Cardinal Components and Sable Companion APIs are extracted and remapped for compilation;
-the parent mods provide them at runtime. Veil is supplied by Sable rather than
+the parent mods provide them at runtime. For development runs, an artifact transform
+restores nested mod and library archives that Loom otherwise strips during remapping. Veil is supplied by Sable rather than
 replaced with an unrelated newer standalone release.
 
 The native NeoForge Touhou Little Maid, Sophisticated Backpacks/Core, TACZ and
@@ -59,11 +79,40 @@ From the repository root:
 .\gradlew.bat :mc-1.21.1:fabric:verifyCompatibilityDependencies -PfabricWithAllCompat=true
 ```
 
-The first command resolves the compile APIs and compiles shared game code. The
-second also resolves all selected optional runtime dependencies. Neither command
-claims that gameplay integration or combined-mod startup has been implemented.
+The first command builds the release JAR and runs the base gameplay tests. The
+second checks the API and optional runtime classpaths. For actual integration tests
+and renderer previews:
+
+```powershell
+.\gradlew.bat :mc-1.21.1:fabric:runGameTest -PfabricWithAllCompat=true
+.\gradlew.bat :mc-1.21.1:fabric:runClient -PfabricSmoke=true -PfabricWithAllCompat=true
+.\gradlew.bat :mc-1.21.1:fabric:runClient -PfabricSmoke=true -PfabricWithIris=true
+.\gradlew.bat :mc-1.21.1:fabric:runClient -PfabricSmoke=true -PfabricSmokeMode=backpacks -PfabricWithBackpacks=true
+.\gradlew.bat :mc-1.21.1:fabric:runClient -PfabricSmoke=true -PfabricSmokeMode=creative
+.\gradlew.bat :mc-1.21.1:fabric:runClientSmokeTest
+```
+
+The loader's `runClientSmokeTest` task uses the isolated `build/client-smoke`
+directory. Preview code compiles separately and is never packaged in the release
+JAR, including when a preview flag is supplied.
+
+The creative preview can use a disposable save in the selected run's `saves` with
+`-PfabricSmokeWorld=<folder-name>`; it opens and saves that world. Use a copy
+when investigating an existing save.
+
+Sable 2.0.6 declares an incompatibility with the Sodium 0.6.x required by Iris
+1.8.8. The all-compatibility development profile therefore uses Sable without
+Iris/Sodium; the separate Iris profile validates those graphics dependencies.
+This profile choice does not restrict which optional mods the release JAR detects.
 
 Individual development profiles use `-PfabricWith<Name>=true`: `Maid`,
 `Backpacks`, `CarryOn`, `Sable`, `Patchouli`, `Guns`, `SwingThrough`, `Lithium`,
 `Iris`, or `Jei`. These flags affect only the Fabric target. Optional mods remain
 compile-only by default and are never bundled into the wagon mod.
+
+The `backpacks` preview mode opens the isolated `run/saves/repro` fixture world
+and validates native menus and networked slot/settings edits. Supply a disposable
+fixture save before that run; it never targets an external modpack world.
+
+The `creative` preview uses the same disposable fixture save to check the real
+creative inventory, its second-page wagon tab, and inclusion in creative search.

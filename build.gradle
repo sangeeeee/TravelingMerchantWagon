@@ -9,9 +9,17 @@ allprojects {
     version = rootProject.mod_version
 }
 
-// Internal libraries and active loader targets build together. Fabric is a
-// prepared dependency environment until its loader implementation is added.
-def projectsToBuild = [':core', ':mc-1.21.1:common', ':mc-1.21.1:neoforge', ':mc-1.21.1:fabric']
+// Version parents aggregate their own modules; the root aggregates all versions.
+def versionProjects = subprojects.findAll { it.parent == rootProject && it.name.startsWith('mc-') }
+configure(versionProjects) {
+    apply plugin: 'base'
+    description = "Minecraft ${name.substring(3)} build targets."
+    def modulePaths = childProjects.values().collect { it.path }
+    tasks.named('build') { dependsOn modulePaths.collect { "${it}:build" } }
+    tasks.named('clean') { dependsOn modulePaths.collect { "${it}:clean" } }
+}
+
+def projectsToBuild = [':core'] + versionProjects.collect { it.path }
 tasks.named('build') {
     dependsOn projectsToBuild.collect { "${it}:build" }
 }
@@ -19,13 +27,12 @@ tasks.named('clean') {
     dependsOn projectsToBuild.collect { "${it}:clean" }
 }
 
-// Keep convenient root entry points while development targets NeoForge 1.21.1.
-['runClient', 'runServer', 'runGameTestServer', 'runClientSmokeTest'].each { taskName ->
-    tasks.register(taskName) {
-        group = 'verification'
-        description = "Run ${taskName} for the maintained NeoForge 1.21.1 target."
-        dependsOn ":mc-1.21.1:neoforge:${taskName}"
-    }
+// Gradle otherwise selects every matching child task for a bare root runClient.
+// Require a loader path without exposing any game-launch task on aggregators.
+def aggregateDirectories = [rootProject.projectDir] + versionProjects.collect { it.projectDir }
+if (gradle.startParameter.currentDir in aggregateDirectories
+        && gradle.startParameter.taskNames.any { !it.contains(':') && it.startsWith('run') }) {
+    throw new GradleException('Select a version and loader, for example :mc-1.21.1:fabric:runClient or :mc-1.21.1:neoforge:runServer.')
 }
 
 tasks.named('wrapper', Wrapper) {

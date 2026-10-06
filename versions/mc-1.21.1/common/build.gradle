@@ -30,6 +30,10 @@ configurations {
         canBeConsumed = true
         canBeResolved = false
     }
+    commonGameplayJava {
+        canBeConsumed = true
+        canBeResolved = false
+    }
     commonResources {
         canBeConsumed = true
         canBeResolved = false
@@ -37,6 +41,7 @@ configurations {
 }
 artifacts {
     commonJava file('src/main/java')
+    commonGameplayJava file('src/gameplay/java')
     commonResources file('src/main/resources')
 }
 tasks.withType(JavaCompile).configureEach {
