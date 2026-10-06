@@ -2,7 +2,8 @@
 
 The repository uses one Gradle build with a shared core, Minecraft-version
 modules, and loader-specific targets. The maintained target is NeoForge 1.21.1.
-Fabric 1.21.1 is a scaffold and does not produce a mod JAR yet.
+Fabric 1.21.1 has a dependency environment; its gameplay port is pending and it
+does not produce a mod JAR yet.
 
 ```text
 core/
@@ -29,8 +30,9 @@ shared-assets/                 ignored, local editable master assets
   bindings, rendering integration, game tests and optional mod compatibility.
   Gameplay modules still coupled to those bindings remain here until the Fabric
   port introduces the relevant platform interfaces.
-- `mc-1.21.1:fabric` reserves the future loader target. Its build deliberately
-  produces no JAR and does not load NeoForge compatibility dependencies.
+- `mc-1.21.1:fabric` compiles common sources through Fabric Loom using official
+  Mojang mappings. It owns its Fabric compatibility APIs and development runtime
+  profiles. Its build deliberately produces no JAR until gameplay is ported.
 
 Common sources are exported as Gradle artifacts and compiled again by each
 loader target against its own game environment. The shared core classes are
@@ -62,7 +64,7 @@ To build only the loader target or use its other development runs:
 The installable JAR is written to
 `versions/mc-1.21.1/neoforge/build/libs/tm_wagon-neoforge-1.21.1-<mod-version>.jar`.
 The root `build` aggregates every current project's build, including the Fabric
-scaffold. It does not copy all target artifacts to a common output directory.
+dependency environment. It does not copy target artifacts to a common directory.
 
 ## Dependencies and properties
 
@@ -78,6 +80,15 @@ test-JAR properties, are still available on that target. Local JAR paths should
 be absolute, and local dependency files belong in the target's ignored `libs/`.
 The shared Gradle download cache is safe to reuse: target classpaths remain
 separate.
+
+The Fabric dependency inventory, unofficial port choices and target-specific
+runtime flags are documented in [its README](versions/mc-1.21.1/fabric/README.md).
+Validate that environment separately with:
+
+```powershell
+.\gradlew.bat :mc-1.21.1:fabric:verifyCompatibilityDependencies
+.\gradlew.bat :mc-1.21.1:fabric:verifyCompatibilityDependencies -PfabricWithAllCompat=true
+```
 
 ## Resources and Git
 

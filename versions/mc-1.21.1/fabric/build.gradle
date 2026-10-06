@@ -1,10 +1,204 @@
+import org.gradle.api.artifacts.transform.TransformAction
+import org.gradle.api.artifacts.transform.TransformOutputs
+import org.gradle.api.artifacts.transform.TransformParameters
+import org.gradle.api.artifacts.transform.InputArtifact
+import org.gradle.api.artifacts.type.ArtifactTypeDefinition
+import org.gradle.api.file.FileSystemLocation
+import org.gradle.api.provider.Provider
+import java.util.zip.ZipFile
+import java.util.zip.ZipInputStream
+import groovy.json.JsonSlurper
+
 plugins {
-    id 'base'
+    id 'java-library'
+    id 'fabric-loom'
 }
 
-description = 'Reserved Fabric 1.21.1 target; loader implementation is not available yet.'
+// Loom remaps dependencies during configuration, before normal extraction tasks
+// can run. An artifact transform makes nested APIs available on a clean checkout
+// and caches their extraction without adding them to the development runtime.
+abstract class ExtractEmbeddedFabricApis implements TransformAction<TransformParameters.None> {
+    @InputArtifact
+    abstract Provider<FileSystemLocation> getInputArtifact()
+
+    @Override
+    void transform(TransformOutputs outputs) {
+        new ZipFile(inputArtifact.get().asFile).withCloseable { archive ->
+            archive.entries().each { entry ->
+                if (entry.name.startsWith('META-INF/jars/') && entry.name.endsWith('.jar')
+                        && ExtractEmbeddedFabricApis.isCompileApi(archive, entry)) {
+                    def destination = outputs.file(new File(entry.name).name)
+                    archive.getInputStream(entry).withCloseable { input ->
+                        destination.withOutputStream { output -> input.transferTo(output) }
+                    }
+                }
+            }
+        }
+    }
+
+    static boolean isCompileApi(ZipFile archive, java.util.zip.ZipEntry entry) {
+        new ZipInputStream(archive.getInputStream(entry)).withCloseable { nested ->
+            java.util.zip.ZipEntry nestedEntry
+            while ((nestedEntry = nested.nextEntry) != null) {
+                if (nestedEntry.name == 'fabric.mod.json') {
+                    def id = new JsonSlurper().parseText(new String(nested.readAllBytes(), 'UTF-8')).id
+                    return (id in ['sablecompanion', 'team_reborn_energy',
+                                  'cardinal-components-base', 'cardinal-components-entity']
+                            || id.startsWith('porting_lib_'))
+                }
+            }
+            return false
+        }
+    }
+}
+
+apply from: rootProject.file('gradle/load-target-properties.gradle')
+
+description = 'Fabric 1.21.1 dependency environment; gameplay port is pending.'
+base.archivesName = "${mod_id}-fabric-${minecraft_version}"
+java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+
+repositories {
+    exclusiveContent {
+        forRepository {
+            maven {
+                name = 'ModrinthFabric'
+                url = 'https://api.modrinth.com/maven'
+            }
+        }
+        filter { includeGroup('maven.modrinth') }
+    }
+}
+
+configurations {
+    commonJava { canBeConsumed = false; canBeResolved = true }
+    commonResources { canBeConsumed = false; canBeResolved = true }
+    embeddedCompatibilityArchives { canBeConsumed = false; canBeResolved = true }
+}
+
+// Version IDs select Fabric artifacts unambiguously, including unofficial ports.
+def compatibilityMods = [
+    carryOn: "maven.modrinth:joEfVgkn:${carry_on_fabric_version_id}",
+    maid: "maven.modrinth:Tv58SCnQ:${maid_fabric_version_id}",
+    travelersBackpack: "maven.modrinth:rlloIFEV:${travelers_backpack_fabric_version_id}",
+    sophisticatedBackpacks: "maven.modrinth:ouNrBQtq:${sophisticated_backpacks_fabric_version_id}",
+    sophisticatedCore: "maven.modrinth:9jxwkYQL:${sophisticated_core_fabric_version_id}",
+    sable: "maven.modrinth:T9PomCSv:${sable_fabric_version_id}",
+    patchouli: "maven.modrinth:nU0bVIaL:${patchouli_fabric_version_id}",
+    tacz: "maven.modrinth:1j76DVHU:${tacz_fabric_version_id}",
+    swingThrough: "maven.modrinth:JyKlunuD:${swing_through_fabric_version_id}",
+    lithium: "maven.modrinth:gvQqBUqZ:${lithium_fabric_version_id}",
+    iris: "maven.modrinth:YL57xq9U:${iris_fabric_version_id}",
+    sodium: "maven.modrinth:AANobbMI:${sodium_fabric_version_id}",
+    jei: "maven.modrinth:u6dRKJwZ:${jei_fabric_version_id}",
+    forgeConfigApiPort: "maven.modrinth:ohNO6lps:${forge_config_api_port_fabric_version_id}",
+    clothConfig: "maven.modrinth:9s6osm5g:${cloth_config_fabric_version_id}",
+    cardinalComponents: "maven.modrinth:K01OU20C:${cardinal_components_fabric_version_id}"
+]
+
+dependencies {
+    registerTransform(ExtractEmbeddedFabricApis) {
+        from.attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, 'jar')
+        to.attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, 'tm-wagon-fabric-embedded-apis')
+    }
+    minecraft "com.mojang:minecraft:${minecraft_version}"
+    mappings loom.officialMojangMappings()
+    modImplementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_api_version}"
+    modImplementation("maven.modrinth:8BmcQJ2H:${geckolib_fabric_version_id}") { transitive = false }
+
+    compileOnly project(':core')
+    commonJava project(path: ':mc-1.21.1:common', configuration: 'commonJava')
+    commonResources project(path: ':mc-1.21.1:common', configuration: 'commonResources')
+
+    compatibilityMods.values().each { coordinate ->
+        modCompileOnly(coordinate) { transitive = false }
+    }
+    // These upstream mods ship their support libraries as nested JARs. Expose
+    // their APIs to the compiler without duplicating them in the runtime or mod.
+    ['sable', 'sophisticatedCore', 'cardinalComponents'].each { name ->
+        embeddedCompatibilityArchives(compatibilityMods[name]) { transitive = false }
+    }
+}
+
+def embeddedCompatibilityApis = configurations.embeddedCompatibilityArchives.incoming.artifactView {
+    attributes {
+        attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, 'tm-wagon-fabric-embedded-apis')
+    }
+}.files
+dependencies { modCompileOnly embeddedCompatibilityApis }
+
+// Only explicit development profiles install optional mods. Published mod JARs
+// will not bundle any of these mods; each loader owns its own runtime classpath.
+def runtimeProfiles = [
+    Maid: ['maid', 'forgeConfigApiPort'],
+    Backpacks: ['travelersBackpack', 'sophisticatedBackpacks', 'sophisticatedCore',
+                'forgeConfigApiPort', 'clothConfig', 'cardinalComponents'],
+    CarryOn: ['carryOn'],
+    Sable: ['sable'],
+    Patchouli: ['patchouli'],
+    Guns: ['tacz', 'forgeConfigApiPort'],
+    SwingThrough: ['swingThrough'],
+    Lithium: ['lithium'],
+    Iris: ['iris', 'sodium'],
+    Jei: ['jei']
+]
+def withAllCompat = providers.gradleProperty('fabricWithAllCompat').getOrElse('false').toBoolean()
+def selectedRuntimeMods = new LinkedHashSet<String>()
+runtimeProfiles.each { name, mods ->
+    if (withAllCompat || providers.gradleProperty("fabricWith${name}").getOrElse('false').toBoolean()) {
+        selectedRuntimeMods.addAll(mods)
+    }
+}
+dependencies {
+    selectedRuntimeMods.each { name ->
+        modLocalRuntime(compatibilityMods[name]) { transitive = false }
+    }
+}
+
+sourceSets.main.java.srcDir(configurations.commonJava)
+sourceSets.main.resources {
+    srcDir configurations.commonResources
+    exclude '**/*.bbmodel', '**/.cache/**'
+}
+tasks.withType(JavaCompile).configureEach { options.encoding = 'UTF-8' }
+
+// Dependency preparation must not publish an apparently functional Fabric mod.
+// Enable these packaging tasks when registrations and loader metadata are ported.
+tasks.named('jar') { enabled = false }
+tasks.named('remapJar') { enabled = false }
+tasks.register('verifyCompatibilityDependencies') {
+    group = 'verification'
+    description = 'Resolve Fabric compatibility APIs, nested APIs and selected runtime profiles.'
+    dependsOn tasks.named('compileJava')
+    inputs.files(configurations.compileClasspath, configurations.runtimeClasspath)
+    inputs.property('expectedApiIds', ['geckolib', 'carryon', 'touhou_little_maid',
+        'travelersbackpack', 'sophisticatedbackpacks', 'sophisticatedcore', 'sable',
+        'patchouli', 'tacz', 'swingthrough', 'lithium', 'iris', 'sodium', 'jei',
+        'forgeconfigapiport', 'cloth-config', 'sablecompanion', 'team_reborn_energy',
+        'porting_lib_core', 'cardinal-components-base', 'cardinal-components-entity'])
+    doLast {
+        def foundIds = new HashSet<String>()
+        inputs.files.files.findAll { it.name.endsWith('.jar') }.each { archiveFile ->
+            new ZipFile(archiveFile).withCloseable { archive ->
+                def metadata = archive.getEntry('fabric.mod.json')
+                if (metadata != null) {
+                    archive.getInputStream(metadata).withCloseable { input ->
+                        foundIds.add(new JsonSlurper().parse(input, 'UTF-8').id.toString())
+                    }
+                }
+            }
+        }
+        def missing = inputs.properties.expectedApiIds.findAll { !foundIds.contains(it) }
+        if (!missing.isEmpty()) {
+            throw new GradleException("Fabric compatibility APIs missing from classpath: ${missing}")
+        }
+        logger.lifecycle("Fabric compatibility classpaths resolved (${inputs.files.files.size()} files).")
+    }
+}
+tasks.named('check') { dependsOn tasks.named('verifyCompatibilityDependencies') }
 tasks.named('build') {
     doLast {
-        logger.lifecycle('Fabric 1.21.1: scaffold only; no distributable JAR is produced.')
+        logger.lifecycle('Fabric 1.21.1: dependencies prepared; gameplay port pending; no distributable JAR.')
     }
 }

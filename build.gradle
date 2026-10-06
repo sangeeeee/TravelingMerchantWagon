@@ -1,6 +1,7 @@
 plugins {
     id 'base'
     id 'net.neoforged.moddev' version '2.0.143' apply false
+    id 'fabric-loom' version '1.17.21' apply false
 }
 
 allprojects {
@@ -9,7 +10,7 @@ allprojects {
 }
 
 // Internal libraries and active loader targets build together. Fabric is a
-// reserved project until its loader implementation is added.
+// prepared dependency environment until its loader implementation is added.
 def projectsToBuild = [':core', ':mc-1.21.1:common', ':mc-1.21.1:neoforge', ':mc-1.21.1:fabric']
 tasks.named('build') {
     dependsOn projectsToBuild.collect { "${it}:build" }
