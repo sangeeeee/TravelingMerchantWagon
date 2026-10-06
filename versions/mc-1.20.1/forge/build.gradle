@@ -1,0 +1,149 @@
+import java.util.zip.ZipFile
+
+plugins {
+    id 'java-library'
+    id 'net.neoforged.moddev.legacyforge'
+    id 'idea'
+}
+
+apply from: rootProject.file('gradle/load-target-properties.gradle')
+evaluationDependsOn(':core')
+base.archivesName = "${mod_id}-forge-${minecraft_version}"
+java.toolchain.languageVersion = JavaLanguageVersion.of(java_version.toInteger())
+
+repositories {
+    mavenCentral()
+    exclusiveContent {
+        forRepository { maven { name = 'Modrinth'; url = 'https://api.modrinth.com/maven' } }
+        filter { includeGroup 'maven.modrinth' }
+    }
+    exclusiveContent {
+        forRepository { maven { name = 'CurseMaven'; url = 'https://cursemaven.com' } }
+        filter { includeModule 'curse.maven', 'clean-swing-through-grass-915308' }
+    }
+}
+
+configurations {
+    commonJava { canBeConsumed = false; canBeResolved = true }
+    commonGameplayJava { canBeConsumed = false; canBeResolved = true }
+    commonResources { canBeConsumed = false; canBeResolved = true }
+    localRuntime { canBeConsumed = false; canBeResolved = false }
+    runtimeClasspath.extendsFrom localRuntime
+}
+obfuscation { createRemappingConfiguration(configurations.localRuntime) }
+
+legacyForge {
+    enable {
+        forgeVersion = "${minecraft_version}-${forge_version}"
+        disableRecompilation = true
+    }
+    validateAccessTransformers = true
+    runs {
+        client { client(); gameDirectory = file('run') }
+        server { server(); gameDirectory = file('run-server') }
+    }
+    mods {
+        tm_wagon {
+            sourceSet sourceSets.main
+            sourceSet project(':core').sourceSets.main
+        }
+    }
+}
+
+// These archives are target-local, SRG-remapped APIs. Optional mods are never
+// bundled into the release JAR or made mandatory in its player-facing metadata.
+def compatibilityMods = [
+    geckolib: "maven.modrinth:geckolib:${geckolib_forge_version_id}",
+    maid: "maven.modrinth:touhou-little-maid:${maid_forge_version_id}",
+    carryOn: "maven.modrinth:carry-on:${carry_on_forge_version_id}",
+    travelersBackpack: "maven.modrinth:travelersbackpack:${travelers_backpack_forge_version_id}",
+    sophisticatedBackpacks: "maven.modrinth:sophisticated-backpacks:${sophisticated_backpacks_forge_version_id}",
+    sophisticatedCore: "maven.modrinth:sophisticated-core:${sophisticated_core_forge_version_id}",
+    patchouli: "maven.modrinth:patchouli:${patchouli_forge_version_id}",
+    tacz: "maven.modrinth:timeless-and-classics-zero:${tacz_forge_version_id}",
+    swingThrough: "curse.maven:clean-swing-through-grass-915308:${clean_swing_forge_file_id}",
+    jei: "maven.modrinth:jei:${jei_forge_version_id}",
+    mezzConfig: "maven.modrinth:mezzconfig:${mezz_config_forge_version_id}",
+    oculus: "maven.modrinth:oculus:${oculus_forge_version_id}",
+    embeddium: "maven.modrinth:embeddium:${embeddium_forge_version_id}"
+]
+def runtimeProfiles = [
+    Maid: ['maid'], CarryOn: ['carryOn'],
+    Backpacks: ['travelersBackpack', 'sophisticatedBackpacks', 'sophisticatedCore'],
+    Patchouli: ['patchouli'], Guns: ['tacz'], SwingThrough: ['swingThrough'],
+    Jei: ['jei', 'mezzConfig'], Shaders: ['oculus', 'embeddium']
+]
+def withAllCompat = providers.gradleProperty('forgeWithAllCompat').getOrElse('true').toBoolean()
+def selectedRuntimeMods = new LinkedHashSet<String>()
+runtimeProfiles.each { name, mods ->
+    if (providers.gradleProperty("forgeWith${name}").getOrElse(withAllCompat.toString()).toBoolean()) {
+        selectedRuntimeMods.addAll(mods)
+    }
+}
+dependencies {
+    commonJava project(path: ':mc-1.20.1:common', configuration: 'commonJava')
+    commonGameplayJava project(path: ':mc-1.20.1:common', configuration: 'commonGameplayJava')
+    commonResources project(path: ':mc-1.20.1:common', configuration: 'commonResources')
+    compileOnly project(':core')
+    modImplementation(compatibilityMods.geckolib) { transitive = false }
+    compatibilityMods.findAll { name, coordinate -> name != 'geckolib' }.each { name, coordinate ->
+        modCompileOnly(coordinate) { transitive = false }
+    }
+    selectedRuntimeMods.each { name -> modLocalRuntime(compatibilityMods[name]) { transitive = false } }
+}
+
+sourceSets.main.java.srcDir(configurations.commonJava)
+sourceSets.main.java.srcDir(configurations.commonGameplayJava)
+sourceSets.main.resources {
+    srcDir configurations.commonResources
+    exclude '**/*.bbmodel', '**/.cache/**', '**/.gitkeep'
+}
+tasks.withType(JavaCompile).configureEach { options.encoding = 'UTF-8' }
+def metadataProperties = [
+    mod_id: mod_id, mod_name: mod_name, mod_version: project.version,
+    mod_license: mod_license, minecraft_version_range: minecraft_version_range,
+    forge_version_range: forge_version_range, geckolib_version_range: geckolib_version_range
+]
+tasks.named('processResources') {
+    inputs.properties metadataProperties
+    filesMatching('META-INF/mods.toml') { expand(metadataProperties) }
+}
+def licenseName = "LICENSE_${mod_id}"
+tasks.named('jar') {
+    from project(':core').sourceSets.main.output
+    from(rootProject.file('LICENSE')) { rename { licenseName } }
+}
+tasks.matching { it.name in ['runClient', 'runServer'] }.configureEach {
+    group = 'minecraft'
+    description = "Launch Minecraft ${minecraft_version} on Forge (${name == 'runClient' ? 'client' : 'server'})."
+}
+
+tasks.register('verifyCompatibilityDependencies') {
+    group = 'verification'
+    description = 'Resolve and verify the Forge 1.20.1 compatibility APIs and selected runtime mods.'
+    inputs.files(configurations.compileClasspath, configurations.runtimeClasspath)
+    inputs.property('expectedModIds', ['geckolib', 'touhou_little_maid', 'carryon',
+        'travelersbackpack', 'sophisticatedbackpacks', 'sophisticatedcore', 'patchouli',
+        'tacz', 'cleanswing', 'jei', 'mezz_config', 'oculus', 'embeddium'])
+    doLast {
+        def foundIds = new HashSet<String>()
+        inputs.files.files.findAll { it.name.endsWith('.jar') }.each { archiveFile ->
+            new ZipFile(archiveFile).withCloseable { archive ->
+                def metadata = archive.getEntry('META-INF/mods.toml')
+                if (metadata != null) {
+                    archive.getInputStream(metadata).withCloseable { input ->
+                        def sections = input.getText('UTF-8') =~ /(?ms)^\s*\[\[mods\]\]\s*(.*?)(?=^\s*\[|\z)/
+                        sections.each { section ->
+                            def id = section[1] =~ /(?m)^\s*modId\s*=\s*"([^"]+)"/
+                            if (id.find()) foundIds.add(id.group(1))
+                        }
+                    }
+                }
+            }
+        }
+        def missing = inputs.properties.expectedModIds.findAll { !foundIds.contains(it) }
+        if (!missing.isEmpty()) throw new GradleException("Forge compatibility APIs missing: ${missing}")
+        logger.lifecycle("Forge 1.20.1 compatibility dependencies verified: ${inputs.properties.expectedModIds.join(', ')}")
+    }
+}
+tasks.named('check') { dependsOn tasks.named('verifyCompatibilityDependencies') }

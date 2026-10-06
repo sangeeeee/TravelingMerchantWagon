@@ -1,0 +1,27 @@
+plugins {
+    id 'java-library'
+    id 'net.neoforged.moddev.legacyforge'
+}
+
+apply from: rootProject.file('gradle/load-target-properties.gradle')
+base.archivesName = "${mod_id}-common-${minecraft_version}"
+java.toolchain.languageVersion = JavaLanguageVersion.of(java_version.toInteger())
+legacyForge {
+    enable {
+        mcpVersion = minecraft_version
+        disableRecompilation = true
+    }
+}
+dependencies { api project(':core') }
+configurations {
+    commonJava { canBeConsumed = true; canBeResolved = false }
+    commonGameplayJava { canBeConsumed = true; canBeResolved = false }
+    commonResources { canBeConsumed = true; canBeResolved = false }
+}
+artifacts {
+    commonJava file('src/main/java')
+    commonGameplayJava file('src/gameplay/java')
+    commonResources file('src/main/resources')
+}
+sourceSets.main.resources { exclude '**/*.bbmodel', '**/.cache/**', '**/.gitkeep' }
+tasks.withType(JavaCompile).configureEach { options.encoding = 'UTF-8' }

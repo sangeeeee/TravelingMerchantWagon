@@ -3,6 +3,8 @@
 The repository uses one Gradle build with a shared core, Minecraft-version
 modules, and loader-specific targets. The maintained targets are NeoForge 1.21.1 and Fabric 1.21.1.
 Both targets produce independently installable mod JARs.
+Forge 1.20.1 now also has a [dependency scaffold](versions/mc-1.20.1/forge/README.md);
+its gameplay port is pending.
 
 ```text
 core/
@@ -12,6 +14,10 @@ versions/mc-1.21.1/
   neoforge/
   fabric/
 shared-assets/                 ignored, local editable master assets
+versions/mc-1.20.1/
+  gradle.properties
+  common/
+  forge/
 ```
 
 ## Module boundaries
@@ -44,6 +50,7 @@ runs. Players do not install separate core or common JARs.
 ## Commands
 
 Use JDK 21 for this build. From the repository root on Windows:
+The Forge 1.20.1 target uses a separate Java 17 compile/run toolchain.
 
 ```powershell
 .\gradlew.bat build
