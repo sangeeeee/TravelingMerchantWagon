@@ -5,9 +5,9 @@
 TravelingMerchantWagon adds customizable wooden wagons to Minecraft. Build a wagon from individual parts, hitch your horses, and take your supplies and companions on the road. Whether you are moving house or setting out as a travelling merchant, your wagon can be a storehouse, workshop and place to rest.
 
 
-Available for NeoForge 26.1.2, NeoForge/Fabric 26.3, NeoForge/Fabric 26.2, NeoForge/Fabric 1.21.1 and Forge 1.20.1. See [26.3 target notes](versions/mc-26.3/README.md) for its available integrations, and [26.2 target notes](versions/mc-26.2/README.md) for the 26.2 edition.
+Available for NeoForge/Fabric 26.1.2, NeoForge/Fabric 26.3, NeoForge/Fabric 26.2, NeoForge/Fabric 1.21.1 and Forge 1.20.1. See [26.3 target notes](versions/mc-26.3/README.md) for its available integrations, and [26.2 target notes](versions/mc-26.2/README.md) for the 26.2 edition.
 
-The 26.1.2 NeoForge edition includes Patchouli and Touhou Little Maid integration; its Fabric port is being prepared. See the [target notes](versions/mc-26.1.2/README.md).
+The 26.1.2 editions include Patchouli and Touhou Little Maid integration; Fabric also supports mounted gun combat with TACZ Refabricated. See the [target notes](versions/mc-26.1.2/README.md).
 
 ## What can you do?
 
@@ -30,7 +30,7 @@ For illustrated assembly instructions, recipes and controls, install **Patchouli
 
 ## Mod integrations
 
-These integrations are optional; install the ones you want to use. Availability varies by game version: 26.2/26.3 NeoForge and Fabric support Carry On and Traveler's Backpack; the NeoForge editions also support Sophisticated Backpacks, 26.1.2 NeoForge also supports Patchouli and Touhou Little Maid. TACZ and Sable integrations are available on the supported older targets.
+These integrations are optional; install the ones you want to use. Availability varies by game version: 26.2/26.3 NeoForge and Fabric support Carry On and Traveler's Backpack; the NeoForge editions also support Sophisticated Backpacks, 26.1.2 supports Patchouli and Touhou Little Maid on both loaders, with TACZ Refabricated on Fabric. Sable integration is available on supported older targets.
 
 | Mod | What it adds to your wagon experience |
 | --- | --- |

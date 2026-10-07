@@ -1,9 +1,9 @@
 # Minecraft 26.1.2 targets
 
-**NeoForge is playable; Fabric remains a dependency scaffold.** The NeoForge
-edition includes wagon assembly, all three cargo-box sizes, driving, cargo and
+**NeoForge and Fabric are playable.** Both
+editions includes wagon assembly, all three cargo-box sizes, driving, cargo and
 workstations, accessories, material variants, recipes and optional integrations.
-The Fabric entry point is reserved for the subsequent gameplay port.
+Fabric additionally supports the available TACZ Refabricated gun port.
 
 ## Layout and toolchains
 
@@ -13,7 +13,7 @@ versions/mc-26.1.2/
   compatibility.gradle
   common/      version-specific geometry, gameplay and resources
   neoforge/    playable NeoForge implementation and compatibility adapters
-  fabric/      Fabric loader entry point and dependencies
+  fabric/      playable Fabric implementation and compatibility adapters
 ```
 
 - Minecraft **26.1.2**, NeoForm **26.1.2-1**, Java **25**.
@@ -57,9 +57,9 @@ with separate development-runtime profiles; they are not bundled in the wagon
 JAR or declared mandatory for players.
 
 Patchouli **26.1-94-beta** explicitly supports the 26.1 release line including
-26.1.2 on both loaders. The NeoForge edition includes the illustrated handbook, its custom recipe
+26.1.2 on both loaders. Both editions include the illustrated handbook, its custom recipe
 pages and the configurable one-time login gift. Without Patchouli, the handbook
-item and its recipe are not registered. Fabric handbook integration is pending.
+item and its recipe are not registered. Fabric also includes TACZ instructions in its maid chapter.
 
 NeoForge's maid artifact is an official development snapshot. The Fabric maid
 uses **Tsumugi**, a community continuation of Orihime with an available 26.1.2
@@ -119,12 +119,25 @@ Flags control development runtime only; the compile APIs remain available.
 
 ## Verification
 
-The NeoForge checks cover a real client world and a dedicated server, both
+The checks cover real client worlds and dedicated servers on both loaders, each
 with the available compatibility mods installed. The opt-in client smoke checks
 assembly and animated form changes, cargo contents, material-sensitive recipes,
 workstation cooking and menus, straw-mat sleep, mule/camel hitching, Carry On,
-both backpack bridges, maid tasks and the Patchouli reader. Test helpers are
+available backpack bridges, maid tasks and the Patchouli reader. Test helpers are
 excluded from published JARs.
+
+Fabric validation includes the full optional-mod runtime, the required-mods-only
+runtime, and maid/Patchouli without TACZ. The shared solver uses wagon-local
+rotated collisions without Sable. Smoke runs are opt-in:
+
+```powershell
+.\gradlew.bat :mc-26.1.2:fabric:runClient -PportSmoke=true
+.\gradlew.bat :mc-26.1.2:fabric:runClient -PportSmoke=true -PfabricWithAllCompat=false
+.\gradlew.bat :mc-26.1.2:fabric:runServer -PportServerSmoke=true
+```
+
+The isolated server smoke uses `build/server-smoke`; its EULA and local-only
+server settings must be prepared for that directory before running it.
 
 ## Version-specific gameplay
 
@@ -138,10 +151,11 @@ excluded from published JARs.
   storage interfaces and contents through loading and unloading.
 - Little Maid has Wagon Companion and Wagon Passenger tasks, bow/crossbow
   combat from the companion seat, rest-time mat sleep under any task, and native
-  photo/soul-sign capture and release. The maid API is adapted to its 2.0 manager
-  and brain interfaces. Sable and NeoForge TaCZ are absent on this target.
+  photo/soul-sign capture and release. The maid APIs are adapted to their manager
+  and brain interfaces. Fabric companions also delegate gun combat to the native
+  Tsumugi/TACZ Refabricated task. Sable and NeoForge TaCZ are absent on this target.
 - Client rendering supports the selected Iris/Sodium versions. Optional mods
-  are not bundled; the minimal profile runs with GeckoLib alone.
+  are not bundled; the minimal Fabric profile runs with GeckoLib, Fabric API and Forge Config API Port.
 
 ## Primary references
 

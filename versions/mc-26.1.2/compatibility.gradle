@@ -21,7 +21,7 @@ if (project.name == 'neoforge') {
     compatibilityMods.sophisticatedcore = modCoordinate('sophisticated-core', sophisticated_core_version_id)
 } else {
     compatibilityMods.forgeconfigapiport = modCoordinate('forge-config-api-port', forge_config_api_port_version_id)
-    compatibilityMods.tacz = "github.release.tacz2612:${tacz_artifact_name}:${tacz_release}@jar".toString()
+    compatibilityMods.tacz = "github.release.tacz2612:${tacz_artifact_name}:26.1.2-R3-hotfix2@jar".toString()
 }
 
 // These authors publish usable 26.1.2 binaries on GitHub, without Maven metadata.
@@ -37,7 +37,8 @@ repositories {
     if (project.name == 'fabric') ivy {
         name = 'Tacz2612AuthorRelease'
         url = "https://github.com/${tacz_repository}/releases/download"
-        patternLayout { artifact '[revision]/[module].[ext]' }
+        // An ASCII cache revision avoids dev-launch classpath encoding issues on Windows.
+        patternLayout { artifact "${tacz_release}/[module].[ext]" }
         metadataSources { artifact() }
         content { includeGroup('github.release.tacz2612') }
     }
@@ -71,6 +72,14 @@ profiles.each { name, ids ->
     if (providers.gradleProperty("${flagPrefix}${name}").getOrElse(withAll).toBoolean()) selectedMods.addAll(ids)
 }
 
+// Keep the development runtime path ASCII even when Gradle reuses an archive
+// downloaded from a release tag containing Chinese characters. Never bundled.
+def devTacz = project.name == 'fabric' ? tasks.register('prepareDevelopmentTacz', Copy) {
+    from configurations.compatibilityApis.filter { it.name.startsWith('TACZ-') }
+    into layout.buildDirectory.dir('dev-libs')
+    rename { 'tacz.jar' }
+} : null
+
 dependencies {
     compatibilityMods.values().each { coordinate ->
         compatibilityApis(coordinate) { transitive = false }
@@ -78,7 +87,8 @@ dependencies {
     selectedMods.each { id ->
         // Shader mods and the recipe viewer belong to client launches only.
         def configurationName = id in ['iris', 'sodium', 'jei'] ? 'clientCompatibilityRuntime' : 'localRuntime'
-        add(configurationName, compatibilityMods[id]) { transitive = false }
+        if(id == 'tacz') add(configurationName,files(layout.buildDirectory.file('dev-libs/tacz.jar')).builtBy(devTacz))
+        else add(configurationName, compatibilityMods[id]) { transitive = false }
     }
 }
 
