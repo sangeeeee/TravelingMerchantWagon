@@ -4,6 +4,8 @@ The repository uses one Gradle build with a shared core, Minecraft-version
 modules, and loader-specific targets. The gameplay targets are NeoForge 1.21.1,
 Fabric 1.21.1, Forge 1.20.1, NeoForge 26.3 and Fabric 26.3.
 Each loader target produces its own mod JAR.
+Minecraft 26.2 NeoForge and Fabric also have dependency scaffolds; their gameplay
+port is pending. See the [26.2 target inventory](versions/mc-26.2/README.md).
 See the [Forge target notes](versions/mc-1.20.1/forge/README.md) for its dependencies
 and development profiles.
 
@@ -19,6 +21,12 @@ versions/mc-1.20.1/
   gradle.properties
   common/
   forge/
+versions/mc-26.2/                 dependency scaffold; gameplay pending
+  gradle.properties
+  compatibility.gradle
+  common/
+  neoforge/
+  fabric/
 versions/mc-26.3/
   gradle.properties
   compatibility.gradle
@@ -72,6 +80,7 @@ The Forge 1.20.1 target emits Java 17 bytecode and uses Java 17 to run Minecraft
 ```powershell
 .\gradlew.bat build
 .\gradlew.bat :mc-1.21.1:fabric:runClient
+.\gradlew.bat :mc-26.2:build
 .\gradlew.bat :mc-26.3:fabric:runClient
 .\gradlew.bat :mc-26.3:neoforge:runClient
 .\gradlew.bat :mc-1.21.1:neoforge:runClient
