@@ -6,7 +6,7 @@
   "pages": [
     {
       "type": "patchouli:text",
-      "text": "Use adult horses, donkeys, mules, skeleton horses or zombie horses. Lead an available animal beside the shafts with clear footing.$(br2)Use any shaft part while holding a lead, even from a seat. Single shafts need one animal; double shafts need two. Box size, cargo and server settings determine speed."
+      "text": "Use adult horses, donkeys, mules, camels, skeleton horses or zombie horses. Lead an available animal beside the shafts with clear footing.$(br2)Use any shaft part while holding a lead, even from a seat. Single shafts need one animal; double shafts need two. Box size, cargo and server settings determine speed."
     },
     {
       "type": "patchouli:text",

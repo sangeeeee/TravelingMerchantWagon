@@ -91,8 +91,36 @@ final class PortSmokeChecks {
         require(afterRefund-beforeRefund==1&&!HorseHarness.attached(mule)&&!mule.isNoGravity(),"Mule detachment refunds one lead and restores movement");
         wagon.detachAllHorses();wagon.discard();
         com.mojang.logging.LogUtils.getLogger().info("TM_WAGON_26_3_MULE_PASS: juvenile rejection, adult hitching, driving and single lead refund");
+        camelDraft(player,origin);
         player.connection.teleport(origin.getX()-6,origin.getY()+5,origin.getZ()-9,-40,20);
         due=level.getGameTime()+24;stage=1;
+    }
+    static void camelDraft(ServerPlayer player,BlockPos origin) {
+        var level=player.level();
+        var wagon=WagonContent.WAGON.get().create(level,EntitySpawnReason.TRIGGERED);
+        var parts=new EnumMap<WagonSlot,WagonPart>(WagonEntity.defaultParts());parts.put(WagonSlot.SHAFTS,WagonPart.DOUBLE_HORSE_SHAFTS);
+        wagon.configure(parts,Direction.NORTH);wagon.setPos(Vec3.atBottomCenterOf(origin.offset(40,0,20)));level.addFreshEntity(wagon);
+        player.setPos(wagon.pose().point(new Vec3(0,3,-2)));require(player.startRiding(wagon),"Camel driver boarding");
+        var camels=new ArrayList<net.minecraft.world.entity.animal.camel.Camel>();
+        for(int slot=0;slot<2;slot++) {
+            var camel=net.minecraft.world.entity.EntityTypes.CAMEL.create(level,EntitySpawnReason.TRIGGERED);camel.setNoAi(true);
+            camel.setAge(-100);require(!HorseHarness.eligible(camel),"Baby camel cannot pull");
+            camel.setAge(0);camel.setPos(wagon.horsePosition(slot));level.addFreshEntity(camel);camel.setLeashedTo(player,true);
+            camel.sitDown();require(camel.isCamelSitting(),"Unhitched camel can sit");
+            require(wagon.attachHorse(player,camel,slot)==null,"Adult camel hitching");
+            camel.sitDown();require(!camel.isCamelSitting()&&camel.getPose()==net.minecraft.world.entity.Pose.STANDING,"Hitched camel remains standing");
+            Vec3 before=camel.position();camel.travel(new Vec3(0,0,1));require(camel.position().distanceToSqr(before)<1e-9,"Camel cannot travel independently");
+            camels.add(camel);
+        }
+        var start=wagon.position();for(int tick=0;tick<25;tick++){wagon.acceptInput(player,1,tick>10?1:0);wagon.tick();}
+        require(wagon.readyToPull()&&wagon.position().distanceToSqr(start)>.3,"Camels drive and turn the wagon");
+        int before=level.getEntitiesOfClass(net.minecraft.world.entity.item.ItemEntity.class,wagon.getBoundingBox().inflate(15)).stream().filter(e->e.getItem().is(Items.LEAD)).mapToInt(e->e.getItem().getCount()).sum();
+        wagon.detachAllHorses();wagon.detachAllHorses();
+        int after=level.getEntitiesOfClass(net.minecraft.world.entity.item.ItemEntity.class,wagon.getBoundingBox().inflate(15)).stream().filter(e->e.getItem().is(Items.LEAD)).mapToInt(e->e.getItem().getCount()).sum();
+        require(after-before==2,"Camel leads refund exactly once");
+        for(var camel:camels){require(!HorseHarness.attached(camel)&&!camel.isNoGravity(),"Camel release restores movement");camel.sitDown();require(camel.isCamelSitting(),"Released camel can sit");camel.discard();}
+        player.stopRiding();wagon.discard();
+        com.mojang.logging.LogUtils.getLogger().info("TM_WAGON_26_3_CAMEL_PASS: juvenile rejection, hitching, standing, driving and lead refunds");
     }
     static void workstations(WagonEntity wagon,ServerPlayer player) {
         var hold=wagon.cargo();var lookup=player.level().registryAccess();

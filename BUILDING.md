@@ -2,8 +2,7 @@
 
 The repository uses one Gradle build with a shared core, Minecraft-version
 modules, and loader-specific targets. The gameplay targets are NeoForge 1.21.1,
-Fabric 1.21.1, Forge 1.20.1 and NeoForge 26.3. Fabric 26.3 has a dependency
-environment ready, with gameplay implementation pending.
+Fabric 1.21.1, Forge 1.20.1, NeoForge 26.3 and Fabric 26.3.
 Each loader target produces its own mod JAR.
 See the [Forge target notes](versions/mc-1.20.1/forge/README.md) for its dependencies
 and development profiles.
@@ -50,8 +49,10 @@ versions/mc-26.3/
   It excludes Sable; its client-only shader dependencies do not enter server runs.
 - `mc-26.3:neoforge` compiles its own Minecraft 26.3 common/gameplay sources
   against the unobfuscated game APIs, Java 25, GeckoLib 5 and FML 12. Optional
-  integrations use only matching 26.3 libraries. `mc-26.3:fabric` currently
-  compiles a scaffold; it does not yet consume shared gameplay sources.
+  integrations use only matching 26.3 libraries. `mc-26.3:fabric` consumes the same shared gameplay sources, with Fabric
+  registration, events, payloads, configuration, model loading and compatibility
+  adapters. Small loader-specific render and collision overrides are excluded
+  from the exported source copy for that target.
 - `mc-1.21.1:fabric` compiles common sources through Fabric Loom using official
   Mojang mappings. It owns its Fabric compatibility APIs and development runtime
   profiles, registrations, network payloads, events, configuration bindings and
@@ -71,6 +72,8 @@ The Forge 1.20.1 target emits Java 17 bytecode and uses Java 17 to run Minecraft
 ```powershell
 .\gradlew.bat build
 .\gradlew.bat :mc-1.21.1:fabric:runClient
+.\gradlew.bat :mc-26.3:fabric:runClient
+.\gradlew.bat :mc-26.3:neoforge:runClient
 .\gradlew.bat :mc-1.21.1:neoforge:runClient
 .\gradlew.bat :mc-1.20.1:forge:runClient
 .\gradlew.bat :mc-1.20.1:forge:runGameTestServer
@@ -132,6 +135,8 @@ For Fabric development:
 ```powershell
 .\gradlew.bat :mc-1.21.1:fabric:build
 .\gradlew.bat :mc-1.21.1:fabric:runClient
+.\gradlew.bat :mc-26.3:fabric:runClient
+.\gradlew.bat :mc-26.3:neoforge:runClient
 .\gradlew.bat :mc-1.21.1:fabric:runGameTest -PfabricWithAllCompat=true
 .\gradlew.bat :mc-1.21.1:fabric:runClient -PfabricSmoke=true -PfabricWithAllCompat=true
 ```

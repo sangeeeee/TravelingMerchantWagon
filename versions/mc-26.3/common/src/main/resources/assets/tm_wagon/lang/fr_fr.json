@@ -39,7 +39,7 @@
   "message.tm_wagon.seats_full": "Toutes les places du chariot sont occupées.",
   "message.tm_wagon.seat_occupied": "Cette place est occupée. Choisissez-en une autre.",
   "message.tm_wagon.hitch_occupied": "Cette place d'attelage est occupée.",
-  "message.tm_wagon.lead_horse_required": "Amenez d’abord avec une laisse un cheval, un âne, une mule, un cheval-squelette ou un cheval-zombie adulte.",
+  "message.tm_wagon.lead_horse_required": "Amenez d’abord avec une laisse un cheval, un âne, une mule, un chameau, un cheval-squelette ou un cheval-zombie adulte.",
   "message.tm_wagon.hitch_blocked": "L'animal a besoin d'espace libre et d'un sol proche pour se tenir debout.",
   "subtitles.tm_wagon.wagon_roll": "Les roues du chariot grincent",
   "message.tm_wagon.cargo_unsupported": "Ce bloc ne peut pas être chargé. Les structures de plusieurs blocs ne sont pas prises en charge.",

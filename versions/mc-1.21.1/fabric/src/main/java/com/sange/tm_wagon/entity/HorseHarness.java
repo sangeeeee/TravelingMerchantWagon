@@ -4,6 +4,7 @@ import com.sange.tm_wagon.TravelingMerchantWagon;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.animal.camel.Camel;
 import net.minecraft.world.entity.animal.horse.AbstractHorse;
 import net.minecraft.world.entity.animal.horse.Horse;
 import net.minecraft.world.entity.animal.horse.Donkey;
@@ -15,7 +16,7 @@ import net.minecraft.world.item.Items;
 public final class HorseHarness {
     public static final String OWNER="TMWagon", GRAVITY="TMPreviousNoGravity", OWNER_POS="TMWagonPosition";
     public static boolean eligible(Entity entity) {
-        return (entity instanceof Horse || entity instanceof Donkey || entity instanceof Mule || entity instanceof SkeletonHorse || entity instanceof ZombieHorse)
+        return (entity instanceof Horse || entity instanceof Donkey || entity instanceof Mule || entity instanceof Camel || entity instanceof SkeletonHorse || entity instanceof ZombieHorse)
             && !((AbstractHorse)entity).isBaby() && entity.isAlive() && !entity.isPassenger() && !entity.isVehicle();
     }
     public static boolean attached(AbstractHorse horse) {
@@ -33,12 +34,14 @@ public final class HorseHarness {
     }
     /** Match a ridden horse's forward head/body alignment without disabling its idle AI. */
     public static void updateDrivingPose(AbstractHorse horse) {
+        if(horse instanceof Camel camel && attached(horse) && camel.isCamelSitting())camel.standUpInstantly();
         if(!pulling(horse))return;
         horse.setEating(false);horse.setStanding(false);horse.setXRot(0);
         horse.setYHeadRot(horse.getYRot());horse.setYBodyRot(horse.getYRot());
         horse.yHeadRotO=horse.yBodyRotO=horse.yRotO;
     }
     public static void mark(AbstractHorse horse,WagonEntity wagon) {
+        if(horse instanceof Camel camel) { camel.standUpInstantly();camel.setDashing(false); }
         var tag=com.sange.tm_wagon.platform.EntityData.of(horse);tag.putUUID(OWNER,wagon.getUUID());tag.putBoolean(GRAVITY,horse.isNoGravity());
         tag.putLong(OWNER_POS,wagon.blockPosition().asLong());horse.setNoGravity(true);horse.getNavigation().stop();
         horse.dropLeash(true,false);horse.setLeashedTo(wagon,true);

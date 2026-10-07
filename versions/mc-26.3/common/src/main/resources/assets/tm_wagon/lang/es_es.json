@@ -39,7 +39,7 @@
   "message.tm_wagon.seats_full": "Todos los asientos están ocupados.",
   "message.tm_wagon.seat_occupied": "Este asiento está ocupado. Elige otro.",
   "message.tm_wagon.hitch_occupied": "Este puesto de enganche está ocupado.",
-  "message.tm_wagon.lead_horse_required": "Trae primero con una rienda un caballo, burro, mula, caballo esqueleto o caballo zombi adulto.",
+  "message.tm_wagon.lead_horse_required": "Trae primero con una rienda un caballo, burro, mula, camello, caballo esqueleto o caballo zombi adulto.",
   "message.tm_wagon.hitch_blocked": "El animal necesita espacio libre y suelo cercano donde apoyarse.",
   "subtitles.tm_wagon.wagon_roll": "Crujen las ruedas del carromato",
   "message.tm_wagon.cargo_unsupported": "No se puede cargar este bloque. No se admiten estructuras de varios bloques.",

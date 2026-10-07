@@ -39,7 +39,7 @@
   "message.tm_wagon.seats_full": "Все места в повозке заняты.",
   "message.tm_wagon.seat_occupied": "Это место занято. Выберите другое.",
   "message.tm_wagon.hitch_occupied": "Это место в упряжке занято.",
-  "message.tm_wagon.lead_horse_required": "Сначала приведите сюда на поводке взрослую лошадь, осла, мула, лошадь-скелета или лошадь-зомби.",
+  "message.tm_wagon.lead_horse_required": "Сначала приведите сюда на поводке взрослую лошадь, осла, мула, верблюда, лошадь-скелета или лошадь-зомби.",
   "message.tm_wagon.hitch_blocked": "Животному нужны свободное место и земля поблизости для опоры.",
   "subtitles.tm_wagon.wagon_roll": "Колёса повозки скрипят",
   "message.tm_wagon.cargo_unsupported": "Этот блок нельзя погрузить. Конструкции из нескольких блоков не поддерживаются.",

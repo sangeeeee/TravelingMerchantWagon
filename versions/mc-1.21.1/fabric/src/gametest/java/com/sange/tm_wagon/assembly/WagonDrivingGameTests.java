@@ -64,6 +64,40 @@ public class WagonDrivingGameTests implements net.fabricmc.fabric.api.gametest.v
         h.getLevel().addFreshEntity(horse);horse.setLeashedTo(p,true);return horse;
     }
     @GameTest(template="tm_wagon:assembly_test",timeoutTicks=40)
+    public void camels_hitch_drive_stand_and_refund_in_single_and_double_teams(GameTestHelper h) {
+        for(boolean pair:new boolean[]{false,true}) {
+            var w=wagon(h,false,pair);var p=driver(h,w);
+            p.setItemInHand(InteractionHand.MAIN_HAND,new ItemStack(Items.LEAD,pair?2:1));
+            var camels=new java.util.ArrayList<net.minecraft.world.entity.animal.camel.Camel>();
+            for(int slot=0;slot<w.horseCapacity();slot++) {
+                var camel=EntityType.CAMEL.create(h.getLevel());camel.setNoAi(true);
+                camel.setAge(-100);h.assertTrue(!HorseHarness.eligible(camel),"Baby camel accepted");
+                camel.setAge(0);camel.setPos(w.horsePosition(slot));h.getLevel().addFreshEntity(camel);
+                camel.sitDown();h.assertTrue(camel.isCamelSitting(),"Unhitched camel could not sit");
+                h.assertTrue(camel.interact(p,InteractionHand.MAIN_HAND).consumesAction()&&camel.getLeashHolder()==p,"Camel native leash failed");
+                String error=w.attachHorse(p,camel,slot);h.assertTrue(error==null,"Adult camel could not hitch (pair="+pair+", slot="+slot+"): "+error);
+                camel.sitDown();h.assertTrue(!camel.isCamelSitting()&&camel.getPose()==net.minecraft.world.entity.Pose.STANDING,"Harnessed camel sat down");
+                Vec3 before=camel.position();camel.travel(new Vec3(0,0,1));
+                h.assertTrue(camel.position().distanceToSqr(before)<1e-9,"Camel moved independently of the wagon");
+                camels.add(camel);
+            }
+            h.assertTrue(p.getMainHandItem().isEmpty()&&w.readyToPull(),"Camel lead count or team incomplete");
+            Vec3 start=w.position();drive(w,p,1,1,12);
+            h.assertTrue(w.position().distanceToSqr(start)>.1,"Camels did not drive and turn the wagon");
+            int before=leads(h,w);p.setItemInHand(InteractionHand.MAIN_HAND,new ItemStack(Items.SHEARS));
+            for(var camel:camels) {
+                h.assertTrue(HorseHarness.interact(p,camel,InteractionHand.MAIN_HAND),"Camel shears interaction missed");
+                w.detachHorse(camel.getUUID(),true);
+                h.assertTrue(!HorseHarness.attached(camel)&&!camel.isNoGravity(),"Camel harness state survived release");
+                camel.sitDown();h.assertTrue(camel.isCamelSitting(),"Released camel could not sit again");camel.discard();
+            }
+            h.assertTrue(leads(h,w)-before==camels.size(),"Camel lead refund duplicated or lost");
+            for(var drop:h.getLevel().getEntitiesOfClass(ItemEntity.class,w.getBoundingBox().inflate(15)))drop.discard();
+            p.stopRiding();w.discard();
+        }
+        h.succeed();
+    }
+    @GameTest(template="tm_wagon:assembly_test",timeoutTicks=40)
     public void double_team_requires_two_live_animals_and_applies_cargo_acceleration(GameTestHelper h) {
         var w=wagon(h,false,true);var p=driver(h,w);attach(h,w,p,0);
         Vec3 start=w.position();drive(w,p,1,0,1);

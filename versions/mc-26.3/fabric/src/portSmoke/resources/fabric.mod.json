@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "id": "tm_wagon_port_smoke",
+  "version": "1.0.0",
+  "name": "Wagon 26.3 Development Smoke",
+  "environment": "*",
+  "entrypoints": {
+    "main": ["com.sange.tm_wagon.platform.FabricPortServerSmoke"],
+    "client": ["com.sange.tm_wagon.client.FabricPortSmoke"]
+  },
+  "depends": {"tm_wagon": "*", "fabric-api": "*"}
+}

@@ -21,6 +21,7 @@
     "WagonSupportPlayerMixin",
     "WagonSleepLivingMixin",
     "WagonSleepServerPlayerMixin",
+    "CamelHarnessMixin",
     "HorseTravelMixin",
     "HorseAnimationMixin",
     "HorseLeashMixin"

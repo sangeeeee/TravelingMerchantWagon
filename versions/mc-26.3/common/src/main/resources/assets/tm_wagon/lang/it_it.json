@@ -39,7 +39,7 @@
   "message.tm_wagon.seats_full": "Tutti i posti del carro sono occupati.",
   "message.tm_wagon.seat_occupied": "Questo posto è occupato. Scegline un altro.",
   "message.tm_wagon.hitch_occupied": "Questo punto di attacco è occupato.",
-  "message.tm_wagon.lead_horse_required": "Porta qui prima con un guinzaglio un cavallo, asino, mulo, cavallo scheletro o cavallo zombi adulto.",
+  "message.tm_wagon.lead_horse_required": "Porta qui prima con un guinzaglio un cavallo, asino, mulo, cammello, cavallo scheletro o cavallo zombi adulto.",
   "message.tm_wagon.hitch_blocked": "L'animale ha bisogno di spazio libero e di terreno vicino su cui poggiare.",
   "subtitles.tm_wagon.wagon_roll": "Le ruote del carro cigolano",
   "message.tm_wagon.cargo_unsupported": "Questo blocco non può essere caricato. Le strutture a più blocchi non sono supportate.",

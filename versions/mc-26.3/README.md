@@ -1,14 +1,11 @@
 # Minecraft 26.3 targets
 
-The **NeoForge target implements wagon gameplay**: assembly and dismantling, all
-three cargo-box sizes, mixed materials, draft animals and driving, oriented
+Both **NeoForge and Fabric implement wagon gameplay**: assembly and dismantling,
+all three cargo-box sizes, mixed materials, draft animals and driving, oriented
 collisions, cargo storage and workstations, stools, moving straw-bed sleep,
-cabinets, covers and canopies. Carry On, both backpack mods, JEI,
-SwingThroughGrass, Lithium and Iris have target-specific adapters.
-
-**Fabric gameplay is still pending.** Its module currently builds only a loader
-entry point and dependencies. The Fabric scaffold does not contain playable
-wagons.
+cabinets, covers and canopies. Both support Carry On, Traveler's Backpack, JEI,
+SwingThroughGrass, Lithium and Iris through their loader-specific adapters.
+Sophisticated Backpacks is available on NeoForge only.
 
 The target has its own `common`, `neoforge` and `fabric` modules. It uses the
 Java-only `core` module, but does not compile Minecraft 1.21.1 game sources or
@@ -52,7 +49,7 @@ beds and doors remain excluded from cargo.
 - NeoForge 26.3.0.52-beta / ModDevGradle 2.0.148.
 - Fabric Loader 0.19.5 / Fabric API 0.162.0+26.3 / Loom 1.17.21.
 - Gradle 9.6.0 (the shared wrapper).
-- GeckoLib 5.5.7 is required. NeoForge uses its 5.x model and render-state API.
+- GeckoLib 5.5.7 is required. Both loaders use its 5.x model and render-state API.
 
 Minecraft is unobfuscated in 26.3. Fabric uses `net.fabricmc.fabric-loom` with
 ordinary Java dependency configurations, with no intermediary remapping task,
@@ -83,8 +80,8 @@ mods by default. Servers omit Iris, Sodium and JEI.
 | [Forge Config API Port](https://modrinth.com/mod/forge-config-api-port) | Not needed | 26.3.1 |
 
 JEI includes MezzConfig 0.6.6 as a nested library. Fabric's Forge Config API Port
-includes NightConfig; it is a required library for the planned Fabric wagon
-configuration implementation as well as for Traveler's Backpack. Iris uses its
+includes NightConfig; it is a required library for Fabric wagon
+configuration as well as for Traveler's Backpack. Iris uses its
 explicitly required stable Sodium release rather than a newer alpha.
 
 ### Not added
@@ -110,8 +107,8 @@ automatic handbook gift in 26.3 until Patchouli is available.
 ```
 
 Each loader also owns its `runServer` task. The NeoForge artifact is
-`neoforge/build/libs/tm_wagon-neoforge-26.3-1.0.1.jar`. Fabric produces a scaffold
-with its own loader/version filename. The root `build` aggregates all versions.
+`neoforge/build/libs/tm_wagon-neoforge-26.3-1.0.1.jar`. The Fabric artifact is
+`fabric/build/libs/tm_wagon-fabric-26.3-1.0.1.jar`. The root `build` aggregates all versions.
 
 Use `-PwithAllCompat=false` (NeoForge) or `-PfabricWithAllCompat=false` (Fabric)
 for a minimal development runtime. Individual `with<Name>` / `fabricWith<Name>`
@@ -123,16 +120,19 @@ the repository-wide rules.
 
 ## Configuration and smoke test
 
-NeoForge creates `config/tm_wagon-server.toml` during startup and synchronizes
-its server settings to clients using FML's `SYNCED` configuration type. Cargo
+Both loaders create `config/tm_wagon-server.toml` during startup. NeoForge
+synchronizes server settings using FML's `SYNCED` type; Fabric uses Forge Config
+API Port's `SERVER` type. Cargo
 rules, driving speeds, acceleration, cargo penalties and draft-team benefits
 retain the existing defaults. Configuration comments are in English.
 
 ```powershell
 .\gradlew.bat :mc-26.3:neoforge:runClient -PportSmoke=true
+.\gradlew.bat :mc-26.3:fabric:runClient -PportSmoke=true
+.\gradlew.bat :mc-26.3:fabric:runServer -PportServerSmoke=true
 ```
 
-This opt-in test creates a fresh flat world in `neoforge/build/port-smoke`, checks
+The client smoke test creates a fresh flat world in the loader's `build/port-smoke`, and checks
 three assembled sizes, reversible jack conversion and single-owner cargo,
 material-sensitive crafting including Pale Oak and Poplar, 16 native cargo menus,
 eight copper chests, thirteen shelf types with stack swaps and content preservation,
@@ -140,10 +140,12 @@ furnace processing and
 brewing (including component fuel speeds), horse hitching and driving,
 moving player sleep and repeated wake without consuming bedding or changing respawn,
 three-slot straw-bed placement in both directions and intact item recovery, localized item names, Carry On chest transfer,
-and both native backpack menus with contents preserved across cargo save/load.
+and available native backpack menus with contents preserved across cargo save/load.
 It renders block/entity wagons and component items, captures screenshots, and
 exits automatically. Test code is excluded from release JARs. It can also run
-with `-PwithAllCompat=false` to check optional-mod isolation.
+with `-PwithAllCompat=false` (NeoForge) or `-PfabricWithAllCompat=false` (Fabric)
+to check optional-mod isolation. The Fabric dedicated-server smoke uses a separate
+`build/server-smoke` directory and exits after registration and configuration checks.
 
 The dedicated server has been started with available server integrations. Iris,
 Sodium and JEI remain client-only. The Iris shadow adapter's target class is

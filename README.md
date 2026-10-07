@@ -5,14 +5,14 @@
 TravelingMerchantWagon adds customizable wooden wagons to Minecraft. Build a wagon from individual parts, hitch your horses, and take your supplies and companions on the road. Whether you are moving house or setting out as a travelling merchant, your wagon can be a storehouse, workshop and place to rest.
 
 
-Available for NeoForge 26.3, NeoForge/Fabric 1.21.1 and Forge 1.20.1. Fabric 26.3 gameplay is not yet implemented. See [26.3 target notes](versions/mc-26.3/README.md) for its available integrations.
+Available for NeoForge/Fabric 26.3, NeoForge/Fabric 1.21.1 and Forge 1.20.1. See [26.3 target notes](versions/mc-26.3/README.md) for its available integrations.
 
 ## What can you do?
 
 - **Build your own wagon.** Choose a standard, extended or wide cargo box, single- or double-horse shafts, and a one-, two- or three-person driver's bench. Mix wooden parts and choose colours for cushions and fabric.
-- **Drive or push it.** Hitch horses, donkeys, mules, skeleton horses or zombie horses with leads. Drive from the driver's position, build up speed, brake and reverse. A pair of hitched animals accelerates faster and softens cargo's effect on sprint speed. Push an unhitched wagon to reposition it or help it out of a difficult spot.
+- **Drive or push it.** Hitch horses, donkeys, mules, camels, skeleton horses or zombie horses with leads. Drive from the driver's position, build up speed, brake and reverse. A pair of hitched animals accelerates faster and softens cargo's effect on sprint speed. Push an unhitched wagon to reposition it or help it out of a difficult spot.
 - **Carry useful cargo.** Place permitted blocks in cargo slots. Open supported containers and use workstations directly on board. Cargo and stored items stay with the wagon when it changes form.
-- **Make room for companions.** Add cargo stools for passengers, or straw mats for sleeping through the night. Sleeping players and maids stay with a moving wagon.
+- **Make room for companions.** Add cargo stools for passengers, or bedding for sleeping through the night (vanilla straw beds in 26.3, wagon straw mats in older editions). Sleeping players and maids stay with a moving wagon.
 - **Fit optional equipment.** Add an under-seat cabinet, a rollable cargo cover, or a canvas canopy with opening curtains. Covers and canopies adapt to your cargo box.
 - **Park, rebuild and reuse.** Convert the wagon between parked block form and a drivable entity at an assembly jack. Use a carpenter's hammer to recover its parts and cargo.
 
@@ -28,7 +28,7 @@ For illustrated assembly instructions, recipes and controls, install **Patchouli
 
 ## Mod integrations
 
-These integrations are optional; install the ones you want to use. Availability varies by game version: 26.3 currently supports Carry On and both backpack mods, while Patchouli, Touhou Little Maid/TACZ and Sable integrations belong to the older targets.
+These integrations are optional; install the ones you want to use. Availability varies by game version: 26.3 supports Carry On and Traveler's Backpack on both loaders, plus Sophisticated Backpacks on NeoForge, while Patchouli, Touhou Little Maid/TACZ and Sable integrations belong to the older targets.
 
 | Mod | What it adds to your wagon experience |
 | --- | --- |

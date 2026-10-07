@@ -3,11 +3,19 @@
   "id": "${mod_id}",
   "version": "${mod_version}",
   "name": "${mod_name}",
-  "description": "Minecraft 26.3 port environment. Wagon gameplay is not implemented yet.",
+  "description": "Build modular wagons, hitch draft animals and carry cargo on the road.",
   "license": "${mod_license}",
   "environment": "*",
   "entrypoints": {
-    "main": ["com.sange.tm_wagon.TravelingMerchantWagonFabric"]
+    "main": [
+      "com.sange.tm_wagon.TravelingMerchantWagon"
+    ],
+    "client": [
+      "com.sange.tm_wagon.TravelingMerchantWagonClient"
+    ],
+    "jei_mod_plugin": [
+      "com.sange.tm_wagon.compat.jei.WagonJeiPlugin"
+    ]
   },
   "depends": {
     "minecraft": "${minecraft_version}",
@@ -16,5 +24,9 @@
     "fabric-api": ">=${fabric_api_version}",
     "geckolib": ">=${geckolib_version} <6",
     "forgeconfigapiport": ">=${forge_config_api_port_version}"
-  }
+  },
+  "icon": "assets/tm_wagon/textures/item/wagon_icon.png",
+  "mixins": [
+    "tm_wagon.mixins.json"
+  ]
 }

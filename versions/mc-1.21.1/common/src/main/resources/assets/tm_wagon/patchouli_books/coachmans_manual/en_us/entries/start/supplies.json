@@ -10,7 +10,7 @@
     },
     {
       "type": "patchouli:text",
-      "text": "Horses, donkeys, mules, skeleton horses and zombie horses can pull wagons. Small wheels craft in pairs; upgrade them into large wheels. Parts may use different woods.$(br2)The recipes show oak examples and explain material rules. Continue with $(l:tm_wagon:start/assembly)Six-Step Assembly$(/l)."
+      "text": "Horses, donkeys, mules, camels, skeleton horses and zombie horses can pull wagons. Small wheels craft in pairs; upgrade them into large wheels. Parts may use different woods.$(br2)The recipes show oak examples and explain material rules. Continue with $(l:tm_wagon:start/assembly)Six-Step Assembly$(/l)."
     },
     {
       "type": "tm_wagon:component_recipe",

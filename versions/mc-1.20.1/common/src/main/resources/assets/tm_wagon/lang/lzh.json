@@ -39,7 +39,7 @@
   "message.tm_wagon.seats_full": "諸席皆滿。",
   "message.tm_wagon.seat_occupied": "此席有人，請擇他席。",
   "message.tm_wagon.hitch_occupied": "此駕馬之位已占。",
-  "message.tm_wagon.lead_horse_required": "先以繩牽成年馬、驢、騾、骷髏馬或殭屍馬至此。",
+  "message.tm_wagon.lead_horse_required": "先以繩牽成年馬、驢、騾、駱駝、骷髏馬或殭屍馬至此。",
   "message.tm_wagon.hitch_blocked": "馬須有立足之地，且周遭無礙。",
   "subtitles.tm_wagon.wagon_roll": "車輪軋軋",
   "message.tm_wagon.cargo_unsupported": "此方塊不可載，多塊之構不支援。",
