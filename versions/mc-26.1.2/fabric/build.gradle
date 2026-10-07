@@ -1,0 +1,66 @@
+plugins {
+    id 'java-library'
+    // Minecraft 26.1.2 is unobfuscated: no remapping or mappings dependency.
+    id 'net.fabricmc.fabric-loom'
+}
+
+apply from: rootProject.file('gradle/load-target-properties.gradle')
+description = 'Minecraft 26.1.2 Fabric dependency scaffold; gameplay port pending.'
+base.archivesName = "${mod_id}-fabric-${minecraft_version}"
+java.toolchain.languageVersion = JavaLanguageVersion.of(java_version.toInteger())
+evaluationDependsOn(':core')
+def coreOutput = project(':core').sourceSets.main.output
+loom {
+    mods {
+        tm_wagon { sourceSet sourceSets.main; sourceSet project(':core').sourceSets.main }
+    }
+    runs {
+        client { runDir 'run' }
+        server { runDir 'run-server'; programArg '--nogui' }
+    }
+}
+configurations {
+    commonJava { canBeConsumed = false; canBeResolved = true }
+    commonGameplayJava { canBeConsumed = false; canBeResolved = true }
+    commonResources { canBeConsumed = false; canBeResolved = true }
+}
+dependencies {
+    minecraft "com.mojang:minecraft:${minecraft_version}"
+    implementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
+    implementation "net.fabricmc.fabric-api:fabric-api:${fabric_api_version}"
+    implementation("maven.modrinth:geckolib:${geckolib_version_id}") { transitive = false }
+    implementation("maven.modrinth:forge-config-api-port:${forge_config_api_port_version_id}") { transitive = false }
+    compileOnly project(':core')
+    runtimeOnly files(coreOutput)
+    commonJava project(path: ':mc-26.1.2:common', configuration: 'commonJava')
+    commonGameplayJava project(path: ':mc-26.1.2:common', configuration: 'commonGameplayJava')
+    commonResources project(path: ':mc-26.1.2:common', configuration: 'commonResources')
+}
+sourceSets.main.java.srcDirs(configurations.commonJava, configurations.commonGameplayJava)
+sourceSets.main.resources {
+    srcDir configurations.commonResources
+    exclude '**/*.bbmodel', '**/.cache/**', '**/.gitkeep'
+}
+apply from: file('../compatibility.gradle')
+if (gradle.startParameter.taskNames.any { it.endsWith('runClient') }) {
+    configurations.runtimeOnly.extendsFrom configurations.clientCompatibilityRuntime
+}
+def metadataValues = [mod_id: mod_id, mod_name: mod_name, mod_version: mod_version,
+    mod_license: mod_license, minecraft_version: minecraft_version,
+    fabric_loader_version: fabric_loader_version, fabric_api_version: fabric_api_version,
+    geckolib_version: geckolib_version, java_version: java_version,
+    forge_config_api_port_version: forge_config_api_port_version]
+tasks.named('processResources') {
+    inputs.properties metadataValues
+    filesMatching('fabric.mod.json') { expand metadataValues }
+}
+tasks.withType(JavaCompile).configureEach { options.encoding = 'UTF-8' }
+def licenseFileName = "LICENSE_${mod_id}".toString()
+tasks.named('jar') {
+    from project(':core').sourceSets.main.output
+    from(rootProject.file('LICENSE')) { rename { licenseFileName } }
+}
+tasks.matching { it.name in ['runClient', 'runServer'] }.configureEach {
+    group = 'minecraft'
+    description = "Launch the Minecraft 26.1.2 Fabric dependency scaffold (${name == 'runClient' ? 'client' : 'server'})."
+}

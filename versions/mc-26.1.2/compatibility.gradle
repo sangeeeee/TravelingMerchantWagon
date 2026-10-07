@@ -1,0 +1,120 @@
+import groovy.json.JsonSlurper
+import java.util.zip.ZipFile
+
+// This inventory is scoped to Minecraft 26.1.2. The loader's properties pin the
+// exact published artifact, so a NeoForge JAR cannot be selected for Fabric.
+def modCoordinate = { String projectId, String versionId -> "maven.modrinth:${projectId}:${versionId}".toString() }
+def compatibilityMods = [
+    carryon: modCoordinate('carry-on', carry_on_version_id),
+    travelersbackpack: modCoordinate('travelersbackpack', travelers_backpack_version_id),
+    swingthroughgrass: modCoordinate('swing-through-grass', swing_through_grass_version_id),
+    architectury: modCoordinate('architectury-api', architectury_version_id),
+    lithium: modCoordinate('lithium', lithium_version_id),
+    jei: modCoordinate('jei', jei_version_id),
+    iris: modCoordinate('iris', iris_version_id),
+    sodium: modCoordinate('sodium', sodium_version_id),
+    patchouli: modCoordinate('patchouli', patchouli_version_id),
+    touhou_little_maid: "github.release.maid2612:${maid_artifact_name}:${maid_release}@jar".toString()
+]
+if (project.name == 'neoforge') {
+    compatibilityMods.sophisticatedbackpacks = modCoordinate('sophisticated-backpacks', sophisticated_backpacks_version_id)
+    compatibilityMods.sophisticatedcore = modCoordinate('sophisticated-core', sophisticated_core_version_id)
+} else {
+    compatibilityMods.forgeconfigapiport = modCoordinate('forge-config-api-port', forge_config_api_port_version_id)
+    compatibilityMods.tacz = "github.release.tacz2612:${tacz_artifact_name}:${tacz_release}@jar".toString()
+}
+
+// These authors publish usable 26.1.2 binaries on GitHub, without Maven metadata.
+// Artifact-only Ivy uses a fixed release tag and the original installable filename.
+repositories {
+    ivy {
+        name = 'Maid2612AuthorRelease'
+        url = "https://github.com/${maid_repository}/releases/download"
+        patternLayout { artifact '[revision]/[module].[ext]' }
+        metadataSources { artifact() }
+        content { includeGroup('github.release.maid2612') }
+    }
+    if (project.name == 'fabric') ivy {
+        name = 'Tacz2612AuthorRelease'
+        url = "https://github.com/${tacz_repository}/releases/download"
+        patternLayout { artifact '[revision]/[module].[ext]' }
+        metadataSources { artifact() }
+        content { includeGroup('github.release.tacz2612') }
+    }
+    exclusiveContent {
+        forRepository { maven { name = 'Modrinth2612'; url = 'https://api.modrinth.com/maven' } }
+        filter { includeGroup('maven.modrinth') }
+    }
+}
+
+
+configurations {
+    compatibilityApis { canBeConsumed = false; canBeResolved = true }
+    compileOnly.extendsFrom compatibilityApis
+    localRuntime { canBeConsumed = false; canBeResolved = true }
+    runtimeClasspath.extendsFrom localRuntime
+    clientCompatibilityRuntime { canBeConsumed = false; canBeResolved = true }
+}
+
+def profiles = [CarryOn: ['carryon'], Backpacks: ['travelersbackpack'],
+                SwingThrough: ['swingthroughgrass', 'architectury'],
+                Lithium: ['lithium'], Jei: ['jei'], Iris: ['iris', 'sodium'],
+                Patchouli: ['patchouli'], Maid: ['touhou_little_maid']]
+if (project.name == 'fabric') profiles.Tacz = ['tacz', 'forgeconfigapiport']
+if (project.name == 'neoforge') profiles.Backpacks.addAll(['sophisticatedbackpacks', 'sophisticatedcore'])
+else profiles.Backpacks.add('forgeconfigapiport')
+
+def flagPrefix = project.name == 'fabric' ? 'fabricWith' : 'with'
+def withAll = providers.gradleProperty("${flagPrefix}AllCompat").getOrElse('true')
+def selectedMods = new LinkedHashSet<String>()
+profiles.each { name, ids ->
+    if (providers.gradleProperty("${flagPrefix}${name}").getOrElse(withAll).toBoolean()) selectedMods.addAll(ids)
+}
+
+dependencies {
+    compatibilityMods.values().each { coordinate ->
+        compatibilityApis(coordinate) { transitive = false }
+    }
+    selectedMods.each { id ->
+        // Shader mods and the recipe viewer belong to client launches only.
+        def configurationName = id in ['iris', 'sodium', 'jei'] ? 'clientCompatibilityRuntime' : 'localRuntime'
+        add(configurationName, compatibilityMods[id]) { transitive = false }
+    }
+}
+
+def apiArchives = configurations.compatibilityApis
+def runtimeArchives = configurations.localRuntime
+def clientArchives = configurations.clientCompatibilityRuntime
+def expectedIds = compatibilityMods.keySet().toList()
+def expectedLoader = project.name
+tasks.register('verifyCompatibilityDependencies') {
+    group = 'verification'
+    description = "Resolve and check the published Minecraft 26.1.2 ${expectedLoader} compatibility artifacts."
+    inputs.files(apiArchives, runtimeArchives, clientArchives)
+    inputs.property('expectedIds', expectedIds)
+    inputs.property('loader', expectedLoader)
+    doLast {
+        def foundIds = new HashSet<String>()
+        inputs.files.files.each { archiveFile ->
+            new ZipFile(archiveFile).withCloseable { archive ->
+                if (inputs.properties.loader == 'fabric') {
+                    def metadata = archive.getEntry('fabric.mod.json')
+                    if (metadata == null) throw new GradleException("Not a Fabric mod: ${archiveFile.name}")
+                    archive.getInputStream(metadata).withCloseable {
+                        foundIds.add(new JsonSlurper().parse(it, 'UTF-8').id.toString())
+                    }
+                } else {
+                    def metadata = archive.getEntry('META-INF/neoforge.mods.toml')
+                    if (metadata == null) throw new GradleException("Not a NeoForge mod: ${archiveFile.name}")
+                    def text = archive.getInputStream(metadata).withCloseable { it.getText('UTF-8') }
+                    def matcher = text =~ /(?m)^\s*modId\s*=\s*"([^"]+)"/
+                    if (matcher.find()) foundIds.add(matcher.group(1))
+                }
+            }
+        }
+        def missing = inputs.properties.expectedIds.findAll { !foundIds.contains(it) }
+        if (!missing.isEmpty()) throw new GradleException("Compatibility artifacts missing: ${missing}")
+        logger.lifecycle("26.1.2 ${inputs.properties.loader}: ${inputs.files.files.size()} compatibility dependency archives resolved.")
+    }
+}
+tasks.named('check') { dependsOn tasks.named('verifyCompatibilityDependencies') }

@@ -4,6 +4,8 @@ The repository uses one Gradle build with a shared core, Minecraft-version
 modules, and loader-specific targets. The gameplay targets are NeoForge 1.21.1,
 Fabric 1.21.1, Forge 1.20.1, NeoForge/Fabric 26.2 and NeoForge/Fabric 26.3.
 Each loader target produces its own mod JAR.
+Minecraft 26.1.2 has NeoForge and Fabric dependency scaffolds; gameplay is pending.
+See the [26.1.2 target inventory](versions/mc-26.1.2/README.md).
 See the [26.2 target inventory](versions/mc-26.2/README.md) for dependencies and verification runs.
 See the [Forge target notes](versions/mc-1.20.1/forge/README.md) for its dependencies
 and development profiles.
@@ -20,6 +22,12 @@ versions/mc-1.20.1/
   gradle.properties
   common/
   forge/
+versions/mc-26.1.2/               NeoForge and Fabric dependency scaffolds
+  gradle.properties
+  compatibility.gradle
+  common/
+  neoforge/
+  fabric/
 versions/mc-26.2/                 NeoForge and Fabric gameplay
   gradle.properties
   compatibility.gradle
@@ -165,6 +173,14 @@ See the [Fabric target notes](versions/mc-1.21.1/fabric/README.md)
 for required libraries and individual compatibility profiles.
 
 ## Dependencies and properties
+
+### Minecraft 26.1.2 preparation
+
+Both loader modules have independent Java 25 dependencies and entry points.
+Patchouli APIs are included on both loaders; NeoForge gets its maid snapshot
+and Sophisticated Backpacks/Core, while Fabric gets the Tsumugi and TaCZ
+successor ports. Existing version modules are unchanged. The actual wagon and
+handbook ports are pending. See the [dependency inventory and commands](versions/mc-26.1.2/README.md).
 
 ### Minecraft 26.3 targets
 

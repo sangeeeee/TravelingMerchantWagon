@@ -1,0 +1,30 @@
+plugins {
+    id 'java-library'
+    id 'net.neoforged.moddev'
+}
+
+apply from: rootProject.file('gradle/load-target-properties.gradle')
+base.archivesName = "${mod_id}-common-${minecraft_version}"
+java.toolchain.languageVersion = JavaLanguageVersion.of(java_version.toInteger())
+
+neoForge {
+    neoFormVersion = neo_form_version
+}
+
+dependencies {
+    api project(':core')
+}
+
+sourceSets.main.resources { exclude '**/*.bbmodel', '**/.cache/**', '**/.gitkeep' }
+tasks.withType(JavaCompile).configureEach { options.encoding = 'UTF-8' }
+
+// The new target owns its sources and resources. Older game code and handbook
+// integrations must be ported explicitly rather than inherited unchanged.
+['commonJava': 'src/main/java', 'commonGameplayJava': 'src/gameplay/java',
+ 'commonResources': 'src/main/resources'].each { name, directory ->
+    configurations.create(name) {
+        canBeConsumed = true
+        canBeResolved = false
+    }
+    artifacts.add(name, file(directory))
+}

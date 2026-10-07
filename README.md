@@ -7,6 +7,8 @@ TravelingMerchantWagon adds customizable wooden wagons to Minecraft. Build a wag
 
 Available for NeoForge/Fabric 26.3, NeoForge/Fabric 26.2, NeoForge/Fabric 1.21.1 and Forge 1.20.1. See [26.3 target notes](versions/mc-26.3/README.md) for its available integrations, and [26.2 target notes](versions/mc-26.2/README.md) for the 26.2 edition.
 
+Minecraft 26.1.2 NeoForge/Fabric dependency preparation is underway; see the [target notes](versions/mc-26.1.2/README.md).
+
 ## What can you do?
 
 - **Build your own wagon.** Choose a standard, extended or wide cargo box, single- or double-horse shafts, and a one-, two- or three-person driver's bench. Mix wooden parts and choose colours for cushions and fabric.

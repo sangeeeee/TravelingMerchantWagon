@@ -7,6 +7,8 @@ TravelingMerchantWagon 为 Minecraft 添加了可以自由搭配的木制马车�
 
 支持 NeoForge／Fabric 26.3、NeoForge/Fabric 26.2、NeoForge／Fabric 1.21.1 和 Forge 1.20.1；各版本兼容范围见 [26.3 版本说明](versions/mc-26.3/README.md)及 [26.2 版本说明](versions/mc-26.2/README.md)。
 
+Minecraft 26.1.2 的 NeoForge／Fabric 子项目已完成依赖准备，玩法移植尚待进行，详见 [版本说明](versions/mc-26.1.2/README.md)。
+
 ## 可以做什么？
 
 - **组装自己的马车。** 选择普通、加长或加宽货物车厢，搭配单马或双马辕，以及单人、双人或三人车夫座椅。木制零件可以混搭，坐垫和布料也有多种配色。
