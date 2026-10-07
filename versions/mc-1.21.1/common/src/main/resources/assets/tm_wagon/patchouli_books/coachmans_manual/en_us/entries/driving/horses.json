@@ -11,7 +11,7 @@
     {
       "type": "patchouli:text",
       "title": "Two-Animal Teams",
-      "text": "Hitch two animals to a two-horse pole for stronger pulling power.$(br2)By default, forward and reverse acceleration increase by 20%, and cargo's deduction from sprint speed decreases by 15%. A fully loaded extended wagon can sprint at 1.29 times its ordinary speed, compared with 1.2 times for one animal.$(br2)Server owners can adjust these benefits."
+      "text": "Hitch two animals to a two-horse pole for stronger pulling power.$(br2)By default, forward and reverse acceleration increase by 20%%, and cargo's deduction from sprint speed decreases by 15%%. A fully loaded extended wagon can sprint at 1.29 times its ordinary speed, compared with 1.2 times for one animal.$(br2)Server owners can adjust these benefits."
     },
     {
       "type": "patchouli:text",
