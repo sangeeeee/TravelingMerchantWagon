@@ -1,0 +1,68 @@
+plugins {
+    id 'java-library'
+    id 'net.neoforged.moddev'
+}
+
+apply from: rootProject.file('gradle/load-target-properties.gradle')
+description = 'NeoForge 26.3 port environment; gameplay implementation pending.'
+base.archivesName = "${mod_id}-neoforge-${minecraft_version}"
+java.toolchain.languageVersion = JavaLanguageVersion.of(java_version.toInteger())
+evaluationDependsOn(':core')
+
+configurations {
+    commonJava { canBeConsumed = false; canBeResolved = true }
+    commonGameplayJava { canBeConsumed = false; canBeResolved = true }
+    commonResources { canBeConsumed = false; canBeResolved = true }
+}
+dependencies {
+    compileOnly project(':core')
+    commonJava project(path: ':mc-26.3:common', configuration: 'commonJava')
+    commonGameplayJava project(path: ':mc-26.3:common', configuration: 'commonGameplayJava')
+    commonResources project(path: ':mc-26.3:common', configuration: 'commonResources')
+    implementation("maven.modrinth:geckolib:${geckolib_version_id}") { transitive = false }
+}
+sourceSets.main.java.srcDirs(configurations.commonJava, configurations.commonGameplayJava)
+sourceSets.main.resources {
+    srcDir configurations.commonResources
+    exclude '**/*.bbmodel', '**/.cache/**', '**/.gitkeep'
+}
+
+neoForge {
+    version = neo_version
+    runs {
+        client { client(); gameDirectory = file('run') }
+        server { server(); gameDirectory = file('run-server'); programArgument '--nogui' }
+    }
+    mods {
+        tm_wagon {
+            sourceSet sourceSets.main
+            sourceSet project(':core').sourceSets.main
+        }
+    }
+}
+
+apply from: file('../compatibility.gradle')
+configurations.clientAdditionalRuntimeClasspath.extendsFrom configurations.clientCompatibilityRuntime
+
+def metadataValues = [mod_id: mod_id, mod_name: mod_name, mod_version: mod_version,
+    mod_license: mod_license, minecraft_version_range: minecraft_version_range,
+    neo_version: neo_version, loader_version_range: loader_version_range,
+    geckolib_version_range: geckolib_version_range]
+def generateModMetadata = tasks.register('generateModMetadata', ProcessResources) {
+    inputs.properties metadataValues
+    expand metadataValues
+    from 'src/main/templates'
+    into layout.buildDirectory.dir('generated/modMetadata')
+}
+sourceSets.main.resources.srcDir generateModMetadata
+neoForge.ideSyncTask generateModMetadata
+tasks.withType(JavaCompile).configureEach { options.encoding = 'UTF-8' }
+def licenseFileName = "LICENSE_${mod_id}".toString()
+tasks.named('jar') {
+    from project(':core').sourceSets.main.output
+    from(rootProject.file('LICENSE')) { rename { licenseFileName } }
+}
+tasks.matching { it.name in ['runClient', 'runServer'] }.configureEach {
+    group = 'minecraft'
+    description = "Launch the Minecraft 26.3 NeoForge port environment (${name == 'runClient' ? 'client' : 'server'})."
+}

@@ -1,0 +1,74 @@
+plugins {
+    id 'java-library'
+    // 26.3 is unobfuscated: no remapping plugin or mappings dependency.
+    id 'net.fabricmc.fabric-loom'
+}
+
+apply from: rootProject.file('gradle/load-target-properties.gradle')
+description = 'Fabric 26.3 port environment; gameplay implementation pending.'
+base.archivesName = "${mod_id}-fabric-${minecraft_version}"
+java.toolchain.languageVersion = JavaLanguageVersion.of(java_version.toInteger())
+evaluationDependsOn(':core')
+def coreOutput = project(':core').sourceSets.main.output
+
+loom {
+    splitEnvironmentSourceSets()
+    mods {
+        tm_wagon {
+            sourceSet sourceSets.main
+            sourceSet sourceSets.client
+            sourceSet project(':core').sourceSets.main
+        }
+    }
+    runs {
+        client { runDir 'run' }
+        server { runDir 'run-server' }
+    }
+}
+
+configurations {
+    commonJava { canBeConsumed = false; canBeResolved = true }
+    commonGameplayJava { canBeConsumed = false; canBeResolved = true }
+    commonResources { canBeConsumed = false; canBeResolved = true }
+}
+dependencies {
+    minecraft "com.mojang:minecraft:${minecraft_version}"
+    implementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
+    implementation "net.fabricmc.fabric-api:fabric-api:${fabric_api_version}"
+    implementation("maven.modrinth:geckolib:${geckolib_version_id}") { transitive = false }
+    // Keep the Fabric configuration system available independently of backpacks.
+    implementation("maven.modrinth:forge-config-api-port:${forge_config_api_port_version_id}") { transitive = false }
+    compileOnly project(':core')
+    runtimeOnly files(coreOutput)
+    commonJava project(path: ':mc-26.3:common', configuration: 'commonJava')
+    commonGameplayJava project(path: ':mc-26.3:common', configuration: 'commonGameplayJava')
+    commonResources project(path: ':mc-26.3:common', configuration: 'commonResources')
+}
+sourceSets.main.java.srcDirs(configurations.commonJava, configurations.commonGameplayJava)
+sourceSets.main.resources {
+    srcDir configurations.commonResources
+    exclude '**/*.bbmodel', '**/.cache/**', '**/.gitkeep'
+}
+
+apply from: file('../compatibility.gradle')
+configurations.clientRuntimeOnly.extendsFrom configurations.clientCompatibilityRuntime
+
+def metadataValues = [mod_id: mod_id, mod_name: mod_name, mod_version: mod_version,
+    mod_license: mod_license, minecraft_version: minecraft_version,
+    fabric_loader_version: fabric_loader_version, fabric_api_version: fabric_api_version,
+    geckolib_version: geckolib_version, java_version: java_version,
+    forge_config_api_port_version: '26.3.1']
+tasks.named('processResources') {
+    inputs.properties metadataValues
+    filesMatching('fabric.mod.json') { expand metadataValues }
+}
+tasks.withType(JavaCompile).configureEach { options.encoding = 'UTF-8' }
+def licenseFileName = "LICENSE_${mod_id}".toString()
+tasks.named('jar') {
+    from project(':core').sourceSets.main.output
+    from(rootProject.file('LICENSE')) { rename { licenseFileName } }
+}
+tasks.matching { it.name in ['runClient', 'runServer'] }.configureEach {
+    group = 'minecraft'
+    description = "Launch the Minecraft 26.3 Fabric port environment (${name == 'runClient' ? 'client' : 'server'})."
+}

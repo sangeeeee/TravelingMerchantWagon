@@ -1,8 +1,10 @@
 # Building and maintaining the version targets
 
 The repository uses one Gradle build with a shared core, Minecraft-version
-modules, and loader-specific targets. The maintained targets are NeoForge 1.21.1, Fabric 1.21.1 and Forge 1.20.1.
-Each target produces an independently installable mod JAR.
+modules, and loader-specific targets. The gameplay targets are NeoForge 1.21.1,
+Fabric 1.21.1 and Forge 1.20.1. NeoForge and Fabric 26.3 have port environments
+ready, with gameplay implementation pending.
+Each loader target produces its own mod JAR.
 See the [Forge target notes](versions/mc-1.20.1/forge/README.md) for its dependencies
 and development profiles.
 
@@ -18,6 +20,12 @@ versions/mc-1.20.1/
   gradle.properties
   common/
   forge/
+versions/mc-26.3/
+  gradle.properties
+  compatibility.gradle
+  common/
+  neoforge/
+  fabric/
 ```
 
 ## Module boundaries
@@ -52,7 +60,8 @@ runs. Players do not install separate core or common JARs.
 
 ## Commands
 
-Use JDK 21 for this build. From the repository root on Windows:
+Use JDK 21 or 25 to launch Gradle, with the target-specific JDKs available as
+toolchains. From the repository root on Windows:
 The Forge 1.20.1 target emits Java 17 bytecode and uses Java 17 to run Minecraft.
 
 ```powershell
@@ -130,6 +139,36 @@ See the [Fabric target notes](versions/mc-1.21.1/fabric/README.md)
 for required libraries and individual compatibility profiles.
 
 ## Dependencies and properties
+
+### Minecraft 26.3 port environment
+
+`versions/mc-26.3` adds independent `common`, `neoforge` and `fabric` modules.
+Only their dependency environment and loader entry points are currently ready;
+wagon gameplay still needs porting. See the [26.3 dependency inventory and port
+notes](versions/mc-26.3/README.md) for available and omitted integrations.
+
+```powershell
+.\gradlew.bat :mc-26.3:neoforge:verifyCompatibilityDependencies
+.\gradlew.bat :mc-26.3:fabric:verifyCompatibilityDependencies
+.\gradlew.bat :mc-26.3:build
+.\gradlew.bat :mc-26.3:neoforge:runClient
+.\gradlew.bat :mc-26.3:fabric:runClient
+```
+
+26.3 requires Java 25; 1.21.1 remains on Java 21 and Forge 1.20.1 retains its
+existing Java settings. To use local JDKs without committing machine-specific
+paths, add this to the ignored `gradle-local.properties`:
+
+```properties
+org.gradle.java.installations.paths=D:/dev/java/jdk17,D:/dev/java/jdk21,D:/dev/java/jdk25
+```
+
+Gradle discovers these installations and selects the version declared by each
+module. Command-line `-Porg.gradle.java.installations.paths=...` overrides the
+local setting. The root `build` also includes the new target; launch tasks
+continue to belong to individual loader modules.
+
+### Existing targets
 
 Root `gradle.properties` contains shared identity and build settings only.
 `versions/mc-1.21.1/gradle.properties` defines this Minecraft version and mappings.

@@ -11,6 +11,21 @@ plugins {
 
 rootProject.name = 'TravelingMerchantWagon'
 
+// Optional workstation toolchain hints belong in the ignored local file.
+// CLI -P values take precedence; each module still selects its own Java version.
+def localToolchains = new Properties()
+def localPropertiesFile = file('gradle-local.properties')
+if (localPropertiesFile.isFile()) {
+    localPropertiesFile.withReader('UTF-8') { localToolchains.load(it) }
+    def selectedProperties = new LinkedHashMap(gradle.startParameter.projectProperties)
+    localToolchains.each { key, value ->
+        if (key.toString().startsWith('org.gradle.java.installations.')) {
+            selectedProperties.putIfAbsent(key.toString(), value.toString())
+        }
+    }
+    gradle.startParameter.projectProperties = selectedProperties
+}
+
 include 'core'
 
 // Each version owns its loader modules. New targets are discovered on Gradle

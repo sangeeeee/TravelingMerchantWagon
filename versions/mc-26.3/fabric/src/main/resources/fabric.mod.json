@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "id": "${mod_id}",
+  "version": "${mod_version}",
+  "name": "${mod_name}",
+  "description": "Minecraft 26.3 port environment. Wagon gameplay is not implemented yet.",
+  "license": "${mod_license}",
+  "environment": "*",
+  "entrypoints": {
+    "main": ["com.sange.tm_wagon.TravelingMerchantWagonFabric"]
+  },
+  "depends": {
+    "minecraft": "${minecraft_version}",
+    "java": ">=${java_version}",
+    "fabricloader": ">=${fabric_loader_version}",
+    "fabric-api": ">=${fabric_api_version}",
+    "geckolib": ">=${geckolib_version} <6",
+    "forgeconfigapiport": ">=${forge_config_api_port_version}"
+  }
+}
