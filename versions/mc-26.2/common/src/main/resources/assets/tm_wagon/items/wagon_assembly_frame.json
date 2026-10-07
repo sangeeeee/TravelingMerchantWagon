@@ -1,0 +1,9 @@
+{
+  "model": {
+    "type": "minecraft:special",
+    "base": "tm_wagon:item/wagon_assembly_frame",
+    "model": {
+      "type": "geckolib:geckolib"
+    }
+  }
+}

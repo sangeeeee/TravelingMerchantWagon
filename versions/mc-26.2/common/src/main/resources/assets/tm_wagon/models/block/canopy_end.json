@@ -1,0 +1,581 @@
+{
+  "credit": "TravelingMerchantWagon / tools/export_wagon_canopy.py",
+  "ambientocclusion": false,
+  "textures": {
+    "cloth": "tm_wagon:component/dye/canopy_cloth",
+    "wood": "tm_wagon:block/canopy_wood",
+    "curtain": "tm_wagon:component/dye/canopy_curtain",
+    "particle": "tm_wagon:component/dye/canopy_cloth"
+  },
+  "elements": [
+    {
+      "name": "canvas_arch_border_0",
+      "from": [
+        -0.90625,
+        -6.25,
+        0.0
+      ],
+      "to": [
+        2.09375,
+        13.399999999999999,
+        0.25
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            1,
+            0.125
+          ],
+          "texture": "#cloth",
+          "tintindex": 0
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            1,
+            0.125
+          ],
+          "texture": "#cloth",
+          "tintindex": 0
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#cloth",
+          "rotation": 90,
+          "tintindex": 0
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#cloth",
+          "rotation": 90,
+          "tintindex": 0
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#cloth",
+          "tintindex": 0
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#cloth",
+          "tintindex": 0
+        }
+      }
+    },
+    {
+      "name": "canvas_arch_border_1",
+      "from": [
+        -0.3542038680986277,
+        12.11143691513226,
+        0.015625
+      ],
+      "to": [
+        3.18133003783411,
+        15.11143691513226,
+        0.265625
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            1,
+            0.125
+          ],
+          "texture": "#cloth",
+          "tintindex": 0
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            1,
+            0.125
+          ],
+          "texture": "#cloth",
+          "tintindex": 0
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#cloth",
+          "tintindex": 0
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#cloth",
+          "tintindex": 0
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#cloth",
+          "tintindex": 0
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#cloth",
+          "tintindex": 0
+        }
+      },
+      "rotation": {
+        "origin": [
+          1.4135630848677412,
+          13.61143691513226,
+          0
+        ],
+        "axis": "z",
+        "angle": 45.0,
+        "rescale": false
+      }
+    },
+    {
+      "name": "canvas_arch_border_2",
+      "from": [
+        2.0222818907014384,
+        13.871479061370238,
+        0.03125
+      ],
+      "to": [
+        6.351850691871015,
+        16.871479061370238,
+        0.28125
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            1,
+            0.125
+          ],
+          "texture": "#cloth",
+          "tintindex": 0
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            1,
+            0.125
+          ],
+          "texture": "#cloth",
+          "tintindex": 0
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#cloth",
+          "tintindex": 0
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#cloth",
+          "tintindex": 0
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#cloth",
+          "tintindex": 0
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#cloth",
+          "tintindex": 0
+        }
+      },
+      "rotation": {
+        "origin": [
+          4.187066291286227,
+          15.371479061370238,
+          0
+        ],
+        "axis": "z",
+        "angle": 22.5,
+        "rescale": false
+      }
+    },
+    {
+      "name": "canvas_arch_border_3",
+      "from": [
+        5.625,
+        14.588104249492382,
+        0.046875
+      ],
+      "to": [
+        10.375,
+        17.588104249492382,
+        0.296875
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            1,
+            0.125
+          ],
+          "texture": "#cloth",
+          "tintindex": 0
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            1,
+            0.125
+          ],
+          "texture": "#cloth",
+          "tintindex": 0
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#cloth",
+          "tintindex": 0
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#cloth",
+          "tintindex": 0
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#cloth",
+          "tintindex": 0
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#cloth",
+          "tintindex": 0
+        }
+      }
+    },
+    {
+      "name": "canvas_arch_border_4",
+      "from": [
+        9.648149308128986,
+        13.871479061370238,
+        0.03125
+      ],
+      "to": [
+        13.97771810929856,
+        16.871479061370238,
+        0.28125
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            1,
+            0.125
+          ],
+          "texture": "#cloth",
+          "tintindex": 0
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            1,
+            0.125
+          ],
+          "texture": "#cloth",
+          "tintindex": 0
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#cloth",
+          "tintindex": 0
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#cloth",
+          "tintindex": 0
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#cloth",
+          "tintindex": 0
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#cloth",
+          "tintindex": 0
+        }
+      },
+      "rotation": {
+        "origin": [
+          11.812933708713773,
+          15.371479061370238,
+          0
+        ],
+        "axis": "z",
+        "angle": -22.5,
+        "rescale": false
+      }
+    },
+    {
+      "name": "canvas_arch_border_5",
+      "from": [
+        12.81866996216589,
+        12.11143691513226,
+        0.015625
+      ],
+      "to": [
+        16.35420386809863,
+        15.11143691513226,
+        0.265625
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            1,
+            0.125
+          ],
+          "texture": "#cloth",
+          "tintindex": 0
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            1,
+            0.125
+          ],
+          "texture": "#cloth",
+          "tintindex": 0
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#cloth",
+          "tintindex": 0
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#cloth",
+          "tintindex": 0
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#cloth",
+          "tintindex": 0
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#cloth",
+          "tintindex": 0
+        }
+      },
+      "rotation": {
+        "origin": [
+          14.586436915132259,
+          13.61143691513226,
+          0
+        ],
+        "axis": "z",
+        "angle": -45.0,
+        "rescale": false
+      }
+    },
+    {
+      "name": "canvas_arch_border_6",
+      "from": [
+        13.90625,
+        -6.25,
+        0.0
+      ],
+      "to": [
+        16.90625,
+        13.399999999999999,
+        0.25
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            1,
+            0.125
+          ],
+          "texture": "#cloth",
+          "tintindex": 0
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            1,
+            0.125
+          ],
+          "texture": "#cloth",
+          "tintindex": 0
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#cloth",
+          "rotation": 90,
+          "tintindex": 0
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#cloth",
+          "rotation": 90,
+          "tintindex": 0
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#cloth",
+          "tintindex": 0
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#cloth",
+          "tintindex": 0
+        }
+      }
+    }
+  ]
+}

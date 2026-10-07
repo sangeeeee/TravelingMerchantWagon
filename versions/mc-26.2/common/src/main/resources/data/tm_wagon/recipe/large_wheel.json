@@ -1,0 +1,9 @@
+{
+  "type": "tm_wagon:component",
+  "component": "large_wheel",
+  "pattern": [
+    "PSP",
+    "SOS",
+    "PSP"
+  ]
+}

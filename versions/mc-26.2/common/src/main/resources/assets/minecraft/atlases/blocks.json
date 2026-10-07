@@ -1,0 +1,19 @@
+{
+  "sources": [
+    {
+      "type": "minecraft:directory",
+      "source": "component/wagon_stool",
+      "prefix": "component/wagon_stool/"
+    },
+    {
+      "type": "minecraft:directory",
+      "source": "component/wagon_cabinet",
+      "prefix": "component/wagon_cabinet/"
+    },
+    {
+      "type": "minecraft:directory",
+      "source": "component/dye",
+      "prefix": "component/dye/"
+    }
+  ]
+}

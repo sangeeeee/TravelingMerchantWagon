@@ -41,9 +41,12 @@ dependencies {
     commonGameplayJava project(path: ':mc-26.2:common', configuration: 'commonGameplayJava')
     commonResources project(path: ':mc-26.2:common', configuration: 'commonResources')
 }
-sourceSets.main.java.srcDirs(configurations.commonJava, configurations.commonGameplayJava)
+// Shared gameplay is enabled when the Fabric loader bindings are ported.
+sourceSets.main.java.srcDirs(configurations.commonJava)
 sourceSets.main.resources {
+    // This loader remains a scaffold; do not load unregistered gameplay resources.
     srcDir configurations.commonResources
+    include 'fabric.mod.json', 'tm_wagon.png', 'assets/tm_wagon/textures/item/wagon_icon.png'
     exclude '**/*.bbmodel', '**/.cache/**', '**/.gitkeep'
 }
 apply from: file('../compatibility.gradle')

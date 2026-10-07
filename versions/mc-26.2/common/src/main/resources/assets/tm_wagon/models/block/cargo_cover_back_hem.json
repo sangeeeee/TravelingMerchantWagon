@@ -1,0 +1,214 @@
+{
+  "credit": "TravelingMerchantWagon / tools/export_cargo_cover.py",
+  "ambientocclusion": false,
+  "textures": {
+    "fabric": "tm_wagon:component/dye/cargo_cover_fabric",
+    "rope": "tm_wagon:block/cargo_cover_rope",
+    "particle": "tm_wagon:component/dye/cargo_cover_fabric"
+  },
+  "elements": [
+    {
+      "name": "back_hanging_edge",
+      "from": [
+        0.105,
+        -2,
+        0
+      ],
+      "to": [
+        15.895,
+        0,
+        16
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            16,
+            2
+          ],
+          "texture": "#fabric",
+          "tintindex": 0
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            16,
+            2
+          ],
+          "texture": "#fabric",
+          "tintindex": 0
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            0.105,
+            2
+          ],
+          "texture": "#fabric",
+          "tintindex": 0
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            0.105,
+            2
+          ],
+          "texture": "#fabric",
+          "tintindex": 0
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#fabric",
+          "tintindex": 0
+        }
+      }
+    },
+    {
+      "name": "back_hanging_cord_left",
+      "from": [
+        -0.16,
+        -2.2,
+        0
+      ],
+      "to": [
+        0.08,
+        0.42,
+        16
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#rope"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#rope"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#rope"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#rope"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#rope"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#rope"
+        }
+      }
+    },
+    {
+      "name": "back_hanging_cord_right",
+      "from": [
+        15.92,
+        -2.2,
+        0
+      ],
+      "to": [
+        16.16,
+        0.42,
+        16
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#rope"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#rope"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#rope"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#rope"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#rope"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#rope"
+        }
+      }
+    }
+  ]
+}

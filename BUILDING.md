@@ -2,10 +2,9 @@
 
 The repository uses one Gradle build with a shared core, Minecraft-version
 modules, and loader-specific targets. The gameplay targets are NeoForge 1.21.1,
-Fabric 1.21.1, Forge 1.20.1, NeoForge 26.3 and Fabric 26.3.
+Fabric 1.21.1, Forge 1.20.1, NeoForge 26.2, NeoForge 26.3 and Fabric 26.3.
 Each loader target produces its own mod JAR.
-Minecraft 26.2 NeoForge and Fabric also have dependency scaffolds; their gameplay
-port is pending. See the [26.2 target inventory](versions/mc-26.2/README.md).
+Minecraft 26.2 Fabric has a dependency scaffold; its gameplay port is pending. See the [26.2 target inventory](versions/mc-26.2/README.md).
 See the [Forge target notes](versions/mc-1.20.1/forge/README.md) for its dependencies
 and development profiles.
 
@@ -21,7 +20,7 @@ versions/mc-1.20.1/
   gradle.properties
   common/
   forge/
-versions/mc-26.2/                 dependency scaffold; gameplay pending
+versions/mc-26.2/                 NeoForge gameplay; Fabric scaffold
   gradle.properties
   compatibility.gradle
   common/
@@ -55,6 +54,10 @@ versions/mc-26.3/
 - `mc-1.20.1:forge` uses the Legacy Forge toolchain and its own common/gameplay
   sources, NBT and recipe formats, events, networking, optional mod APIs and Mixins.
   It excludes Sable; its client-only shader dependencies do not enter server runs.
+- `mc-26.2:neoforge` uses its own common/gameplay sources, Java 25 and FML 11.
+  It restores the wagon straw mat, limits wood materials to those present in
+  26.2, and implements that version's furnace and brewing APIs. Its Fabric
+  scaffold currently consumes only the vanilla-facing common sources.
 - `mc-26.3:neoforge` compiles its own Minecraft 26.3 common/gameplay sources
   against the unobfuscated game APIs, Java 25, GeckoLib 5 and FML 12. Optional
   integrations use only matching 26.3 libraries. `mc-26.3:fabric` consumes the same shared gameplay sources, with Fabric
@@ -129,6 +132,7 @@ Installable JARs are written to each loader target:
 - `versions/mc-1.21.1/neoforge/build/libs/tm_wagon-neoforge-1.21.1-<mod-version>.jar`
 - `versions/mc-1.21.1/fabric/build/libs/tm_wagon-fabric-1.21.1-<mod-version>.jar`
 - `versions/mc-1.20.1/forge/build/libs/tm_wagon-forge-1.20.1-<mod-version>.jar`
+- `versions/mc-26.2/neoforge/build/libs/tm_wagon-neoforge-26.2-<mod-version>.jar`
 - `versions/mc-26.3/neoforge/build/libs/tm_wagon-neoforge-26.3-<mod-version>.jar`
 
 Settings automatically discover `versions/mc-*` directories and their `common`,

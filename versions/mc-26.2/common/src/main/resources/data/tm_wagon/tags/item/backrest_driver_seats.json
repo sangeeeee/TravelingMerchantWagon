@@ -1,0 +1,7 @@
+{
+  "values": [
+    "tm_wagon:single_seat",
+    "tm_wagon:double_seat",
+    "tm_wagon:triple_seat"
+  ]
+}
