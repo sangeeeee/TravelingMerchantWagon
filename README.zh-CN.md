@@ -5,7 +5,7 @@
 TravelingMerchantWagon 为 Minecraft 添加了可以自由搭配的木制马车。亲手装好零件，拴上马匹，带着货物和同伴踏上旅途。无论是搬家、远行，还是扮演旅行商人，马车都可以成为随行的仓库、工作间和休息处。
 
 
-支持 NeoForge／Fabric 26.3、NeoForge 26.2、NeoForge／Fabric 1.21.1 和 Forge 1.20.1；各版本兼容范围见 [26.3 版本说明](versions/mc-26.3/README.md)及 [26.2 版本说明](versions/mc-26.2/README.md)。
+支持 NeoForge／Fabric 26.3、NeoForge/Fabric 26.2、NeoForge／Fabric 1.21.1 和 Forge 1.20.1；各版本兼容范围见 [26.3 版本说明](versions/mc-26.3/README.md)及 [26.2 版本说明](versions/mc-26.2/README.md)。
 
 ## 可以做什么？
 
@@ -28,7 +28,7 @@ TravelingMerchantWagon 为 Minecraft 添加了可以自由搭配的木制马车�
 
 ## 模组兼容
 
-以下兼容均为可选，按需安装对应模组即可。兼容范围随游戏版本有所不同：26.2 NeoForge 及 26.3 的两种加载器均支持 Carry On 与旅行者背包，NeoForge 版还支持精妙背包；Patchouli、车万女仆／TACZ 及 Sable 兼容由旧版本提供。
+以下兼容均为可选，按需安装对应模组即可。兼容范围随游戏版本有所不同：26.2 及 26.3 的两种加载器均支持 Carry On 与旅行者背包，NeoForge 版还支持精妙背包；Patchouli、车万女仆／TACZ 及 Sable 兼容由旧版本提供。
 
 | 模组 | 可以怎样配合马车使用 |
 | --- | --- |

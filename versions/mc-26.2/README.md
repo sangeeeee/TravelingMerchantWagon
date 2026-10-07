@@ -1,9 +1,8 @@
 # Minecraft 26.2 development targets
 
-**NeoForge gameplay is implemented.** The port provides assembly, three wagon
+**NeoForge and Fabric gameplay are implemented.** The port provides assembly, three wagon
 sizes, mixed wood and dyed components, cargo workstations, passenger seating,
 bedding, draft animals, driving and optional compatibility adapters.
-**Fabric remains a dependency scaffold** until its loader bindings are ported.
 
 The 26.2 wood inventory includes pale oak and excludes bamboo components and
 26.3's poplar. Native straw beds do not exist in 26.2, so this target uses the
@@ -62,7 +61,9 @@ libraries; client integrations retain their own bundled libraries.
 
 NeoForge includes Carry On, Traveler's Backpack (including sleeping bags),
 Sophisticated Backpacks, JEI recipe displays, SwingThroughGrass, Lithium and
-Iris shadow bridges. Optional APIs are loaded only when the matching mod is present.
+Iris shadow bridges. Fabric supports the corresponding Carry On, Traveler's
+Backpack, JEI, SwingThroughGrass, Lithium and Iris integrations. Optional APIs
+are loaded only when the matching mod is present.
 
 ## Unavailable integrations
 
@@ -93,7 +94,7 @@ Patchouli release becomes available.
 Launch tasks belong to each loader project, under `Tasks > minecraft`. The root
 `build` includes all discovered targets; it does not expose game launch tasks.
 Each loader produces its own JAR under `build/libs`, named
-`tm_wagon-<loader>-26.2-1.0.1.jar`. The NeoForge output is playable; the Fabric output still contains its scaffold only.
+`tm_wagon-<loader>-26.2-1.0.1.jar`. Both loader outputs contain the full gameplay implementation.
 
 Use `-PwithAllCompat=false` on NeoForge or `-PfabricWithAllCompat=false` on Fabric
 for a minimal runtime. Individual `with<Name>` / `fabricWith<Name>` profiles
@@ -103,23 +104,29 @@ available. Build output, run directories, local libraries and logs are ignored.
 
 ## Port verification
 
-The NeoForge port smoke runs create fresh worlds under `build/`, exercise all
+The loader-specific port smoke runs create fresh worlds under `build/`, exercise all
 three wagon sizes and cargo ownership during assembly/restoration, test native
 workstation menus and processing, repeatable moving sleep without respawn,
 wood-sensitive recipes, shelving, copper chests, mule/camel driving and lead
-refunds. The full profile also tests Carry On and both backpack storage bridges.
+refunds. The full profile also tests Carry On and the available backpack storage bridges.
+Fabric checks ordinary block/item-use callbacks and custom recipe synchronization
+with JEI, including wood and colour variants.
 Client runs capture component and wagon previews and exit automatically.
 
 ```powershell
 .\gradlew.bat :mc-26.2:neoforge:runClient -PportSmoke=true
 .\gradlew.bat :mc-26.2:neoforge:runClient -PportSmoke=true -PwithAllCompat=false
 .\gradlew.bat :mc-26.2:neoforge:runServer -PserverSmoke=true
+.\gradlew.bat :mc-26.2:fabric:runClient -PportSmoke=true
+.\gradlew.bat :mc-26.2:fabric:runClient -PportSmoke=true -PfabricWithAllCompat=false
+.\gradlew.bat :mc-26.2:fabric:runServer -PportServerSmoke=true
 ```
 
 The isolated server smoke requires an accepted EULA in `build/server-smoke`;
 set its server properties for a local test before launch. Test helpers are not
 included in the release JAR. Only `config/tm_wagon-server.toml` contains the
-wagon server configuration, generated at startup and synchronized by NeoForge.
+wagon server configuration, generated at startup and synchronized by the selected loader
+(NeoForge or Forge Config API Port on Fabric).
 
 ## Primary references
 

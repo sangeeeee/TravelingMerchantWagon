@@ -9,6 +9,12 @@
   "entrypoints": {
     "main": [
       "com.sange.tm_wagon.TravelingMerchantWagon"
+    ],
+    "client": [
+      "com.sange.tm_wagon.TravelingMerchantWagonClient"
+    ],
+    "jei_mod_plugin": [
+      "com.sange.tm_wagon.compat.jei.WagonJeiPlugin"
     ]
   },
   "depends": {
@@ -19,5 +25,8 @@
     "geckolib": ">=${geckolib_version} <6",
     "forgeconfigapiport": ">=${forge_config_api_port_version}"
   },
-  "icon": "assets/tm_wagon/textures/item/wagon_icon.png"
+  "icon": "assets/tm_wagon/textures/item/wagon_icon.png",
+  "mixins": [
+    "tm_wagon.mixins.json"
+  ]
 }

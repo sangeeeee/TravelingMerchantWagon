@@ -1,15 +1,16 @@
 plugins {
     id 'java-library'
-    // Minecraft 26.2 is unobfuscated; use standard dependency configurations.
+    // 26.2 is unobfuscated: no remapping plugin or mappings dependency.
     id 'net.fabricmc.fabric-loom'
 }
 
 apply from: rootProject.file('gradle/load-target-properties.gradle')
-description = 'Minecraft 26.2 Fabric port scaffold and compatibility dependencies.'
+description = 'Minecraft 26.2 Fabric gameplay implementation.'
 base.archivesName = "${mod_id}-fabric-${minecraft_version}"
 java.toolchain.languageVersion = JavaLanguageVersion.of(java_version.toInteger())
 evaluationDependsOn(':core')
 def coreOutput = project(':core').sourceSets.main.output
+
 loom {
     mods {
         tm_wagon {
@@ -18,10 +19,18 @@ loom {
         }
     }
     runs {
-        client { runDir 'run' }
-        server { runDir 'run-server'; programArg '--nogui' }
+        client {
+            runDir providers.gradleProperty('portSmoke').getOrElse('false').toBoolean() ? 'build/port-smoke' : 'run'
+            if (providers.gradleProperty('portSmoke').getOrElse('false').toBoolean()) { property 'tm_wagon.portSmoke', 'true'; programArgs '--width', '1200', '--height', '800' }
+        }
+        server {
+            runDir providers.gradleProperty('portServerSmoke').getOrElse('false').toBoolean() ? 'build/server-smoke' : 'run-server'
+            programArg '--nogui'
+            if (providers.gradleProperty('portServerSmoke').getOrElse('false').toBoolean()) property 'tm_wagon.portServerSmoke', 'true'
+        }
     }
 }
+
 configurations {
     commonJava { canBeConsumed = false; canBeResolved = true }
     commonGameplayJava { canBeConsumed = false; canBeResolved = true }
@@ -32,6 +41,7 @@ dependencies {
     implementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
     implementation "net.fabricmc.fabric-api:fabric-api:${fabric_api_version}"
     implementation("maven.modrinth:geckolib:${geckolib_version_id}") { transitive = false }
+    // Keep the Fabric configuration system available independently of backpacks.
     implementation("maven.modrinth:forge-config-api-port:${forge_config_api_port_version_id}") { transitive = false }
     compileOnly 'com.electronwill.night-config:core:3.8.4'
     compileOnly 'com.electronwill.night-config:toml:3.8.4'
@@ -41,14 +51,19 @@ dependencies {
     commonGameplayJava project(path: ':mc-26.2:common', configuration: 'commonGameplayJava')
     commonResources project(path: ':mc-26.2:common', configuration: 'commonResources')
 }
-// Shared gameplay is enabled when the Fabric loader bindings are ported.
-sourceSets.main.java.srcDirs(configurations.commonJava)
+def sharedGameplayDir = layout.buildDirectory.dir('generated/sharedGameplay')
+def prepareSharedGameplay = tasks.register('prepareSharedGameplay', Sync) {
+    from configurations.commonGameplayJava
+    exclude 'com/sange/tm_wagon/mixin/WagonSophisticatedContextMixin.java', 'com/sange/tm_wagon/client/CargoRenderer.java', 'com/sange/tm_wagon/mixin/WagonMovementMixin.java'
+    into sharedGameplayDir
+}
+sourceSets.main.java.srcDirs(configurations.commonJava, sharedGameplayDir)
+tasks.named('compileJava') { dependsOn prepareSharedGameplay }
 sourceSets.main.resources {
-    // This loader remains a scaffold; do not load unregistered gameplay resources.
     srcDir configurations.commonResources
-    include 'fabric.mod.json', 'tm_wagon.png', 'assets/tm_wagon/textures/item/wagon_icon.png'
     exclude '**/*.bbmodel', '**/.cache/**', '**/.gitkeep'
 }
+
 apply from: file('../compatibility.gradle')
 if (gradle.startParameter.taskNames.any { it.endsWith('runClient') }) {
     configurations.runtimeOnly.extendsFrom configurations.clientCompatibilityRuntime
@@ -58,12 +73,12 @@ def metadataValues = [mod_id: mod_id, mod_name: mod_name, mod_version: mod_versi
     mod_license: mod_license, minecraft_version: minecraft_version,
     fabric_loader_version: fabric_loader_version, fabric_api_version: fabric_api_version,
     geckolib_version: geckolib_version, java_version: java_version,
-    forge_config_api_port_version: forge_config_api_port_version]
+    forge_config_api_port_version: '26.2.1']
 tasks.named('processResources') {
     inputs.properties metadataValues
     filesMatching('fabric.mod.json') { expand metadataValues }
 }
-tasks.withType(JavaCompile).configureEach { options.encoding = 'UTF-8' }
+tasks.withType(JavaCompile).configureEach { options.encoding = 'UTF-8'; options.compilerArgs += ['-Xmaxerrs', '1000'] }
 def licenseFileName = "LICENSE_${mod_id}".toString()
 tasks.named('jar') {
     from project(':core').sourceSets.main.output
@@ -71,5 +86,20 @@ tasks.named('jar') {
 }
 tasks.matching { it.name in ['runClient', 'runServer'] }.configureEach {
     group = 'minecraft'
-    description = "Launch the Minecraft 26.2 Fabric development environment (${name == 'runClient' ? 'client' : 'server'})."
+    description = "Launch the Minecraft 26.2 Fabric port environment (${name == 'runClient' ? 'client' : 'server'})."
+}
+
+// Isolated smoke mod: its code and metadata never enter the published wagon jar.
+sourceSets {
+    portSmoke {
+        compileClasspath += sourceSets.main.output + sourceSets.main.compileClasspath
+        runtimeClasspath += sourceSets.main.output + sourceSets.main.runtimeClasspath
+    }
+}
+if (providers.gradleProperty('portSmoke').getOrElse('false').toBoolean() || providers.gradleProperty('portServerSmoke').getOrElse('false').toBoolean()) {
+    loom.mods {
+        tm_wagon_port_smoke { sourceSet sourceSets.portSmoke }
+    }
+    loom.runs.client.source(sourceSets.portSmoke)
+    loom.runs.server.source(sourceSets.portSmoke)
 }
