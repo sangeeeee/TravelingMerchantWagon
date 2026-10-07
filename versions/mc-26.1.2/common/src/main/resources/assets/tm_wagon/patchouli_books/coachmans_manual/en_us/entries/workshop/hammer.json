@@ -1,0 +1,27 @@
+{
+  "name": "The Carpenter’s Hammer",
+  "icon": "tm_wagon:dismantling_hammer",
+  "category": "tm_wagon:workshop",
+  "sortnum": 4,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "To recover an entity wagon, $(bold)hit an actual wagon part with a carpenter’s hammer$(reset). One strike returns intact parts with their wood and cloth colours. Cargo follows normal unloading rules, while riders and draft animals are released."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "The hammer also chops wood like an iron axe, with equivalent durability and axe enchantments.$(br2)To mine world blocks near the wagon, aim at their exposed surfaces. This also works for grass and similar blocks appearing inside the box."
+    },
+    {
+      "type": "tm_wagon:component_recipe",
+      "recipe": "tm_wagon:dismantling_hammer",
+      "alternative": 0,
+      "heading": "book.tm_wagon.recipe",
+      "text": "Four iron ingots, two logs or stripped logs of any type, and one stick.",
+      "anchor": "dismantling_hammer"
+    }
+  ],
+  "extra_recipe_mappings": {
+    "tm_wagon:dismantling_hammer": 2
+  }
+}

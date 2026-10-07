@@ -1,0 +1,36 @@
+{
+  "variants": {
+    "facing=north,extended=false": {
+      "model": "tm_wagon:block/wagon_assembly_frame",
+      "y": 0
+    },
+    "facing=north,extended=true": {
+      "model": "tm_wagon:block/wagon_assembly_frame",
+      "y": 0
+    },
+    "facing=east,extended=false": {
+      "model": "tm_wagon:block/wagon_assembly_frame",
+      "y": 90
+    },
+    "facing=east,extended=true": {
+      "model": "tm_wagon:block/wagon_assembly_frame",
+      "y": 90
+    },
+    "facing=south,extended=false": {
+      "model": "tm_wagon:block/wagon_assembly_frame",
+      "y": 180
+    },
+    "facing=south,extended=true": {
+      "model": "tm_wagon:block/wagon_assembly_frame",
+      "y": 180
+    },
+    "facing=west,extended=false": {
+      "model": "tm_wagon:block/wagon_assembly_frame",
+      "y": 270
+    },
+    "facing=west,extended=true": {
+      "model": "tm_wagon:block/wagon_assembly_frame",
+      "y": 270
+    }
+  }
+}

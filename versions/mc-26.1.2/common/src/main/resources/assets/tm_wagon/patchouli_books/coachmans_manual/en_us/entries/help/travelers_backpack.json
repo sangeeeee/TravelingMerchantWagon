@@ -1,0 +1,29 @@
+{
+  "name": "Traveler's Backpack",
+  "icon": "travelersbackpack:standard",
+  "category": "tm_wagon:help",
+  "sortnum": 4,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "title": "Backpacks on Board",
+      "text": "Hold a backpack and sneak-use an empty cargo slot to load it. Use a loaded backpack to open its own storage screen, even while holding another item.$(br2)Sneak-use it to unload into your inventory. If your inventory is full, it drops beside the wagon."
+    },
+    {
+      "type": "patchouli:text",
+      "title": "Keeping Your Supplies",
+      "text": "Stored items and backpack settings are kept when you unload or convert the wagon.$(br2)With Carry On installed, its permitted pickup gesture takes priority. Otherwise, sneak-use returns the backpack as an item. Use Carry On’s configured key if you have changed it."
+    },
+    {
+      "type": "patchouli:text",
+      "title": "Sleeping Bags",
+      "text": "A separate sleeping bag uses two consecutive slots in one column. Use an empty slot while holding it: the second slot is chosen $(bold)away from you$(reset), toward either the front or rear.$(br2)Both slots must be empty. The complete sleeping bag is scaled evenly between them."
+    },
+    {
+      "type": "patchouli:text",
+      "title": "A Night on the Wagon",
+      "text": "Stop and steady the wagon, then use either half of the sleeping bag to sleep. Players keep their existing respawn point and stay asleep when the wagon moves.$(br2)Use it in a bed-compatible dimension under normal sleeping conditions. For maid passengers, provide wagon straw mats. Sneak-use either half to unload the bag."
+    }
+  ],
+  "flag": "mod:travelersbackpack"
+}

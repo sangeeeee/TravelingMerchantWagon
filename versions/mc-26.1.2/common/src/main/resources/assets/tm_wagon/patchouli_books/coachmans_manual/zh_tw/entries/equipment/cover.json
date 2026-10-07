@@ -1,0 +1,36 @@
+{
+  "name": "貨箱罩",
+  "icon": "tm_wagon:wagon_cargo_cover",
+  "category": "tm_wagon:equipment",
+  "sortnum": 1,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "手持貨箱罩，右鍵貨箱木質側面安裝，初始完全鋪開。方塊與實體形態都支持；在貨箱罩和車蓬之間選擇一種。$(br2)右鍵布面或布卷，每次從車頭向車尾捲起一行。潛行右鍵布面或布卷，每次鋪開一行。"
+    },
+    {
+      "type": "patchouli:text",
+      "text": "捲起蓋布，露出所需貨位，就能使用、裝入或卸下貨物。也可以打開尾門，從後方通道操作。鋪開的布面可以站立。$(br2)完全捲起時，潛行右鍵布卷可重新鋪開。要拆下整個貨箱罩，請潛行右鍵$(bold)露出的木質側板$(reset)。"
+    },
+    {
+      "type": "tm_wagon:component_recipe",
+      "recipe": "tm_wagon:wagon_cargo_cover",
+      "alternative": 0,
+      "heading": "book.tm_wagon.recipe",
+      "text": "羊毛必須同色。四角可以使用拴繩或藤蔓，決定顏色的只有羊毛。",
+      "anchor": "wagon_cargo_cover"
+    },
+    {
+      "type": "patchouli:image",
+      "images": [
+        "tm_wagon:textures/gui/handbook/equipment/cover_spread.png",
+        "tm_wagon:textures/gui/handbook/equipment/cover_rolled.png"
+      ],
+      "border": false,
+      "text": "淺灰色貨箱罩：鋪開／捲起兩行。"
+    }
+  ],
+  "extra_recipe_mappings": {
+    "tm_wagon:wagon_cargo_cover": 2
+  }
+}

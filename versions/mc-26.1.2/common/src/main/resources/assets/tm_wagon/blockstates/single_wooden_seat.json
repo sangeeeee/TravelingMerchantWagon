@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "tm_wagon:block/assembly_part"
+    }
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "name": "book.tm_wagon.category.driving",
+  "description": "拴馬、駕駛、推車，以及應對起伏的道路。",
+  "icon": "tm_wagon:single_seat",
+  "sortnum": 1
+}

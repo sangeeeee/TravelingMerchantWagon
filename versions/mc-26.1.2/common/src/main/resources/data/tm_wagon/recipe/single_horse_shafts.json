@@ -1,0 +1,9 @@
+{
+  "type": "tm_wagon:component",
+  "component": "single_horse_shafts",
+  "pattern": [
+    "SSS",
+    " L ",
+    "SSS"
+  ]
+}

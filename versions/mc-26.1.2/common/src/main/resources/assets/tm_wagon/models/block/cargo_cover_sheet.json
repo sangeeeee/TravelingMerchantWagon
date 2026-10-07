@@ -1,0 +1,513 @@
+{
+  "credit": "TravelingMerchantWagon / tools/export_cargo_cover.py",
+  "ambientocclusion": false,
+  "textures": {
+    "fabric": "tm_wagon:component/dye/cargo_cover_fabric",
+    "rope": "tm_wagon:block/cargo_cover_rope",
+    "hem": "tm_wagon:component/dye/cargo_cover_hem",
+    "particle": "tm_wagon:component/dye/cargo_cover_fabric"
+  },
+  "elements": [
+    {
+      "name": "canvas",
+      "from": [
+        0,
+        0,
+        0
+      ],
+      "to": [
+        16,
+        0.25,
+        16
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            16,
+            0.25
+          ],
+          "texture": "#fabric",
+          "tintindex": 0
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            16,
+            0.25
+          ],
+          "texture": "#fabric",
+          "tintindex": 0
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            16,
+            0.25
+          ],
+          "texture": "#fabric",
+          "tintindex": 0
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            16,
+            0.25
+          ],
+          "texture": "#fabric",
+          "tintindex": 0
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#fabric",
+          "tintindex": 0
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#fabric",
+          "tintindex": 0
+        }
+      }
+    },
+    {
+      "name": "left_hanging_edge",
+      "from": [
+        0,
+        -2,
+        0
+      ],
+      "to": [
+        0.105,
+        0,
+        16
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            0.105,
+            16
+          ],
+          "texture": "#hem",
+          "tintindex": 0
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            0.105,
+            16
+          ],
+          "texture": "#hem",
+          "tintindex": 0
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#hem",
+          "tintindex": 0
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#hem",
+          "tintindex": 0
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#hem",
+          "tintindex": 0
+        }
+      }
+    },
+    {
+      "name": "right_hanging_edge",
+      "from": [
+        15.895,
+        -2,
+        0
+      ],
+      "to": [
+        16,
+        0,
+        16
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            0.105,
+            16
+          ],
+          "texture": "#hem",
+          "tintindex": 0
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            0.105,
+            16
+          ],
+          "texture": "#hem",
+          "tintindex": 0
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#hem",
+          "tintindex": 0
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#hem",
+          "tintindex": 0
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#hem",
+          "tintindex": 0
+        }
+      }
+    },
+    {
+      "name": "cross_cord_main",
+      "from": [
+        -3.413708498984761,
+        0.34,
+        7.82
+      ],
+      "to": [
+        19.41370849898476,
+        0.65,
+        8.18
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#rope"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#rope"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#rope"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#rope"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#rope"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#rope"
+        }
+      },
+      "rotation": {
+        "origin": [
+          8,
+          0.34,
+          8
+        ],
+        "axis": "y",
+        "angle": -45,
+        "rescale": false
+      }
+    },
+    {
+      "name": "cross_cord_cross",
+      "from": [
+        -3.413708498984761,
+        0.34500000000000003,
+        7.82
+      ],
+      "to": [
+        19.41370849898476,
+        0.655,
+        8.18
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#rope"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#rope"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#rope"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#rope"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#rope"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#rope"
+        }
+      },
+      "rotation": {
+        "origin": [
+          8,
+          0.34,
+          8
+        ],
+        "axis": "y",
+        "angle": 45,
+        "rescale": false
+      }
+    },
+    {
+      "name": "hanging_cord_left",
+      "from": [
+        -0.16,
+        -2.2,
+        -0.27
+      ],
+      "to": [
+        0.08,
+        0.42,
+        0.27
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#rope"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#rope"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#rope"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#rope"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#rope"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#rope"
+        }
+      }
+    },
+    {
+      "name": "hanging_cord_right",
+      "from": [
+        15.92,
+        -2.2,
+        -0.27
+      ],
+      "to": [
+        16.16,
+        0.42,
+        0.27
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#rope"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#rope"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#rope"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#rope"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#rope"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#rope"
+        }
+      }
+    }
+  ]
+}

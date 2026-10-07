@@ -5,9 +5,9 @@
 TravelingMerchantWagon 为 Minecraft 添加了可以自由搭配的木制马车。亲手装好零件，拴上马匹，带着货物和同伴踏上旅途。无论是搬家、远行，还是扮演旅行商人，马车都可以成为随行的仓库、工作间和休息处。
 
 
-支持 NeoForge／Fabric 26.3、NeoForge/Fabric 26.2、NeoForge／Fabric 1.21.1 和 Forge 1.20.1；各版本兼容范围见 [26.3 版本说明](versions/mc-26.3/README.md)及 [26.2 版本说明](versions/mc-26.2/README.md)。
+支持 NeoForge 26.1.2、NeoForge／Fabric 26.3、NeoForge/Fabric 26.2、NeoForge／Fabric 1.21.1 和 Forge 1.20.1；各版本兼容范围见 [26.3 版本说明](versions/mc-26.3/README.md)及 [26.2 版本说明](versions/mc-26.2/README.md)。
 
-Minecraft 26.1.2 的 NeoForge／Fabric 子项目已完成依赖准备，玩法移植尚待进行，详见 [版本说明](versions/mc-26.1.2/README.md)。
+Minecraft 26.1.2 的 NeoForge 已完成玩法移植及帕秋莉、车万女仆等兼容，Fabric 仍在准备中，详见 [版本说明](versions/mc-26.1.2/README.md)。
 
 ## 可以做什么？
 
@@ -30,7 +30,7 @@ Minecraft 26.1.2 的 NeoForge／Fabric 子项目已完成依赖准备，玩法�
 
 ## 模组兼容
 
-以下兼容均为可选，按需安装对应模组即可。兼容范围随游戏版本有所不同：26.2 及 26.3 的两种加载器均支持 Carry On 与旅行者背包，NeoForge 版还支持精妙背包；Patchouli、车万女仆／TACZ 及 Sable 兼容由旧版本提供。
+以下兼容均为可选，按需安装对应模组即可。兼容范围随游戏版本有所不同：26.2 及 26.3 的两种加载器均支持 Carry On 与旅行者背包，NeoForge 版还支持精妙背包；26.1.2 NeoForge 也支持 Patchouli 和车万女仆；TACZ 与 Sable 兼容由具有对应模组版本的旧版目标提供。
 
 | 模组 | 可以怎样配合马车使用 |
 | --- | --- |
@@ -38,7 +38,7 @@ Minecraft 26.1.2 的 NeoForge／Fabric 子项目已完成依赖准备，玩法�
 | [旅行者背包](https://modrinth.com/mod/travelersbackpack) | 将背包装到货位上，直接打开原本的存储界面并保留其中物品。独立睡袋占两个货位，供玩家睡觉且不改变重生点。 |
 | [精妙背包](https://www.curseforge.com/minecraft/mc-mods/sophisticated-backpacks) | 运输背包，并在车上打开它原本的存储和设置界面。 |
 | [Carry On](https://modrinth.com/mod/carry-on) | 将允许搬运的货物抱上车或抱下车，也可以将抱着的实体放到马车木凳上入座。使用当前设置的搬运键和搬运规则。 |
-| [车万女仆](https://www.curseforge.com/minecraft/mc-mods/touhou-little-maid) | 提供“马车副驾驶”和“乘坐马车”任务；副驾驶可以在座位上使用弓、弩或 TACZ 枪械攻击敌对实体，休息时可以睡在草席上；原本的照片、魂符和相机也能按各自规则配合马车使用。 |
+| [车万女仆](https://www.curseforge.com/minecraft/mc-mods/touhou-little-maid) | 提供“马车副驾驶”和“乘坐马车”任务；副驾驶可以在座位上使用弓、弩攻击敌对实体（支持的版本还可使用 TACZ 枪械），休息时可以睡在草席上；原本的照片、魂符和相机也能按各自规则配合马车使用。 |
 | [Sable](https://modrinth.com/mod/sable) | 马车移动与乘客入座时会考虑外部物理结构。先在普通世界中完成方块组件装配，再驾驶实体马车到结构附近。 |
 
 采用兼容原版存储方式的模组箱子、木桶，也能作为可交互货物使用，包括已有适配的旧版本 **[BetterEnd](https://modrinth.com/mod/betterend) 中使用 BCLib 的木桶**。具体兼容情况取决于容器的存储方式。

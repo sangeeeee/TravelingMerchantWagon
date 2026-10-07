@@ -1,0 +1,22 @@
+{
+  "name": "Touhou Little Maid",
+  "icon": "tm_wagon:maid_wagon_companion_icon",
+  "category": "tm_wagon:help",
+  "sortnum": 2,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "The $(bold)Wagon Companion$(reset) task takes a passenger position on a double or triple driver’s bench. $(bold)Wagon Passenger$(reset) finds a free cargo stool with clearance. Changing tasks makes her dismount.$(br2)Leads and Carry On can also seat maids. Select the appropriate task to keep them aboard."
+    },
+    {
+      "type": "patchouli:text",
+      "title": "Mounted Ranged Combat",
+      "text": "While seated, a maid with a bow or crossbow attacks nearby hostiles without leaving the wagon. Supply arrows as required by her usual ranged tasks."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "At rest time, maids seek beds or wagon mats using the original priorities. Sleep follows a moving wagon; mat removal wakes them with the original affection rules.$(br2)Filled photos or soul talismans release maids on the wagon. Capture uses the original tools and conditions, including their sleeping-maid rules."
+    }
+  ],
+  "flag": "mod:touhou_little_maid"
+}

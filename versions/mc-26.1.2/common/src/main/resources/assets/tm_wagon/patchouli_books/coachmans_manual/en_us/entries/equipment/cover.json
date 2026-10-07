@@ -1,0 +1,36 @@
+{
+  "name": "Cargo Covers",
+  "icon": "tm_wagon:wagon_cargo_cover",
+  "category": "tm_wagon:equipment",
+  "sortnum": 1,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "Use the wooden side of the box with a cargo cover to install it fully spread. Both forms are supported. Choose either a cover or a canopy.$(br2)Use cloth or its roll to uncover one row, front to rear. Sneak-use cloth or the roll to spread one row."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "Roll back the cloth to expose cargo for use, loading or unloading. You can also open the tailgate for rear access. Spread cloth supports standing entities.$(br2)Sneak-use a fully rolled cover to spread it again. To remove the whole cover, sneak-use the $(bold)exposed wooden sideboard$(reset)."
+    },
+    {
+      "type": "tm_wagon:component_recipe",
+      "recipe": "tm_wagon:wagon_cargo_cover",
+      "alternative": 0,
+      "heading": "book.tm_wagon.recipe",
+      "text": "All wool must match. Corners accept leads or vines; wool determines the colour.",
+      "anchor": "wagon_cargo_cover"
+    },
+    {
+      "type": "patchouli:image",
+      "images": [
+        "tm_wagon:textures/gui/handbook/equipment/cover_spread.png",
+        "tm_wagon:textures/gui/handbook/equipment/cover_rolled.png"
+      ],
+      "border": false,
+      "text": "Light grey cover: spread / two rows rolled."
+    }
+  ],
+  "extra_recipe_mappings": {
+    "tm_wagon:wagon_cargo_cover": 2
+  }
+}

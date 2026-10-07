@@ -1,0 +1,36 @@
+{
+  "name": "车蓬与布帘",
+  "icon": "tm_wagon:wagon_canopy",
+  "category": "tm_wagon:equipment",
+  "sortnum": 2,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "手持车蓬，右键货箱木质侧面安装；潜行右键露出的木质侧面拆下。方块与实体形态都支持，尺寸会适应车厢。在车蓬和货箱罩之间选择一种。$(br2)前后各有一对布帘，右键对应帘子即可独立开关。"
+    },
+    {
+      "type": "patchouli:text",
+      "text": "拉开布帘，从出入口进入车厢或操作货物。内部可以使用木凳和草席，安装时为乘客留出足够空间。$(br2)篷顶、侧布和合拢的布帘构成车蓬的实际外壳。旅行时选择足够高、足够宽的通道，带车蓬的马车也会按外壳高度判断能否通过。"
+    },
+    {
+      "type": "tm_wagon:component_recipe",
+      "recipe": "tm_wagon:wagon_canopy",
+      "alternative": 0,
+      "heading": "book.tm_wagon.recipe",
+      "text": "上排羊毛必须同色，决定篷布和帘子的颜色。",
+      "anchor": "wagon_canopy"
+    },
+    {
+      "type": "patchouli:image",
+      "images": [
+        "tm_wagon:textures/gui/handbook/equipment/canopy_closed.png",
+        "tm_wagon:textures/gui/handbook/equipment/canopy_open.png"
+      ],
+      "border": false,
+      "text": "白色车蓬：合拢／拉开布帘。"
+    }
+  ],
+  "extra_recipe_mappings": {
+    "tm_wagon:wagon_canopy": 2
+  }
+}

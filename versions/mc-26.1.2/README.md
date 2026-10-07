@@ -1,9 +1,9 @@
-# Minecraft 26.1.2 development targets
+# Minecraft 26.1.2 targets
 
-**Dependency preparation only. Wagon gameplay and compatibility adapters have
-not yet been ported.** Both loaders have a compilable entry point, independent
-libraries and launch tasks. The generated JARs are development scaffolds and
-currently register no wagon blocks, items, entities or handbook.
+**NeoForge is playable; Fabric remains a dependency scaffold.** The NeoForge
+edition includes wagon assembly, all three cargo-box sizes, driving, cargo and
+workstations, accessories, material variants, recipes and optional integrations.
+The Fabric entry point is reserved for the subsequent gameplay port.
 
 ## Layout and toolchains
 
@@ -11,8 +11,8 @@ currently register no wagon blocks, items, entities or handbook.
 versions/mc-26.1.2/
   gradle.properties
   compatibility.gradle
-  common/      reserved version-specific code, gameplay and resources
-  neoforge/    NeoForge loader entry point and dependencies
+  common/      version-specific geometry, gameplay and resources
+  neoforge/    playable NeoForge implementation and compatibility adapters
   fabric/      Fabric loader entry point and dependencies
 ```
 
@@ -51,15 +51,15 @@ and the maid ports currently require the beta/snapshot artifacts shown here.
 | Touhou Little Maid | [2.0.0 snapshot, 2026-08-24](https://github.com/TouhouLittleMaid/TouhouLittleMaid-26.1/releases/tag/snapshot-2026-08-24-14-04-03) | [Tsumugi 1.0.23-beta.1](https://github.com/gege-tlph/TouhouLittleMaid-Tsumugi/releases/tag/v1.0.23-beta.1%2Bmc26.1.2) |
 | TaCZ | No matching NeoForge artifact found | [Unofficial Refabricated 1.1.8 R3-hotfix2](https://github.com/q14433686-arch/TaCZ_Refabricated_Unofficial/releases/tag/26.1.2%E7%9A%84mod%E6%96%87%E4%BB%B6_R3_HOTFIX-2) |
 
-GeckoLib is required by the wagon scaffold. Fabric API and Forge Config API
+GeckoLib is required by the wagon mod. Fabric API and Forge Config API
 Port are also required on Fabric. Other integrations are compile-only APIs,
 with separate development-runtime profiles; they are not bundled in the wagon
 JAR or declared mandatory for players.
 
 Patchouli **26.1-94-beta** explicitly supports the 26.1 release line including
-26.1.2 on both loaders. Its API and development runtime are prepared here;
-the wagon handbook item, pages and gift logic will be restored during the
-actual gameplay port.
+26.1.2 on both loaders. The NeoForge edition includes the illustrated handbook, its custom recipe
+pages and the configurable one-time login gift. Without Patchouli, the handbook
+item and its recipe are not registered. Fabric handbook integration is pending.
 
 NeoForge's maid artifact is an official development snapshot. The Fabric maid
 uses **Tsumugi**, a community continuation of Orihime with an available 26.1.2
@@ -119,11 +119,29 @@ Flags control development runtime only; the compile APIs remain available.
 
 ## Verification
 
-The preparation build resolves every selected compatibility artifact, checks
-its loader metadata and mod ID, then compiles and packages both scaffolds.
-No in-world wagon or compatibility behavior is claimed at this preparation
-stage. The next step is to port version-specific gameplay, rendering and
-compatibility adapters, including the Patchouli handbook.
+The NeoForge checks cover a real client world and a dedicated server, both
+with the available compatibility mods installed. The opt-in client smoke checks
+assembly and animated form changes, cargo contents, material-sensitive recipes,
+workstation cooking and menus, straw-mat sleep, mule/camel hitching, Carry On,
+both backpack bridges, maid tasks and the Patchouli reader. Test helpers are
+excluded from published JARs.
+
+## Version-specific gameplay
+
+- Wood variants match 26.1.2: oak, spruce, birch, jungle, acacia, dark oak,
+  mangrove, cherry, pale oak, crimson and warped. Bamboo is excluded.
+- Reusable wagon straw mats reserve three cargo slots and do not change the
+  player's respawn point. The newer vanilla straw bed is not referenced.
+- Copper chests and shelves work as cargo, alongside the supported containers
+  and standalone workstations from earlier editions.
+- Carry On, Traveler's Backpack and Sophisticated Backpacks retain their native
+  storage interfaces and contents through loading and unloading.
+- Little Maid has Wagon Companion and Wagon Passenger tasks, bow/crossbow
+  combat from the companion seat, rest-time mat sleep under any task, and native
+  photo/soul-sign capture and release. The maid API is adapted to its 2.0 manager
+  and brain interfaces. Sable and NeoForge TaCZ are absent on this target.
+- Client rendering supports the selected Iris/Sodium versions. Optional mods
+  are not bundled; the minimal profile runs with GeckoLib alone.
 
 ## Primary references
 

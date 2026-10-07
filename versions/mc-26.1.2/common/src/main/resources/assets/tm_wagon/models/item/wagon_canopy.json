@@ -1,0 +1,1040 @@
+{
+  "credit": "TravelingMerchantWagon / tools/export_wagon_canopy.py",
+  "ambientocclusion": false,
+  "textures": {
+    "cloth": "tm_wagon:component/dye/canopy_cloth",
+    "wood": "tm_wagon:block/canopy_wood",
+    "curtain": "tm_wagon:component/dye/canopy_curtain",
+    "particle": "tm_wagon:component/dye/canopy_cloth"
+  },
+  "elements": [
+    {
+      "name": "white_canvas_0",
+      "from": [
+        -0.9375,
+        0.0,
+        0
+      ],
+      "to": [
+        -0.8125,
+        13.399999999999999,
+        16
+      ],
+      "faces": {
+        "east": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#cloth",
+          "rotation": 90,
+          "tintindex": 0
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#cloth",
+          "rotation": 90,
+          "tintindex": 0
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#cloth",
+          "tintindex": 0
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#cloth",
+          "tintindex": 0
+        }
+      }
+    },
+    {
+      "name": "white_canvas_1",
+      "from": [
+        -1.398291224694388,
+        14.59302427172802,
+        0
+      ],
+      "to": [
+        2.13724268123835,
+        14.71802427172802,
+        16
+      ],
+      "faces": {
+        "east": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#cloth",
+          "tintindex": 0
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#cloth",
+          "tintindex": 0
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#cloth",
+          "tintindex": 0
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#cloth",
+          "tintindex": 0
+        }
+      },
+      "rotation": {
+        "origin": [
+          0.36947572827198094,
+          14.65552427172802,
+          0
+        ],
+        "axis": "z",
+        "angle": 45.0,
+        "rescale": false
+      }
+    },
+    {
+      "name": "white_canvas_2",
+      "from": [
+        1.4572258850998594,
+        16.67314493359393,
+        0
+      ],
+      "to": [
+        5.786794686269436,
+        16.79814493359393,
+        16
+      ],
+      "faces": {
+        "east": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#cloth",
+          "tintindex": 0
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#cloth",
+          "tintindex": 0
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#cloth",
+          "tintindex": 0
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#cloth",
+          "tintindex": 0
+        }
+      },
+      "rotation": {
+        "origin": [
+          3.622010285684648,
+          16.73564493359393,
+          0
+        ],
+        "axis": "z",
+        "angle": 22.5,
+        "rescale": false
+      }
+    },
+    {
+      "name": "white_canvas_3",
+      "from": [
+        5.625,
+        17.502166749492382,
+        0
+      ],
+      "to": [
+        10.375,
+        17.627166749492382,
+        16
+      ],
+      "faces": {
+        "east": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#cloth",
+          "tintindex": 0
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#cloth",
+          "tintindex": 0
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#cloth",
+          "tintindex": 0
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#cloth",
+          "tintindex": 0
+        }
+      }
+    },
+    {
+      "name": "white_canvas_4",
+      "from": [
+        10.213205313730562,
+        16.67314493359393,
+        0
+      ],
+      "to": [
+        14.54277411490014,
+        16.79814493359393,
+        16
+      ],
+      "faces": {
+        "east": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#cloth",
+          "tintindex": 0
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#cloth",
+          "tintindex": 0
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#cloth",
+          "tintindex": 0
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#cloth",
+          "tintindex": 0
+        }
+      },
+      "rotation": {
+        "origin": [
+          12.377989714315351,
+          16.73564493359393,
+          0
+        ],
+        "axis": "z",
+        "angle": -22.5,
+        "rescale": false
+      }
+    },
+    {
+      "name": "white_canvas_5",
+      "from": [
+        13.86275731876165,
+        14.59302427172802,
+        0
+      ],
+      "to": [
+        17.39829122469439,
+        14.71802427172802,
+        16
+      ],
+      "faces": {
+        "east": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#cloth",
+          "tintindex": 0
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#cloth",
+          "tintindex": 0
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#cloth",
+          "tintindex": 0
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#cloth",
+          "tintindex": 0
+        }
+      },
+      "rotation": {
+        "origin": [
+          15.630524271728019,
+          14.65552427172802,
+          0
+        ],
+        "axis": "z",
+        "angle": -45.0,
+        "rescale": false
+      }
+    },
+    {
+      "name": "white_canvas_6",
+      "from": [
+        16.8125,
+        0.0,
+        0
+      ],
+      "to": [
+        16.9375,
+        13.399999999999999,
+        16
+      ],
+      "faces": {
+        "east": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#cloth",
+          "rotation": 90,
+          "tintindex": 0
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#cloth",
+          "rotation": 90,
+          "tintindex": 0
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#cloth",
+          "tintindex": 0
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#cloth",
+          "tintindex": 0
+        }
+      }
+    },
+    {
+      "name": "item_interior_dark_rib_0",
+      "from": [
+        -0.6875,
+        0.0,
+        7.5
+      ],
+      "to": [
+        -0.3125,
+        13.399999999999999,
+        8.5
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            16,
+            0.375
+          ],
+          "texture": "#wood"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            16,
+            0.375
+          ],
+          "texture": "#wood"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#wood",
+          "rotation": 90
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#wood",
+          "rotation": 90
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#wood"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#wood"
+        }
+      }
+    },
+    {
+      "name": "item_interior_dark_rib_1",
+      "from": [
+        -1.1276019100214132,
+        14.197334957055041,
+        7.515625
+      ],
+      "to": [
+        2.4079319959113246,
+        14.572334957055041,
+        8.515625
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            16,
+            0.375
+          ],
+          "texture": "#wood"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            16,
+            0.375
+          ],
+          "texture": "#wood"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#wood"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#wood"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#wood"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#wood"
+        }
+      },
+      "rotation": {
+        "origin": [
+          0.6401650429449557,
+          14.384834957055041,
+          0
+        ],
+        "axis": "z",
+        "angle": 45.0,
+        "rescale": false
+      }
+    },
+    {
+      "name": "item_interior_dark_rib_2",
+      "from": [
+        1.6037218865521208,
+        16.194472300054457,
+        7.53125
+      ],
+      "to": [
+        5.933290687721698,
+        16.569472300054457,
+        8.53125
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            16,
+            0.375
+          ],
+          "texture": "#wood"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            16,
+            0.375
+          ],
+          "texture": "#wood"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#wood"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#wood"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#wood"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#wood"
+        }
+      },
+      "rotation": {
+        "origin": [
+          3.7685062871369093,
+          16.381972300054457,
+          0
+        ],
+        "axis": "z",
+        "angle": 22.5,
+        "rescale": false
+      }
+    },
+    {
+      "name": "item_interior_dark_rib_3",
+      "from": [
+        5.625,
+        16.994354249492382,
+        7.546875
+      ],
+      "to": [
+        10.375,
+        17.369354249492382,
+        8.546875
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            16,
+            0.375
+          ],
+          "texture": "#wood"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            16,
+            0.375
+          ],
+          "texture": "#wood"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#wood"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#wood"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#wood"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#wood"
+        }
+      }
+    },
+    {
+      "name": "item_interior_dark_rib_4",
+      "from": [
+        10.066709312278302,
+        16.194472300054457,
+        7.53125
+      ],
+      "to": [
+        14.396278113447881,
+        16.569472300054457,
+        8.53125
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            16,
+            0.375
+          ],
+          "texture": "#wood"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            16,
+            0.375
+          ],
+          "texture": "#wood"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#wood"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#wood"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#wood"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#wood"
+        }
+      },
+      "rotation": {
+        "origin": [
+          12.231493712863092,
+          16.381972300054457,
+          0
+        ],
+        "axis": "z",
+        "angle": -22.5,
+        "rescale": false
+      }
+    },
+    {
+      "name": "item_interior_dark_rib_5",
+      "from": [
+        13.592068004088675,
+        14.197334957055041,
+        7.515625
+      ],
+      "to": [
+        17.12760191002141,
+        14.572334957055041,
+        8.515625
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            16,
+            0.375
+          ],
+          "texture": "#wood"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            16,
+            0.375
+          ],
+          "texture": "#wood"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#wood"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#wood"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#wood"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#wood"
+        }
+      },
+      "rotation": {
+        "origin": [
+          15.359834957055044,
+          14.384834957055041,
+          0
+        ],
+        "axis": "z",
+        "angle": -45.0,
+        "rescale": false
+      }
+    },
+    {
+      "name": "item_interior_dark_rib_6",
+      "from": [
+        16.3125,
+        0.0,
+        7.5
+      ],
+      "to": [
+        16.6875,
+        13.399999999999999,
+        8.5
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            16,
+            0.375
+          ],
+          "texture": "#wood"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            16,
+            0.375
+          ],
+          "texture": "#wood"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#wood",
+          "rotation": 90
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#wood",
+          "rotation": 90
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#wood"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#wood"
+        }
+      }
+    }
+  ],
+  "display": {
+    "gui": {
+      "rotation": [
+        25,
+        35,
+        0
+      ],
+      "translation": [
+        0,
+        0.5,
+        0
+      ],
+      "scale": [
+        0.62,
+        0.62,
+        0.62
+      ]
+    },
+    "ground": {
+      "translation": [
+        0,
+        1,
+        0
+      ],
+      "scale": [
+        0.4,
+        0.4,
+        0.4
+      ]
+    },
+    "fixed": {
+      "scale": [
+        0.6,
+        0.6,
+        0.6
+      ]
+    },
+    "thirdperson_righthand": {
+      "rotation": [
+        60,
+        0,
+        0
+      ],
+      "translation": [
+        0,
+        2,
+        0
+      ],
+      "scale": [
+        0.45,
+        0.45,
+        0.45
+      ]
+    },
+    "firstperson_righthand": {
+      "rotation": [
+        0,
+        -25,
+        0
+      ],
+      "translation": [
+        0,
+        1,
+        0
+      ],
+      "scale": [
+        0.55,
+        0.55,
+        0.55
+      ]
+    }
+  }
+}

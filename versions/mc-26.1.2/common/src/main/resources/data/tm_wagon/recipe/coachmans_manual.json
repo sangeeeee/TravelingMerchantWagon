@@ -1,0 +1,19 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "patchouli"
+    }
+  ],
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "minecraft:book",
+    "minecraft:lead",
+    "#minecraft:planks"
+  ],
+  "result": {
+    "id": "tm_wagon:coachmans_manual",
+    "count": 1
+  }
+}

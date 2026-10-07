@@ -1,0 +1,23 @@
+{
+  "name": "第一次出行",
+  "icon": "minecraft:lead",
+  "category": "tm_wagon:start",
+  "sortnum": 2,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "用拴绳牵住成年马、驴、骡、骆驼、骷髅马或僵尸马，带到马辕旁。手持拴绳右键马辕任意部位，动物会移动到拉车位置，原有的拴绳用于固定。$(br2)单马辕拴一匹，双马辕的两个位置都拴好后，即可驾驶。"
+    },
+    {
+      "type": "patchouli:text",
+      "text": "右键座位$(bold)可见的上表面$(reset)入座。双人座左边驾驶，三人座中间驾驶。$(br2)按$(k:forward)前进，$(k:back)刹车或倒车，$(k:left)和$(k:right)转向。按$(k:sneak)离座。$(br2)第一次出行建议先空车试驾，再学习$(l:tm_wagon:cargo/loading)装卸货物$(/l)。"
+    },
+    {
+      "type": "patchouli:relations",
+      "entries": [
+        "tm_wagon:driving/controls",
+        "tm_wagon:cargo/loading"
+      ]
+    }
+  ]
+}

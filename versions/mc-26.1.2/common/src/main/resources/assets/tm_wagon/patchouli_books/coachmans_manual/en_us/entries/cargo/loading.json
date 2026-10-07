@@ -1,0 +1,29 @@
+{
+  "name": "Loading & Unloading",
+  "icon": "minecraft:stone",
+  "category": "tm_wagon:cargo",
+  "sortnum": 0,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "Load both block and entity wagons. Hold an allowed single-block item and use an empty cargo slot. Cargo is scaled down, remains solid and faces relative to your placement position.$(br2)Standard boxes have 2 × 5 slots (10); extended boxes 2 × 6 (12); wide boxes 4 × 8 (32)."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "Sneak-use cargo to unload it into your inventory; overflow drops into the world. Ordinary cargo uses allowed single-block items. Mats and stools use dedicated accessories.$(br2)Open the tailgate or curtains, or roll back a cover, to access cargo from an unobstructed direction."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "Use the rear tailgate to open or close it in either wagon form. It folds outward and hangs down for boarding and loading.$(br2)With a canopy fitted, also open its rear curtains. With a cover, use cargo through the clear rear opening.",
+      "title": "The Tailgate"
+    },
+    {
+      "type": "patchouli:relations",
+      "entries": [
+        "tm_wagon:cargo/containers",
+        "tm_wagon:cargo/stools",
+        "tm_wagon:cargo/mats"
+      ]
+    }
+  ]
+}

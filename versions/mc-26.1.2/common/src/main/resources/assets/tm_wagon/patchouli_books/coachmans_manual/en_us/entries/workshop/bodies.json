@@ -1,0 +1,36 @@
+{
+  "name": "Choosing a Wagon Box",
+  "icon": "tm_wagon:wide_cargo_body",
+  "category": "tm_wagon:workshop",
+  "sortnum": 0,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "Standard box: 2 × 5 slots, 10 total.$(br2)Extended box: 2 × 6 slots, 12 total.$(br2)Wide box: 4 × 8 slots, 32 total, with closer lateral spacing.$(br2)Choose exactly one box. The same wheel, shaft, cover and canopy items work across sizes; fitted geometry adapts to the box."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "Craft an extended box from a standard box, then a wide box from an extended box. Upgrades retain the input box’s wood; auxiliary wood materials may differ.$(br2)Unload and recover the box, craft its upgrade, then fit the new box to the jack."
+    },
+    {
+      "type": "tm_wagon:component_recipe",
+      "recipe": "tm_wagon:long_cargo_body",
+      "alternative": 0,
+      "heading": "book.tm_wagon.recipe",
+      "text": "Inherits the standard box’s wood. Additional planks, logs or stripped logs, and trapdoors may use any wood.",
+      "anchor": "long_cargo_body"
+    },
+    {
+      "type": "tm_wagon:component_recipe",
+      "recipe": "tm_wagon:wide_cargo_body",
+      "alternative": 0,
+      "heading": "book.tm_wagon.recipe",
+      "text": "Inherits the extended box’s wood. The six extra planks may be any wood.",
+      "anchor": "wide_cargo_body"
+    }
+  ],
+  "extra_recipe_mappings": {
+    "tm_wagon:long_cargo_body": 2,
+    "tm_wagon:wide_cargo_body": 3
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "name": "book.tm_wagon.category.cargo",
+  "description": "裝卸貨物、使用工作方塊，以及安排乘客和睡眠。",
+  "icon": "minecraft:chest",
+  "sortnum": 2
+}

@@ -1,0 +1,11 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "tm_wagon:item/wagon_cargo_cover",
+    "tints": [
+      {
+        "type": "tm_wagon:cloth"
+      }
+    ]
+  }
+}

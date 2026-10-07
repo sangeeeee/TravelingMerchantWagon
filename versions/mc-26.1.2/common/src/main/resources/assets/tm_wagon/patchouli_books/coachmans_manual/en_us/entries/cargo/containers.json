@@ -1,0 +1,25 @@
+{
+  "name": "Chests & Containers",
+  "icon": "minecraft:chest",
+  "category": "tm_wagon:cargo",
+  "sortnum": 1,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "Chests, barrels, shulker boxes and ender chests open their usual screens on the wagon. Each cargo chest provides independent storage.$(br2)Conversion preserves cargo positions and container contents. Reopen storage menus after conversion finishes."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "Unloading or destroying an ordinary container drops its block and contents separately. Shulker boxes retain their contents; ender chests access personal storage.$(br2)Compatible modded chests and barrels work too. Unlock containers and resolve their loot before transporting them as interactive cargo."
+    },
+    {
+      "type": "patchouli:text",
+      "title": "Modded Containers",
+      "text": "Compatible wood variants of chests and barrels can be opened on the wagon. This includes BetterEnd barrels that use BCLib.$(br2)They follow ordinary cargo-container rules: load them, use their storage on board, and unload them when needed. Unlock containers and resolve their loot before transport."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "Copper chests can be loaded and opened as cargo. Shelves provide three storage slots: use the matching part of the shelf to store or take an item. Cargo conversions preserve their contents."
+    }
+  ]
+}

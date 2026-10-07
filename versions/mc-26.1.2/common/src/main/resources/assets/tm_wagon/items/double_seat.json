@@ -1,0 +1,9 @@
+{
+  "model": {
+    "type": "minecraft:special",
+    "base": "tm_wagon:item/double_seat",
+    "model": {
+      "type": "geckolib:geckolib"
+    }
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "name": "Under-seat Cabinets",
+  "icon": "tm_wagon:wagon_cabinet",
+  "category": "tm_wagon:equipment",
+  "sortnum": 0,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "Use the side below the driver’s seat with a cabinet to fit it. Both wagon forms support installation, and its width adapts to the seat.$(br2)A single seat provides 27 storage slots; double and triple benches provide 54. Choose a wood to suit the other parts."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "Use either handled drawer end to open storage, even while holding an item. The drawer slides out and returns when its menu closes.$(br2)Sneak-use to remove the cabinet; its contents drop separately. Conversion preserves storage. Removing the seat or hammer-dismantling also recovers the cabinet and contents."
+    },
+    {
+      "type": "tm_wagon:component_recipe",
+      "recipe": "tm_wagon:wagon_cabinet",
+      "alternative": 0,
+      "heading": "book.tm_wagon.recipe",
+      "text": "Use six matching planks around a barrel. The planks determine the cabinet’s wood.",
+      "anchor": "wagon_cabinet"
+    },
+    {
+      "type": "patchouli:image",
+      "images": [
+        "tm_wagon:textures/gui/handbook/equipment/cabinet_closed.png",
+        "tm_wagon:textures/gui/handbook/equipment/cabinet_open.png"
+      ],
+      "border": false,
+      "text": "Oak cabinet: closed / open drawer."
+    }
+  ],
+  "extra_recipe_mappings": {
+    "tm_wagon:wagon_cabinet": 2
+  }
+}

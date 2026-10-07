@@ -1,0 +1,539 @@
+{
+  "credit": "TravelingMerchantWagon / tools/export_wagon_canopy.py",
+  "ambientocclusion": false,
+  "textures": {
+    "cloth": "tm_wagon:component/dye/canopy_cloth",
+    "wood": "tm_wagon:block/canopy_wood",
+    "curtain": "tm_wagon:component/dye/canopy_curtain",
+    "particle": "tm_wagon:component/dye/canopy_cloth"
+  },
+  "elements": [
+    {
+      "name": "interior_dark_rib_0",
+      "from": [
+        -0.6875,
+        0.0,
+        -0.5
+      ],
+      "to": [
+        -0.3125,
+        13.399999999999999,
+        0.5
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            16,
+            0.375
+          ],
+          "texture": "#wood"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            16,
+            0.375
+          ],
+          "texture": "#wood"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#wood",
+          "rotation": 90
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#wood",
+          "rotation": 90
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#wood"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#wood"
+        }
+      }
+    },
+    {
+      "name": "interior_dark_rib_1",
+      "from": [
+        -1.1276019100214132,
+        14.197334957055041,
+        -0.484375
+      ],
+      "to": [
+        2.4079319959113246,
+        14.572334957055041,
+        0.515625
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            16,
+            0.375
+          ],
+          "texture": "#wood"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            16,
+            0.375
+          ],
+          "texture": "#wood"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#wood"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#wood"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#wood"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#wood"
+        }
+      },
+      "rotation": {
+        "origin": [
+          0.6401650429449557,
+          14.384834957055041,
+          0
+        ],
+        "axis": "z",
+        "angle": 45.0,
+        "rescale": false
+      }
+    },
+    {
+      "name": "interior_dark_rib_2",
+      "from": [
+        1.6037218865521208,
+        16.194472300054457,
+        -0.46875
+      ],
+      "to": [
+        5.933290687721698,
+        16.569472300054457,
+        0.53125
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            16,
+            0.375
+          ],
+          "texture": "#wood"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            16,
+            0.375
+          ],
+          "texture": "#wood"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#wood"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#wood"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#wood"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#wood"
+        }
+      },
+      "rotation": {
+        "origin": [
+          3.7685062871369093,
+          16.381972300054457,
+          0
+        ],
+        "axis": "z",
+        "angle": 22.5,
+        "rescale": false
+      }
+    },
+    {
+      "name": "interior_dark_rib_3",
+      "from": [
+        5.625,
+        16.994354249492382,
+        -0.453125
+      ],
+      "to": [
+        10.375,
+        17.369354249492382,
+        0.546875
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            16,
+            0.375
+          ],
+          "texture": "#wood"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            16,
+            0.375
+          ],
+          "texture": "#wood"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#wood"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#wood"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#wood"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#wood"
+        }
+      }
+    },
+    {
+      "name": "interior_dark_rib_4",
+      "from": [
+        10.066709312278302,
+        16.194472300054457,
+        -0.46875
+      ],
+      "to": [
+        14.396278113447881,
+        16.569472300054457,
+        0.53125
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            16,
+            0.375
+          ],
+          "texture": "#wood"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            16,
+            0.375
+          ],
+          "texture": "#wood"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#wood"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#wood"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#wood"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#wood"
+        }
+      },
+      "rotation": {
+        "origin": [
+          12.231493712863092,
+          16.381972300054457,
+          0
+        ],
+        "axis": "z",
+        "angle": -22.5,
+        "rescale": false
+      }
+    },
+    {
+      "name": "interior_dark_rib_5",
+      "from": [
+        13.592068004088675,
+        14.197334957055041,
+        -0.484375
+      ],
+      "to": [
+        17.12760191002141,
+        14.572334957055041,
+        0.515625
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            16,
+            0.375
+          ],
+          "texture": "#wood"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            16,
+            0.375
+          ],
+          "texture": "#wood"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#wood"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#wood"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#wood"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#wood"
+        }
+      },
+      "rotation": {
+        "origin": [
+          15.359834957055044,
+          14.384834957055041,
+          0
+        ],
+        "axis": "z",
+        "angle": -45.0,
+        "rescale": false
+      }
+    },
+    {
+      "name": "interior_dark_rib_6",
+      "from": [
+        16.3125,
+        0.0,
+        -0.5
+      ],
+      "to": [
+        16.6875,
+        13.399999999999999,
+        0.5
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            16,
+            0.375
+          ],
+          "texture": "#wood"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            16,
+            0.375
+          ],
+          "texture": "#wood"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#wood",
+          "rotation": 90
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#wood",
+          "rotation": 90
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#wood"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#wood"
+        }
+      }
+    }
+  ]
+}

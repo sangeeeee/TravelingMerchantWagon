@@ -1,0 +1,27 @@
+{
+  "name": "草席与露宿",
+  "icon": "tm_wagon:wagon_straw_mat",
+  "category": "tm_wagon:cargo",
+  "sortnum": 4,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "马车草席占同一列的三个连续货位。手持草席右键空位，从点击位置$(bold)向远离你的车头或车尾方向$(reset)铺出三格。右键草席任意一段都可尝试睡觉。$(br2)先将马车停稳，保持较平缓的姿态。入睡后，玩家和女仆会随移动的马车继续安睡。"
+    },
+    {
+      "type": "patchouli:text",
+      "text": "草席用于露宿和跳过夜晚，重生点沿用原来的设置。请在允许床睡眠的维度使用，并满足正常睡眠条件。下界和末地使用时会显示提示。$(br2)潜行右键可取下草席，并让使用者安全起身。方块马车实体化会保留睡眠；还原成方块前，先让乘客起身并让出装配空间。"
+    },
+    {
+      "type": "tm_wagon:component_recipe",
+      "recipe": "tm_wagon:wagon_straw_mat",
+      "alternative": 0,
+      "heading": "book.tm_wagon.recipe",
+      "text": "木板可以使用任意木质，包括模组木板。草席采用统一的干草材质。",
+      "anchor": "wagon_straw_mat"
+    }
+  ],
+  "extra_recipe_mappings": {
+    "tm_wagon:wagon_straw_mat": 2
+  }
+}

@@ -36,7 +36,8 @@ dependencies {
     commonGameplayJava project(path: ':mc-26.1.2:common', configuration: 'commonGameplayJava')
     commonResources project(path: ':mc-26.1.2:common', configuration: 'commonResources')
 }
-sourceSets.main.java.srcDirs(configurations.commonJava, configurations.commonGameplayJava)
+// Gameplay sources are added when the Fabric port is implemented.
+sourceSets.main.java.srcDirs(configurations.commonJava)
 sourceSets.main.resources {
     srcDir configurations.commonResources
     exclude '**/*.bbmodel', '**/.cache/**', '**/.gitkeep'

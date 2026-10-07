@@ -1,0 +1,16 @@
+{
+  "name": "Workstations on the Road",
+  "icon": "minecraft:crafting_table",
+  "category": "tm_wagon:cargo",
+  "sortnum": 2,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "Supported workstations include crafting and cartography tables, stonecutters, anvils, smithing tables, looms, grindstones and enchanting tables.$(br2)Cargo enchanting tables provide base-level enchanting. Anvils use experience and wear normally. Unadapted workstations can still be transported as ordinary cargo."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "Furnaces, smokers, blast furnaces and brewing stands process their contents. Cauldrons, composters, lecterns, chiseled bookshelves and decorated pots also have supported interactions.$(br2)Put materials and fuel directly into workstations, then collect results from their screens. Cargo suits these self-contained processes."
+    }
+  ]
+}

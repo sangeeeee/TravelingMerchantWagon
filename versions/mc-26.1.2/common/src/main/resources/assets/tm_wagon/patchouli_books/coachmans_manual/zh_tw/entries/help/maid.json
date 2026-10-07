@@ -1,0 +1,22 @@
+{
+  "name": "車萬女僕兼容",
+  "icon": "tm_wagon:maid_wagon_companion_icon",
+  "category": "tm_wagon:help",
+  "sortnum": 2,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "$(bold)馬車副駕駛$(reset)任務會尋找雙人或三人車伕座位，坐到乘客位置。$(bold)乘坐馬車$(reset)任務會尋找空閒且空間足夠的木凳。切換任務時，女僕會離座。$(br2)也可通過拴繩或 Carry On 安排女僕入座。先設置相應乘坐任務，讓她保持乘坐。"
+    },
+    {
+      "type": "patchouli:text",
+      "title": "副駕駛遠程攻擊",
+      "text": "女仆坐在副驾驶位置时，手持弓或弩即可攻击附近的敌对生物，无需离开马车。请按照女仆原有远程任务的要求准备箭矢。"
+    },
+    {
+      "type": "patchouli:text",
+      "text": "休息時間，女僕按原版優先級尋找女僕牀或馬車草蓆。睡着時隨馬車移動，移除草蓆後正常醒來，好感度沿用原版規則。$(br2)裝有女僕的照片或魂符可在馬車上釋放女僕。收納時使用原模組支持的工具和條件；睡着的女僕也遵循原生收納規則。"
+    }
+  ],
+  "flag": "mod:touhou_little_maid"
+}

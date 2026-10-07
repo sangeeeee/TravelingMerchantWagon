@@ -1,0 +1,6 @@
+{
+  "name": "book.tm_wagon.category.help",
+  "description": "Troubleshooting and integrations with installed mods.",
+  "icon": "tm_wagon:coachmans_manual",
+  "sortnum": 5
+}

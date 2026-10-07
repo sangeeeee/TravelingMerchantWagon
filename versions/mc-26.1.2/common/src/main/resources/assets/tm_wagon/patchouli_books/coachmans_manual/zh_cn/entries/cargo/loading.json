@@ -1,0 +1,29 @@
+{
+  "name": "装卸与货物朝向",
+  "icon": "minecraft:stone",
+  "category": "tm_wagon:cargo",
+  "sortnum": 0,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "方块与实体形态都能装货。手持允许的单格方块，右键车厢里的空槽位。货物会缩小显示并保留碰撞箱，朝向按玩家相对放置位置决定。$(br2)普通车厢有 2 列 × 5 行，共 10 格；加长车厢 2 × 6，共 12 格；加宽车厢 4 × 8，共 32 格。"
+    },
+    {
+      "type": "patchouli:text",
+      "text": "潜行右键取出货物，优先放入物品栏，剩余部分掉在世界中。普通货物使用符合服务器名单规则的单格方块；草席和木凳通过专用配件放置。$(br2)打开尾门、布帘或卷起盖布，从无遮挡的方向使用、装入或卸下货物。"
+    },
+    {
+      "type": "patchouli:text",
+      "text": "右键车厢后方的尾门可打开或关闭，方块与实体形态都支持。打开后尾门向外下垂，方便从后方上下车和装卸货物。$(br2)安装车蓬时，再打开后方布帘即可使用出入口；有货箱罩时，沿露出的后方通道操作货物。",
+      "title": "尾门与后方通道"
+    },
+    {
+      "type": "patchouli:relations",
+      "entries": [
+        "tm_wagon:cargo/containers",
+        "tm_wagon:cargo/stools",
+        "tm_wagon:cargo/mats"
+      ]
+    }
+  ]
+}

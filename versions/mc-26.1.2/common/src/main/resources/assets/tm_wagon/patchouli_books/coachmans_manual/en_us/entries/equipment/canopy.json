@@ -1,0 +1,36 @@
+{
+  "name": "Canopies & Curtains",
+  "icon": "tm_wagon:wagon_canopy",
+  "category": "tm_wagon:equipment",
+  "sortnum": 2,
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "Use a wooden box side with a canopy to install it; sneak-use an exposed wooden side to remove it. Both forms are supported and size adapts to the box. Choose a canopy or a cover.$(br2)Use the front or rear curtains to open or close each pair independently."
+    },
+    {
+      "type": "patchouli:text",
+      "text": "Open curtains to enter the wagon or use cargo through an entrance. Fit stools and mats inside with sufficient passenger clearance.$(br2)The roof, side canvas and closed curtains form the solid shell. Choose passages tall and wide enough for the fitted canopy."
+    },
+    {
+      "type": "tm_wagon:component_recipe",
+      "recipe": "tm_wagon:wagon_canopy",
+      "alternative": 0,
+      "heading": "book.tm_wagon.recipe",
+      "text": "The top row uses matching wool, which determines the canopy and curtain colour.",
+      "anchor": "wagon_canopy"
+    },
+    {
+      "type": "patchouli:image",
+      "images": [
+        "tm_wagon:textures/gui/handbook/equipment/canopy_closed.png",
+        "tm_wagon:textures/gui/handbook/equipment/canopy_open.png"
+      ],
+      "border": false,
+      "text": "White canopy: curtains closed / open."
+    }
+  ],
+  "extra_recipe_mappings": {
+    "tm_wagon:wagon_canopy": 2
+  }
+}
