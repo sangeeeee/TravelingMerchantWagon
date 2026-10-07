@@ -2,8 +2,8 @@
 
 The repository uses one Gradle build with a shared core, Minecraft-version
 modules, and loader-specific targets. The gameplay targets are NeoForge 1.21.1,
-Fabric 1.21.1 and Forge 1.20.1. NeoForge and Fabric 26.3 have port environments
-ready, with gameplay implementation pending.
+Fabric 1.21.1, Forge 1.20.1 and NeoForge 26.3. Fabric 26.3 has a dependency
+environment ready, with gameplay implementation pending.
 Each loader target produces its own mod JAR.
 See the [Forge target notes](versions/mc-1.20.1/forge/README.md) for its dependencies
 and development profiles.
@@ -48,6 +48,10 @@ versions/mc-26.3/
 - `mc-1.20.1:forge` uses the Legacy Forge toolchain and its own common/gameplay
   sources, NBT and recipe formats, events, networking, optional mod APIs and Mixins.
   It excludes Sable; its client-only shader dependencies do not enter server runs.
+- `mc-26.3:neoforge` compiles its own Minecraft 26.3 common/gameplay sources
+  against the unobfuscated game APIs, Java 25, GeckoLib 5 and FML 12. Optional
+  integrations use only matching 26.3 libraries. `mc-26.3:fabric` currently
+  compiles a scaffold; it does not yet consume shared gameplay sources.
 - `mc-1.21.1:fabric` compiles common sources through Fabric Loom using official
   Mojang mappings. It owns its Fabric compatibility APIs and development runtime
   profiles, registrations, network payloads, events, configuration bindings and
@@ -113,6 +117,7 @@ Installable JARs are written to each loader target:
 - `versions/mc-1.21.1/neoforge/build/libs/tm_wagon-neoforge-1.21.1-<mod-version>.jar`
 - `versions/mc-1.21.1/fabric/build/libs/tm_wagon-fabric-1.21.1-<mod-version>.jar`
 - `versions/mc-1.20.1/forge/build/libs/tm_wagon-forge-1.20.1-<mod-version>.jar`
+- `versions/mc-26.3/neoforge/build/libs/tm_wagon-neoforge-26.3-<mod-version>.jar`
 
 Settings automatically discover `versions/mc-*` directories and their `common`,
 `fabric`, `neoforge`, and `forge` modules that have a Gradle build script. The
@@ -140,18 +145,18 @@ for required libraries and individual compatibility profiles.
 
 ## Dependencies and properties
 
-### Minecraft 26.3 port environment
+### Minecraft 26.3 targets
 
 `versions/mc-26.3` adds independent `common`, `neoforge` and `fabric` modules.
-Only their dependency environment and loader entry points are currently ready;
-wagon gameplay still needs porting. See the [26.3 dependency inventory and port
-notes](versions/mc-26.3/README.md) for available and omitted integrations.
+NeoForge implements wagon gameplay and the available mod integrations. Fabric
+is still a scaffold. See the [26.3 dependency inventory and port notes](versions/mc-26.3/README.md) for available and omitted integrations.
 
 ```powershell
 .\gradlew.bat :mc-26.3:neoforge:verifyCompatibilityDependencies
 .\gradlew.bat :mc-26.3:fabric:verifyCompatibilityDependencies
 .\gradlew.bat :mc-26.3:build
 .\gradlew.bat :mc-26.3:neoforge:runClient
+.\gradlew.bat :mc-26.3:neoforge:runClient -PportSmoke=true
 .\gradlew.bat :mc-26.3:fabric:runClient
 ```
 

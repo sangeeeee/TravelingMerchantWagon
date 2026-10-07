@@ -5,7 +5,7 @@
 TravelingMerchantWagon 为 Minecraft 添加了可以自由搭配的木制马车。亲手装好零件，拴上马匹，带着货物和同伴踏上旅途。无论是搬家、远行，还是扮演旅行商人，马车都可以成为随行的仓库、工作间和休息处。
 
 
-支持 NeoForge／Fabric 1.21.1 和 Forge 1.20.1。Sable 兼容仅在 1.21.1 版本提供。
+支持 NeoForge 26.3、NeoForge／Fabric 1.21.1 和 Forge 1.20.1。Fabric 26.3 的玩法尚未实现；各版本兼容范围见 [26.3 版本说明](versions/mc-26.3/README.md)。
 
 ## 可以做什么？
 
@@ -28,7 +28,7 @@ TravelingMerchantWagon 为 Minecraft 添加了可以自由搭配的木制马车�
 
 ## 模组兼容
 
-以下兼容均为可选，按需安装对应模组即可。
+以下兼容均为可选，按需安装对应模组即可。兼容范围随游戏版本有所不同：26.3 目前支持 Carry On 和两种背包，Patchouli、车万女仆／TACZ 及 Sable 兼容由旧版本提供。
 
 | 模组 | 可以怎样配合马车使用 |
 | --- | --- |
@@ -39,7 +39,7 @@ TravelingMerchantWagon 为 Minecraft 添加了可以自由搭配的木制马车�
 | [车万女仆](https://www.curseforge.com/minecraft/mc-mods/touhou-little-maid) | 提供“马车副驾驶”和“乘坐马车”任务；副驾驶可以在座位上使用弓、弩或 TACZ 枪械攻击敌对实体，休息时可以睡在草席上；原本的照片、魂符和相机也能按各自规则配合马车使用。 |
 | [Sable](https://modrinth.com/mod/sable) | 马车移动与乘客入座时会考虑外部物理结构。先在普通世界中完成方块组件装配，再驾驶实体马车到结构附近。 |
 
-采用兼容原版存储方式的模组箱子、木桶，也能作为可交互货物使用，包括 **[BetterEnd](https://modrinth.com/mod/betterend) 中使用 BCLib 的木桶**。具体兼容情况取决于容器的存储方式。
+采用兼容原版存储方式的模组箱子、木桶，也能作为可交互货物使用，包括已有适配的旧版本 **[BetterEnd](https://modrinth.com/mod/betterend) 中使用 BCLib 的木桶**。具体兼容情况取决于容器的存储方式。
 
 对于上述两种背包：手持背包潜行右键空货位即可装载，右键已放置的背包打开界面，潜行右键取出。满足 Carry On 的搬运条件时，优先执行搬运。
 

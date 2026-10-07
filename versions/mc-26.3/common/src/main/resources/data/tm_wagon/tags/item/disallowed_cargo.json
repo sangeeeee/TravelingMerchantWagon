@@ -1,0 +1,13 @@
+{
+  "replace": false,
+  "values": [
+    "#minecraft:beds",
+    "#minecraft:doors",
+    "minecraft:large_fern",
+    "minecraft:tall_grass",
+    "minecraft:peony",
+    "minecraft:rose_bush",
+    "minecraft:lilac",
+    "minecraft:sunflower"
+  ]
+}

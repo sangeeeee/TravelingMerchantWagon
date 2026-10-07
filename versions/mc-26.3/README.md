@@ -1,12 +1,42 @@
-# Minecraft 26.3 port environment
+# Minecraft 26.3 targets
 
-This target currently provides build scripts, loader entry points and dependency
-inventories. **Wagon gameplay and compatibility implementations have not been
-ported yet.** The generated JARs are development scaffolds, not release builds.
+The **NeoForge target implements wagon gameplay**: assembly and dismantling, all
+three cargo-box sizes, mixed materials, draft animals and driving, oriented
+collisions, cargo storage and workstations, stools, moving straw-mat sleep,
+cabinets, covers and canopies. Carry On, both backpack mods, JEI,
+SwingThroughGrass, Lithium and Iris have target-specific adapters.
+
+**Fabric gameplay is still pending.** Its module currently builds only a loader
+entry point and dependencies. The Fabric scaffold does not contain playable
+wagons.
 
 The target has its own `common`, `neoforge` and `fabric` modules. It uses the
 Java-only `core` module, but does not compile Minecraft 1.21.1 game sources or
 inherit that version's dependencies or handbook pages.
+
+## Vanilla additions
+
+This target supports **Pale Oak and Poplar** alongside the ten existing wagon
+woods. Both have authored textures for all thirteen wooden components, material
+recipes, creative-tab variants and localized names. Bamboo remains excluded from
+material-aware component crafting. Wood textures retain the same pixel density
+and share the existing 1024px atlas; they are not generated during play.
+
+**Shelves** in all vanilla woods, including bamboo, work as cargo. Right-click
+one of the three sections on the front to exchange its stored stack with the
+stack in your main hand. Stored items remain visible. Sneak-right-click removes
+the shelf as cargo and drops its contents, following normal container rules.
+Shelf contents survive block/entity conversion and Carry On transfers. Shelves
+use their standalone, unpowered behavior on a wagon.
+
+All eight **copper chest** oxidation/wax variants use the cargo chest menu, lid
+animation, matching hinge sounds and persistent contents. Locks and pending
+loot tables are checked using the current game's data components.
+
+Wool and dye support remains the vanilla sixteen colours. New single-block
+decorations, wool stairs and slabs use ordinary cargo rendering. Native cushions
+are entity-placement items; straw beds are two-block structures. These follow
+the existing cargo policy for entity items and ordinary multi-block beds.
 
 ## Toolchain
 
@@ -14,7 +44,7 @@ inherit that version's dependencies or handbook pages.
 - NeoForge 26.3.0.52-beta / ModDevGradle 2.0.148.
 - Fabric Loader 0.19.5 / Fabric API 0.162.0+26.3 / Loom 1.17.21.
 - Gradle 9.6.0 (the shared wrapper).
-- GeckoLib 5.5.7 is required on both loaders. Its 4.x integration needs porting.
+- GeckoLib 5.5.7 is required. NeoForge uses its 5.x model and render-state API.
 
 Minecraft is unobfuscated in 26.3. Fabric uses `net.fabricmc.fabric-loom` with
 ordinary Java dependency configurations, with no intermediary remapping task,
@@ -45,7 +75,7 @@ mods by default. Servers omit Iris, Sodium and JEI.
 | [Forge Config API Port](https://modrinth.com/mod/forge-config-api-port) | Not needed | 26.3.1 |
 
 JEI includes MezzConfig 0.6.6 as a nested library. Fabric's Forge Config API Port
-includes NightConfig; it is a required library for the upcoming wagon
+includes NightConfig; it is a required library for the planned Fabric wagon
 configuration implementation as well as for Traveler's Backpack. Iris uses its
 explicitly required stable Sodium release rather than a newer alpha.
 
@@ -57,11 +87,9 @@ Sophisticated Backpacks/Core also have no matching official or existing port
 build. The older Fabric-only SwingThrough project has no 26.3 build; the
 SwingThroughGrass project now publishes a Fabric version and is used instead.
 
-These libraries and their old Mixins, integrations and handbook entries must
-not be copied into this target. While porting, remove unsupported integration
-references from this target's documentation/resources only. Keep the existing
-1.20.1 and 1.21.1 editions intact. Patchouli's absence also means that this target
-must not register or distribute a Patchouli handbook until support is available.
+These integrations and their handbook content are excluded from this target.
+The existing 1.20.1 and 1.21.1 editions retain them. There is no handbook item or
+automatic handbook gift in 26.3 until Patchouli is available.
 
 ## Commands
 
@@ -73,9 +101,9 @@ must not register or distribute a Patchouli handbook until support is available.
 .\gradlew.bat :mc-26.3:fabric:runClient
 ```
 
-Each loader also owns its `runServer` task. Release-style scaffold filenames
-include the loader and game version and are generated in that module's
-`build/libs/`. The root `build` aggregates all versions.
+Each loader also owns its `runServer` task. The NeoForge artifact is
+`neoforge/build/libs/tm_wagon-neoforge-26.3-1.0.1.jar`. Fabric produces a scaffold
+with its own loader/version filename. The root `build` aggregates all versions.
 
 Use `-PwithAllCompat=false` (NeoForge) or `-PfabricWithAllCompat=false` (Fabric)
 for a minimal development runtime. Individual `with<Name>` / `fabricWith<Name>`
@@ -85,9 +113,38 @@ Disabling a runtime profile keeps its compile-only API available.
 Build output, `libs/`, game directories and development logs remain ignored by
 the repository-wide rules.
 
+## Configuration and smoke test
+
+NeoForge creates `config/tm_wagon-server.toml` during startup and synchronizes
+its server settings to clients using FML's `SYNCED` configuration type. Cargo
+rules, driving speeds, acceleration, cargo penalties and draft-team benefits
+retain the existing defaults. Configuration comments are in English.
+
+```powershell
+.\gradlew.bat :mc-26.3:neoforge:runClient -PportSmoke=true
+```
+
+This opt-in test creates a fresh flat world in `neoforge/build/port-smoke`, checks
+three assembled sizes, reversible jack conversion and single-owner cargo,
+material-sensitive crafting including Pale Oak and Poplar, 16 native cargo menus,
+eight copper chests, thirteen shelf types with stack swaps and content preservation,
+furnace processing and
+brewing (including component fuel speeds), horse hitching and driving,
+moving player sleep and wake without a respawn change, Carry On chest transfer,
+and both native backpack menus with contents preserved across cargo save/load.
+It renders block/entity wagons and component items, captures screenshots, and
+exits automatically. Test code is excluded from release JARs. It can also run
+with `-PwithAllCompat=false` to check optional-mod isolation.
+
+The dedicated server has been started with available server integrations. Iris,
+Sodium and JEI remain client-only. The Iris shadow adapter's target class is
+validated with Iris loaded; appearance under individual shader packs still
+requires visual testing with those packs enabled.
+
 ## Primary references
 
 - [Fabric's 26.3 development notes](https://www.fabricmc.net/2026/09/15/263.html)
+- [Minecraft Java Edition 26.3 additions](https://www.minecraft.net/en-us/article/minecraft-java-edition-26-3)
 - [Fabric 26.3 example project](https://github.com/FabricMC/fabric-example-mod/tree/26.3)
 - [NeoForge 26.3 MDK](https://github.com/NeoForgeMDKs/MDK-26.3-ModDevGradle)
 - [NeoForge version metadata](https://maven.neoforged.net/releases/net/neoforged/neoforge/maven-metadata.xml)

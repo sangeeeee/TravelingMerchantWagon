@@ -1,0 +1,9 @@
+{
+  "type": "tm_wagon:component",
+  "component": "wagon_stool",
+  "pattern": [
+    "PPP",
+    "SSS",
+    "S S"
+  ]
+}

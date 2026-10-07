@@ -6,7 +6,11 @@ license="${mod_license}"
 modId="${mod_id}"
 version="${mod_version}"
 displayName="${mod_name}"
-description='''Minecraft 26.3 port environment. Wagon gameplay is not implemented yet.'''
+iconFile="tm_wagon.png"
+description='''Build modular wooden wagons, haul cargo, and travel with horse-drawn carts.'''
+
+[[mixins]]
+config="tm_wagon.mixins.json"
 
 [[dependencies.${mod_id}]]
 modId="minecraft"

@@ -1,0 +1,9 @@
+{
+  "type": "tm_wagon:component",
+  "component": "wide_cargo_body",
+  "pattern": [
+    "PPP",
+    " U ",
+    "PPP"
+  ]
+}

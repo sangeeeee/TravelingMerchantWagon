@@ -1,0 +1,9 @@
+{
+  "model": {
+    "type": "minecraft:special",
+    "base": "tm_wagon:item/small_wheel",
+    "model": {
+      "type": "geckolib:geckolib"
+    }
+  }
+}

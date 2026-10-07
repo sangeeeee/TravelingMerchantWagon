@@ -1,0 +1,462 @@
+{
+  "credit": "TravelingMerchantWagon / tools/export_wagon_canopy.py",
+  "ambientocclusion": false,
+  "textures": {
+    "cloth": "tm_wagon:component/dye/canopy_cloth",
+    "wood": "tm_wagon:block/canopy_wood",
+    "curtain": "tm_wagon:component/dye/canopy_curtain",
+    "particle": "tm_wagon:component/dye/canopy_cloth"
+  },
+  "elements": [
+    {
+      "name": "gathered_curtain_-1_0",
+      "from": [
+        0.666666666666667,
+        -6.25,
+        0.0
+      ],
+      "to": [
+        1.0,
+        13.954999999999998,
+        0.125
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#curtain",
+          "tintindex": 0
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#curtain",
+          "tintindex": 0
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#curtain",
+          "tintindex": 0
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#curtain",
+          "tintindex": 0
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#curtain",
+          "tintindex": 0
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#curtain",
+          "tintindex": 0
+        }
+      }
+    },
+    {
+      "name": "gathered_curtain_-1_1",
+      "from": [
+        0.33333333333333304,
+        -6.25,
+        0.0625
+      ],
+      "to": [
+        0.666666666666667,
+        13.954999999999998,
+        0.1875
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#curtain",
+          "tintindex": 0
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#curtain",
+          "tintindex": 0
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#curtain",
+          "tintindex": 0
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#curtain",
+          "tintindex": 0
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#curtain",
+          "tintindex": 0
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#curtain",
+          "tintindex": 0
+        }
+      }
+    },
+    {
+      "name": "gathered_curtain_-1_2",
+      "from": [
+        0.0,
+        -6.25,
+        0.0
+      ],
+      "to": [
+        0.33333333333333304,
+        13.954999999999998,
+        0.125
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#curtain",
+          "tintindex": 0
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#curtain",
+          "tintindex": 0
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#curtain",
+          "tintindex": 0
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#curtain",
+          "tintindex": 0
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#curtain",
+          "tintindex": 0
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#curtain",
+          "tintindex": 0
+        }
+      }
+    },
+    {
+      "name": "gathered_curtain_1_0",
+      "from": [
+        15.0,
+        -6.25,
+        0.0
+      ],
+      "to": [
+        15.333333333333332,
+        13.954999999999998,
+        0.125
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#curtain",
+          "tintindex": 0
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#curtain",
+          "tintindex": 0
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#curtain",
+          "tintindex": 0
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#curtain",
+          "tintindex": 0
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#curtain",
+          "tintindex": 0
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#curtain",
+          "tintindex": 0
+        }
+      }
+    },
+    {
+      "name": "gathered_curtain_1_1",
+      "from": [
+        15.333333333333332,
+        -6.25,
+        0.0625
+      ],
+      "to": [
+        15.666666666666668,
+        13.954999999999998,
+        0.1875
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#curtain",
+          "tintindex": 0
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#curtain",
+          "tintindex": 0
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#curtain",
+          "tintindex": 0
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#curtain",
+          "tintindex": 0
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#curtain",
+          "tintindex": 0
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#curtain",
+          "tintindex": 0
+        }
+      }
+    },
+    {
+      "name": "gathered_curtain_1_2",
+      "from": [
+        15.666666666666668,
+        -6.25,
+        0.0
+      ],
+      "to": [
+        16.0,
+        13.954999999999998,
+        0.125
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#curtain",
+          "tintindex": 0
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#curtain",
+          "tintindex": 0
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#curtain",
+          "tintindex": 0
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#curtain",
+          "tintindex": 0
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#curtain",
+          "tintindex": 0
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#curtain",
+          "tintindex": 0
+        }
+      }
+    }
+  ]
+}

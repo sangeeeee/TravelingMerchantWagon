@@ -44,9 +44,11 @@ dependencies {
     commonGameplayJava project(path: ':mc-26.3:common', configuration: 'commonGameplayJava')
     commonResources project(path: ':mc-26.3:common', configuration: 'commonResources')
 }
-sourceSets.main.java.srcDirs(configurations.commonJava, configurations.commonGameplayJava)
+// Gameplay sources are added when the Fabric port is implemented.
+sourceSets.main.java.srcDirs(configurations.commonJava)
 sourceSets.main.resources {
-    srcDir configurations.commonResources
+    // Shared recipes and item definitions require gameplay registrations.
+    // Keep them out of the Fabric scaffold until its bindings are implemented.
     exclude '**/*.bbmodel', '**/.cache/**', '**/.gitkeep'
 }
 

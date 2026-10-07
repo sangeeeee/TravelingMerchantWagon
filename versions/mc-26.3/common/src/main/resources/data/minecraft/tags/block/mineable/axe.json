@@ -1,0 +1,20 @@
+{
+  "replace": false,
+  "values": [
+    "tm_wagon:wagon_assembly_frame",
+    "tm_wagon:assembly_proxy",
+    "tm_wagon:cargo_body",
+    "tm_wagon:long_cargo_body",
+    "tm_wagon:wide_cargo_body",
+    "tm_wagon:triple_seat",
+    "tm_wagon:triple_wooden_seat",
+    "tm_wagon:single_horse_shafts",
+    "tm_wagon:double_horse_shafts",
+    "tm_wagon:single_seat",
+    "tm_wagon:double_seat",
+    "tm_wagon:single_wooden_seat",
+    "tm_wagon:double_wooden_seat",
+    "tm_wagon:small_wheel",
+    "tm_wagon:large_wheel"
+  ]
+}

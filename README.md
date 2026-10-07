@@ -5,7 +5,7 @@
 TravelingMerchantWagon adds customizable wooden wagons to Minecraft. Build a wagon from individual parts, hitch your horses, and take your supplies and companions on the road. Whether you are moving house or setting out as a travelling merchant, your wagon can be a storehouse, workshop and place to rest.
 
 
-Available for NeoForge/Fabric 1.21.1 and Forge 1.20.1. Sable integration is available on the 1.21.1 targets.
+Available for NeoForge 26.3, NeoForge/Fabric 1.21.1 and Forge 1.20.1. Fabric 26.3 gameplay is not yet implemented. See [26.3 target notes](versions/mc-26.3/README.md) for its available integrations.
 
 ## What can you do?
 
@@ -28,7 +28,7 @@ For illustrated assembly instructions, recipes and controls, install **Patchouli
 
 ## Mod integrations
 
-These integrations are optional; install the ones you want to use.
+These integrations are optional; install the ones you want to use. Availability varies by game version: 26.3 currently supports Carry On and both backpack mods, while Patchouli, Touhou Little Maid/TACZ and Sable integrations belong to the older targets.
 
 | Mod | What it adds to your wagon experience |
 | --- | --- |
@@ -39,7 +39,7 @@ These integrations are optional; install the ones you want to use.
 | [Touhou Little Maid](https://www.curseforge.com/minecraft/mc-mods/touhou-little-maid) | Wagon Companion and Wagon Passenger tasks, mounted bow/crossbow/TACZ combat for the companion, straw-mat sleep during rest time, and maid release/capture interactions with the original tools. |
 | [Sable](https://modrinth.com/mod/sable) | Wagons and their passengers account for physical structures when moving or boarding. Assemble block-form components in the normal world before travelling around structures. |
 
-Supported vanilla-style modded chests and barrels also work as interactive cargo, including **[BetterEnd](https://modrinth.com/mod/betterend) barrels that use BCLib**. Compatibility depends on the container's storage behaviour.
+Supported vanilla-style modded chests and barrels also work as interactive cargo, including **[BetterEnd](https://modrinth.com/mod/betterend) barrels that use BCLib** on supported older targets. Compatibility depends on the container's storage behaviour.
 
 For either backpack mod, sneak-right-click an empty slot to load a held backpack, right-click the loaded backpack to open it, and sneak-right-click it to unload. Carry On takes priority when its pickup conditions are met.
 

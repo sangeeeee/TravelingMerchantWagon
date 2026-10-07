@@ -1,0 +1,96 @@
+{
+  "model": {
+    "type": "minecraft:range_dispatch",
+    "property": "tm_wagon:wood",
+    "entries": [
+      {
+        "threshold": 0,
+        "model": {
+          "type": "minecraft:model",
+          "model": "tm_wagon:item/material/wagon_cabinet_oak"
+        }
+      },
+      {
+        "threshold": 1,
+        "model": {
+          "type": "minecraft:model",
+          "model": "tm_wagon:item/material/wagon_cabinet_spruce"
+        }
+      },
+      {
+        "threshold": 2,
+        "model": {
+          "type": "minecraft:model",
+          "model": "tm_wagon:item/material/wagon_cabinet_birch"
+        }
+      },
+      {
+        "threshold": 3,
+        "model": {
+          "type": "minecraft:model",
+          "model": "tm_wagon:item/material/wagon_cabinet_jungle"
+        }
+      },
+      {
+        "threshold": 4,
+        "model": {
+          "type": "minecraft:model",
+          "model": "tm_wagon:item/material/wagon_cabinet_acacia"
+        }
+      },
+      {
+        "threshold": 5,
+        "model": {
+          "type": "minecraft:model",
+          "model": "tm_wagon:item/material/wagon_cabinet_dark_oak"
+        }
+      },
+      {
+        "threshold": 6,
+        "model": {
+          "type": "minecraft:model",
+          "model": "tm_wagon:item/material/wagon_cabinet_mangrove"
+        }
+      },
+      {
+        "threshold": 7,
+        "model": {
+          "type": "minecraft:model",
+          "model": "tm_wagon:item/material/wagon_cabinet_cherry"
+        }
+      },
+      {
+        "threshold": 8,
+        "model": {
+          "type": "minecraft:model",
+          "model": "tm_wagon:item/material/wagon_cabinet_crimson"
+        }
+      },
+      {
+        "threshold": 9,
+        "model": {
+          "type": "minecraft:model",
+          "model": "tm_wagon:item/material/wagon_cabinet_warped"
+        }
+      },
+      {
+        "threshold": 10,
+        "model": {
+          "type": "minecraft:model",
+          "model": "tm_wagon:item/material/wagon_cabinet_pale_oak"
+        }
+      },
+      {
+        "threshold": 11,
+        "model": {
+          "type": "minecraft:model",
+          "model": "tm_wagon:item/material/wagon_cabinet_poplar"
+        }
+      }
+    ],
+    "fallback": {
+      "type": "minecraft:model",
+      "model": "tm_wagon:item/wagon_cabinet"
+    }
+  }
+}

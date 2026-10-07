@@ -1,0 +1,8 @@
+{
+  "type": "tm_wagon:component",
+  "component": "wagon_straw_mat",
+  "pattern": [
+    "HHH",
+    "PPP"
+  ]
+}
