@@ -19,7 +19,7 @@ versions/mc-26.1.2/
 - Minecraft **26.1.2**, NeoForm **26.1.2-1**, Java **25**.
 - NeoForge **26.1.2.114**, FML **11**, ModDevGradle **2.0.148**.
 - Fabric Loader **0.19.5**, Fabric API **0.155.3+26.1.2**, Loom **1.17.21**.
-- Shared Gradle wrapper **9.6.0**; shared mod version **1.0.1**.
+- Shared Gradle wrapper **9.6.0**; shared mod version **1.0.2**.
 
 Minecraft 26.1.2 is unobfuscated. Fabric uses `net.fabricmc.fabric-loom`
 without a mappings or remapping dependency. Java 25 is selected only for this
@@ -103,7 +103,7 @@ the available successor ports. No unrelated 1.21.1 or 26.2 JAR is substituted.
 Launch tasks belong to each loader's `Tasks > minecraft` group. The root and
 version parent expose aggregate build tasks, without game-launch aliases.
 Both targets write their JAR to their own `build/libs/`, named
-`tm_wagon-<loader>-26.1.2-1.0.1.jar`. The root aggregate automatically includes
+`tm_wagon-<loader>-26.1.2-1.0.2.jar`. The root aggregate automatically includes
 this version; no global loader list or existing target settings are changed.
 
 Development runs load all available integrations by default. Iris, Sodium and

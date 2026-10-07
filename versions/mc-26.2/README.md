@@ -21,7 +21,7 @@ root and version-level aggregate builds. Existing targets keep their settings.
 - Minecraft 26.2 / NeoForm 26.2-2 / Java 25.
 - NeoForge 26.2.0.88 / FML 11 / ModDevGradle 2.0.148.
 - Fabric Loader 0.19.5 / Fabric API 0.161.0+26.2 / Loom 1.17.21.
-- Shared Gradle wrapper 9.6.0; shared mod version 1.0.1.
+- Shared Gradle wrapper 9.6.0; shared mod version 1.0.2.
 
 Minecraft 26.2 is unobfuscated. Fabric uses `net.fabricmc.fabric-loom` and
 standard Java dependency configurations without Mojang or intermediary mappings.
@@ -94,7 +94,7 @@ Patchouli release becomes available.
 Launch tasks belong to each loader project, under `Tasks > minecraft`. The root
 `build` includes all discovered targets; it does not expose game launch tasks.
 Each loader produces its own JAR under `build/libs`, named
-`tm_wagon-<loader>-26.2-1.0.1.jar`. Both loader outputs contain the full gameplay implementation.
+`tm_wagon-<loader>-26.2-1.0.2.jar`. Both loader outputs contain the full gameplay implementation.
 
 Use `-PwithAllCompat=false` on NeoForge or `-PfabricWithAllCompat=false` on Fabric
 for a minimal runtime. Individual `with<Name>` / `fabricWith<Name>` profiles

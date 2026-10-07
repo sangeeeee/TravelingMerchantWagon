@@ -107,8 +107,8 @@ automatic handbook gift in 26.3 until Patchouli is available.
 ```
 
 Each loader also owns its `runServer` task. The NeoForge artifact is
-`neoforge/build/libs/tm_wagon-neoforge-26.3-1.0.1.jar`. The Fabric artifact is
-`fabric/build/libs/tm_wagon-fabric-26.3-1.0.1.jar`. The root `build` aggregates all versions.
+`neoforge/build/libs/tm_wagon-neoforge-26.3-1.0.2.jar`. The Fabric artifact is
+`fabric/build/libs/tm_wagon-fabric-26.3-1.0.2.jar`. The root `build` aggregates all versions.
 
 Use `-PwithAllCompat=false` (NeoForge) or `-PfabricWithAllCompat=false` (Fabric)
 for a minimal development runtime. Individual `with<Name>` / `fabricWith<Name>`
