@@ -29,7 +29,7 @@ public final class WagonComponentRecipe extends CustomRecipe {
     public WagonComponentRecipe(String component,List<String> pattern,int count) {
         super();
         boolean known=java.util.Arrays.stream(WagonPart.values()).anyMatch(p->p.id.equals(component))
-            ||List.of("wagon_assembly_frame","wagon_straw_mat","wagon_stool","wagon_cabinet","wagon_cargo_cover","wagon_canopy").contains(component);
+            ||List.of("wagon_assembly_frame","wagon_stool","wagon_cabinet","wagon_cargo_cover","wagon_canopy").contains(component);
         boolean shapeless=component.equals("double_horse_shafts")||component.equals("double_wooden_seat")||component.equals("triple_wooden_seat");
         if(!known||count<1||count>64||pattern.size()>3||pattern.isEmpty()!=shapeless)
             throw new IllegalArgumentException("Invalid wagon component recipe: "+component);
@@ -43,7 +43,7 @@ public final class WagonComponentRecipe extends CustomRecipe {
     Item output() {
         for(var part:WagonPart.values())if(part.id.equals(component))return WagonContent.PART_ITEMS.get(part).get();
         return switch(component) {
-            case "wagon_assembly_frame"->WagonContent.FRAME_ITEM.get();case "wagon_straw_mat"->WagonContent.STRAW_MAT.get();
+            case "wagon_assembly_frame"->WagonContent.FRAME_ITEM.get();
             case "wagon_stool"->WagonContent.STOOL.get();case "wagon_cabinet"->WagonContent.CABINET.get();
             case "wagon_cargo_cover"->WagonContent.CARGO_COVER.get();case "wagon_canopy"->WagonContent.CANOPY.get();
             default->throw new IllegalArgumentException("Unknown wagon recipe: "+component);
@@ -61,7 +61,7 @@ public final class WagonComponentRecipe extends CustomRecipe {
         return switch(token) {
             case 'S'->stack.is(Items.STICK);case 'P'->stack.is(ItemTags.PLANKS);
             case 'L'->stack.is(ItemTags.LOGS);case 'W'->stack.is(ItemTags.WOOL);
-            case 'I'->stack.is(Items.IRON_INGOT);case 'H'->stack.is(Items.WHEAT);
+            case 'I'->stack.is(Items.IRON_INGOT);
             case 'R'->stack.is(Items.LEAD)||stack.is(Items.VINE);case 'B'->stack.is(Items.BARREL);
             case 'T'->stack.is(ItemTags.WOODEN_TRAPDOORS);
             case 'C'->stack.is(part(WagonPart.CARGO_BODY));case 'E'->stack.is(part(WagonPart.SINGLE_WOODEN_SEAT));

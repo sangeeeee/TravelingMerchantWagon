@@ -6,7 +6,6 @@ import com.sange.tm_wagon.cargo.StrawMatSleep;
 import net.minecraft.advancements.triggers.CriteriaTriggers;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.stats.Stats;
 import net.minecraft.util.Unit;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
@@ -23,7 +22,7 @@ public abstract class WagonSleepServerPlayerMixin extends Player {
         if(!StrawMatSleep.nativeStart(this,pos))return;
         var player=(ServerPlayer)(Object)this;
         var result=super.startSleepInBed(bedBlock,bedState,rule,pos);
-        result.ifRight(unit->{player.awardStat(Stats.SLEEP_IN_BED);CriteriaTriggers.SLEPT_IN_BED.trigger(player);});
+        result.ifRight(unit->{player.awardStat(bedBlock.getSleptInBedStatType());CriteriaTriggers.SLEPT_IN_BED.trigger(player);});
         player.level().updateSleepingPlayerList();ci.setReturnValue(result);
     }
 }

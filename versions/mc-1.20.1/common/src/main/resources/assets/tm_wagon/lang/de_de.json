@@ -39,7 +39,7 @@
   "message.tm_wagon.seats_full": "Alle Sitzplätze sind belegt.",
   "message.tm_wagon.seat_occupied": "Dieser Sitz ist belegt. Wähle einen anderen.",
   "message.tm_wagon.hitch_occupied": "Dieser Anspannplatz ist belegt.",
-  "message.tm_wagon.lead_horse_required": "Führe zuerst ein erwachsenes Pferd, einen Esel, ein Skelett- oder Zombiepferd mit einer Leine hierher.",
+  "message.tm_wagon.lead_horse_required": "Führe zuerst ein erwachsenes Pferd, einen Esel, ein Maultier, ein Skelett- oder Zombiepferd mit einer Leine hierher.",
   "message.tm_wagon.hitch_blocked": "Das Pferd braucht freien Platz und nahen Boden zum Stehen.",
   "subtitles.tm_wagon.wagon_roll": "Wagenräder knarren",
   "message.tm_wagon.cargo_unsupported": "Dieser Block kann nicht als Fracht geladen werden. Mehrblockstrukturen werden nicht unterstützt.",

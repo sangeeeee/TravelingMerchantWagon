@@ -81,7 +81,7 @@ public final class CargoHold {
         var box=slotBox(slot,body);return new AABB(box.minX,box.minY,box.minZ,box.maxX,FLOOR+.5,box.maxZ);
     }
     public AABB entryBox(int anchor) { return switch(entries[anchor].kind) {
-        case STRAW_MAT,SLEEPING_BAG->matBounds(anchor);case STOOL->stoolBounds(anchor);default->slotBounds(anchor);
+        case STRAW_BED,SLEEPING_BAG->matBounds(anchor);case STOOL->stoolBounds(anchor);default->slotBounds(anchor);
     }; }
     public Vec3 centreAt(int slot) { return centre(slot,owner.cargoBody()); }
     public AABB slotBounds(int slot) { return slotBox(slot,owner.cargoBody()); }
@@ -218,7 +218,7 @@ public final class CargoHold {
             // Ordinary use retains the held backpack's own opening/configuration behavior.
             stack.getItem().use(owner.cargoLevel(),player,hand);return InteractionResult.CONSUME;
         }
-        if(!(stack.getItem() instanceof BlockItem||stack.getItem() instanceof StrawMatItem||stack.getItem() instanceof WagonStoolItem))return InteractionResult.CONSUME;
+        if(!(stack.getItem() instanceof BlockItem||stack.getItem() instanceof WagonStoolItem))return InteractionResult.CONSUME;
         message(player,place(slot,stack,player));return InteractionResult.CONSUME;
     }
     static void message(Player player,String error) { if(error!=null&&!ACCESS_BLOCKED.equals(error))player.sendOverlayMessage(Component.translatable(error)); }
@@ -226,11 +226,11 @@ public final class CargoHold {
         return placementRestriction(item)==null;
     }
     static String placementRestriction(ItemStack item) {
-        if(!item.isEmpty()&&(item.getItem() instanceof StrawMatItem||item.getItem() instanceof WagonStoolItem))return null;
+        if(!item.isEmpty()&&item.getItem() instanceof WagonStoolItem)return null;
         if(item.isEmpty()||item.is(DISALLOWED))return "message.tm_wagon.cargo_unsupported";
         Block block=item.getItem() instanceof BlockItem blockItem?blockItem.getBlock():com.sange.tm_wagon.compat.BackpackCompat.block(item);
         if(block==null)return "message.tm_wagon.cargo_unsupported";
-        if((block instanceof AbstractBedBlock&&!com.sange.tm_wagon.compat.BackpackCompat.sleepingBag(item))||block instanceof DoorBlock||block instanceof DoublePlantBlock)return "message.tm_wagon.cargo_unsupported";
+        if((block instanceof AbstractBedBlock&&!(block instanceof StrawBedBlock)&&!com.sange.tm_wagon.compat.BackpackCompat.sleepingBag(item))||block instanceof DoorBlock||block instanceof DoublePlantBlock)return "message.tm_wagon.cargo_unsupported";
         return CargoConfig.allows(block)?null:"message.tm_wagon.cargo_filtered";
     }
     public String place(int slot,ItemStack stack,Player player) {
@@ -244,7 +244,7 @@ public final class CargoHold {
         if(!owner.cargoLive()||owner.cargoBusy()||slot<0||slot>=capacity())return "message.tm_wagon.assembly_busy";
         if(coverObstructed(slot,player))return ACCESS_BLOCKED;
         String restriction=placementRestriction(stack);if(restriction!=null)return restriction;
-        boolean mat=stack.getItem() instanceof StrawMatItem,bag=com.sange.tm_wagon.compat.BackpackCompat.sleepingBag(stack),stool=stack.getItem() instanceof WagonStoolItem;
+        boolean mat=stack.getItem() instanceof BlockItem bedItem&&bedItem.getBlock() instanceof StrawBedBlock,bag=com.sange.tm_wagon.compat.BackpackCompat.sleepingBag(stack),stool=stack.getItem() instanceof WagonStoolItem;
         int span=mat?3:bag?2:1;
         // Place from the clicked foot cell toward the end farther from the player.
         boolean reversed=span>1&&player!=null&&owner.cargoPose().local(player.position()).z<centreAt(slot).z-1e-6;
@@ -257,13 +257,13 @@ public final class CargoHold {
         Vec3 point=owner.cargoPose().point(centreAt(clicked));
         if(player==null||player.level()!=owner.cargoLevel()||player.distanceToSqr(point)>64
             ||!owner.cargoLevel().mayInteract(player,BlockPos.containing(point)))return "message.tm_wagon.protected";
-        var state=carriedState!=null?carriedState:mat?Blocks.HAY_BLOCK.defaultBlockState():bag?((BlockItem)stack.getItem()).getBlock().defaultBlockState():stool?Blocks.OAK_PLANKS.defaultBlockState():CargoPlacement.state(this,slot,stack,player);
+        var state=carriedState!=null?carriedState:mat||bag?((BlockItem)stack.getItem()).getBlock().defaultBlockState():stool?Blocks.OAK_PLANKS.defaultBlockState():CargoPlacement.state(this,slot,stack,player);
         var properties=stack.get(DataComponents.BLOCK_STATE);if(properties!=null)state=properties.apply(state);
         if(state.hasProperty(ChestBlock.TYPE))state=state.setValue(ChestBlock.TYPE,net.minecraft.world.level.block.state.properties.ChestType.SINGLE);
         if(state.getBlock() instanceof ShelfBlock)state=state.setValue(ShelfBlock.POWERED,false)
             .setValue(ShelfBlock.SIDE_CHAIN_PART,net.minecraft.world.level.block.state.properties.SideChainPart.UNCONNECTED);
         if(state.getBlock() instanceof ShulkerBoxBlock)state=state.setValue(ShulkerBoxBlock.FACING,net.minecraft.core.Direction.UP);
-        if(bag)state=state.setValue(BedBlock.FACING,reversed?net.minecraft.core.Direction.SOUTH:net.minecraft.core.Direction.NORTH)
+        if(mat||bag)state=state.setValue(BedBlock.FACING,reversed?net.minecraft.core.Direction.SOUTH:net.minecraft.core.Direction.NORTH)
             .setValue(BedBlock.PART,net.minecraft.world.level.block.state.properties.BedPart.FOOT).setValue(BedBlock.OCCUPIED,false);
         if(span>1)for(int cell=slot;cell>=slot-(span-1)*columns();cell-=columns())
             if(!owner.cargoLevel().mayInteract(player,BlockPos.containing(owner.cargoPose().point(centreAt(cell)))))return "message.tm_wagon.protected";
@@ -365,7 +365,7 @@ public final class CargoHold {
         closeMenus();
         for(int i=0;i<MAX_CAPACITY;i++) {
             var entry=entries[i];if(entry==null)continue;Vec3 pos=position(entry);entries[i]=null;
-            if(drops) { if(!remnants||entry.kind!=CargoEntry.Kind.STOOL&&entry.kind!=CargoEntry.Kind.STRAW_MAT)drop(pos,entry.returnedItem());dropContents(entry,pos,null); }
+            if(drops) { if(!remnants||entry.kind!=CargoEntry.Kind.STOOL)drop(pos,entry.returnedItem());dropContents(entry,pos,null); }
             else entry.inventory.clearContent();
         }
     }

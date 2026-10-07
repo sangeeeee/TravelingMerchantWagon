@@ -7,6 +7,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.animal.horse.AbstractHorse;
 import net.minecraft.world.entity.animal.horse.Horse;
 import net.minecraft.world.entity.animal.horse.Donkey;
+import net.minecraft.world.entity.animal.horse.Mule;
 import net.minecraft.world.entity.animal.horse.SkeletonHorse;
 import net.minecraft.world.entity.animal.horse.ZombieHorse;
 import net.minecraft.world.item.Items;
@@ -21,7 +22,7 @@ import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 public final class HorseHarness {
     public static final String OWNER="TMWagon", GRAVITY="TMPreviousNoGravity", OWNER_POS="TMWagonPosition";
     public static boolean eligible(Entity entity) {
-        return (entity instanceof Horse || entity instanceof Donkey || entity instanceof SkeletonHorse || entity instanceof ZombieHorse)
+        return (entity instanceof Horse || entity instanceof Donkey || entity instanceof Mule || entity instanceof SkeletonHorse || entity instanceof ZombieHorse)
             && !((AbstractHorse)entity).isBaby() && entity.isAlive() && !entity.isPassenger() && !entity.isVehicle();
     }
     public static boolean attached(AbstractHorse horse) {

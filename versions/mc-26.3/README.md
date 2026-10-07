@@ -2,7 +2,7 @@
 
 The **NeoForge target implements wagon gameplay**: assembly and dismantling, all
 three cargo-box sizes, mixed materials, draft animals and driving, oriented
-collisions, cargo storage and workstations, stools, moving straw-mat sleep,
+collisions, cargo storage and workstations, stools, moving straw-bed sleep,
 cabinets, covers and canopies. Carry On, both backpack mods, JEI,
 SwingThroughGrass, Lithium and Iris have target-specific adapters.
 
@@ -35,8 +35,16 @@ loot tables are checked using the current game's data components.
 
 Wool and dye support remains the vanilla sixteen colours. New single-block
 decorations, wool stairs and slabs use ordinary cargo rendering. Native cushions
-are entity-placement items; straw beds are two-block structures. These follow
-the existing cargo policy for entity items and ordinary multi-block beds.
+are entity-placement items and follow the existing cargo policy for entity items.
+
+**Straw beds** replace this edition's former wagon straw-mat item. Place a vanilla
+straw bed on an empty cargo slot to lay the authored wagon bedding model across
+three consecutive slots in the same column, away from the player. Either end can
+face forward. Right-click any part to sleep without changing your respawn point;
+sneak-right-click to retrieve it. Beds on wagons are reusable after waking and
+return a vanilla straw-bed item when removed or when the wagon is dismantled or
+destroyed. Sleep and item ownership survive block/entity conversion. Ordinary
+beds and doors remain excluded from cargo.
 
 ## Toolchain
 
@@ -130,7 +138,8 @@ material-sensitive crafting including Pale Oak and Poplar, 16 native cargo menus
 eight copper chests, thirteen shelf types with stack swaps and content preservation,
 furnace processing and
 brewing (including component fuel speeds), horse hitching and driving,
-moving player sleep and wake without a respawn change, Carry On chest transfer,
+moving player sleep and repeated wake without consuming bedding or changing respawn,
+three-slot straw-bed placement in both directions and intact item recovery, localized item names, Carry On chest transfer,
 and both native backpack menus with contents preserved across cargo save/load.
 It renders block/entity wagons and component items, captures screenshots, and
 exits automatically. Test code is excluded from release JARs. It can also run

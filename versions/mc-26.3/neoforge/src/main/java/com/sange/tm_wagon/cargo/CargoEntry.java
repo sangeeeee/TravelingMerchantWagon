@@ -30,7 +30,7 @@ import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.state.BlockState;
 
 public final class CargoEntry {
-    public enum Kind { ORDINARY, CHEST, BARREL, SHULKER, FURNACE, SMOKER, BLAST_FURNACE, CRAFTING, CARTOGRAPHY, STONECUTTER, ANVIL, SMITHING, LOOM, GRINDSTONE, ENCHANTING, BREWING, CAULDRON, COMPOSTER, ENDER_CHEST, LECTERN, BOOKSHELF, POT, STRAW_MAT, SLEEPING_BAG, STOOL, SHELF }
+    public enum Kind { ORDINARY, CHEST, BARREL, SHULKER, FURNACE, SMOKER, BLAST_FURNACE, CRAFTING, CARTOGRAPHY, STONECUTTER, ANVIL, SMITHING, LOOM, GRINDSTONE, ENCHANTING, BREWING, CAULDRON, COMPOSTER, ENDER_CHEST, LECTERN, BOOKSHELF, POT, STRAW_BED, SLEEPING_BAG, STOOL, SHELF }
     public final UUID id;
     public final ItemStack item;
     public BlockState state;
@@ -56,6 +56,7 @@ public final class CargoEntry {
 
     public static Kind kind(BlockState state) {
         var block=state.getBlock();
+        if(block instanceof StrawBedBlock)return Kind.STRAW_BED;
         if(block==Blocks.CHEST||block==Blocks.TRAPPED_CHEST)return Kind.CHEST;
         if(block==Blocks.BARREL)return Kind.BARREL;
         var storage=CargoContainers.kind(state);if(storage!=Kind.ORDINARY)return storage;
@@ -84,15 +85,15 @@ public final class CargoEntry {
     public CargoEntry(CargoHold hold,UUID id,ItemStack stack,BlockState state) {
         this.hold=hold;this.id=id;item=stack.copyWithCount(1);this.state=state;var detected=kind(state);
         if((detected==Kind.CHEST||detected==Kind.BARREL)&&CargoContainers.protectedContents(stack))detected=Kind.ORDINARY;
-        kind=stack.getItem() instanceof StrawMatItem?Kind.STRAW_MAT:stack.getItem() instanceof WagonStoolItem?Kind.STOOL:com.sange.tm_wagon.compat.BackpackCompat.sleepingBag(stack)?Kind.SLEEPING_BAG:detected;
+        kind=stack.getItem() instanceof WagonStoolItem?Kind.STOOL:com.sange.tm_wagon.compat.BackpackCompat.sleepingBag(stack)?Kind.SLEEPING_BAG:detected;
         recipeCheck=RecipeManager.createCheck(recipeType());
         inventory=new Inventory(switch(kind) {
             case FURNACE,SMOKER,BLAST_FURNACE->3;case CHEST,BARREL,SHULKER->27;
             case BREWING->5;case LECTERN,POT->1;case BOOKSHELF->6;case SHELF->3;default->0;
         });
     }
-    public int footprintRows() { return kind==Kind.STRAW_MAT?3:kind==Kind.SLEEPING_BAG?2:1; }
-    public boolean sleepingSurface() { return kind==Kind.STRAW_MAT||kind==Kind.SLEEPING_BAG; }
+    public int footprintRows() { return kind==Kind.STRAW_BED?3:kind==Kind.SLEEPING_BAG?2:1; }
+    public boolean sleepingSurface() { return kind==Kind.STRAW_BED||kind==Kind.SLEEPING_BAG; }
     public static CargoEntry fromItem(CargoHold hold,ItemStack stack,BlockState state) {
         var lookup=hold.owner().cargoLevel().registryAccess();
         var entry=new CargoEntry(hold,UUID.randomUUID(),stack,state);entry.loading=true;
@@ -248,7 +249,7 @@ public final class CargoEntry {
     }
     public static CargoEntry load(CargoHold hold,CompoundTag tag,HolderLookup.Provider lookup) {
         var item=com.sange.tm_wagon.cargo.CargoNbt.item(lookup,tag.getCompoundOrEmpty("Item"));
-        if(item.isEmpty()||!(item.getItem() instanceof net.minecraft.world.item.BlockItem||item.getItem() instanceof StrawMatItem||item.getItem() instanceof WagonStoolItem||com.sange.tm_wagon.compat.BackpackCompat.matches(item)))return null;
+        if(item.isEmpty()||!(item.getItem() instanceof net.minecraft.world.item.BlockItem||item.getItem() instanceof WagonStoolItem||com.sange.tm_wagon.compat.BackpackCompat.matches(item)))return null;
         var state=NbtUtils.readBlockState(lookup.lookupOrThrow(net.minecraft.core.registries.Registries.BLOCK),tag.getCompoundOrEmpty("State"));
         if(!tag.read("Id",net.minecraft.core.UUIDUtil.CODEC).isPresent())return null;
         var entry=new CargoEntry(hold,tag.read("Id",net.minecraft.core.UUIDUtil.CODEC).orElseThrow(),item,state);

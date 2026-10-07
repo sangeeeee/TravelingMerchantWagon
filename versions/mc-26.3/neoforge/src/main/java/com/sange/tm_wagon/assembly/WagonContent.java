@@ -29,7 +29,6 @@ public final class WagonContent {
     public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(TravelingMerchantWagon.MODID);
     public static final DeferredItem<DismantlingHammerItem> DISMANTLING_HAMMER = ITEMS.registerItem("dismantling_hammer",DismantlingHammerItem::new);
     public static final DeferredItem<com.sange.tm_wagon.cargo.WagonCabinetItem> CABINET = ITEMS.registerItem("wagon_cabinet",com.sange.tm_wagon.cargo.WagonCabinetItem::new,()->new Item.Properties().stacksTo(16));
-    public static final DeferredItem<com.sange.tm_wagon.cargo.StrawMatItem> STRAW_MAT = ITEMS.registerItem("wagon_straw_mat",com.sange.tm_wagon.cargo.StrawMatItem::new,()->new Item.Properties().stacksTo(16));
     public static final DeferredItem<com.sange.tm_wagon.cargo.WagonStoolItem> STOOL = ITEMS.registerItem("wagon_stool",com.sange.tm_wagon.cargo.WagonStoolItem::new,()->new Item.Properties().stacksTo(16));
     public static final DeferredItem<com.sange.tm_wagon.cargo.WagonCoverItem> CARGO_COVER = ITEMS.registerItem("wagon_cargo_cover",com.sange.tm_wagon.cargo.WagonCoverItem::new,()->new Item.Properties().stacksTo(16));
     public static final DeferredItem<com.sange.tm_wagon.cargo.WagonCanopyItem> CANOPY = ITEMS.registerItem("wagon_canopy",com.sange.tm_wagon.cargo.WagonCanopyItem::new,()->new Item.Properties().stacksTo(16));
@@ -43,7 +42,7 @@ public final class WagonContent {
         net.minecraft.world.entity.EntityType.Builder.<com.sange.tm_wagon.entity.CargoSeatEntity>of(com.sange.tm_wagon.entity.CargoSeatEntity::new,net.minecraft.world.entity.MobCategory.MISC)
             .sized(.01F,.01F).noSave().noSummon().clientTrackingRange(12).updateInterval(20).build(net.minecraft.resources.ResourceKey.create(Registries.ENTITY_TYPE,net.minecraft.resources.Identifier.fromNamespaceAndPath("tm_wagon","cargo_seat"))));
     public static final DeferredBlock<AssemblyFrameBlock> FRAME = BLOCKS.registerBlock("wagon_assembly_frame", AssemblyFrameBlock::new, WagonContent::properties);
-    public static final DeferredItem<BlockItem> FRAME_ITEM = ITEMS.registerItem("wagon_assembly_frame", props -> new AssemblyFrameItem(FRAME.get(), props));
+    public static final DeferredItem<BlockItem> FRAME_ITEM = ITEMS.registerItem("wagon_assembly_frame", props -> new AssemblyFrameItem(FRAME.get(), props.useBlockDescriptionPrefix()));
     public static final DeferredBlock<AssemblyPartBlock> PROXY = BLOCKS.registerBlock("assembly_proxy", AssemblyPartBlock::new, WagonContent::properties);
     public static final Map<WagonPart, DeferredBlock<AssemblyPartBlock>> PART_BLOCKS = new EnumMap<>(WagonPart.class);
     public static final Map<WagonPart, DeferredItem<WagonPartItem>> PART_ITEMS = new EnumMap<>(WagonPart.class);
@@ -51,7 +50,7 @@ public final class WagonContent {
         for (WagonPart part : WagonPart.values()) {
             var block = BLOCKS.registerBlock(part.id, AssemblyPartBlock::new, WagonContent::properties);
             PART_BLOCKS.put(part, block);
-            PART_ITEMS.put(part, ITEMS.registerItem(part.id, props -> new WagonPartItem(block.get(), part, props)));
+            PART_ITEMS.put(part, ITEMS.registerItem(part.id, props -> new WagonPartItem(block.get(), part, props.useBlockDescriptionPrefix())));
         }
     }
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<AssemblyFrameBlockEntity>> FRAME_ENTITY = BLOCK_ENTITIES.register("assembly_frame", () -> new BlockEntityType<>(AssemblyFrameBlockEntity::new, FRAME.get()));
@@ -75,7 +74,7 @@ public final class WagonContent {
                 WagonPart.SINGLE_HORSE_SHAFTS,WagonPart.DOUBLE_HORSE_SHAFTS,
                 WagonPart.SMALL_WHEEL,WagonPart.LARGE_WHEEL
             }) com.sange.tm_wagon.material.WagonMaterial.creative(output,PART_ITEMS.get(part).get());
-            output.accept(STRAW_MAT.get());
+            output.accept(net.minecraft.world.item.Items.STRAW_BED);
             com.sange.tm_wagon.material.WagonMaterial.creative(output,STOOL.get());
             com.sange.tm_wagon.material.WagonMaterial.creative(output,CARGO_COVER.get());
             com.sange.tm_wagon.material.WagonMaterial.creative(output,CANOPY.get());

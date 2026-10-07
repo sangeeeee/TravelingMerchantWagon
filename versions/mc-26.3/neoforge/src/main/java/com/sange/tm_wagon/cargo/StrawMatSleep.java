@@ -142,7 +142,7 @@ public final class StrawMatSleep {
             &&!hold.cover().obstructs(hold.owner().cargoPose().local(player.getEyePosition()),clicked);
         if(!(player instanceof ServerPlayer p)||!valid||!mat.sleepingSurface())return "message.tm_wagon.assembly_busy";
         var level=p.level();
-        if(!level.environmentAttributes().getValue(net.minecraft.world.attribute.EnvironmentAttributes.BED_RULE,pointForDimension(hold)).canSleep().equals(net.minecraft.world.attribute.BedRule.Rule.WHEN_DARK))return "message.tm_wagon.mat_dimension";
+        if(!level.environmentAttributes().getValue(mat.kind==CargoEntry.Kind.STRAW_BED?net.minecraft.world.attribute.EnvironmentAttributes.STRAW_BED_RULE:net.minecraft.world.attribute.EnvironmentAttributes.BED_RULE,pointForDimension(hold)).canSleep().equals(net.minecraft.world.attribute.BedRule.Rule.WHEN_DARK))return "message.tm_wagon.mat_dimension";
         if(p.isSleeping()||!p.isAlive()||p.isSpectator())return "message.tm_wagon.mat_unavailable";
         if(mat.sleeper!=null)return "block.minecraft.bed.occupied";
         if(!stable(hold))return "message.tm_wagon.mat_unstable";
@@ -170,7 +170,8 @@ public final class StrawMatSleep {
         send(p,s,true);
         // The scoped ServerPlayer mixin calls Player's implementation: reset the sleep counter,
         // enter the native sleeping pose, and update the native sleeping-player list, without setRespawnPosition.
-        result=p.startSleepInBed((net.minecraft.world.level.block.AbstractBedBlock)net.minecraft.world.level.block.Blocks.BED.pick(net.minecraft.world.item.DyeColor.WHITE),net.minecraft.world.level.block.Blocks.BED.pick(net.minecraft.world.item.DyeColor.WHITE).defaultBlockState(),net.minecraft.world.attribute.BedRule.CAN_SLEEP_WHEN_DARK,bed);
+        var bedState=mat.kind==CargoEntry.Kind.STRAW_BED?mat.state:net.minecraft.world.level.block.Blocks.BED.pick(net.minecraft.world.item.DyeColor.WHITE).defaultBlockState();
+        result=p.startSleepInBed((net.minecraft.world.level.block.AbstractBedBlock)bedState.getBlock(),bedState,net.minecraft.world.attribute.BedRule.CAN_SLEEP_WHEN_DARK,bed);
         if(result.left().isPresent()) { remove(p);mat.sleeper=null;hold.changed(true);send(p,s,false);return problem(result.left().get()); }
         p.connection.teleport(point.x,point.y,point.z,p.getYRot(),p.getXRot());
         return null;
@@ -178,9 +179,9 @@ public final class StrawMatSleep {
     /** Optional AI integrations reserve the same mat as players and use native living-entity sleep. */
     public static boolean sleepMob(CargoHold hold,int anchor,LivingEntity mob) {
         var mat=hold.entry(anchor);var level=mob.level();
-        if(level.isClientSide()||!mob.isAlive()||mob.isSleeping()||mat==null||mat.kind!=CargoEntry.Kind.STRAW_MAT
+        if(level.isClientSide()||!mob.isAlive()||mob.isSleeping()||mat==null||mat.kind!=CargoEntry.Kind.STRAW_BED
             ||mat.sleeper!=null||!hold.owner().cargoLive()||hold.owner().cargoBusy()||hold.owner().cargoLevel()!=level
-            ||!level.environmentAttributes().getValue(net.minecraft.world.attribute.EnvironmentAttributes.BED_RULE,pointForDimension(hold)).canSleep().equals(net.minecraft.world.attribute.BedRule.Rule.WHEN_DARK)||!stable(hold))return false;
+            ||!level.environmentAttributes().getValue(mat.kind==CargoEntry.Kind.STRAW_BED?net.minecraft.world.attribute.EnvironmentAttributes.STRAW_BED_RULE:net.minecraft.world.attribute.EnvironmentAttributes.BED_RULE,pointForDimension(hold)).canSleep().equals(net.minecraft.world.attribute.BedRule.Rule.WHEN_DARK)||!stable(hold))return false;
         Vec3 point=head(hold,anchor);if(mob.distanceToSqr(point)>36)return false;
         Vec3 clear=null;
         for(double lift=0;lift<=.25;lift+=.025) {

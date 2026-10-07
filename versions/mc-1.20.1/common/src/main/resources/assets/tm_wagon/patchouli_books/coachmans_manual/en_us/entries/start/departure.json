@@ -6,7 +6,7 @@
   "pages": [
     {
       "type": "patchouli:text",
-      "text": "Lead an adult horse, donkey, skeleton horse or zombie horse to the shafts. With a lead in hand, use any part of the shafts to hitch it with its existing lead.$(br2)Fill the single hitch, or both double-hitch positions, then drive."
+      "text": "Lead an adult horse, donkey, mule, skeleton horse or zombie horse to the shafts. With a lead in hand, use any part of the shafts to hitch it with its existing lead.$(br2)Fill the single hitch, or both double-hitch positions, then drive."
     },
     {
       "type": "patchouli:text",

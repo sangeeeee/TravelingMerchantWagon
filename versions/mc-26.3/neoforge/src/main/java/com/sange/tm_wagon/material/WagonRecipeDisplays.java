@@ -69,7 +69,7 @@ public final class WagonRecipeDisplays {
                 ?Ingredient.of(wood.log(),wood.stripped()):Ingredient.of(BuiltInRegistries.ITEM.getOrThrow(ItemTags.LOGS));
             case 'T'->recipe.component().equals("cargo_body")?Ingredient.of(wood.trapdoor()):Ingredient.of(BuiltInRegistries.ITEM.getOrThrow(ItemTags.WOODEN_TRAPDOORS));
             case 'W'->Ingredient.of(BuiltInRegistries.ITEM.getValue(Identifier.withDefaultNamespace(material.colour().getName()+"_wool")));
-            case 'I'->Ingredient.of(Items.IRON_INGOT);case 'H'->Ingredient.of(Items.WHEAT);
+            case 'I'->Ingredient.of(Items.IRON_INGOT);
             case 'R'->Ingredient.of(Items.LEAD,Items.VINE);case 'B'->Ingredient.of(Items.BARREL);
             case 'C'->component(WagonPart.CARGO_BODY,wood);case 'U'->component(WagonPart.LONG_CARGO_BODY,wood);
             case 'E'->component(WagonPart.SINGLE_WOODEN_SEAT,wood);case 'D'->component(WagonPart.DOUBLE_WOODEN_SEAT,wood);

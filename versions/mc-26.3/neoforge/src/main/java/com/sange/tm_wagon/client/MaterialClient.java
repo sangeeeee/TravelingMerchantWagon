@@ -25,7 +25,7 @@ public final class MaterialClient {
     @SubscribeEvent public static void reload(AddClientReloadListenersEvent event) {
         event.addListener(Identifier.fromNamespaceAndPath("tm_wagon","materials"),new net.minecraft.server.packs.resources.SimplePreparableReloadListener<Void>() {
             @Override protected Void prepare(net.minecraft.server.packs.resources.ResourceManager manager,net.minecraft.util.profiling.ProfilerFiller profiler) { return null; }
-            @Override protected void apply(Void unused,net.minecraft.server.packs.resources.ResourceManager manager,net.minecraft.util.profiling.ProfilerFiller profiler) { MaterialRenderer.reload(manager);TextureTiling.clear();CanopyRenderer.clear();CargoCoverRenderer.clear();CabinetRenderer.clear(); }
+            @Override protected void apply(Void unused,net.minecraft.server.packs.resources.ResourceManager manager,net.minecraft.util.profiling.ProfilerFiller profiler) { MaterialRenderer.reload(manager);TextureTiling.clear();CanopyRenderer.clear();CargoCoverRenderer.clear();CargoStrawBedRenderer.clear();CabinetRenderer.clear(); }
         });
     }
     private MaterialClient() {}

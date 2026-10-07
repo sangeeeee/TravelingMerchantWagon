@@ -39,7 +39,7 @@
   "message.tm_wagon.seats_full": "All wagon seats are occupied.",
   "message.tm_wagon.seat_occupied": "This seat is occupied. Choose another seat.",
   "message.tm_wagon.hitch_occupied": "This hitch position is occupied.",
-  "message.tm_wagon.lead_horse_required": "Lead an adult horse, donkey, skeleton horse or zombie horse here first.",
+  "message.tm_wagon.lead_horse_required": "Lead an adult horse, donkey, mule, skeleton horse or zombie horse here first.",
   "message.tm_wagon.hitch_blocked": "The horse needs clear space and nearby ground to stand on.",
   "subtitles.tm_wagon.wagon_roll": "Wagon wheels creak",
   "message.tm_wagon.cargo_unsupported": "This block cannot be carried as cargo. Multi-block structures are not supported.",

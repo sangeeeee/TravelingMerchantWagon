@@ -1,7 +1,7 @@
 {
   "values": [
     "tm_wagon:wagon_stool",
-    "tm_wagon:wagon_straw_mat",
+    "minecraft:straw_bed",
     "tm_wagon:wagon_cabinet",
     "tm_wagon:wagon_cargo_cover",
     "tm_wagon:wagon_canopy"

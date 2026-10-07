@@ -25,7 +25,7 @@ import tschipp.carryon.common.config.ListHandler;
  * The real world is never temporarily changed to stage the carried block. */
 public final class CarryOnCargo {
     public static boolean pickup(CargoHold hold,CargoEntry entry,Player player) {
-        if(entry.kind==CargoEntry.Kind.STRAW_MAT||entry.kind==CargoEntry.Kind.STOOL)return false;
+        if(entry.kind==CargoEntry.Kind.STRAW_BED||entry.kind==CargoEntry.Kind.STOOL)return false;
         if(!(player instanceof ServerPlayer server)||!(entry.item.getItem() instanceof BlockItem||com.sange.tm_wagon.compat.BackpackCompat.matches(entry.item))
             ||!hold.valid(entry,player))return false;
         var data=CarryOnDataManager.getCarryData(player);

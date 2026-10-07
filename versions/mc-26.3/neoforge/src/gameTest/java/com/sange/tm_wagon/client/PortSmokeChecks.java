@@ -28,6 +28,9 @@ final class PortSmokeChecks {
     static void require(boolean condition,String message) { if(!condition)throw new IllegalStateException(message); }
     static void prepare(MinecraftServer server,ServerPlayer player,BlockPos origin) {
         var level=player.level();
+        require(WagonContent.FRAME_ITEM.get().getDescriptionId().equals("block.tm_wagon.wagon_assembly_frame"),"Assembly jack translation prefix");
+        for(var part:WagonPart.values())require(WagonContent.PART_ITEMS.get(part).get().getDescriptionId().equals("block.tm_wagon."+part.id),"Component translation prefix "+part);
+        require(!BuiltInRegistries.ITEM.containsKey(Identifier.fromNamespaceAndPath("tm_wagon","wagon_straw_mat")),"Legacy mat item is not registered");
         var crafting=net.minecraft.world.item.crafting.CraftingInput.of(3,3,List.of(
             new ItemStack(Items.SPRUCE_PLANKS),new ItemStack(Items.SPRUCE_PLANKS),new ItemStack(Items.SPRUCE_PLANKS),
             new ItemStack(Items.SPRUCE_PLANKS),new ItemStack(Items.STRIPPED_SPRUCE_LOG),new ItemStack(Items.SPRUCE_TRAPDOOR),
@@ -42,6 +45,10 @@ final class PortSmokeChecks {
             frame.cargo().entry(0).inventory.setItem(0,new ItemStack(Items.DIAMOND,4));
             require(frame.cargo().place(1,new ItemStack(BuiltInRegistries.ITEM.getValue(Identifier.withDefaultNamespace("poplar_shelf"))),player)==null,"Frame shelf placement");
             frame.cargo().entry(1).inventory.setItem(2,new ItemStack(Items.APPLE,5));
+            player.setPos(frame.cargoPose().point(new Vec3(0,3,4)));
+            int bedAnchor=frame.cargo().capacity()-2;
+            var bedError=frame.cargo().place(bedAnchor,new ItemStack(Items.STRAW_BED),player);require(bedError==null,"Block straw bed placement "+i+": "+bedError);
+            require(frame.cargo().entry(bedAnchor-2*frame.cargo().columns())==frame.cargo().entry(bedAnchor)&&frame.cargo().entry(bedAnchor-frame.cargo().columns())==frame.cargo().entry(bedAnchor),"Block bed reserves three cells");
             player.setPos(Vec3.atCenterOf(origin).add(-8,4,-9));
             var materials=frame.materials();
             require(frame.toggleFrame(null)==null,"Block to entity assembly");
@@ -49,6 +56,7 @@ final class PortSmokeChecks {
                 .filter(w->w.position().distanceToSqr(Vec3.atBottomCenterOf(frame.getBlockPos()))<1).findFirst().orElseThrow();
             require(wagon.cargo().entry(0).inventory.getItem(0).getCount()==4&&frame.cargo().entry(0)==null,"Single inventory owner after entity conversion");
             require(wagon.cargo().entry(1).inventory.getItem(2).getCount()==5&&frame.cargo().entry(1)==null,"Shelf inventory owner after entity conversion");
+            require(wagon.cargo().entry(bedAnchor).item.is(Items.STRAW_BED)&&frame.cargo().entry(bedAnchor)==null,"Straw bed single owner after assembly");
             require(wagon.materials().equals(materials),"Materials preserved after assembly");
             transfers.add(new Transfer(frame,wagon,materials));
         }
@@ -58,19 +66,31 @@ final class PortSmokeChecks {
         player.setPos(wagon.pose().point(new Vec3(0,3,0)));
         workstations(wagon,player);
         newerCargo(wagon,player);
+        strawBeds(wagon,player);
+        player.setPos(wagon.pose().point(new Vec3(0,3,0)));
         optionalCargo(wagon,player);
         player.setPos(wagon.pose().point(new Vec3(0,3,-2)));
         require(player.startRiding(wagon),"Driver boarding");
         for(int slot=0;slot<wagon.horseCapacity();slot++) {
-            var horse=net.minecraft.world.entity.EntityTypes.HORSE.create(level,EntitySpawnReason.TRIGGERED);
+            var horse=net.minecraft.world.entity.EntityTypes.MULE.create(level,EntitySpawnReason.TRIGGERED);
+            horse.setAge(-24000);require(!HorseHarness.eligible(horse),"Baby mule cannot pull a wagon");
             horse.setAge(0);horse.setPos(wagon.horsePosition(slot).add(2,0,0));level.addFreshEntity(horse);horse.setLeashedTo(player,true);
-            require(wagon.attachHorse(player,horse,slot)==null,"Horse hitching");
+            require(HorseHarness.eligible(horse)&&wagon.attachHorse(player,horse,slot)==null,"Adult mule hitching");
+            require(HorseHarness.owner(horse)==wagon&&horse.getLeashHolder()==wagon,"Mule harness ownership");
         }
         var start=wagon.position();
         for(int t=0;t<35;t++) {wagon.acceptInput(player,1,t>15?1:0,t>10);wagon.tick();}
         require(wagon.position().distanceToSqr(start)>.3,"Powered forward motion and steering");
         require(!wagon.horse(0).isEating(),"Pulling horse eating animation");
-        player.stopRiding();wagon.detachAllHorses();wagon.discard();
+        player.stopRiding();
+        var mule=wagon.horse(0);var muleId=mule.getUUID();
+        var leadArea=wagon.getBoundingBox().inflate(15);
+        int beforeRefund=level.getEntitiesOfClass(net.minecraft.world.entity.item.ItemEntity.class,leadArea).stream().filter(e->e.getItem().is(Items.LEAD)).mapToInt(e->e.getItem().getCount()).sum();
+        wagon.detachHorse(muleId,true);wagon.detachHorse(muleId,true);
+        int afterRefund=level.getEntitiesOfClass(net.minecraft.world.entity.item.ItemEntity.class,leadArea).stream().filter(e->e.getItem().is(Items.LEAD)).mapToInt(e->e.getItem().getCount()).sum();
+        require(afterRefund-beforeRefund==1&&!HorseHarness.attached(mule)&&!mule.isNoGravity(),"Mule detachment refunds one lead and restores movement");
+        wagon.detachAllHorses();wagon.discard();
+        com.mojang.logging.LogUtils.getLogger().info("TM_WAGON_26_3_MULE_PASS: juvenile rejection, adult hitching, driving and single lead refund");
         player.connection.teleport(origin.getX()-6,origin.getY()+5,origin.getZ()-9,-40,20);
         due=level.getGameTime()+24;stage=1;
     }
@@ -173,8 +193,35 @@ final class PortSmokeChecks {
         require(hold.take(0,player)==null&&hold.entry(0)==null,"Shelf cargo removal");
         var dropped=player.level().getEntitiesOfClass(net.minecraft.world.entity.item.ItemEntity.class,area).stream().filter(i->i.getItem().is(Items.NETHER_STAR)).mapToInt(i->i.getItem().getCount()).sum();
         require(dropped-previous==7,"Shelf contents drop exactly once");
-        require(!CargoHold.allowed(new ItemStack(BuiltInRegistries.ITEM.getValue(Identifier.withDefaultNamespace("straw_bed")))),"New abstract beds remain multi-block cargo");
+        require(CargoHold.allowed(new ItemStack(Items.STRAW_BED)),"Native straw beds supported as three-slot bedding");
+        require(!CargoHold.allowed(new ItemStack(Blocks.BED.pick(DyeColor.WHITE)))&&!CargoHold.allowed(new ItemStack(Items.OAK_DOOR)),"Ordinary beds and doors remain unsupported");
         com.mojang.logging.LogUtils.getLogger().info("TM_WAGON_26_3_NEW_CARGO_PASS: both new wood recipes, 8 copper chests, 13 shelf materials, swaps, persistence and bounded visual data");
+    }
+    static void strawBeds(WagonEntity wagon,ServerPlayer player) {
+        var hold=wagon.cargo();var lookup=player.level().registryAccess();
+        player.setGameMode(net.minecraft.world.level.GameType.SURVIVAL);
+        var stack=new ItemStack(Items.STRAW_BED,2);
+        stack.set(DataComponents.CUSTOM_NAME,net.minecraft.network.chat.Component.literal("Test bedding"));
+        player.setPos(wagon.pose().point(new Vec3(0,3,-4)));
+        require(hold.place(0,stack,player)==null&&stack.getCount()==1,"Front placement consumes exactly one native bed");
+        var bed=hold.entry(0);require(bed==hold.entry(2)&&bed==hold.entry(4)&&bed.reversed&&bed.footprintRows()==3&&hold.occupiedSlots()==3,"Front placement shares three reserved cells");
+        require("message.tm_wagon.cargo_occupied".equals(hold.place(2,new ItemStack(Items.STONE),player)),"Reserved bedding cell rejects other cargo");
+        require("message.tm_wagon.mat_space".equals(hold.place(8,stack,player))&&stack.getCount()==1,"Insufficient bed space preserves source item");
+        hold.load(hold.save(lookup,false),lookup);bed=hold.entry(2);
+        require(bed.reversed&&bed.item.is(Items.STRAW_BED)&&bed.item.getHoverName().getString().equals("Test bedding"),"Bed save/load retains direction and item components");
+        long before=player.getInventory().countItem(Items.STRAW_BED);
+        require(hold.take(2,player)==null&&hold.occupiedSlots()==0,"Bed removed through its middle cell");
+        require(player.getInventory().countItem(Items.STRAW_BED)==before+1,"Bed removal returns one native item");
+        player.setPos(wagon.pose().point(new Vec3(0,3,4)));
+        require(hold.place(8,stack,player)==null&&stack.isEmpty(),"Rear placement consumes remaining bed");
+        bed=hold.entry(8);require(!bed.reversed&&bed==hold.entry(6)&&bed==hold.entry(4),"Rear placement uses the opposite sleeping direction");
+        var area=com.sange.tm_wagon.physics.OrientedBox.at(hold.matBounds(8).inflate(3),wagon.pose()).bounds();
+        long droppedBefore=player.level().getEntitiesOfClass(net.minecraft.world.entity.item.ItemEntity.class,area).stream().filter(e->e.getItem().is(Items.STRAW_BED)).mapToInt(e->e.getItem().getCount()).sum();
+        hold.destroy(true);hold.destroy(true);
+        long droppedAfter=player.level().getEntitiesOfClass(net.minecraft.world.entity.item.ItemEntity.class,area).stream().filter(e->e.getItem().is(Items.STRAW_BED)).mapToInt(e->e.getItem().getCount()).sum();
+        require(droppedAfter-droppedBefore==1,"Wrecked bedding drops once as a native straw bed");
+        player.setGameMode(net.minecraft.world.level.GameType.CREATIVE);
+        com.mojang.logging.LogUtils.getLogger().info("TM_WAGON_26_3_STRAW_BED_PASS: both directions, three cells, consumption, save/load, removal and one-time destruction drop");
     }
     private static ItemStack builtinItem(String id) { return new ItemStack(BuiltInRegistries.ITEM.getValue(Identifier.withDefaultNamespace(id))); }
     static void tick(MinecraftServer server) {
@@ -191,6 +238,7 @@ final class PortSmokeChecks {
                     require(transfer.wagon.isRemoved()&&AssemblyFrameBlockEntity.complete(transfer.frame.parts()),"Restoration completion");
                     require(transfer.frame.cargo().entry(0).inventory.getItem(0).getCount()==4,"Restored cargo contents");
                     require(transfer.frame.cargo().entry(1).inventory.getItem(2).getCount()==5,"Restored shelf contents");
+                    require(transfer.frame.cargo().entry(transfer.frame.cargo().capacity()-2).item.is(Items.STRAW_BED)&&transfer.frame.cargo().entry(transfer.frame.cargo().capacity()-2-2*transfer.frame.cargo().columns())==transfer.frame.cargo().entry(transfer.frame.cargo().capacity()-2),"Restored native bedding and reserved cells");
                     require(transfer.frame.materials().equals(transfer.materials),"Restored mixed materials");
                 }
                 stage=0;com.mojang.logging.LogUtils.getLogger().info("TM_WAGON_26_3_TRANSFER_PASS: animated round trip, single-owner cargo, material preservation, horse driving, optional cargo bridges");

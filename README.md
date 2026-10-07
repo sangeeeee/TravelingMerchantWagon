@@ -10,7 +10,7 @@ Available for NeoForge 26.3, NeoForge/Fabric 1.21.1 and Forge 1.20.1. Fabric 26.
 ## What can you do?
 
 - **Build your own wagon.** Choose a standard, extended or wide cargo box, single- or double-horse shafts, and a one-, two- or three-person driver's bench. Mix wooden parts and choose colours for cushions and fabric.
-- **Drive or push it.** Hitch horses, donkeys, skeleton horses or zombie horses with leads. Drive from the driver's position, build up speed, brake and reverse. A pair of hitched animals accelerates faster and softens cargo's effect on sprint speed. Push an unhitched wagon to reposition it or help it out of a difficult spot.
+- **Drive or push it.** Hitch horses, donkeys, mules, skeleton horses or zombie horses with leads. Drive from the driver's position, build up speed, brake and reverse. A pair of hitched animals accelerates faster and softens cargo's effect on sprint speed. Push an unhitched wagon to reposition it or help it out of a difficult spot.
 - **Carry useful cargo.** Place permitted blocks in cargo slots. Open supported containers and use workstations directly on board. Cargo and stored items stay with the wagon when it changes form.
 - **Make room for companions.** Add cargo stools for passengers, or straw mats for sleeping through the night. Sleeping players and maids stay with a moving wagon.
 - **Fit optional equipment.** Add an under-seat cabinet, a rollable cargo cover, or a canvas canopy with opening curtains. Covers and canopies adapt to your cargo box.

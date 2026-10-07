@@ -26,11 +26,12 @@ public final class CargoRenderer {
         CanopyRenderer.render(hold.canopy(),hold.owner().cargoBody(),poses,buffers,light,overlay);
         for(int slot=0;slot<hold.capacity();slot++) {
             var entry=hold.entry(slot);if(entry==null||hold.anchorSlot(slot)!=slot)continue;var p=hold.centreAt(slot);
-            if(entry.kind==CargoEntry.Kind.STRAW_MAT) {
+            if(entry.kind==CargoEntry.Kind.STRAW_BED) {
                 poses.pushPose();poses.translate(p.x,CargoHold.FLOOR+1,p.z-.70);
                 if(entry.reversed)poses.rotate(com.mojang.math.Axis.YP.rotationDegrees(180));
                 poses.scale(2,2,2);
-                drawItem(mc,entry.item,entry.holdOwnerLevel(),poses,buffers,light,overlay);
+                poses.translate(-.5,-.5,-.5);
+                CargoStrawBedRenderer.render(poses,buffers,light,overlay);
                 poses.popPose();continue;
             }
             if(entry.kind==CargoEntry.Kind.SLEEPING_BAG) {

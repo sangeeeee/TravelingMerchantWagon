@@ -39,7 +39,7 @@
   "message.tm_wagon.seats_full": "Omnes sedes occupatae sunt.",
   "message.tm_wagon.seat_occupied": "Haec sedes occupata est. Aliam elige.",
   "message.tm_wagon.hitch_occupied": "Hic locus iungendi occupatus est.",
-  "message.tm_wagon.lead_horse_required": "Equum adultum, asinum, equum sceleti aut equum mortuum loro huc primum duc.",
+  "message.tm_wagon.lead_horse_required": "Equum adultum, asinum, mulum, equum sceleti aut equum mortuum loro huc primum duc.",
   "message.tm_wagon.hitch_blocked": "Animal spatio libero et terra propinqua ad standum eget.",
   "subtitles.tm_wagon.wagon_roll": "Rotae plaustri strident",
   "message.tm_wagon.cargo_unsupported": "Hic cubus pro merce vehi non potest. Structurae plurium cuborum non admittuntur.",

@@ -40,6 +40,12 @@ public final class PortClientSmoke {
                 try { Class.forName("net.irisshaders.iris.shadows.ShadowRenderer"); }
                 catch(ClassNotFoundException missing) { throw new IllegalStateException("Iris shadow bridge target missing",missing); }
             }
+            for(var item:BuiltInRegistries.ITEM)if(BuiltInRegistries.ITEM.getKey(item).getNamespace().equals("tm_wagon")) {
+                var stack=new WagonMaterial(WoodMaterial.OAK,DyeColor.WHITE).stack(item);
+                var name=stack.getHoverName().getString();
+                if(name.contains("item.tm_wagon.")||name.contains("block.tm_wagon."))throw new IllegalStateException("Missing item localization: "+name);
+            }
+            com.mojang.logging.LogUtils.getLogger().info("TM_WAGON_26_3_LOCALIZATION_PASS: every registered wagon item has a translated name");
             started=true;var server=mc.getSingleplayerServer();var playerId=mc.player.getUUID();
             server.execute(()->{try {
                 var player=server.getPlayerList().getPlayer(playerId);var level=player.level();var origin=player.blockPosition().offset(0,0,7);
@@ -68,7 +74,7 @@ public final class PortClientSmoke {
                     var cabinet=new net.minecraft.nbt.CompoundTag();cabinet.putBoolean("Installed",true);cabinet.putInt("Rows",6);cabinet.put("Material",new WagonMaterial(WoodMaterial.PALE_OAK,DyeColor.WHITE).save());extra.put("Cabinet",cabinet);w.cargo().load(extra,level.registryAccess());
                     w.cargo().place(0,new ItemStack(Items.CHEST),player);w.cargo().place(1,new ItemStack(WagonContent.STOOL.get()),player);
                     if(i==0) {
-                        w.cargo().cover().load(new net.minecraft.nbt.CompoundTag());player.setPos(w.pose().point(new Vec3(0,3,4)));var matError=w.cargo().place(8,new ItemStack(WagonContent.STRAW_MAT.get()),player);if(matError!=null)throw new IllegalStateException("Mat placement: "+matError);
+                        w.cargo().cover().load(new net.minecraft.nbt.CompoundTag());player.setPos(w.pose().point(new Vec3(0,3,4)));var matError=w.cargo().place(8,new ItemStack(Items.STRAW_BED),player);if(matError!=null)throw new IllegalStateException("Mat placement: "+matError);
                         var oldRespawn=player.getRespawnConfig();
                         level.getServer().getCommands().performPrefixedCommand(level.getServer().createCommandSourceStack(),"time set night");level.updateSkyBrightness();
                         player.setPos(w.cargo().position(w.cargo().entry(8)));var sleep=StrawMatSleep.sleep(w.cargo(),w.cargo().entry(8),player);
@@ -76,6 +82,12 @@ public final class PortClientSmoke {
                         w.setPos(w.position().add(1,0,0));w.setYRot(45);StrawMatSleep.follow(player);
                         if(!player.isSleeping())throw new IllegalStateException("Moving sleep ended");
                         if(!java.util.Objects.equals(oldRespawn,player.getRespawnConfig()))throw new IllegalStateException("Mat changed respawn");player.stopSleepInBed(true,true);
+                        var bedding=w.cargo().entry(8);
+                        if(bedding==null||!bedding.item.is(Items.STRAW_BED))throw new IllegalStateException("Waking consumed wagon straw bed");
+                        player.setPos(w.cargo().position(bedding));
+                        var repeat=StrawMatSleep.sleep(w.cargo(),bedding,player);if(repeat!=null)throw new IllegalStateException("Repeated bed sleep: "+repeat);
+                        player.stopSleepInBed(true,true);
+                        if(w.cargo().entry(8)!=bedding)throw new IllegalStateException("Second wake consumed wagon bedding");
                         w.cargo().cover().load(accessory);
                     }
                     if(i==2) {
@@ -95,7 +107,7 @@ public final class PortClientSmoke {
         }
         if(passed&&++ticks==80) {
             var server=mc.getSingleplayerServer();var playerId=mc.player.getUUID();
-            server.execute(()->{var player=server.getPlayerList().getPlayer(playerId);var start=PortSmokeChecks.transfers.getFirst().frame().getBlockPos();player.connection.teleport(start.getX()-6,start.getY()+5,start.getZ()+1,-40,20);});
+            server.execute(()->{var player=server.getPlayerList().getPlayer(playerId);var start=PortSmokeChecks.transfers.getFirst().frame().getBlockPos();player.getAbilities().flying=true;player.onUpdateAbilities();player.connection.teleport(start.getX()-3,start.getY()+5,start.getZ()+3,-135,43);});
         }
         if(passed&&ticks==120)mc.gui.setScreen(new ItemPreview());
         if(passed&&(ticks==70||ticks==110||ticks==160))net.minecraft.client.Screenshot.grab(mc.gameDirectory,ticks==70?"world.png":ticks==110?"accessories.png":"items.png",mc.gameRenderer.mainRenderTarget(),1,c->{});
@@ -109,7 +121,7 @@ public final class PortClientSmoke {
             int i=0;g.fill(0,0,width,height,0xffbbb4a8);
             g.item(WagonContent.FRAME_ITEM.get().getDefaultInstance(),20,20);
             for(var part:WagonPart.values())g.item(new WagonMaterial(WoodMaterial.SPRUCE,DyeColor.BLUE).stack(WagonContent.PART_ITEMS.get(part).get()),50+(i++%8)*28,20+(i/8)*32);
-            for(var item:new Item[]{WagonContent.CABINET.get(),WagonContent.CANOPY.get(),WagonContent.CARGO_COVER.get(),WagonContent.STOOL.get(),WagonContent.STRAW_MAT.get()})g.item(new ItemStack(item),50+(i++%8)*28,90+(i/8)*32);
+            for(var item:new Item[]{WagonContent.CABINET.get(),WagonContent.CANOPY.get(),WagonContent.CARGO_COVER.get(),WagonContent.STOOL.get(),Items.STRAW_BED})g.item(new ItemStack(item),50+(i++%8)*28,90+(i/8)*32);
             int row=0;
             for(var wood:new WoodMaterial[]{WoodMaterial.PALE_OAK,WoodMaterial.POPLAR}) {
                 int column=0;
